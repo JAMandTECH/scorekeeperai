@@ -80,18 +80,20 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 🔴🔴🔴 LOGOUT BUTTON HEADER - ALWAYS VISIBLE 🔴🔴🔴 */}
-      <div className="bg-red-600 text-white py-3 px-6 flex items-center justify-between sticky top-0 z-50 shadow-lg">
+      {/* 🔴 MODERN DARK LOGOUT BANNER - ALWAYS VISIBLE 🔴 */}
+      <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white py-4 px-6 flex items-center justify-between sticky top-0 z-50 shadow-xl border-b border-gray-700">
         <div className="flex items-center gap-4">
-          <Trophy className="w-6 h-6" />
+          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shadow-lg">
+            <Trophy className="w-6 h-6 text-white" />
+          </div>
           <div>
             <h1 className="font-bold text-lg">ALAB Sports Management</h1>
-            <p className="text-xs opacity-90">{user?.full_name} • {isSuperAdmin ? 'Super Admin' : 'Admin'}</p>
+            <p className="text-xs text-gray-400">{user?.full_name} • {isSuperAdmin ? 'Super Admin' : 'Admin'}</p>
           </div>
         </div>
         <Button 
           onClick={handleLogout}
-          className="bg-white text-red-600 hover:bg-red-50 font-bold text-lg px-6 py-3 h-auto"
+          className="bg-white text-gray-900 hover:bg-gray-100 font-bold text-base px-6 py-3 h-auto shadow-lg hover:shadow-xl transition-all"
         >
           <LogOut className="w-5 h-5 mr-2" />
           LOGOUT
