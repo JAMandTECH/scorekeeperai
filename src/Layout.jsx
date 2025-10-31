@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { 
   Trophy, Building2, Users, Calendar, BarChart3, 
-  PlayCircle, LogOut, Shield, Menu
+  PlayCircle, LogOut, Shield, Menu, ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -173,33 +182,48 @@ export default function Layout({ children, currentPageName }) {
             </div>
           </div>
 
-          {/* Desktop User Info */}
-          <div className="hidden lg:flex items-center gap-3">
-            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-xs font-semibold text-blue-700">
-                  {user?.full_name?.[0] || 'U'}
-                </span>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">{user?.full_name}</p>
-                {isSuperAdmin && (
-                  <p className="text-xs text-blue-600 flex items-center gap-1">
-                    <Shield className="w-3 h-3" />
-                    Super Admin
-                  </p>
-                )}
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
+          {/* Desktop User Dropdown */}
+          <div className="hidden lg:block">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2 h-10">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-semibold text-blue-700">
+                      {user?.full_name?.[0] || 'U'}
+                    </span>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-gray-900">{user?.full_name}</p>
+                    {isSuperAdmin && (
+                      <p className="text-xs text-blue-600">Super Admin</p>
+                    )}
+                  </div>
+                  <ChevronDown className="w-4 h-4 text-gray-500 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div>
+                    <p className="font-medium">{user?.full_name}</p>
+                    <p className="text-xs text-gray-500 font-normal">{user?.email}</p>
+                    {isSuperAdmin && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <Shield className="w-3 h-3 text-blue-600" />
+                        <span className="text-xs text-blue-600">Super Admin</span>
+                      </div>
+                    )}
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleLogout} 
+                  className="text-red-600 cursor-pointer focus:text-red-700 focus:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Mobile Logout Button */}
