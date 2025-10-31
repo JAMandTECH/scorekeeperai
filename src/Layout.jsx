@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { 
   Trophy, Building2, Users, Calendar, BarChart3, 
-  PlayCircle, LogOut, Shield, Menu, X
+  PlayCircle, LogOut, Shield, Menu, X, KeyRound
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -40,6 +40,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Organizations", url: createPageUrl("Organizations"), icon: Building2 },
     { title: "All Teams", url: createPageUrl("AllTeams"), icon: Users },
     { title: "All Games", url: createPageUrl("AllGames"), icon: Calendar },
+    { title: "Admin Approvals", url: createPageUrl("AdminApprovals"), icon: KeyRound },
   ];
 
   const adminNav = [
@@ -61,7 +62,8 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  if (currentPageName === "Home" || currentPageName === "SuperAdminSetup") {
+  if (currentPageName === "Home" || currentPageName === "SuperAdminSetup" || 
+      currentPageName === "RequestAdminAccess" || currentPageName === "VerifyAdminCode") {
     return <div>{children}</div>;
   }
 

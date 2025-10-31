@@ -9,6 +9,9 @@ import Statistics from './pages/Statistics';
 import AllTeams from './pages/AllTeams';
 import AllGames from './pages/AllGames';
 import SuperAdminSetup from './pages/SuperAdminSetup';
+import RequestAdminAccess from './pages/RequestAdminAccess';
+import AdminApprovals from './pages/AdminApprovals';
+import VerifyAdminCode from './pages/VerifyAdminCode';
 import Layout from './Layout.jsx';
 
 
@@ -24,6 +27,9 @@ export const PAGES = {
     "AllTeams": AllTeams,
     "AllGames": AllGames,
     "SuperAdminSetup": SuperAdminSetup,
+    "RequestAdminAccess": RequestAdminAccess,
+    "AdminApprovals": AdminApprovals,
+    "VerifyAdminCode": VerifyAdminCode,
 }
 
 export const pagesConfig = {

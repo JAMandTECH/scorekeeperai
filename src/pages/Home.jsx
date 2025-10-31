@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -15,6 +16,10 @@ export default function Home() {
     }
   };
 
+  const handleRequestAccess = () => {
+    window.location.href = createPageUrl("RequestAdminAccess");
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -28,10 +33,16 @@ export default function Home() {
               <span className="text-xl font-semibold text-gray-900">ALAB</span>
             </div>
             <div className="flex items-center gap-3">
+              <Link to={createPageUrl("RequestAdminAccess")}>
+                <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
+                  <Shield className="w-4 h-4 mr-2" />
+                  Request Admin Access
+                </Button>
+              </Link>
               <Link to={createPageUrl("SuperAdminSetup")}>
                 <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
                   <Shield className="w-4 h-4 mr-2" />
-                  Admin Setup
+                  Super Admin Setup
                 </Button>
               </Link>
               <Button onClick={handleGetStarted} className="bg-blue-600 hover:bg-blue-700">
@@ -67,16 +78,15 @@ export default function Home() {
                 Get Started
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-              <Link to={createPageUrl("SuperAdminSetup")}>
-                <Button 
-                  size="lg"
-                  variant="outline"
-                  className="border-gray-300 hover:bg-gray-50 px-8 h-12 w-full"
-                >
-                  <Shield className="w-4 h-4 mr-2" />
-                  Setup as Admin
-                </Button>
-              </Link>
+              <Button 
+                onClick={handleRequestAccess}
+                size="lg"
+                variant="outline"
+                className="border-gray-300 hover:bg-gray-50 px-8 h-12"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Request Admin Access
+              </Button>
             </div>
           </div>
 
