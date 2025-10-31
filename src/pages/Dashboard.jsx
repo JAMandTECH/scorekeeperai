@@ -93,10 +93,10 @@ export default function Dashboard() {
         </div>
         <button 
           onClick={handleLogout}
-          className="text-white hover:text-gray-300 font-bold text-lg flex items-center gap-2 transition-colors"
+          className="text-white hover:text-gray-300 transition-colors p-2"
+          title="Logout"
         >
-          <LogOut className="w-5 h-5" />
-          LOGOUT
+          <LogOut className="w-6 h-6" />
         </button>
       </div>
 
