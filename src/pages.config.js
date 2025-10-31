@@ -3,6 +3,7 @@ import Dashboard from './pages/Dashboard';
 import Organizations from './pages/Organizations';
 import Teams from './pages/Teams';
 import Players from './pages/Players';
+import Games from './pages/Games';
 import Layout from './Layout.jsx';
 
 
@@ -12,6 +13,7 @@ export const PAGES = {
     "Organizations": Organizations,
     "Teams": Teams,
     "Players": Players,
+    "Games": Games,
 }
 
 export const pagesConfig = {
