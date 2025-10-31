@@ -1,24 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { 
   Trophy, Building2, Users, Calendar, BarChart3, 
-  PlayCircle, LogOut, Shield, Menu, ChevronDown
+  PlayCircle, LogOut, Shield, Menu
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
-  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -145,7 +136,7 @@ export default function Layout({ children, currentPageName }) {
             <Button
               variant="outline"
               size="sm"
-              className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+              className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
               onClick={handleLogout}
             >
               <LogOut className="w-4 h-4 mr-2" />
@@ -182,47 +173,40 @@ export default function Layout({ children, currentPageName }) {
             </div>
           </div>
 
-          {/* Desktop User Menu */}
-          <div className="hidden lg:flex items-center gap-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-semibold text-blue-700">
-                      {user?.full_name?.[0] || 'U'}
-                    </span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">{user?.full_name}</span>
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div>
-                    <p className="font-medium">{user?.full_name}</p>
-                    <p className="text-xs text-gray-500">{user?.email}</p>
-                    {isSuperAdmin && (
-                      <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
-                        <Shield className="w-3 h-3" />
-                        Super Admin
-                      </p>
-                    )}
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {/* Desktop User Info */}
+          <div className="hidden lg:flex items-center gap-3">
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-xs font-semibold text-blue-700">
+                  {user?.full_name?.[0] || 'U'}
+                </span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">{user?.full_name}</p>
+                {isSuperAdmin && (
+                  <p className="text-xs text-blue-600 flex items-center gap-1">
+                    <Shield className="w-3 h-3" />
+                    Super Admin
+                  </p>
+                )}
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
           </div>
 
           {/* Mobile Logout Button */}
           <Button
             variant="ghost"
             size="sm"
-            className="lg:hidden text-red-600"
+            className="lg:hidden text-red-600 hover:bg-red-50"
             onClick={handleLogout}
           >
             <LogOut className="w-4 h-4" />
