@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Trophy, Users, BarChart3, Video, ArrowRight, Shield } from "lucide-react";
+import { Trophy, Users, BarChart3, Calendar, ArrowRight, Shield, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
@@ -16,185 +16,222 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black opacity-90"></div>
-        <div 
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&q=80&w=1080')",
-            backgroundSize: "cover",
-            backgroundPosition: "center"
-          }}
-        ></div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 py-24 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/20 rounded-full px-4 py-2 mb-6">
-                <Trophy className="w-4 h-4 text-yellow-400" />
-                <span className="text-yellow-400 text-sm font-medium">Professional Sports Management</span>
+    <div className="min-h-screen bg-white">
+      {/* Navigation */}
+      <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Trophy className="w-5 h-5 text-white" />
               </div>
-              
-              <h1 className="text-5xl md:text-6xl font-bold mb-6">
-                <span className="text-white">ALAB</span>
-                <br />
-                <span className="text-yellow-400">Basketball and Volleyball</span>
-                <br />
-                <span className="text-white">Scoring System</span>
-              </h1>
-              
-              <p className="text-xl text-gray-300 mb-8 leading-relaxed">
-                Professional basketball and volleyball scoring and statistics management system. 
-                Track games, players, and teams in real-time with comprehensive analytics and live streaming integration.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <Button 
-                  onClick={handleGetStarted}
-                  className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-8 py-6 text-lg rounded-lg"
-                >
-                  Get Started
-                  <ArrowRight className="w-5 h-5 ml-2" />
+              <span className="text-xl font-semibold text-gray-900">ALAB</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link to={createPageUrl("SuperAdminSetup")}>
+                <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
+                  <Shield className="w-4 h-4 mr-2" />
+                  Admin Setup
                 </Button>
-                
-                <Link to={createPageUrl("SuperAdminSetup")}>
-                  <Button 
-                    variant="outline"
-                    className="border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-gray-900 px-8 py-6 text-lg rounded-lg w-full"
-                  >
-                    <Shield className="w-5 h-5 mr-2" />
-                    Setup Super Admin
-                  </Button>
-                </Link>
-              </div>
-
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                <p className="text-blue-300 text-sm">
-                  💡 <strong>First time?</strong> Click "Get Started" to login, then use "Setup Super Admin" to get full system access!
-                </p>
-              </div>
-            </div>
-            
-            <div className="relative">
-              <img 
-                src="https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&q=80&w=800" 
-                alt="Basketball"
-                className="rounded-2xl shadow-2xl border border-gray-800"
-              />
-              <div className="absolute -bottom-6 -left-6 bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl">
-                <p className="text-yellow-400 font-bold text-sm mb-1">Professional scoring system</p>
-                <p className="text-gray-300 text-sm">Real-time stats & analytics</p>
-              </div>
+              </Link>
+              <Button onClick={handleGetStarted} className="bg-blue-600 hover:bg-blue-700">
+                Get Started
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
           </div>
         </div>
-      </div>
+      </nav>
 
-      {/* Features Section */}
-      <div className="py-24 bg-gray-900">
+      {/* Hero Section */}
+      <section className="pt-20 pb-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-sm font-medium px-4 py-2 rounded-full mb-6">
+              <Trophy className="w-4 h-4" />
+              Sports Management Platform
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              Professional Sports
+              <span className="text-blue-600"> Scoring & Management</span>
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+              Complete basketball and volleyball management system. Track games, players, and teams with real-time scoring and comprehensive analytics.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                onClick={handleGetStarted}
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 h-12"
+              >
+                Get Started
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+              <Link to={createPageUrl("SuperAdminSetup")}>
+                <Button 
+                  size="lg"
+                  variant="outline"
+                  className="border-gray-300 hover:bg-gray-50 px-8 h-12 w-full"
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Setup as Admin
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-sm transition-all">
+              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4">
+                <Calendar className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Live Scoring</h3>
+              <p className="text-gray-600 text-sm">Real-time game scoring with detailed statistics tracking</p>
+            </div>
+            
+            <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-sm transition-all">
+              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Team Management</h3>
+              <p className="text-gray-600 text-sm">Organize teams, players, and coaching staff efficiently</p>
+            </div>
+            
+            <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-sm transition-all">
+              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4">
+                <BarChart3 className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Analytics</h3>
+              <p className="text-gray-600 text-sm">Comprehensive statistics and performance insights</p>
+            </div>
+            
+            <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-sm transition-all">
+              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4">
+                <Trophy className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Multi-Sport</h3>
+              <p className="text-gray-600 text-sm">Support for basketball and volleyball leagues</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <p className="text-yellow-400 font-semibold mb-4 uppercase tracking-wider">FEATURES</p>
-            <h2 className="text-4xl font-bold text-white mb-4">Everything you need to manage your games</h2>
-            <p className="text-gray-400 text-lg">Comprehensive tools for basketball and volleyball organizations, teams, and score keepers.</p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="bg-gray-950 border border-gray-800 rounded-xl p-6 hover:border-yellow-400/50 transition-colors">
-              <div className="w-12 h-12 bg-yellow-400/10 rounded-lg flex items-center justify-center mb-4">
-                <Trophy className="w-6 h-6 text-yellow-400" />
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                Everything you need to manage your league
+              </h2>
+              <p className="text-lg text-gray-600 mb-8">
+                Built for sports organizations, teams, and administrators who need professional-grade tools for game management and player tracking.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <CheckCircle className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">Real-time Updates</h4>
+                    <p className="text-gray-600 text-sm">Live score updates and instant statistics for all games</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <CheckCircle className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">Multi-Organization</h4>
+                    <p className="text-gray-600 text-sm">Manage multiple organizations from a single dashboard</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <CheckCircle className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">Easy to Use</h4>
+                    <p className="text-gray-600 text-sm">Intuitive interface designed for quick score entry</p>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">Live Scoring</h3>
-              <p className="text-gray-400">Real-time score tracking with quarter-by-quarter breakdowns, set by set breakdown and player statistics.</p>
             </div>
-            
-            <div className="bg-gray-950 border border-gray-800 rounded-xl p-6 hover:border-yellow-400/50 transition-colors">
-              <div className="w-12 h-12 bg-yellow-400/10 rounded-lg flex items-center justify-center mb-4">
-                <Users className="w-6 h-6 text-yellow-400" />
+            <div className="bg-gradient-to-br from-blue-50 to-gray-100 rounded-2xl p-12 border border-gray-200">
+              <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-medium text-gray-600">LIVE GAME</span>
+                  <span className="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full">Q3 • 5:23</span>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-600 rounded-lg"></div>
+                      <span className="font-semibold text-gray-900">Team Alpha</span>
+                    </div>
+                    <span className="text-3xl font-bold text-gray-900">78</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-300 rounded-lg"></div>
+                      <span className="font-semibold text-gray-900">Team Beta</span>
+                    </div>
+                    <span className="text-3xl font-bold text-gray-900">72</span>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">Team Management</h3>
-              <p className="text-gray-400">Manage teams, players, and track performance across multiple divisions.</p>
-            </div>
-            
-            <div className="bg-gray-950 border border-gray-800 rounded-xl p-6 hover:border-yellow-400/50 transition-colors">
-              <div className="w-12 h-12 bg-yellow-400/10 rounded-lg flex items-center justify-center mb-4">
-                <Video className="w-6 h-6 text-yellow-400" />
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-white rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-gray-900">24</div>
+                  <div className="text-xs text-gray-600 mt-1">Teams</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-gray-900">156</div>
+                  <div className="text-xs text-gray-600 mt-1">Players</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-gray-900">89</div>
+                  <div className="text-xs text-gray-600 mt-1">Games</div>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">Live Streaming</h3>
-              <p className="text-gray-400">Integrated live streaming support for remote game viewing and sharing.</p>
-            </div>
-            
-            <div className="bg-gray-950 border border-gray-800 rounded-xl p-6 hover:border-yellow-400/50 transition-colors">
-              <div className="w-12 h-12 bg-yellow-400/10 rounded-lg flex items-center justify-center mb-4">
-                <BarChart3 className="w-6 h-6 text-yellow-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-3">Advanced Statistics</h3>
-              <p className="text-gray-400">Detailed player and team statistics with historical performance tracking.</p>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Stats Section */}
-      <div className="py-24 bg-gray-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">Trusted by Teams</h2>
-            <p className="text-gray-400 text-lg">Powering Basketball and Volleyball Leagues</p>
-          </div>
-          
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-5xl font-bold text-yellow-400 mb-2">50+</div>
-              <p className="text-gray-400">Active Teams</p>
-            </div>
-            <div className="text-center">
-              <div className="text-5xl font-bold text-yellow-400 mb-2">1000+</div>
-              <p className="text-gray-400">Players</p>
-            </div>
-            <div className="text-center">
-              <div className="text-5xl font-bold text-yellow-400 mb-2">200+</div>
-              <p className="text-gray-400">Games Scored</p>
-            </div>
-            <div className="text-center">
-              <div className="text-5xl font-bold text-yellow-400 mb-2">3</div>
-              <p className="text-gray-400">Divisions</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      </section>
 
       {/* CTA Section */}
-      <div className="py-24 bg-gray-900">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-white mb-6">Ready to get started?</h2>
-          <p className="text-xl text-gray-400 mb-8">Join ALAB today and transform how you manage your games.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              onClick={handleGetStarted}
-              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-8 py-6 text-lg rounded-lg"
-            >
-              Sign up now
-            </Button>
-            <Button 
-              variant="outline"
-              className="border-gray-700 text-white hover:bg-gray-800 px-8 py-6 text-lg rounded-lg"
-              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Learn more
-            </Button>
-          </div>
+      <section className="py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl font-bold text-gray-900 mb-6">Ready to get started?</h2>
+          <p className="text-xl text-gray-600 mb-8">
+            Join ALAB today and streamline your sports management
+          </p>
+          <Button 
+            onClick={handleGetStarted}
+            size="lg"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 h-12"
+          >
+            Get Started Free
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
         </div>
-      </div>
+      </section>
 
       {/* Footer */}
-      <div className="bg-gray-950 border-t border-gray-800 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500">
-          <p>&copy; 2025 ALAB Sports Management System. All rights reserved.</p>
+      <footer className="border-t bg-gray-50 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Trophy className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-lg font-semibold text-gray-900">ALAB</span>
+            </div>
+            <p className="text-gray-600 text-sm">&copy; 2025 ALAB Sports Management. All rights reserved.</p>
+          </div>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }

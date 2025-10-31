@@ -4,22 +4,8 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { 
   Trophy, Building2, Users, Calendar, BarChart3, 
-  PlayCircle, Menu, LogOut, Shield 
+  PlayCircle, LogOut, Shield, Menu
 } from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader,
-  SidebarFooter,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 
 export default function Layout({ children, currentPageName }) {
@@ -27,6 +13,7 @@ export default function Layout({ children, currentPageName }) {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     loadUser();
@@ -69,8 +56,8 @@ export default function Layout({ children, currentPageName }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
       </div>
     );
   }
@@ -84,107 +71,113 @@ export default function Layout({ children, currentPageName }) {
   }
 
   return (
-    <SidebarProvider>
-      <style>{`
-        :root {
-          --alab-yellow: #FFD700;
-          --alab-dark: #0a0a0a;
-          --alab-gray: #1a1a1a;
-        }
-      `}</style>
-      <div className="min-h-screen flex w-full bg-gray-950">
-        <Sidebar className="border-r border-gray-800 bg-gray-900">
-          <SidebarHeader className="border-b border-gray-800 p-4 bg-gray-900">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center">
-                <Trophy className="w-6 h-6 text-gray-900" />
-              </div>
-              <div>
-                <h2 className="font-bold text-white text-lg">ALAB</h2>
-                <p className="text-xs text-yellow-400">
-                  {isSuperAdmin ? 'Super Admin' : 'Admin Panel'}
-                </p>
-              </div>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="h-full flex flex-col">
+          {/* Logo */}
+          <div className="h-16 flex items-center gap-3 px-6 border-b border-gray-200">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Trophy className="w-5 h-5 text-white" />
             </div>
-          </SidebarHeader>
-          
-          <SidebarContent className="p-2 bg-gray-900">
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-xs font-medium text-gray-400 uppercase tracking-wider px-2 py-2">
-                Navigation
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {navigationItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton 
-                        asChild 
-                        className={`hover:bg-gray-800 hover:text-yellow-400 transition-colors duration-200 rounded-lg mb-1 ${
-                          location.pathname === item.url ? 'bg-gray-800 text-yellow-400' : 'text-gray-300'
-                        }`}
-                      >
-                        <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
-                          <item.icon className="w-4 h-4" />
-                          <span className="font-medium">{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                  
-                  {isAdmin && !isSuperAdmin && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton 
-                        asChild 
-                        className="hover:bg-yellow-400/10 hover:text-yellow-400 transition-colors duration-200 rounded-lg mb-1 text-gray-300 mt-4"
-                      >
-                        <Link to={createPageUrl("SuperAdminSetup")} className="flex items-center gap-3 px-3 py-2">
-                          <Shield className="w-4 h-4" />
-                          <span className="font-medium">Super Admin Setup</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-
-          <SidebarFooter className="border-t border-gray-800 p-4 bg-gray-900">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
-                  {isSuperAdmin ? <Shield className="w-4 h-4 text-gray-900" /> : <span className="text-gray-900 font-bold text-sm">{user?.full_name?.[0] || 'U'}</span>}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-white text-sm truncate">{user?.full_name}</p>
-                  <p className="text-xs text-gray-400 truncate">{user?.email}</p>
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                className="w-full bg-gray-800 border-gray-700 hover:bg-gray-700 text-gray-300"
-                onClick={handleLogout}
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
+            <div>
+              <h2 className="font-semibold text-gray-900">ALAB</h2>
+              {isSuperAdmin && (
+                <span className="text-xs text-blue-600 font-medium">Super Admin</span>
+              )}
             </div>
-          </SidebarFooter>
-        </Sidebar>
-
-        <main className="flex-1 flex flex-col">
-          <header className="bg-gray-900 border-b border-gray-800 px-6 py-4 md:hidden">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger className="hover:bg-gray-800 p-2 rounded-lg transition-colors duration-200 text-white" />
-              <h1 className="text-xl font-semibold text-white">ALAB System</h1>
-            </div>
-          </header>
-
-          <div className="flex-1 overflow-auto bg-gray-950">
-            {children}
           </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+            {navigationItems.map((item) => {
+              const isActive = location.pathname === item.url;
+              return (
+                <Link
+                  key={item.title}
+                  to={item.url}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <item.icon className="w-5 h-5" />
+                  {item.title}
+                </Link>
+              );
+            })}
+
+            {isAdmin && !isSuperAdmin && (
+              <Link
+                to={createPageUrl("SuperAdminSetup")}
+                onClick={() => setSidebarOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 mt-4 border-t border-gray-200 pt-4"
+              >
+                <Shield className="w-5 h-5" />
+                Super Admin Setup
+              </Link>
+            )}
+          </nav>
+
+          {/* User Info */}
+          <div className="p-4 border-t border-gray-200">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-sm font-semibold text-blue-700">
+                  {user?.full_name?.[0] || 'U'}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">{user?.full_name}</p>
+                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-gray-900/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Bar (Mobile) */}
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center px-4 lg:hidden sticky top-0 z-30">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-lg hover:bg-gray-100"
+          >
+            <Menu className="w-5 h-5 text-gray-700" />
+          </button>
+          <div className="flex items-center gap-2 ml-4">
+            <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
+              <Trophy className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-semibold text-gray-900">ALAB</span>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-auto">
+          {children}
         </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }

@@ -3,10 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Trophy, Users, Calendar, TrendingUp, Building2, Shield, AlertCircle } from "lucide-react";
+import { Trophy, Users, Calendar, Building2, Shield, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -65,8 +64,8 @@ export default function Dashboard() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
       </div>
     );
   }
@@ -76,87 +75,96 @@ export default function Dashboard() {
   const isAdmin = user?.role === 'admin';
 
   return (
-    <div className="p-4 md:p-8 bg-gray-950 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        {/* Super Admin Setup Banner */}
+    <div className="p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Super Admin Banner */}
         {isAdmin && !isSuperAdmin && (
-          <Alert className="mb-8 bg-yellow-400/10 border-yellow-400/50 border-2">
-            <Shield className="h-5 w-5 text-yellow-400" />
-            <AlertDescription className="flex items-center justify-between">
-              <div>
-                <p className="text-white font-semibold mb-1">🎉 Set Yourself as Super Admin!</p>
-                <p className="text-gray-300 text-sm">
-                  Get full access to manage all organizations, teams, and games in the system.
-                </p>
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    Upgrade to Super Admin
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    Get full access to manage all organizations, teams, and system-wide operations.
+                  </p>
+                </div>
               </div>
               <Link to={createPageUrl("SuperAdminSetup")}>
-                <Button className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold ml-4">
-                  <Shield className="w-4 h-4 mr-2" />
+                <Button className="bg-blue-600 hover:bg-blue-700 flex-shrink-0">
                   Setup Now
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
-            </AlertDescription>
-          </Alert>
+            </div>
+          </div>
         )}
 
-        <div className="mb-8">
+        {/* Header */}
+        <div>
           <div className="flex items-center gap-3 mb-2">
-            {isSuperAdmin && <Shield className="w-8 h-8 text-yellow-400" />}
-            <h1 className="text-3xl md:text-4xl font-bold text-white">
-              {isSuperAdmin ? 'Super Admin Dashboard' : 'Dashboard'}
-            </h1>
+            {isSuperAdmin && (
+              <div className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
+                Super Admin
+              </div>
+            )}
           </div>
-          <p className="text-gray-400">
-            {isSuperAdmin ? 'Manage all organizations and system-wide operations' : 'Overview of your sports organization'}
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-1">
+            {isSuperAdmin ? 'System-wide overview' : 'Overview of your organization'}
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {isSuperAdmin && (
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="border-gray-200 bg-white">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-400">Organizations</CardTitle>
-                <Building2 className="w-4 h-4 text-yellow-400" />
+                <CardTitle className="text-sm font-medium text-gray-600">Organizations</CardTitle>
+                <Building2 className="w-4 h-4 text-gray-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-white">{organizations.length}</div>
+                <div className="text-3xl font-bold text-gray-900">{organizations.length}</div>
                 <p className="text-xs text-gray-500 mt-1">Active organizations</p>
               </CardContent>
             </Card>
           )}
           
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="border-gray-200 bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-400">Teams</CardTitle>
-              <Users className="w-4 h-4 text-yellow-400" />
+              <CardTitle className="text-sm font-medium text-gray-600">Teams</CardTitle>
+              <Users className="w-4 h-4 text-gray-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-white">{teams.length}</div>
+              <div className="text-3xl font-bold text-gray-900">{teams.length}</div>
               <p className="text-xs text-gray-500 mt-1">
-                {teams.filter(t => t.sport === 'basketball').length} Basketball, {teams.filter(t => t.sport === 'volleyball').length} Volleyball
+                {teams.filter(t => t.sport === 'basketball').length} Basketball · {teams.filter(t => t.sport === 'volleyball').length} Volleyball
               </p>
             </CardContent>
           </Card>
           
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="border-gray-200 bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-400">Players</CardTitle>
-              <Trophy className="w-4 h-4 text-yellow-400" />
+              <CardTitle className="text-sm font-medium text-gray-600">Players</CardTitle>
+              <Trophy className="w-4 h-4 text-gray-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-white">{players.length}</div>
-              <p className="text-xs text-gray-500 mt-1">Total registered players</p>
+              <div className="text-3xl font-bold text-gray-900">{players.length}</div>
+              <p className="text-xs text-gray-500 mt-1">Total registered</p>
             </CardContent>
           </Card>
           
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="border-gray-200 bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-400">Games</CardTitle>
-              <Calendar className="w-4 h-4 text-yellow-400" />
+              <CardTitle className="text-sm font-medium text-gray-600">Games</CardTitle>
+              <Calendar className="w-4 h-4 text-gray-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-white">{games.length}</div>
+              <div className="text-3xl font-bold text-gray-900">{games.length}</div>
               <p className="text-xs text-gray-500 mt-1">
                 {games.filter(g => g.status === 'scheduled').length} upcoming
               </p>
@@ -164,35 +172,37 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Games Grid */}
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Upcoming Games */}
-          <Card className="bg-gray-900 border-gray-800">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center justify-between">
-                <span>Upcoming Games</span>
-                <Link to={createPageUrl(isSuperAdmin ? "AllGames" : "Games")} className="text-sm text-yellow-400 hover:text-yellow-300">
-                  View all
-                </Link>
-              </CardTitle>
+          <Card className="border-gray-200 bg-white">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-gray-900">Upcoming Games</CardTitle>
+              <Link to={createPageUrl(isSuperAdmin ? "AllGames" : "Games")} className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                View all
+              </Link>
             </CardHeader>
             <CardContent>
               {upcomingGames.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No upcoming games scheduled</p>
+                <div className="text-center py-12">
+                  <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">No upcoming games</p>
+                </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {upcomingGames.map((game) => (
-                    <div key={game.id} className="bg-gray-950 border border-gray-800 rounded-lg p-4">
+                    <div key={game.id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-gray-500">{new Date(game.game_date).toLocaleDateString()}</span>
-                        <span className="text-xs bg-yellow-400/10 text-yellow-400 px-2 py-1 rounded">
+                        <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded font-medium">
                           {game.sport}
                         </span>
                       </div>
-                      <div className="text-white font-medium">
+                      <div className="text-sm font-medium text-gray-900">
                         Home Team vs Away Team
                       </div>
                       {game.location && (
-                        <p className="text-sm text-gray-500 mt-1">{game.location}</p>
+                        <p className="text-xs text-gray-500 mt-1">{game.location}</p>
                       )}
                     </div>
                   ))}
@@ -201,33 +211,36 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Recent Games */}
-          <Card className="bg-gray-900 border-gray-800">
+          {/* Recent Results */}
+          <Card className="border-gray-200 bg-white">
             <CardHeader>
-              <CardTitle className="text-white">Recent Results</CardTitle>
+              <CardTitle className="text-gray-900">Recent Results</CardTitle>
             </CardHeader>
             <CardContent>
               {recentGames.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No completed games yet</p>
+                <div className="text-center py-12">
+                  <Trophy className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">No completed games</p>
+                </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {recentGames.map((game) => (
-                    <div key={game.id} className="bg-gray-950 border border-gray-800 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
+                    <div key={game.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
                         <span className="text-xs text-gray-500">{new Date(game.game_date).toLocaleDateString()}</span>
-                        <span className="text-xs bg-green-400/10 text-green-400 px-2 py-1 rounded">
+                        <span className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded font-medium">
                           Completed
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <div className="text-white">
-                          <div className="font-medium">Home Team</div>
-                          <div className="text-2xl font-bold text-yellow-400">{game.home_score}</div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">Home Team</div>
+                          <div className="text-2xl font-bold text-gray-900 mt-1">{game.home_score}</div>
                         </div>
-                        <div className="text-gray-500 text-xl">vs</div>
-                        <div className="text-white text-right">
-                          <div className="font-medium">Away Team</div>
-                          <div className="text-2xl font-bold">{game.away_score}</div>
+                        <div className="text-gray-400 text-lg">-</div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium text-gray-900">Away Team</div>
+                          <div className="text-2xl font-bold text-gray-900 mt-1">{game.away_score}</div>
                         </div>
                       </div>
                     </div>
