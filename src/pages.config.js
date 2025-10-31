@@ -8,6 +8,7 @@ import Teams from './pages/Teams';
 import Players from './pages/Players';
 import Schedule from './pages/Schedule';
 import AllGames from './pages/AllGames';
+import Profile from './pages/Profile';
 import Layout from './Layout.jsx';
 
 
@@ -22,6 +23,7 @@ export const PAGES = {
     "Players": Players,
     "Schedule": Schedule,
     "AllGames": AllGames,
+    "Profile": Profile,
 }
 
 export const pagesConfig = {
