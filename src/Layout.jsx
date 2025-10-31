@@ -4,9 +4,17 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { 
   Trophy, Building2, Users, Calendar, BarChart3, 
-  PlayCircle, LogOut, Shield, Menu
+  PlayCircle, LogOut, Shield, Menu, ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
@@ -121,7 +129,7 @@ export default function Layout({ children, currentPageName }) {
             )}
           </nav>
 
-          {/* User Info */}
+          {/* User Info & Logout */}
           <div className="p-4 border-t border-gray-200">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -137,7 +145,7 @@ export default function Layout({ children, currentPageName }) {
             <Button
               variant="outline"
               size="sm"
-              className="w-full justify-start"
+              className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
               onClick={handleLogout}
             >
               <LogOut className="w-4 h-4 mr-2" />
@@ -157,20 +165,68 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Bar (Mobile) */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center px-4 lg:hidden sticky top-0 z-30">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-gray-100"
-          >
-            <Menu className="w-5 h-5 text-gray-700" />
-          </button>
-          <div className="flex items-center gap-2 ml-4">
-            <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
-              <Trophy className="w-4 h-4 text-white" />
+        {/* Top Bar */}
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sticky top-0 z-30">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 rounded-lg hover:bg-gray-100 lg:hidden"
+            >
+              <Menu className="w-5 h-5 text-gray-700" />
+            </button>
+            <div className="flex items-center gap-2 lg:hidden">
+              <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
+                <Trophy className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-semibold text-gray-900">ALAB</span>
             </div>
-            <span className="font-semibold text-gray-900">ALAB</span>
           </div>
+
+          {/* Desktop User Menu */}
+          <div className="hidden lg:flex items-center gap-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-semibold text-blue-700">
+                      {user?.full_name?.[0] || 'U'}
+                    </span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">{user?.full_name}</span>
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div>
+                    <p className="font-medium">{user?.full_name}</p>
+                    <p className="text-xs text-gray-500">{user?.email}</p>
+                    {isSuperAdmin && (
+                      <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                        <Shield className="w-3 h-3" />
+                        Super Admin
+                      </p>
+                    )}
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Mobile Logout Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="lg:hidden text-red-600"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
         </header>
 
         {/* Page Content */}
