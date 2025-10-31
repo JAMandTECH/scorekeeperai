@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Trophy, Users, BarChart3, Video, ArrowRight } from "lucide-react";
+import { Trophy, Users, BarChart3, Video, ArrowRight, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
@@ -50,13 +50,31 @@ export default function Home() {
                 Track games, players, and teams in real-time with comprehensive analytics and live streaming integration.
               </p>
               
-              <Button 
-                onClick={handleGetStarted}
-                className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-8 py-6 text-lg rounded-lg"
-              >
-                Get Started
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <Button 
+                  onClick={handleGetStarted}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-8 py-6 text-lg rounded-lg"
+                >
+                  Get Started
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                
+                <Link to={createPageUrl("SuperAdminSetup")}>
+                  <Button 
+                    variant="outline"
+                    className="border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-gray-900 px-8 py-6 text-lg rounded-lg w-full"
+                  >
+                    <Shield className="w-5 h-5 mr-2" />
+                    Setup Super Admin
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <p className="text-blue-300 text-sm">
+                  💡 <strong>First time?</strong> Click "Get Started" to login, then use "Setup Super Admin" to get full system access!
+                </p>
+              </div>
             </div>
             
             <div className="relative">

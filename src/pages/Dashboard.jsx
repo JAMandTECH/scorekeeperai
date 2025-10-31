@@ -1,12 +1,12 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Trophy, Users, Calendar, TrendingUp, Building2, Shield } from "lucide-react";
+import { Trophy, Users, Calendar, TrendingUp, Building2, Shield, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -73,10 +73,32 @@ export default function Dashboard() {
 
   const upcomingGames = games.filter(g => g.status === 'scheduled').slice(0, 5);
   const recentGames = games.filter(g => g.status === 'completed').slice(0, 5);
+  const isAdmin = user?.role === 'admin';
 
   return (
     <div className="p-4 md:p-8 bg-gray-950 min-h-screen">
       <div className="max-w-7xl mx-auto">
+        {/* Super Admin Setup Banner */}
+        {isAdmin && !isSuperAdmin && (
+          <Alert className="mb-8 bg-yellow-400/10 border-yellow-400/50 border-2">
+            <Shield className="h-5 w-5 text-yellow-400" />
+            <AlertDescription className="flex items-center justify-between">
+              <div>
+                <p className="text-white font-semibold mb-1">🎉 Set Yourself as Super Admin!</p>
+                <p className="text-gray-300 text-sm">
+                  Get full access to manage all organizations, teams, and games in the system.
+                </p>
+              </div>
+              <Link to={createPageUrl("SuperAdminSetup")}>
+                <Button className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold ml-4">
+                  <Shield className="w-4 h-4 mr-2" />
+                  Setup Now
+                </Button>
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             {isSuperAdmin && <Shield className="w-8 h-8 text-yellow-400" />}
