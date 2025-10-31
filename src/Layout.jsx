@@ -30,7 +30,12 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
@@ -165,62 +170,49 @@ export default function Layout({ children, currentPageName }) {
           </SidebarContent>
 
           <SidebarFooter className="border-t border-slate-200 p-4">
-            <div className="space-y-3">
-              {/* User Info */}
-              <div className="flex items-center gap-3 px-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-full flex items-center justify-center">
-                  {isSuperAdmin ? (
-                    <Shield className="w-5 h-5 text-white" />
-                  ) : (
-                    <UserCircle className="w-5 h-5 text-white" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-900 text-sm truncate">
-                    {user?.full_name || "User"}
-                  </p>
-                  <p className="text-xs text-slate-500 truncate">
-                    {user?.email}
-                  </p>
-                </div>
-              </div>
-
-              {/* Logout Button */}
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-3 w-full hover:bg-slate-50 p-2 rounded-lg transition-colors">
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-full flex items-center justify-center">
+                    {isSuperAdmin ? (
+                      <Shield className="w-5 h-5 text-white" />
+                    ) : (
+                      <UserCircle className="w-5 h-5 text-white" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="font-semibold text-slate-900 text-sm truncate">
+                      {user?.full_name || "User"}
+                    </p>
+                    <p className="text-xs text-slate-500 truncate">
+                      {user?.email}
+                    </p>
+                  </div>
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarFooter>
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
           <header className="bg-white border-b border-slate-200 px-6 py-4 lg:hidden shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors">
-                  <Menu className="w-5 h-5" />
-                </SidebarTrigger>
-                <div className="flex items-center gap-2">
-                  <Trophy className="w-6 h-6 text-orange-500" />
-                  <h1 className="text-xl font-bold text-slate-900">
-                    ALAB Sports
-                  </h1>
-                </div>
+            <div className="flex items-center gap-4">
+              <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors">
+                <Menu className="w-5 h-5" />
+              </SidebarTrigger>
+              <div className="flex items-center gap-2">
+                <Trophy className="w-6 h-6 text-orange-500" />
+                <h1 className="text-xl font-bold text-slate-900">
+                  ALAB Sports
+                </h1>
               </div>
-              {/* Mobile Logout */}
-              <Button
-                onClick={handleLogout}
-                variant="ghost"
-                size="sm"
-                className="text-red-600"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
             </div>
           </header>
 

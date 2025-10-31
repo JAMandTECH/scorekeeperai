@@ -1,21 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
-import { Trophy, TrendingUp, Users, BarChart3, Play, CheckCircle, Shield } from "lucide-react";
+import { Trophy, TrendingUp, Users, BarChart3, Play, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 export default function Home() {
   const navigate = useNavigate();
-  const [showSetupDialog, setShowSetupDialog] = useState(false);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
     checkAuth();
@@ -23,21 +14,12 @@ export default function Home() {
 
   const checkAuth = async () => {
     try {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      
-      // If user exists but doesn't have user_type set, show setup dialog
-      if (currentUser && !currentUser.user_type) {
-        setShowSetupDialog(true);
-      } else if (currentUser) {
-        // Redirect based on user type
-        if (currentUser.user_type === "super_admin") {
+      const user = await base44.auth.me();
+      if (user) {
+        if (user.user_type === "super_admin") {
           navigate(createPageUrl("SuperAdminDashboard"));
-        } else if (currentUser.organization_id) {
-          navigate(createPageUrl("Dashboard"));
         } else {
-          // User is logged in but not assigned
-          setShowSetupDialog(true);
+          navigate(createPageUrl("Dashboard"));
         }
       }
     } catch (error) {
@@ -46,31 +28,7 @@ export default function Home() {
   };
 
   const handleGetStarted = () => {
-    base44.auth.redirectToLogin(createPageUrl("Home"));
-  };
-
-  const setupAsSuperAdmin = async () => {
-    try {
-      await base44.auth.updateMe({
-        user_type: "super_admin"
-      });
-      setShowSetupDialog(false);
-      navigate(createPageUrl("SuperAdminDashboard"));
-    } catch (error) {
-      console.error("Error setting up user:", error);
-    }
-  };
-
-  const setupAsOrgAdmin = async () => {
-    try {
-      await base44.auth.updateMe({
-        user_type: "org_admin"
-      });
-      setShowSetupDialog(false);
-      alert("You've been set as Organization Admin. A Super Admin needs to assign you to an organization.");
-    } catch (error) {
-      console.error("Error setting up user:", error);
-    }
+    base44.auth.redirectToLogin(createPageUrl("Dashboard"));
   };
 
   return (
@@ -226,62 +184,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      {/* Setup Dialog */}
-      <Dialog open={showSetupDialog} onOpenChange={setShowSetupDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Welcome to ALAB Sports! 🏀🏐</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-slate-600">
-              Choose your role to get started:
-            </p>
-
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-orange-500" onClick={setupAsSuperAdmin}>
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-xl flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-2">Super Administrator</h3>
-                    <p className="text-sm text-slate-600">
-                      Manage multiple organizations, create admins, and oversee all games system-wide.
-                    </p>
-                    <div className="mt-3">
-                      <Button className="w-full bg-orange-500 hover:bg-orange-600">
-                        Set as Super Admin
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-blue-500" onClick={setupAsOrgAdmin}>
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center">
-                    <Users className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-2">Organization Admin</h3>
-                    <p className="text-sm text-slate-600">
-                      Manage teams, players, and games for your organization.
-                    </p>
-                    <div className="mt-3">
-                      <Button variant="outline" className="w-full">
-                        Set as Org Admin
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
