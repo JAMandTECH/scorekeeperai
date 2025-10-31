@@ -46,7 +46,7 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.logout(createPageUrl("Home"));
   };
 
-  const isSuperAdmin = user?.role === 'admin' && user?.email?.includes('superadmin');
+  const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
   const isAdmin = user?.role === 'admin';
 
   const superAdminNav = [
@@ -75,7 +75,7 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  if (currentPageName === "Home") {
+  if (currentPageName === "Home" || currentPageName === "SuperAdminSetup") {
     return <div>{children}</div>;
   }
 
@@ -130,6 +130,20 @@ export default function Layout({ children, currentPageName }) {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
+                  
+                  {isAdmin && !isSuperAdmin && (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        asChild 
+                        className="hover:bg-yellow-400/10 hover:text-yellow-400 transition-colors duration-200 rounded-lg mb-1 text-gray-300 mt-4"
+                      >
+                        <Link to={createPageUrl("SuperAdminSetup")} className="flex items-center gap-3 px-3 py-2">
+                          <Shield className="w-4 h-4" />
+                          <span className="font-medium">Super Admin Setup</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>

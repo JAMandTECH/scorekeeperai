@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -19,7 +20,7 @@ export default function Dashboard() {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      setIsSuperAdmin(currentUser?.role === 'admin' && currentUser?.email?.includes('superadmin'));
+      setIsSuperAdmin(currentUser?.role === 'admin' && currentUser?.is_super_admin === true);
     } catch (error) {
       base44.auth.redirectToLogin(createPageUrl("Dashboard"));
     }

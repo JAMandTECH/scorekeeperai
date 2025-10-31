@@ -8,6 +8,7 @@ import LiveScoring from './pages/LiveScoring';
 import Statistics from './pages/Statistics';
 import AllTeams from './pages/AllTeams';
 import AllGames from './pages/AllGames';
+import SuperAdminSetup from './pages/SuperAdminSetup';
 import Layout from './Layout.jsx';
 
 
@@ -22,6 +23,7 @@ export const PAGES = {
     "Statistics": Statistics,
     "AllTeams": AllTeams,
     "AllGames": AllGames,
+    "SuperAdminSetup": SuperAdminSetup,
 }
 
 export const pagesConfig = {
