@@ -2,20 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import {
-  LayoutDashboard,
-  Trophy,
-  Users,
-  Calendar,
-  Building2,
-  Settings,
-  LogOut,
-  Menu,
-  UserCircle,
-  ChevronDown,
-  Shield,
-  Award,
-  User,
+import { 
+  Trophy, Building2, Users, Calendar, BarChart3, 
+  PlayCircle, Menu, LogOut, Shield 
 } from "lucide-react";
 import {
   Sidebar,
@@ -31,13 +20,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
 export default function Layout({ children, currentPageName }) {
@@ -56,113 +38,94 @@ export default function Layout({ children, currentPageName }) {
       setUser(currentUser);
     } catch (error) {
       console.error("Error loading user:", error);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
-  const handleLogout = async () => {
-    await base44.auth.logout();
+  const handleLogout = () => {
+    base44.auth.logout(createPageUrl("Home"));
   };
 
-  // Public pages don't need sidebar
-  const publicPages = ["Home", "Landing"];
-  if (publicPages.includes(currentPageName) || !user) {
-    return <div className="min-h-screen">{children}</div>;
-  }
-
-  const isSuperAdmin = user?.user_type === "super_admin";
-  const isOrgAdmin = user?.user_type === "org_admin";
+  const isSuperAdmin = user?.role === 'admin' && user?.email?.includes('superadmin');
+  const isAdmin = user?.role === 'admin';
 
   const superAdminNav = [
-    {
-      title: "Dashboard",
-      url: createPageUrl("SuperAdminDashboard"),
-      icon: LayoutDashboard,
-    },
-    {
-      title: "Organizations",
-      url: createPageUrl("Organizations"),
-      icon: Building2,
-    },
-    {
-      title: "All Games",
-      url: createPageUrl("AllGames"),
-      icon: Trophy,
-    },
+    { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
+    { title: "Organizations", url: createPageUrl("Organizations"), icon: Building2 },
+    { title: "All Teams", url: createPageUrl("AllTeams"), icon: Users },
+    { title: "All Games", url: createPageUrl("AllGames"), icon: Calendar },
   ];
 
-  const orgAdminNav = [
-    {
-      title: "Dashboard",
-      url: createPageUrl("Dashboard"),
-      icon: LayoutDashboard,
-    },
-    {
-      title: "Games",
-      url: createPageUrl("Games"),
-      icon: Trophy,
-    },
-    {
-      title: "Teams",
-      url: createPageUrl("Teams"),
-      icon: Users,
-    },
-    {
-      title: "Players",
-      url: createPageUrl("Players"),
-      icon: Award,
-    },
-    {
-      title: "Schedule",
-      url: createPageUrl("Schedule"),
-      icon: Calendar,
-    },
+  const adminNav = [
+    { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
+    { title: "Teams", url: createPageUrl("Teams"), icon: Users },
+    { title: "Players", url: createPageUrl("Players"), icon: Trophy },
+    { title: "Games", url: createPageUrl("Games"), icon: Calendar },
+    { title: "Live Scoring", url: createPageUrl("LiveScoring"), icon: PlayCircle },
+    { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 },
   ];
 
-  const navigationItems = isSuperAdmin ? superAdminNav : orgAdminNav;
+  const navigationItems = isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+      </div>
+    );
+  }
+
+  if (currentPageName === "Home") {
+    return <div>{children}</div>;
+  }
+
+  if (!user) {
+    return <div>{children}</div>;
+  }
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-slate-100">
-        <Sidebar className="border-r border-slate-200 bg-white">
-          <SidebarHeader className="border-b border-slate-200 p-6 bg-gradient-to-r from-yellow-400 to-orange-500">
+      <style>{`
+        :root {
+          --alab-yellow: #FFD700;
+          --alab-dark: #0a0a0a;
+          --alab-gray: #1a1a1a;
+        }
+      `}</style>
+      <div className="min-h-screen flex w-full bg-gray-950">
+        <Sidebar className="border-r border-gray-800 bg-gray-900">
+          <SidebarHeader className="border-b border-gray-800 p-4 bg-gray-900">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-md">
-                <Trophy className="w-6 h-6 text-orange-500" />
+              <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center">
+                <Trophy className="w-6 h-6 text-gray-900" />
               </div>
               <div>
-                <h2 className="font-bold text-white text-lg">ALAB Sports</h2>
-                <p className="text-xs text-white/80">
-                  {isSuperAdmin ? "Super Admin" : "Organization Portal"}
+                <h2 className="font-bold text-white text-lg">ALAB</h2>
+                <p className="text-xs text-yellow-400">
+                  {isSuperAdmin ? 'Super Admin' : 'Admin Panel'}
                 </p>
               </div>
             </div>
           </SidebarHeader>
-
-          <SidebarContent className="p-3">
+          
+          <SidebarContent className="p-2 bg-gray-900">
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 py-2">
-                {isSuperAdmin ? "System Management" : "Management"}
+              <SidebarGroupLabel className="text-xs font-medium text-gray-400 uppercase tracking-wider px-2 py-2">
+                Navigation
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navigationItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        asChild
-                        className={`hover:bg-orange-50 hover:text-orange-600 transition-all duration-200 rounded-lg mb-1 ${
-                          location.pathname === item.url
-                            ? "bg-orange-50 text-orange-600 font-semibold"
-                            : ""
+                      <SidebarMenuButton 
+                        asChild 
+                        className={`hover:bg-gray-800 hover:text-yellow-400 transition-colors duration-200 rounded-lg mb-1 ${
+                          location.pathname === item.url ? 'bg-gray-800 text-yellow-400' : 'text-gray-300'
                         }`}
                       >
-                        <Link
-                          to={item.url}
-                          className="flex items-center gap-3 px-3 py-2.5"
-                        >
-                          <item.icon className="w-5 h-5" />
-                          <span>{item.title}</span>
+                        <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
+                          <item.icon className="w-4 h-4" />
+                          <span className="font-medium">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -172,69 +135,40 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-slate-200 p-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 w-full hover:bg-slate-50 p-2 rounded-lg transition-colors">
-                  <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-full flex items-center justify-center">
-                    {isSuperAdmin ? (
-                      <Shield className="w-5 h-5 text-white" />
-                    ) : (
-                      <UserCircle className="w-5 h-5 text-white" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="font-semibold text-slate-900 text-sm truncate">
-                      {user?.full_name || "User"}
-                    </p>
-                    <p className="text-xs text-slate-500 truncate">
-                      {user?.email}
-                    </p>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={() => navigate(createPageUrl("Profile"))}>
-                  <User className="w-4 h-4 mr-2" />
-                  Profile Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <SidebarFooter className="border-t border-gray-800 p-4 bg-gray-900">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+                  {isSuperAdmin ? <Shield className="w-4 h-4 text-gray-900" /> : <span className="text-gray-900 font-bold text-sm">{user?.full_name?.[0] || 'U'}</span>}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-white text-sm truncate">{user?.full_name}</p>
+                  <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                className="w-full bg-gray-800 border-gray-700 hover:bg-gray-700 text-gray-300"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </SidebarFooter>
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
-          <header className="bg-white border-b border-slate-200 px-6 py-4 lg:hidden shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors">
-                  <Menu className="w-5 h-5" />
-                </SidebarTrigger>
-                <div className="flex items-center gap-2">
-                  <Trophy className="w-6 h-6 text-orange-500" />
-                  <h1 className="text-xl font-bold text-slate-900">
-                    ALAB Sports
-                  </h1>
-                </div>
-              </div>
-              <Button
-                onClick={handleLogout}
-                variant="ghost"
-                size="sm"
-                className="text-red-600 hover:text-red-700"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
+          <header className="bg-gray-900 border-b border-gray-800 px-6 py-4 md:hidden">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger className="hover:bg-gray-800 p-2 rounded-lg transition-colors duration-200 text-white" />
+              <h1 className="text-xl font-semibold text-white">ALAB System</h1>
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto">{children}</div>
+          <div className="flex-1 overflow-auto bg-gray-950">
+            {children}
+          </div>
         </main>
       </div>
     </SidebarProvider>
