@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -143,32 +144,48 @@ export default function Statistics() {
         }, 0) / teamGames.length).toFixed(1)
       : 0;
 
+    // Calculate team wins and losses
+    let wins = 0;
+    let losses = 0;
+    teamGames.forEach(game => {
+      const isHome = game.home_team_id === team.id;
+      const teamScore = isHome ? game.home_score : game.away_score;
+      const oppScore = isHome ? game.away_score : game.home_score;
+      if (teamScore > oppScore) {
+        wins++;
+      } else {
+        losses++;
+      }
+    });
+
     return {
       ...team,
       last5: last5Results,
       avgPointsFor,
       avgPointsAgainst,
       gamesPlayed: teamGames.length,
+      wins,
+      losses,
     };
   });
 
   return (
-    <div className="p-4 md:p-8 bg-gray-950 min-h-screen">
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">Statistics & Analytics</h1>
-          <p className="text-gray-400 mt-1">Performance insights and trends</p>
+          <h1 className="text-3xl font-bold text-gray-900">Statistics & Analytics</h1>
+          <p className="text-gray-600 mt-1">Performance insights and trends</p>
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="bg-gray-900 border border-gray-800">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900">
+          <TabsList className="bg-white border border-gray-200">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Overview
             </TabsTrigger>
-            <TabsTrigger value="performance" className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900">
+            <TabsTrigger value="performance" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Team Performance
             </TabsTrigger>
-            <TabsTrigger value="players" className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900">
+            <TabsTrigger value="players" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Top Players
             </TabsTrigger>
           </TabsList>
@@ -177,24 +194,24 @@ export default function Statistics() {
           <TabsContent value="overview" className="space-y-6">
             {/* Summary Cards */}
             <div className="grid md:grid-cols-3 gap-6">
-              <Card className="bg-gray-900 border-gray-800">
+              <Card className="bg-white border-gray-200 shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-400">Total Games</CardTitle>
-                  <Trophy className="w-4 h-4 text-yellow-400" />
+                  <CardTitle className="text-sm font-medium text-gray-600">Total Games</CardTitle>
+                  <Trophy className="w-4 h-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-white">{completedGames.length}</div>
+                  <div className="text-3xl font-bold text-gray-900">{completedGames.length}</div>
                   <p className="text-xs text-gray-500 mt-1">Completed games</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-gray-800">
+              <Card className="bg-white border-gray-200 shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-400">Avg Points/Game</CardTitle>
-                  <Target className="w-4 h-4 text-yellow-400" />
+                  <CardTitle className="text-sm font-medium text-gray-600">Avg Points/Game</CardTitle>
+                  <Target className="w-4 h-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-white">
+                  <div className="text-3xl font-bold text-gray-900">
                     {completedGames.length > 0
                       ? Math.round(
                           completedGames.reduce((sum, g) => sum + g.home_score + g.away_score, 0) /
@@ -206,35 +223,35 @@ export default function Statistics() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-gray-800">
+              <Card className="bg-white border-gray-200 shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-400">Active Players</CardTitle>
-                  <TrendingUp className="w-4 h-4 text-yellow-400" />
+                  <CardTitle className="text-sm font-medium text-gray-600">Active Players</CardTitle>
+                  <TrendingUp className="w-4 h-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-white">{players.length}</div>
+                  <div className="text-3xl font-bold text-gray-900">{players.length}</div>
                   <p className="text-xs text-gray-500 mt-1">Across all teams</p>
                 </CardContent>
               </Card>
             </div>
 
             {/* Top Scorers Chart */}
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="bg-white border-gray-200 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-white">Top Scorers</CardTitle>
+                <CardTitle className="text-gray-900">Top Scorers</CardTitle>
               </CardHeader>
               <CardContent>
                 {topScorers.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={topScorers}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis dataKey="name" stroke="#9CA3AF" />
-                      <YAxis stroke="#9CA3AF" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis dataKey="name" stroke="#6B7280" />
+                      <YAxis stroke="#6B7280" />
                       <Tooltip
-                        contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px' }}
-                        labelStyle={{ color: '#F3F4F6' }}
+                        contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                        labelStyle={{ color: '#111827' }}
                       />
-                      <Bar dataKey="points" fill="#FFD700" />
+                      <Bar dataKey="points" fill="#2563EB" />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -251,16 +268,16 @@ export default function Statistics() {
               {teamStats.map((team) => (
                 <Card 
                   key={team.id} 
-                  className={`bg-gray-900 border-gray-800 cursor-pointer transition-all ${
-                    selectedTeam?.id === team.id ? 'border-yellow-400 ring-2 ring-yellow-400' : 'hover:border-gray-700'
+                  className={`bg-white border-gray-200 cursor-pointer transition-all shadow-sm ${
+                    selectedTeam?.id === team.id ? 'border-blue-600 ring-2 ring-blue-600' : 'hover:border-gray-300'
                   }`}
                   onClick={() => setSelectedTeam(team)}
                 >
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-white">{team.name}</CardTitle>
-                        <Badge className="mt-2 bg-yellow-400/10 text-yellow-400">
+                        <CardTitle className="text-gray-900">{team.name}</CardTitle>
+                        <Badge className="mt-2 bg-blue-50 text-blue-600 border-blue-200">
                           {team.sport}
                         </Badge>
                       </div>
@@ -268,22 +285,22 @@ export default function Statistics() {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Record</span>
-                      <span className="text-white font-semibold">
+                      <span className="text-gray-600">Record</span>
+                      <span className="text-gray-900 font-semibold">
                         {team.wins || 0}W - {team.losses || 0}L
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Win Rate</span>
-                      <span className="text-white font-semibold">
+                      <span className="text-gray-600">Win Rate</span>
+                      <span className="text-gray-900 font-semibold">
                         {team.gamesPlayed > 0
                           ? ((team.wins / team.gamesPlayed) * 100).toFixed(0)
                           : 0}%
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Avg Points</span>
-                      <span className="text-white font-semibold">
+                      <span className="text-gray-600">Avg Points</span>
+                      <span className="text-gray-900 font-semibold">
                         {team.avgPointsFor} / {team.avgPointsAgainst}
                       </span>
                     </div>
@@ -313,31 +330,31 @@ export default function Statistics() {
             {selectedTeam && (
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <h2 className="text-2xl font-bold text-white">{selectedTeam.name} - Detailed Analysis</h2>
-                  <Badge className="bg-yellow-400 text-gray-900">
+                  <h2 className="text-2xl font-bold text-gray-900">{selectedTeam.name} - Detailed Analysis</h2>
+                  <Badge className="bg-blue-600 text-white">
                     {selectedTeam.sport}
                   </Badge>
                 </div>
 
                 <div className="grid lg:grid-cols-2 gap-6">
                   {/* Performance Trend */}
-                  <Card className="bg-gray-900 border-gray-800">
+                  <Card className="bg-white border-gray-200 shadow-sm">
                     <CardHeader>
-                      <CardTitle className="text-white">Performance Trend (Last 10 Games)</CardTitle>
+                      <CardTitle className="text-gray-900">Performance Trend (Last 10 Games)</CardTitle>
                     </CardHeader>
                     <CardContent>
                       {getPerformanceTrend(selectedTeam.id).length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                           <LineChart data={getPerformanceTrend(selectedTeam.id)}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                            <XAxis dataKey="game" stroke="#9CA3AF" />
-                            <YAxis stroke="#9CA3AF" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                            <XAxis dataKey="game" stroke="#6B7280" />
+                            <YAxis stroke="#6B7280" />
                             <Tooltip
-                              contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px' }}
-                              labelStyle={{ color: '#F3F4F6' }}
+                              contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                              labelStyle={{ color: '#111827' }}
                             />
                             <Legend />
-                            <Line type="monotone" dataKey="winRate" stroke="#FFD700" name="Win Rate %" strokeWidth={2} />
+                            <Line type="monotone" dataKey="winRate" stroke="#2563EB" name="Win Rate %" strokeWidth={2} />
                             <Line type="monotone" dataKey="score" stroke="#10B981" name="Points For" strokeWidth={2} />
                             <Line type="monotone" dataKey="oppScore" stroke="#EF4444" name="Points Against" strokeWidth={2} />
                           </LineChart>
@@ -349,17 +366,17 @@ export default function Statistics() {
                   </Card>
 
                   {/* Head-to-Head Records */}
-                  <Card className="bg-gray-900 border-gray-800">
+                  <Card className="bg-white border-gray-200 shadow-sm">
                     <CardHeader>
-                      <CardTitle className="text-white">Head-to-Head Records</CardTitle>
+                      <CardTitle className="text-gray-900">Head-to-Head Records</CardTitle>
                     </CardHeader>
                     <CardContent>
                       {getHeadToHead(selectedTeam.id).length > 0 ? (
                         <div className="space-y-3 max-h-[300px] overflow-y-auto">
                           {getHeadToHead(selectedTeam.id).map((h2h, index) => (
-                            <div key={index} className="bg-gray-950 rounded-lg p-4">
+                            <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                               <div className="flex justify-between items-center mb-2">
-                                <p className="text-white font-semibold">{h2h.opponent}</p>
+                                <p className="text-gray-900 font-semibold">{h2h.opponent}</p>
                                 <div className="flex gap-2">
                                   {h2h.wins > h2h.losses ? (
                                     <TrendingUp className="w-4 h-4 text-green-500" />
@@ -370,15 +387,15 @@ export default function Statistics() {
                               </div>
                               <div className="grid grid-cols-3 gap-2 text-sm">
                                 <div className="text-center">
-                                  <div className="text-green-400 font-bold text-lg">{h2h.wins}</div>
+                                  <div className="text-green-600 font-bold text-lg">{h2h.wins}</div>
                                   <div className="text-gray-500 text-xs">Wins</div>
                                 </div>
                                 <div className="text-center">
-                                  <div className="text-red-400 font-bold text-lg">{h2h.losses}</div>
+                                  <div className="text-red-600 font-bold text-lg">{h2h.losses}</div>
                                   <div className="text-gray-500 text-xs">Losses</div>
                                 </div>
                                 <div className="text-center">
-                                  <div className="text-yellow-400 font-bold text-lg">
+                                  <div className="text-blue-600 font-bold text-lg">
                                     {h2h.wins + h2h.losses > 0
                                       ? ((h2h.wins / (h2h.wins + h2h.losses)) * 100).toFixed(0)
                                       : 0}%
@@ -403,36 +420,36 @@ export default function Statistics() {
 
             {!selectedTeam && (
               <div className="text-center py-16">
-                <Trophy className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-                <p className="text-gray-400 text-lg">Select a team to view detailed performance analysis</p>
+                <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg">Select a team to view detailed performance analysis</p>
               </div>
             )}
           </TabsContent>
 
           {/* TOP PLAYERS TAB */}
           <TabsContent value="players" className="space-y-6">
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="bg-white border-gray-200 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-white">Top Players Leaderboard</CardTitle>
+                <CardTitle className="text-gray-900">Top Players Leaderboard</CardTitle>
               </CardHeader>
               <CardContent>
                 {topScorers.length > 0 ? (
                   <div className="space-y-3">
                     {topScorers.map((player, index) => (
-                      <div key={index} className="flex items-center gap-4 bg-gray-950 rounded-lg p-4">
+                      <div key={index} className="flex items-center gap-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
                           index === 0 ? 'bg-yellow-400 text-gray-900' :
-                          index === 1 ? 'bg-gray-400 text-gray-900' :
+                          index === 1 ? 'bg-gray-400 text-white' :
                           index === 2 ? 'bg-amber-700 text-white' :
-                          'bg-gray-800 text-gray-400'
+                          'bg-gray-300 text-gray-700'
                         }`}>
                           {index + 1}
                         </div>
                         <div className="flex-1">
-                          <p className="text-white font-semibold">{player.name}</p>
+                          <p className="text-gray-900 font-semibold">{player.name}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-bold text-yellow-400">{player.points}</p>
+                          <p className="text-2xl font-bold text-blue-600">{player.points}</p>
                           <p className="text-xs text-gray-500">Points</p>
                         </div>
                       </div>

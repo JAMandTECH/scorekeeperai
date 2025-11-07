@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -79,19 +80,19 @@ export default function Teams() {
   const volleyballTeams = teams.filter(t => t.sport === 'volleyball');
 
   return (
-    <div className="p-4 md:p-8 bg-gray-950 min-h-screen">
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white">Teams</h1>
-            <p className="text-gray-400 mt-1">Manage your organization's teams</p>
+            <h1 className="text-3xl font-bold text-gray-900">Teams</h1>
+            <p className="text-gray-600 mt-1">Manage your organization's teams</p>
           </div>
           <Button 
             onClick={() => {
               setEditingTeam(null);
               setShowForm(true);
             }}
-            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+            className="bg-blue-600 hover:bg-blue-700"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Team
@@ -100,18 +101,18 @@ export default function Teams() {
 
         {/* Basketball Teams */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-yellow-400" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Trophy className="w-6 h-6 text-blue-600" />
             Basketball Teams ({basketballTeams.length})
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {basketballTeams.map((team) => (
-              <Card key={team.id} className="bg-gray-900 border-gray-800 hover:border-yellow-400/50 transition-colors">
+              <Card key={team.id} className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-white">{team.name}</CardTitle>
-                      <Badge className="mt-2 bg-orange-500/10 text-orange-500">
+                      <CardTitle className="text-gray-900">{team.name}</CardTitle>
+                      <Badge className="mt-2 bg-orange-50 text-orange-600 border-orange-200">
                         {team.division || 'No Division'}
                       </Badge>
                     </div>
@@ -119,7 +120,7 @@ export default function Teams() {
                       variant="ghost" 
                       size="icon"
                       onClick={() => handleEdit(team)}
-                      className="text-gray-400 hover:text-white"
+                      className="text-gray-400 hover:text-gray-600"
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -127,16 +128,16 @@ export default function Teams() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Record</span>
-                    <span className="text-white font-semibold">{team.wins || 0}W - {team.losses || 0}L</span>
+                    <span className="text-gray-600">Record</span>
+                    <span className="text-gray-900 font-semibold">{team.wins || 0}W - {team.losses || 0}L</span>
                   </div>
                   {team.coach_name && (
-                    <div className="text-sm text-gray-400">
-                      Coach: <span className="text-white">{team.coach_name}</span>
+                    <div className="text-sm text-gray-600">
+                      Coach: <span className="text-gray-900 font-medium">{team.coach_name}</span>
                     </div>
                   )}
                   <Link to={createPageUrl("Players") + `?team_id=${team.id}`}>
-                    <Button variant="outline" className="w-full border-gray-700 text-gray-300 hover:text-white">
+                    <Button variant="outline" className="w-full border-gray-300 text-gray-700 hover:bg-gray-50">
                       <Users className="w-4 h-4 mr-2" />
                       View Players
                     </Button>
@@ -149,18 +150,18 @@ export default function Teams() {
 
         {/* Volleyball Teams */}
         <div>
-          <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-yellow-400" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Trophy className="w-6 h-6 text-blue-600" />
             Volleyball Teams ({volleyballTeams.length})
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {volleyballTeams.map((team) => (
-              <Card key={team.id} className="bg-gray-900 border-gray-800 hover:border-yellow-400/50 transition-colors">
+              <Card key={team.id} className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-white">{team.name}</CardTitle>
-                      <Badge className="mt-2 bg-blue-500/10 text-blue-500">
+                      <CardTitle className="text-gray-900">{team.name}</CardTitle>
+                      <Badge className="mt-2 bg-blue-50 text-blue-600 border-blue-200">
                         {team.division || 'No Division'}
                       </Badge>
                     </div>
@@ -168,7 +169,7 @@ export default function Teams() {
                       variant="ghost" 
                       size="icon"
                       onClick={() => handleEdit(team)}
-                      className="text-gray-400 hover:text-white"
+                      className="text-gray-400 hover:text-gray-600"
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -176,16 +177,16 @@ export default function Teams() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Record</span>
-                    <span className="text-white font-semibold">{team.wins || 0}W - {team.losses || 0}L</span>
+                    <span className="text-gray-600">Record</span>
+                    <span className="text-gray-900 font-semibold">{team.wins || 0}W - {team.losses || 0}L</span>
                   </div>
                   {team.coach_name && (
-                    <div className="text-sm text-gray-400">
-                      Coach: <span className="text-white">{team.coach_name}</span>
+                    <div className="text-sm text-gray-600">
+                      Coach: <span className="text-gray-900 font-medium">{team.coach_name}</span>
                     </div>
                   )}
                   <Link to={createPageUrl("Players") + `?team_id=${team.id}`}>
-                    <Button variant="outline" className="w-full border-gray-700 text-gray-300 hover:text-white">
+                    <Button variant="outline" className="w-full border-gray-300 text-gray-700 hover:bg-gray-50">
                       <Users className="w-4 h-4 mr-2" />
                       View Players
                     </Button>
@@ -197,9 +198,9 @@ export default function Teams() {
         </div>
 
         <Dialog open={showForm} onOpenChange={setShowForm}>
-          <DialogContent className="bg-gray-900 border-gray-800 text-white">
+          <DialogContent className="bg-white border-gray-200">
             <DialogHeader>
-              <DialogTitle>{editingTeam ? 'Edit Team' : 'Add New Team'}</DialogTitle>
+              <DialogTitle className="text-gray-900">{editingTeam ? 'Edit Team' : 'Add New Team'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -209,16 +210,16 @@ export default function Teams() {
                   name="name"
                   defaultValue={editingTeam?.name}
                   required
-                  className="bg-gray-950 border-gray-800 text-white"
+                  className="bg-white border-gray-300 text-gray-900"
                 />
               </div>
               <div>
                 <Label htmlFor="sport">Sport</Label>
                 <Select name="sport" defaultValue={editingTeam?.sport || 'basketball'} required>
-                  <SelectTrigger className="bg-gray-950 border-gray-800 text-white">
+                  <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-950 border-gray-800">
+                  <SelectContent className="bg-white border-gray-300">
                     <SelectItem value="basketball">Basketball</SelectItem>
                     <SelectItem value="volleyball">Volleyball</SelectItem>
                   </SelectContent>
@@ -231,7 +232,7 @@ export default function Teams() {
                   name="division"
                   defaultValue={editingTeam?.division}
                   placeholder="e.g., Division A, Youth League"
-                  className="bg-gray-950 border-gray-800 text-white"
+                  className="bg-white border-gray-300 text-gray-900"
                 />
               </div>
               <div>
@@ -240,7 +241,7 @@ export default function Teams() {
                   id="coach_name"
                   name="coach_name"
                   defaultValue={editingTeam?.coach_name}
-                  className="bg-gray-950 border-gray-800 text-white"
+                  className="bg-white border-gray-300 text-gray-900"
                 />
               </div>
               <div>
@@ -250,14 +251,14 @@ export default function Teams() {
                   name="coach_contact"
                   defaultValue={editingTeam?.coach_contact}
                   placeholder="Phone or email"
-                  className="bg-gray-950 border-gray-800 text-white"
+                  className="bg-white border-gray-300 text-gray-900"
                 />
               </div>
               <div className="flex justify-end gap-3">
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-gray-700 text-white">
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-gray-300 text-gray-700 hover:bg-gray-50">
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
                   {editingTeam ? 'Update' : 'Create'}
                 </Button>
               </div>

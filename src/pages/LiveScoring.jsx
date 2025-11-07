@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -130,46 +131,46 @@ export default function LiveScoring() {
   }
 
   return (
-    <div className="p-4 md:p-8 bg-gray-950 min-h-screen">
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8 text-center">
-          <Badge className="bg-yellow-400 text-gray-900 mb-4">
+          <Badge className="bg-red-100 text-red-700 border-red-300 mb-4">
             <PlayCircle className="w-4 h-4 mr-1" />
             LIVE - {game.sport.toUpperCase()}
           </Badge>
-          <p className="text-gray-400">{new Date(game.game_date).toLocaleDateString()}</p>
+          <p className="text-gray-600">{new Date(game.game_date).toLocaleDateString()}</p>
           {game.location && <p className="text-gray-500 text-sm">📍 {game.location}</p>}
         </div>
 
         {/* Main Scoreboard */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Home Team */}
-          <Card className="bg-gray-900 border-2 border-yellow-400">
+          <Card className="bg-white border-2 border-blue-600 shadow-lg">
             <CardHeader className="text-center">
-              <CardTitle className="text-white text-2xl">{homeTeam.name}</CardTitle>
-              <p className="text-gray-400">HOME</p>
+              <CardTitle className="text-gray-900 text-2xl">{homeTeam.name}</CardTitle>
+              <p className="text-gray-500">HOME</p>
             </CardHeader>
             <CardContent>
               <div className="text-center mb-6">
-                <div className="text-7xl font-bold text-yellow-400 mb-4">{homeScore}</div>
+                <div className="text-7xl font-bold text-blue-600 mb-4">{homeScore}</div>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <Button
                   onClick={() => updateScore('home', 1)}
-                  className="h-20 text-2xl bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+                  className="h-20 text-2xl bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   +1
                 </Button>
                 <Button
                   onClick={() => updateScore('home', 2)}
-                  className="h-20 text-2xl bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+                  className="h-20 text-2xl bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   +2
                 </Button>
                 <Button
                   onClick={() => updateScore('home', 3)}
-                  className="h-20 text-2xl bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+                  className="h-20 text-2xl bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   +3
                 </Button>
@@ -177,7 +178,7 @@ export default function LiveScoring() {
               <Button
                 onClick={() => updateScore('home', -1)}
                 variant="outline"
-                className="w-full mt-3 border-gray-700 text-white"
+                className="w-full mt-3 border-gray-300"
               >
                 <Minus className="w-4 h-4 mr-2" />
                 Undo Point
@@ -186,31 +187,31 @@ export default function LiveScoring() {
           </Card>
 
           {/* Away Team */}
-          <Card className="bg-gray-900 border-2 border-gray-700">
+          <Card className="bg-white border-2 border-gray-300 shadow-lg">
             <CardHeader className="text-center">
-              <CardTitle className="text-white text-2xl">{awayTeam.name}</CardTitle>
-              <p className="text-gray-400">AWAY</p>
+              <CardTitle className="text-gray-900 text-2xl">{awayTeam.name}</CardTitle>
+              <p className="text-gray-500">AWAY</p>
             </CardHeader>
             <CardContent>
               <div className="text-center mb-6">
-                <div className="text-7xl font-bold text-white mb-4">{awayScore}</div>
+                <div className="text-7xl font-bold text-gray-900 mb-4">{awayScore}</div>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <Button
                   onClick={() => updateScore('away', 1)}
-                  className="h-20 text-2xl bg-gray-800 hover:bg-gray-700 text-white"
+                  className="h-20 text-2xl bg-gray-200 hover:bg-gray-300 text-gray-900"
                 >
                   +1
                 </Button>
                 <Button
                   onClick={() => updateScore('away', 2)}
-                  className="h-20 text-2xl bg-gray-800 hover:bg-gray-700 text-white"
+                  className="h-20 text-2xl bg-gray-200 hover:bg-gray-300 text-gray-900"
                 >
                   +2
                 </Button>
                 <Button
                   onClick={() => updateScore('away', 3)}
-                  className="h-20 text-2xl bg-gray-800 hover:bg-gray-700 text-white"
+                  className="h-20 text-2xl bg-gray-200 hover:bg-gray-300 text-gray-900"
                 >
                   +3
                 </Button>
@@ -218,7 +219,7 @@ export default function LiveScoring() {
               <Button
                 onClick={() => updateScore('away', -1)}
                 variant="outline"
-                className="w-full mt-3 border-gray-700 text-white"
+                className="w-full mt-3 border-gray-300"
               >
                 <Minus className="w-4 h-4 mr-2" />
                 Undo Point
@@ -228,7 +229,7 @@ export default function LiveScoring() {
         </div>
 
         {/* Game Controls */}
-        <Card className="bg-gray-900 border-gray-800">
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4 justify-center">
               <Button
@@ -241,7 +242,7 @@ export default function LiveScoring() {
               <Button
                 onClick={() => navigate(createPageUrl("Games"))}
                 variant="outline"
-                className="border-gray-700 text-white px-8 py-6 text-lg"
+                className="border-gray-300 px-8 py-6 text-lg"
               >
                 Cancel
               </Button>

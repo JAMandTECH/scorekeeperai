@@ -1,3 +1,4 @@
+
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -27,26 +28,26 @@ export default function AllGames() {
   const completedGames = games.filter(g => g.status === 'completed');
 
   const GameCard = ({ game }) => (
-    <Card className="bg-gray-900 border-gray-800">
+    <Card className="bg-white border-gray-200 shadow-sm">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
             <Badge className={
-              game.status === 'scheduled' ? 'bg-blue-500/10 text-blue-500' :
-              game.status === 'in_progress' ? 'bg-yellow-500/10 text-yellow-500' :
-              'bg-green-500/10 text-green-500'
+              game.status === 'scheduled' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+              game.status === 'in_progress' ? 'bg-yellow-50 text-yellow-600 border-yellow-200' :
+              'bg-green-50 text-green-600 border-green-200'
             }>
               {game.status === 'scheduled' && <Clock className="w-3 h-3 mr-1" />}
               {game.status === 'in_progress' && <PlayCircle className="w-3 h-3 mr-1" />}
               {game.status === 'completed' && <CheckCircle className="w-3 h-3 mr-1" />}
               {game.status.replace('_', ' ')}
             </Badge>
-            <p className="text-gray-400 text-sm mt-2">
+            <p className="text-gray-500 text-sm mt-2">
               <Calendar className="w-3 h-3 inline mr-1" />
               {new Date(game.game_date).toLocaleDateString()}
             </p>
           </div>
-          <Badge variant="outline" className="text-yellow-400 border-yellow-400">
+          <Badge variant="outline" className="text-blue-600 border-blue-600">
             {game.sport}
           </Badge>
         </div>
@@ -54,50 +55,50 @@ export default function AllGames() {
       <CardContent className="space-y-3">
         <div className="flex justify-between items-center">
           <div className="flex-1">
-            <p className="text-white font-semibold">{getTeamName(game.home_team_id)}</p>
+            <p className="text-gray-900 font-semibold">{getTeamName(game.home_team_id)}</p>
             <p className="text-gray-500 text-sm">Home</p>
           </div>
           {game.status === 'completed' ? (
             <>
-              <div className="text-2xl font-bold text-yellow-400">{game.home_score}</div>
-              <div className="text-gray-500 px-3">-</div>
-              <div className="text-2xl font-bold text-white">{game.away_score}</div>
+              <div className="text-2xl font-bold text-blue-600">{game.home_score}</div>
+              <div className="text-gray-400 px-3">-</div>
+              <div className="text-2xl font-bold text-gray-900">{game.away_score}</div>
             </>
           ) : (
-            <div className="text-gray-500">vs</div>
+            <div className="text-gray-400">vs</div>
           )}
           <div className="flex-1 text-right">
-            <p className="text-white font-semibold">{getTeamName(game.away_team_id)}</p>
+            <p className="text-gray-900 font-semibold">{getTeamName(game.away_team_id)}</p>
             <p className="text-gray-500 text-sm">Away</p>
           </div>
         </div>
         {game.location && (
-          <p className="text-gray-400 text-sm">📍 {game.location}</p>
+          <p className="text-gray-500 text-sm">📍 {game.location}</p>
         )}
       </CardContent>
     </Card>
   );
 
   return (
-    <div className="p-4 md:p-8 bg-gray-950 min-h-screen">
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">All Games</h1>
-          <p className="text-gray-400 mt-1">System-wide game overview</p>
+          <h1 className="text-3xl font-bold text-gray-900">All Games</h1>
+          <p className="text-gray-600 mt-1">System-wide game overview</p>
         </div>
 
         <Tabs defaultValue="all" className="space-y-6">
-          <TabsList className="bg-gray-900 border border-gray-800">
-            <TabsTrigger value="all" className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900">
+          <TabsList className="bg-white border border-gray-200">
+            <TabsTrigger value="all" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               All ({games.length})
             </TabsTrigger>
-            <TabsTrigger value="scheduled" className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900">
+            <TabsTrigger value="scheduled" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Scheduled ({scheduledGames.length})
             </TabsTrigger>
-            <TabsTrigger value="in_progress" className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900">
+            <TabsTrigger value="in_progress" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               In Progress ({inProgressGames.length})
             </TabsTrigger>
-            <TabsTrigger value="completed" className="data-[state=active]:bg-yellow-400 data-[state=active]:text-gray-900">
+            <TabsTrigger value="completed" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Completed ({completedGames.length})
             </TabsTrigger>
           </TabsList>

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -61,19 +62,19 @@ export default function Organizations() {
   };
 
   return (
-    <div className="p-4 md:p-8 bg-gray-950 min-h-screen">
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white">Organizations</h1>
-            <p className="text-gray-400 mt-1">Manage all registered organizations</p>
+            <h1 className="text-3xl font-bold text-gray-900">Organizations</h1>
+            <p className="text-gray-600 mt-1">Manage all registered organizations</p>
           </div>
           <Button 
             onClick={() => {
               setEditingOrg(null);
               setShowForm(true);
             }}
-            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Organization
@@ -82,16 +83,16 @@ export default function Organizations() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {organizations.map((org) => (
-            <Card key={org.id} className="bg-gray-900 border-gray-800">
+            <Card key={org.id} className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-yellow-400/10 rounded-lg flex items-center justify-center">
-                      <Building2 className="w-6 h-6 text-yellow-400" />
+                    <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                      <Building2 className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
-                      <CardTitle className="text-white">{org.name}</CardTitle>
-                      <Badge variant={org.status === 'active' ? 'default' : 'secondary'} className="mt-1">
+                      <CardTitle className="text-gray-900">{org.name}</CardTitle>
+                      <Badge variant={org.status === 'active' ? 'default' : 'secondary'} className="mt-1 bg-blue-100 text-blue-700">
                         {org.status}
                       </Badge>
                     </div>
@@ -100,25 +101,25 @@ export default function Organizations() {
                     variant="ghost" 
                     size="icon"
                     onClick={() => handleEdit(org)}
-                    className="text-gray-400 hover:text-white"
+                    className="text-gray-400 hover:text-gray-600"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Mail className="w-4 h-4" />
                   {org.contact_email}
                 </div>
                 {org.contact_phone && (
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Phone className="w-4 h-4" />
                     {org.contact_phone}
                   </div>
                 )}
                 {org.address && (
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
                     <MapPin className="w-4 h-4" />
                     {org.address}
                   </div>
@@ -129,9 +130,9 @@ export default function Organizations() {
         </div>
 
         <Dialog open={showForm} onOpenChange={setShowForm}>
-          <DialogContent className="bg-gray-900 border-gray-800 text-white">
+          <DialogContent className="bg-white border-gray-200">
             <DialogHeader>
-              <DialogTitle>{editingOrg ? 'Edit Organization' : 'Add New Organization'}</DialogTitle>
+              <DialogTitle className="text-gray-900">{editingOrg ? 'Edit Organization' : 'Add New Organization'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -174,10 +175,10 @@ export default function Organizations() {
                 />
               </div>
               <div className="flex justify-end gap-3">
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-gray-700 text-white">
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-gray-300">
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
                   {editingOrg ? 'Update' : 'Create'}
                 </Button>
               </div>

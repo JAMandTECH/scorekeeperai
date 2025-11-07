@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Trophy, Users, Calendar, Building2, Shield, ArrowRight, LogOut } from "lucide-react";
+import { Trophy, Users, Calendar, Building2, Shield, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -23,10 +23,6 @@ export default function Dashboard() {
     } catch (error) {
       base44.auth.redirectToLogin(createPageUrl("Dashboard"));
     }
-  };
-
-  const handleLogout = () => {
-    base44.auth.logout(createPageUrl("Home"));
   };
 
   const { data: organizations = [] } = useQuery({
@@ -80,35 +76,15 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 🔴 MODERN DARK LOGOUT BANNER - ALWAYS VISIBLE 🔴 */}
-      <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white py-4 px-6 flex items-center justify-between sticky top-0 z-50 shadow-xl border-b border-gray-700">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shadow-lg">
-            <Trophy className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="font-bold text-lg">ALAB Sports Management</h1>
-            <p className="text-xs text-gray-400">{user?.full_name} • {isSuperAdmin ? 'Super Admin' : 'Admin'}</p>
-          </div>
-        </div>
-        <button 
-          onClick={handleLogout}
-          className="text-white hover:text-gray-300 transition-colors p-2"
-          title="Logout"
-        >
-          <LogOut className="w-6 h-6" />
-        </button>
-      </div>
-
       <div className="p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Super Admin Banner */}
           {isAdmin && !isSuperAdmin && (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 shadow-sm">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Shield className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">
@@ -147,7 +123,7 @@ export default function Dashboard() {
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {isSuperAdmin && (
-              <Card className="border-gray-200 bg-white">
+              <Card className="border-gray-200 bg-white shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium text-gray-600">Organizations</CardTitle>
                   <Building2 className="w-4 h-4 text-gray-400" />
@@ -159,7 +135,7 @@ export default function Dashboard() {
               </Card>
             )}
             
-            <Card className="border-gray-200 bg-white">
+            <Card className="border-gray-200 bg-white shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Teams</CardTitle>
                 <Users className="w-4 h-4 text-gray-400" />
@@ -172,7 +148,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
             
-            <Card className="border-gray-200 bg-white">
+            <Card className="border-gray-200 bg-white shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Players</CardTitle>
                 <Trophy className="w-4 h-4 text-gray-400" />
@@ -183,7 +159,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
             
-            <Card className="border-gray-200 bg-white">
+            <Card className="border-gray-200 bg-white shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Games</CardTitle>
                 <Calendar className="w-4 h-4 text-gray-400" />
@@ -200,7 +176,7 @@ export default function Dashboard() {
           {/* Games Grid */}
           <div className="grid lg:grid-cols-2 gap-6">
             {/* Upcoming Games */}
-            <Card className="border-gray-200 bg-white">
+            <Card className="border-gray-200 bg-white shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-gray-900">Upcoming Games</CardTitle>
                 <Link to={createPageUrl(isSuperAdmin ? "AllGames" : "Games")} className="text-sm text-blue-600 hover:text-blue-700 font-medium">
@@ -237,7 +213,7 @@ export default function Dashboard() {
             </Card>
 
             {/* Recent Results */}
-            <Card className="border-gray-200 bg-white">
+            <Card className="border-gray-200 bg-white shadow-sm">
               <CardHeader>
                 <CardTitle className="text-gray-900">Recent Results</CardTitle>
               </CardHeader>

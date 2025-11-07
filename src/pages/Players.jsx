@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -90,18 +91,18 @@ export default function Players() {
   };
 
   return (
-    <div className="p-4 md:p-8 bg-gray-950 min-h-screen">
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white">Players</h1>
-            <p className="text-gray-400 mt-1">Manage player rosters</p>
+            <h1 className="text-3xl font-bold text-gray-900">Players</h1>
+            <p className="text-gray-600 mt-1">Manage player rosters</p>
           </div>
           <div className="flex gap-3 w-full md:w-auto">
             <select
               value={selectedTeam}
               onChange={(e) => setSelectedTeam(e.target.value)}
-              className="bg-gray-900 border border-gray-800 text-white rounded-lg px-4 py-2"
+              className="bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-2"
             >
               <option value="all">All Teams</option>
               {teams.map(team => (
@@ -113,7 +114,7 @@ export default function Players() {
                 setEditingPlayer(null);
                 setShowForm(true);
               }}
-              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Player
@@ -123,21 +124,21 @@ export default function Players() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {players.map((player) => (
-            <Card key={player.id} className="bg-gray-900 border-gray-800 hover:border-yellow-400/50 transition-colors">
+            <Card key={player.id} className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <Avatar className="w-16 h-16">
+                    <Avatar className="w-16 h-16 border-2 border-gray-200">
                       <AvatarImage src={player.photo_url} />
-                      <AvatarFallback className="bg-yellow-400 text-gray-900 font-bold text-lg">
+                      <AvatarFallback className="bg-blue-600 text-white font-bold text-lg">
                         {player.jersey_number}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h3 className="text-white font-bold text-lg">
+                      <h3 className="text-gray-900 font-bold text-lg">
                         {player.first_name} {player.last_name}
                       </h3>
-                      <p className="text-gray-400 text-sm">{getTeamName(player.team_id)}</p>
+                      <p className="text-gray-500 text-sm">{getTeamName(player.team_id)}</p>
                     </div>
                   </div>
                   <Button 
@@ -147,7 +148,7 @@ export default function Players() {
                       setEditingPlayer(player);
                       setShowForm(true);
                     }}
-                    className="text-gray-400 hover:text-white"
+                    className="text-gray-400 hover:text-gray-600"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -156,29 +157,29 @@ export default function Players() {
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <span className="text-gray-400">Position</span>
-                    <p className="text-white font-medium">{player.position || '-'}</p>
+                    <span className="text-gray-500">Position</span>
+                    <p className="text-gray-900 font-medium">{player.position || '-'}</p>
                   </div>
                   <div>
-                    <span className="text-gray-400">Height</span>
-                    <p className="text-white font-medium">{player.height || '-'}</p>
+                    <span className="text-gray-500">Height</span>
+                    <p className="text-gray-900 font-medium">{player.height || '-'}</p>
                   </div>
                 </div>
-                <div className="border-t border-gray-800 pt-3 grid grid-cols-3 gap-2 text-center">
+                <div className="border-t border-gray-200 pt-3 grid grid-cols-3 gap-2 text-center">
                   <div>
-                    <div className="text-yellow-400 font-bold text-lg">{player.total_points || 0}</div>
+                    <div className="text-blue-600 font-bold text-lg">{player.total_points || 0}</div>
                     <div className="text-gray-500 text-xs">PTS</div>
                   </div>
                   <div>
-                    <div className="text-yellow-400 font-bold text-lg">{player.total_rebounds || 0}</div>
+                    <div className="text-blue-600 font-bold text-lg">{player.total_rebounds || 0}</div>
                     <div className="text-gray-500 text-xs">REB</div>
                   </div>
                   <div>
-                    <div className="text-yellow-400 font-bold text-lg">{player.total_assists || 0}</div>
+                    <div className="text-blue-600 font-bold text-lg">{player.total_assists || 0}</div>
                     <div className="text-gray-500 text-xs">AST</div>
                   </div>
                 </div>
-                <div className="text-center text-sm text-gray-400">
+                <div className="text-center text-sm text-gray-600">
                   {player.games_played || 0} games played
                 </div>
               </CardContent>
@@ -188,16 +189,16 @@ export default function Players() {
 
         {players.length === 0 && (
           <div className="text-center py-16">
-            <User className="w-16 h-16 text-gray-700 mx-auto mb-4" />
+            <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 text-lg">No players found</p>
-            <p className="text-gray-600 text-sm">Add your first player to get started</p>
+            <p className="text-gray-400 text-sm">Add your first player to get started</p>
           </div>
         )}
 
         <Dialog open={showForm} onOpenChange={setShowForm}>
-          <DialogContent className="bg-gray-900 border-gray-800 text-white">
+          <DialogContent className="bg-white border-gray-200">
             <DialogHeader>
-              <DialogTitle>{editingPlayer ? 'Edit Player' : 'Add New Player'}</DialogTitle>
+              <DialogTitle className="text-gray-900">{editingPlayer ? 'Edit Player' : 'Add New Player'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -207,7 +208,7 @@ export default function Players() {
                   name="team_id"
                   defaultValue={editingPlayer?.team_id}
                   required
-                  className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg px-3 py-2"
+                  className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2"
                 >
                   <option value="">Select a team</option>
                   {teams.map(team => (
@@ -223,7 +224,7 @@ export default function Players() {
                     name="first_name"
                     defaultValue={editingPlayer?.first_name}
                     required
-                    className="bg-gray-950 border-gray-800 text-white"
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
                 <div>
@@ -233,7 +234,7 @@ export default function Players() {
                     name="last_name"
                     defaultValue={editingPlayer?.last_name}
                     required
-                    className="bg-gray-950 border-gray-800 text-white"
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
               </div>
@@ -245,7 +246,7 @@ export default function Players() {
                     name="jersey_number"
                     defaultValue={editingPlayer?.jersey_number}
                     required
-                    className="bg-gray-950 border-gray-800 text-white"
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
                 <div>
@@ -255,7 +256,7 @@ export default function Players() {
                     name="position"
                     defaultValue={editingPlayer?.position}
                     placeholder="e.g., Guard, Forward"
-                    className="bg-gray-950 border-gray-800 text-white"
+                    className="bg-white border-gray-300 text-gray-900"
                   />
                 </div>
               </div>
@@ -266,14 +267,14 @@ export default function Players() {
                   name="height"
                   defaultValue={editingPlayer?.height}
                   placeholder="e.g., 6'2&quot;"
-                  className="bg-gray-950 border-gray-800 text-white"
+                  className="bg-white border-gray-300 text-gray-900"
                 />
               </div>
               <div className="flex justify-end gap-3">
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-gray-700 text-white">
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-gray-300 text-gray-700 hover:bg-gray-100">
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
                   {editingPlayer ? 'Update' : 'Create'}
                 </Button>
               </div>
