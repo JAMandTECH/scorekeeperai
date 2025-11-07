@@ -1,9 +1,10 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Trophy, Calendar, TrendingUp, Target, Award, Zap, Shield, ArrowRight } from "lucide-react";
+import { Calendar, TrendingUp, Target, Award, Zap, Shield, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -174,26 +175,35 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center">
-              <Trophy className="w-10 h-10 text-blue-600" />
+      <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 text-white py-24 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iIzFmMmQzZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
+        
+        <div className="max-w-7xl mx-auto text-center relative z-10">
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-2xl transform rotate-6 hover:rotate-0 transition-transform duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+              </svg>
             </div>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            ALAB Sports League
+          
+          <h1 className="text-6xl md:text-7xl font-black mb-6 tracking-tight">
+            ALAB <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">SPORTS</span>
           </h1>
-          <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
-            Professional Basketball & Volleyball League Management System
+          <p className="text-xl md:text-2xl text-blue-100 mb-3 max-w-3xl mx-auto font-medium">
+            Professional Basketball & Volleyball League Management
           </p>
+          <p className="text-blue-200 mb-10 max-w-2xl mx-auto">
+            Real-time scoring • Live statistics • Tournament management
+          </p>
+          
           {!isAuthenticated ? (
-            <div className="flex gap-4 justify-center">
+            <div className="flex gap-4 justify-center flex-wrap">
               <Button 
                 onClick={() => base44.auth.redirectToLogin(createPageUrl("Dashboard"))}
-                className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-6"
+                className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all"
               >
                 Get Started
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -201,7 +211,7 @@ export default function Home() {
               <Link to={createPageUrl("RequestAdminAccess")}>
                 <Button 
                   variant="outline"
-                  className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6"
+                  className="border-2 border-white text-white hover:bg-white hover:text-blue-900 text-lg px-10 py-7 font-bold backdrop-blur-sm"
                 >
                   Request Admin Access
                 </Button>
@@ -209,60 +219,78 @@ export default function Home() {
             </div>
           ) : (
             <Link to={createPageUrl("Dashboard")}>
-              <Button className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-6">
+              <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all">
                 Go to Dashboard
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
           )}
         </div>
+        
+        {/* Decorative Elements */}
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 to-transparent"></div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="max-w-7xl mx-auto px-4 py-16">
         {/* BASKETBALL SECTION */}
-        <section className="mb-16">
-          <div className="flex items-center gap-3 mb-8">
-            <Trophy className="w-8 h-8 text-orange-600" />
-            <h2 className="text-4xl font-bold text-gray-900">Basketball</h2>
+        <section className="mb-20">
+          <div className="flex items-center gap-4 mb-10">
+            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                <path d="M2 12h20"/>
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-4xl font-black text-gray-900">Basketball</h2>
+              <p className="text-gray-500 font-medium">League Standings & Player Stats</p>
+            </div>
           </div>
 
-          <Tabs defaultValue="standings" className="space-y-6">
-            <TabsList className="bg-white border border-gray-200">
-              <TabsTrigger value="standings">Standings</TabsTrigger>
-              <TabsTrigger value="leaders">Player Leaders</TabsTrigger>
-              <TabsTrigger value="schedule">Schedule & Results</TabsTrigger>
+          <Tabs defaultValue="standings" className="space-y-8">
+            <TabsList className="bg-white border-2 border-gray-200 p-1 rounded-xl shadow-sm">
+              <TabsTrigger value="standings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white font-semibold rounded-lg px-6">
+                Standings
+              </TabsTrigger>
+              <TabsTrigger value="leaders" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white font-semibold rounded-lg px-6">
+                Player Leaders
+              </TabsTrigger>
+              <TabsTrigger value="schedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white font-semibold rounded-lg px-6">
+                Schedule & Results
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="standings">
               {basketballStandings.map((divisionData, idx) => (
-                <Card key={idx} className="mb-6 bg-white border-gray-200 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-gray-900">{divisionData.division}</CardTitle>
+                <Card key={idx} className="mb-6 bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                    <CardTitle className="text-2xl font-black text-gray-900">{divisionData.division}</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-0">
                     <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
+                      <table className="w-full">
                         <thead>
-                          <tr className="border-b border-gray-200">
-                            <th className="text-left py-3 px-2 text-gray-600 font-medium">#</th>
-                            <th className="text-left py-3 px-2 text-gray-600 font-medium">Team</th>
-                            <th className="text-center py-3 px-2 text-gray-600 font-medium">W</th>
-                            <th className="text-center py-3 px-2 text-gray-600 font-medium">L</th>
-                            <th className="text-center py-3 px-2 text-gray-600 font-medium">WIN%</th>
-                            <th className="text-center py-3 px-2 text-gray-600 font-medium">PPG</th>
-                            <th className="text-center py-3 px-2 text-gray-600 font-medium">PAPG</th>
+                          <tr className="bg-gray-50 border-b-2 border-gray-100">
+                            <th className="text-left py-4 px-4 text-gray-600 font-bold text-sm">#</th>
+                            <th className="text-left py-4 px-4 text-gray-600 font-bold text-sm">TEAM</th>
+                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">W</th>
+                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">L</th>
+                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">WIN%</th>
+                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">PPG</th>
+                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">PAPG</th>
                           </tr>
                         </thead>
                         <tbody>
                           {divisionData.teams.map((team, i) => (
-                            <tr key={team.id} className="border-b border-gray-100 hover:bg-gray-50">
-                              <td className="py-3 px-2 font-semibold text-gray-900">{i + 1}</td>
-                              <td className="py-3 px-2 font-medium text-gray-900">{team.name}</td>
-                              <td className="py-3 px-2 text-center text-green-600 font-bold">{team.wins}</td>
-                              <td className="py-3 px-2 text-center text-red-600 font-bold">{team.losses}</td>
-                              <td className="py-3 px-2 text-center font-medium">{(team.winPct * 100).toFixed(0)}%</td>
-                              <td className="py-3 px-2 text-center">{team.avgPointsFor}</td>
-                              <td className="py-3 px-2 text-center">{team.avgPointsAgainst}</td>
+                            <tr key={team.id} className="border-b border-gray-100 hover:bg-blue-50/50 transition-colors">
+                              <td className="py-4 px-4 font-black text-xl text-gray-400">{i + 1}</td>
+                              <td className="py-4 px-4 font-bold text-gray-900">{team.name}</td>
+                              <td className="py-4 px-4 text-center text-green-600 font-bold text-lg">{team.wins}</td>
+                              <td className="py-4 px-4 text-center text-red-600 font-bold text-lg">{team.losses}</td>
+                              <td className="py-4 px-4 text-center font-bold text-gray-900">{(team.winPct * 100).toFixed(0)}%</td>
+                              <td className="py-4 px-4 text-center text-gray-700 font-semibold">{team.avgPointsFor}</td>
+                              <td className="py-4 px-4 text-center text-gray-700 font-semibold">{team.avgPointsAgainst}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -276,40 +304,42 @@ export default function Home() {
             <TabsContent value="leaders">
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Top Scorers */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Target className="w-5 h-5 text-blue-600" />
-                      <CardTitle className="text-gray-900">Top 10 Scorers</CardTitle>
+                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-blue-50 to-white">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <Target className="w-6 h-6 text-white" />
+                      </div>
+                      <CardTitle className="text-xl font-black text-gray-900">Top 10 Scorers</CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
                       {topScorers.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            i === 0 ? 'bg-yellow-400 text-gray-900' :
-                            i === 1 ? 'bg-gray-400 text-white' :
-                            i === 2 ? 'bg-amber-700 text-white' :
-                            'bg-gray-300 text-gray-700'
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
+                            i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
+                            i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
+                            i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
+                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-10 h-10 border-2 border-gray-200">
+                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
                             <AvatarImage src={player.photo_url} />
-                            <AvatarFallback className="bg-blue-600 text-white text-xs">
+                            <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500">{player.teamName} • {player.division}</p>
+                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-bold text-blue-600">{player.total}</p>
-                            <p className="text-xs text-gray-500">{player.average} PPG</p>
+                            <p className="text-2xl font-black text-blue-600">{player.total}</p>
+                            <p className="text-xs text-gray-500 font-semibold">{player.average} PPG</p>
                           </div>
                         </div>
                       ))}
@@ -318,40 +348,42 @@ export default function Home() {
                 </Card>
 
                 {/* Top Rebounders */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-green-600" />
-                      <CardTitle className="text-gray-900">Top 10 Rebounders</CardTitle>
+                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-green-50 to-white">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                        <TrendingUp className="w-6 h-6 text-white" />
+                      </div>
+                      <CardTitle className="text-xl font-black text-gray-900">Top 10 Rebounders</CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
                       {topRebounders.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            i === 0 ? 'bg-yellow-400 text-gray-900' :
-                            i === 1 ? 'bg-gray-400 text-white' :
-                            i === 2 ? 'bg-amber-700 text-white' :
-                            'bg-gray-300 text-gray-700'
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
+                            i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
+                            i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
+                            i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
+                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-10 h-10 border-2 border-gray-200">
+                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
                             <AvatarImage src={player.photo_url} />
-                            <AvatarFallback className="bg-green-600 text-white text-xs">
+                            <AvatarFallback className="bg-gradient-to-br from-green-600 to-green-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500">{player.teamName} • {player.division}</p>
+                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-bold text-green-600">{player.total}</p>
-                            <p className="text-xs text-gray-500">{player.average} RPG</p>
+                            <p className="text-2xl font-black text-green-600">{player.total}</p>
+                            <p className="text-xs text-gray-500 font-semibold">{player.average} RPG</p>
                           </div>
                         </div>
                       ))}
@@ -360,40 +392,42 @@ export default function Home() {
                 </Card>
 
                 {/* Top Blockers */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Shield className="w-5 h-5 text-red-600" />
-                      <CardTitle className="text-gray-900">Top 10 Blockers</CardTitle>
+                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-red-50 to-white">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
+                        <Shield className="w-6 h-6 text-white" />
+                      </div>
+                      <CardTitle className="text-xl font-black text-gray-900">Top 10 Blockers</CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
                       {topBlockers.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            i === 0 ? 'bg-yellow-400 text-gray-900' :
-                            i === 1 ? 'bg-gray-400 text-white' :
-                            i === 2 ? 'bg-amber-700 text-white' :
-                            'bg-gray-300 text-gray-700'
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
+                            i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
+                            i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
+                            i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
+                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-10 h-10 border-2 border-gray-200">
+                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
                             <AvatarImage src={player.photo_url} />
-                            <AvatarFallback className="bg-red-600 text-white text-xs">
+                            <AvatarFallback className="bg-gradient-to-br from-red-600 to-red-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500">{player.teamName} • {player.division}</p>
+                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-bold text-red-600">{player.total}</p>
-                            <p className="text-xs text-gray-500">{player.average} BPG</p>
+                            <p className="text-2xl font-black text-red-600">{player.total}</p>
+                            <p className="text-xs text-gray-500 font-semibold">{player.average} BPG</p>
                           </div>
                         </div>
                       ))}
@@ -402,40 +436,42 @@ export default function Home() {
                 </Card>
 
                 {/* Top 3-Pointer Leaders */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-5 h-5 text-yellow-600" />
-                      <CardTitle className="text-gray-900">Top 10 3-Pointer Leaders</CardTitle>
+                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-yellow-50 to-white">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
+                        <Zap className="w-6 h-6 text-white" />
+                      </div>
+                      <CardTitle className="text-xl font-black text-gray-900">Top 10 3-Pointer Leaders</CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
                       {top3Pointers.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            i === 0 ? 'bg-yellow-400 text-gray-900' :
-                            i === 1 ? 'bg-gray-400 text-white' :
-                            i === 2 ? 'bg-amber-700 text-white' :
-                            'bg-gray-300 text-gray-700'
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
+                            i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
+                            i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
+                            i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
+                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-10 h-10 border-2 border-gray-200">
+                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
                             <AvatarImage src={player.photo_url} />
-                            <AvatarFallback className="bg-yellow-600 text-white text-xs">
+                            <AvatarFallback className="bg-gradient-to-br from-yellow-600 to-yellow-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500">{player.teamName} • {player.division}</p>
+                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-bold text-yellow-600">{player.total}</p>
-                            <p className="text-xs text-gray-500">{player.average} 3PG</p>
+                            <p className="text-2xl font-black text-yellow-600">{player.total}</p>
+                            <p className="text-xs text-gray-500 font-semibold">{player.average} 3PG</p>
                           </div>
                         </div>
                       ))}
@@ -448,27 +484,28 @@ export default function Home() {
             <TabsContent value="schedule">
               <div className="grid lg:grid-cols-2 gap-6">
                 {/* Upcoming Games */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-gray-900">Upcoming Games</CardTitle>
+                <Card className="bg-white border-2 border-gray-100 shadow-lg">
+                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-blue-50 to-white">
+                    <CardTitle className="text-xl font-black text-gray-900">Upcoming Games</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4">
                     <div className="space-y-3">
                       {upcomingBasketballGames.map(game => (
-                        <div key={game.id} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs text-gray-500">
+                        <div key={game.id} className="border-2 border-gray-100 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50">
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="text-xs text-gray-500 font-semibold flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
                               {new Date(game.game_date).toLocaleDateString()}
                             </span>
-                            <Badge className="bg-blue-50 text-blue-600 border-blue-200 text-xs">
+                            <Badge className="bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold">
                               {game.game_type?.replace('_', ' ').toUpperCase() || 'REGULAR'}
                             </Badge>
                           </div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-bold text-gray-900">
                             {getTeamName(game.home_team_id)} vs {getTeamName(game.away_team_id)}
                           </div>
                           {game.location && (
-                            <p className="text-xs text-gray-500 mt-1">📍 {game.location}</p>
+                            <p className="text-xs text-gray-500 mt-2 font-medium">📍 {game.location}</p>
                           )}
                         </div>
                       ))}
@@ -477,31 +514,31 @@ export default function Home() {
                 </Card>
 
                 {/* Recent Results */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-gray-900">Recent Results</CardTitle>
+                <Card className="bg-white border-2 border-gray-100 shadow-lg">
+                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-green-50 to-white">
+                    <CardTitle className="text-xl font-black text-gray-900">Recent Results</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4">
                     <div className="space-y-3">
                       {completedBasketballGames.map(game => (
-                        <div key={game.id} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs text-gray-500">
+                        <div key={game.id} className="border-2 border-gray-100 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50">
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="text-xs text-gray-500 font-semibold">
                               {new Date(game.game_date).toLocaleDateString()}
                             </span>
-                            <Badge className="bg-green-50 text-green-600 border-green-200 text-xs">
+                            <Badge className="bg-green-100 text-green-700 border border-green-200 text-xs font-bold">
                               FINAL
                             </Badge>
                           </div>
                           <div className="flex justify-between items-center">
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{getTeamName(game.home_team_id)}</div>
-                              <div className="text-2xl font-bold text-gray-900 mt-1">{game.home_score}</div>
+                              <div className="text-sm font-bold text-gray-900">{getTeamName(game.home_team_id)}</div>
+                              <div className="text-3xl font-black text-gray-900 mt-1">{game.home_score}</div>
                             </div>
-                            <div className="text-gray-400 text-lg">-</div>
+                            <div className="text-gray-300 text-2xl font-black">-</div>
                             <div className="text-right">
-                              <div className="text-sm font-medium text-gray-900">{getTeamName(game.away_team_id)}</div>
-                              <div className="text-2xl font-bold text-gray-900 mt-1">{game.away_score}</div>
+                              <div className="text-sm font-bold text-gray-900">{getTeamName(game.away_team_id)}</div>
+                              <div className="text-3xl font-black text-gray-900 mt-1">{game.away_score}</div>
                             </div>
                           </div>
                         </div>
@@ -515,47 +552,58 @@ export default function Home() {
         </section>
 
         {/* VOLLEYBALL SECTION */}
-        <section className="mb-16">
-          <div className="flex items-center gap-3 mb-8">
-            <Award className="w-8 h-8 text-blue-600" />
-            <h2 className="text-4xl font-bold text-gray-900">Volleyball</h2>
+        <section className="mb-20">
+          <div className="flex items-center gap-4 mb-10">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Award className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <h2 className="text-4xl font-black text-gray-900">Volleyball</h2>
+              <p className="text-gray-500 font-medium">League Standings & Player Stats</p>
+            </div>
           </div>
 
-          <Tabs defaultValue="standings" className="space-y-6">
-            <TabsList className="bg-white border border-gray-200">
-              <TabsTrigger value="standings">Standings</TabsTrigger>
-              <TabsTrigger value="leaders">Player Leaders</TabsTrigger>
-              <TabsTrigger value="schedule">Schedule & Results</TabsTrigger>
+          <Tabs defaultValue="standings" className="space-y-8">
+            <TabsList className="bg-white border-2 border-gray-200 p-1 rounded-xl shadow-sm">
+              <TabsTrigger value="standings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white font-semibold rounded-lg px-6">
+                Standings
+              </TabsTrigger>
+              <TabsTrigger value="leaders" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white font-semibold rounded-lg px-6">
+                Player Leaders
+              </TabsTrigger>
+              <TabsTrigger value="schedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white font-semibold rounded-lg px-6">
+                Schedule & Results
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="standings">
               {volleyballStandings.map((divisionData, idx) => (
-                <Card key={idx} className="mb-6 bg-white border-gray-200 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-gray-900">{divisionData.division}</CardTitle>
+                <Card key={idx} className="mb-6 bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                    <CardTitle className="text-2xl font-black text-gray-900">{divisionData.division}</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-0">
                     <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
+                      <table className="w-full">
                         <thead>
-                          <tr className="border-b border-gray-200">
-                            <th className="text-left py-3 px-2 text-gray-600 font-medium">#</th>
-                            <th className="text-left py-3 px-2 text-gray-600 font-medium">Team</th>
-                            <th className="text-center py-3 px-2 text-gray-600 font-medium">W</th>
-                            <th className="text-center py-3 px-2 text-gray-600 font-medium">L</th>
-                            <th className="text-center py-3 px-2 text-gray-600 font-medium">WIN%</th>
-                            <th className="text-center py-3 px-2 text-gray-600 font-medium">Sets Won</th>
+                          <tr className="bg-gray-50 border-b-2 border-gray-100">
+                            <th className="text-left py-4 px-4 text-gray-600 font-bold text-sm">#</th>
+                            <th className="text-left py-4 px-4 text-gray-600 font-bold text-sm">TEAM</th>
+                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">W</th>
+                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">L</th>
+                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">WIN%</th>
+                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">Sets Won</th>
                           </tr>
                         </thead>
                         <tbody>
                           {divisionData.teams.map((team, i) => (
-                            <tr key={team.id} className="border-b border-gray-100 hover:bg-gray-50">
-                              <td className="py-3 px-2 font-semibold text-gray-900">{i + 1}</td>
-                              <td className="py-3 px-2 font-medium text-gray-900">{team.name}</td>
-                              <td className="py-3 px-2 text-center text-green-600 font-bold">{team.wins}</td>
-                              <td className="py-3 px-2 text-center text-red-600 font-bold">{team.losses}</td>
-                              <td className="py-3 px-2 text-center font-medium">{(team.winPct * 100).toFixed(0)}%</td>
-                              <td className="py-3 px-2 text-center">{team.pointsFor}</td>
+                            <tr key={team.id} className="border-b border-gray-100 hover:bg-orange-50/50 transition-colors">
+                              <td className="py-4 px-4 font-black text-xl text-gray-400">{i + 1}</td>
+                              <td className="py-4 px-4 font-bold text-gray-900">{team.name}</td>
+                              <td className="py-4 px-4 text-center text-green-600 font-bold text-lg">{team.wins}</td>
+                              <td className="py-4 px-4 text-center text-red-600 font-bold text-lg">{team.losses}</td>
+                              <td className="py-4 px-4 text-center font-bold text-gray-900">{(team.winPct * 100).toFixed(0)}%</td>
+                              <td className="py-4 px-4 text-center text-gray-700 font-semibold">{team.pointsFor}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -569,40 +617,42 @@ export default function Home() {
             <TabsContent value="leaders">
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Top Scorers */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Target className="w-5 h-5 text-blue-600" />
-                      <CardTitle className="text-gray-900">Top 10 Scorers</CardTitle>
+                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-blue-50 to-white">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <Target className="w-6 h-6 text-white" />
+                      </div>
+                      <CardTitle className="text-xl font-black text-gray-900">Top 10 Scorers</CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
                       {topVolleyballScorers.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            i === 0 ? 'bg-yellow-400 text-gray-900' :
-                            i === 1 ? 'bg-gray-400 text-white' :
-                            i === 2 ? 'bg-amber-700 text-white' :
-                            'bg-gray-300 text-gray-700'
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
+                            i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
+                            i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
+                            i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
+                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-10 h-10 border-2 border-gray-200">
+                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
                             <AvatarImage src={player.photo_url} />
-                            <AvatarFallback className="bg-blue-600 text-white text-xs">
+                            <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500">{player.teamName} • {player.division}</p>
+                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-bold text-blue-600">{player.total}</p>
-                            <p className="text-xs text-gray-500">{player.average} PPG</p>
+                            <p className="text-2xl font-black text-blue-600">{player.total}</p>
+                            <p className="text-xs text-gray-500 font-semibold">{player.average} PPG</p>
                           </div>
                         </div>
                       ))}
@@ -611,40 +661,42 @@ export default function Home() {
                 </Card>
 
                 {/* Top Attackers */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-5 h-5 text-orange-600" />
-                      <CardTitle className="text-gray-900">Top 10 Attackers</CardTitle>
+                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-orange-50 to-white">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+                        <Zap className="w-6 h-6 text-white" />
+                      </div>
+                      <CardTitle className="text-xl font-black text-gray-900">Top 10 Attackers</CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
                       {topVolleyballAttackers.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            i === 0 ? 'bg-yellow-400 text-gray-900' :
-                            i === 1 ? 'bg-gray-400 text-white' :
-                            i === 2 ? 'bg-amber-700 text-white' :
-                            'bg-gray-300 text-gray-700'
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
+                            i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
+                            i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
+                            i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
+                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-10 h-10 border-2 border-gray-200">
+                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
                             <AvatarImage src={player.photo_url} />
-                            <AvatarFallback className="bg-orange-600 text-white text-xs">
+                            <AvatarFallback className="bg-gradient-to-br from-orange-600 to-orange-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500">{player.teamName} • {player.division}</p>
+                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-bold text-orange-600">{player.total}</p>
-                            <p className="text-xs text-gray-500">{player.average} APG</p>
+                            <p className="text-2xl font-black text-orange-600">{player.total}</p>
+                            <p className="text-xs text-gray-500 font-semibold">{player.average} APG</p>
                           </div>
                         </div>
                       ))}
@@ -653,40 +705,42 @@ export default function Home() {
                 </Card>
 
                 {/* Top Blockers */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Shield className="w-5 h-5 text-red-600" />
-                      <CardTitle className="text-gray-900">Top 10 Blockers</CardTitle>
+                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-red-50 to-white">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
+                        <Shield className="w-6 h-6 text-white" />
+                      </div>
+                      <CardTitle className="text-xl font-black text-gray-900">Top 10 Blockers</CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
                       {topVolleyballBlockers.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            i === 0 ? 'bg-yellow-400 text-gray-900' :
-                            i === 1 ? 'bg-gray-400 text-white' :
-                            i === 2 ? 'bg-amber-700 text-white' :
-                            'bg-gray-300 text-gray-700'
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
+                            i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
+                            i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
+                            i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
+                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-10 h-10 border-2 border-gray-200">
+                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
                             <AvatarImage src={player.photo_url} />
-                            <AvatarFallback className="bg-red-600 text-white text-xs">
+                            <AvatarFallback className="bg-gradient-to-br from-red-600 to-red-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500">{player.teamName} • {player.division}</p>
+                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-bold text-red-600">{player.total}</p>
-                            <p className="text-xs text-gray-500">{player.average} BPG</p>
+                            <p className="text-2xl font-black text-red-600">{player.total}</p>
+                            <p className="text-xs text-gray-500 font-semibold">{player.average} BPG</p>
                           </div>
                         </div>
                       ))}
@@ -695,40 +749,42 @@ export default function Home() {
                 </Card>
 
                 {/* Top Ace Leaders */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-5 h-5 text-yellow-600" />
-                      <CardTitle className="text-gray-900">Top 10 Ace Leaders</CardTitle>
+                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-yellow-50 to-white">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
+                        <Zap className="w-6 h-6 text-white" />
+                      </div>
+                      <CardTitle className="text-xl font-black text-gray-900">Top 10 Ace Leaders</CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
                       {topVolleyballAces.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            i === 0 ? 'bg-yellow-400 text-gray-900' :
-                            i === 1 ? 'bg-gray-400 text-white' :
-                            i === 2 ? 'bg-amber-700 text-white' :
-                            'bg-gray-300 text-gray-700'
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
+                            i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
+                            i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
+                            i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
+                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-10 h-10 border-2 border-gray-200">
+                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
                             <AvatarImage src={player.photo_url} />
-                            <AvatarFallback className="bg-yellow-600 text-white text-xs">
+                            <AvatarFallback className="bg-gradient-to-br from-yellow-600 to-yellow-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500">{player.teamName} • {player.division}</p>
+                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-bold text-yellow-600">{player.total}</p>
-                            <p className="text-xs text-gray-500">{player.average} ACE/G</p>
+                            <p className="text-2xl font-black text-yellow-600">{player.total}</p>
+                            <p className="text-xs text-gray-500 font-semibold">{player.average} ACE/G</p>
                           </div>
                         </div>
                       ))}
@@ -741,27 +797,28 @@ export default function Home() {
             <TabsContent value="schedule">
               <div className="grid lg:grid-cols-2 gap-6">
                 {/* Upcoming Games */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-gray-900">Upcoming Games</CardTitle>
+                <Card className="bg-white border-2 border-gray-100 shadow-lg">
+                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-blue-50 to-white">
+                    <CardTitle className="text-xl font-black text-gray-900">Upcoming Games</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4">
                     <div className="space-y-3">
                       {upcomingVolleyballGames.map(game => (
-                        <div key={game.id} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs text-gray-500">
+                        <div key={game.id} className="border-2 border-gray-100 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50">
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="text-xs text-gray-500 font-semibold flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
                               {new Date(game.game_date).toLocaleDateString()}
                             </span>
-                            <Badge className="bg-blue-50 text-blue-600 border-blue-200 text-xs">
+                            <Badge className="bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold">
                               {game.game_type?.replace('_', ' ').toUpperCase() || 'REGULAR'}
                             </Badge>
                           </div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-bold text-gray-900">
                             {getTeamName(game.home_team_id)} vs {getTeamName(game.away_team_id)}
                           </div>
                           {game.location && (
-                            <p className="text-xs text-gray-500 mt-1">📍 {game.location}</p>
+                            <p className="text-xs text-gray-500 mt-2 font-medium">📍 {game.location}</p>
                           )}
                         </div>
                       ))}
@@ -770,31 +827,31 @@ export default function Home() {
                 </Card>
 
                 {/* Recent Results */}
-                <Card className="bg-white border-gray-200 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-gray-900">Recent Results</CardTitle>
+                <Card className="bg-white border-2 border-gray-100 shadow-lg">
+                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-green-50 to-white">
+                    <CardTitle className="text-xl font-black text-gray-900">Recent Results</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4">
                     <div className="space-y-3">
                       {completedVolleyballGames.map(game => (
-                        <div key={game.id} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs text-gray-500">
+                        <div key={game.id} className="border-2 border-gray-100 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50">
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="text-xs text-gray-500 font-semibold">
                               {new Date(game.game_date).toLocaleDateString()}
                             </span>
-                            <Badge className="bg-green-50 text-green-600 border-green-200 text-xs">
+                            <Badge className="bg-green-100 text-green-700 border border-green-200 text-xs font-bold">
                               FINAL
                             </Badge>
                           </div>
                           <div className="flex justify-between items-center">
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{getTeamName(game.home_team_id)}</div>
-                              <div className="text-2xl font-bold text-gray-900 mt-1">{game.home_score}</div>
+                              <div className="text-sm font-bold text-gray-900">{getTeamName(game.home_team_id)}</div>
+                              <div className="text-3xl font-black text-gray-900 mt-1">{game.home_score}</div>
                             </div>
-                            <div className="text-gray-400 text-lg">-</div>
+                            <div className="text-gray-300 text-2xl font-black">-</div>
                             <div className="text-right">
-                              <div className="text-sm font-medium text-gray-900">{getTeamName(game.away_team_id)}</div>
-                              <div className="text-2xl font-bold text-gray-900 mt-1">{game.away_score}</div>
+                              <div className="text-sm font-bold text-gray-900">{getTeamName(game.away_team_id)}</div>
+                              <div className="text-3xl font-black text-gray-900 mt-1">{game.away_score}</div>
                             </div>
                           </div>
                         </div>
@@ -809,16 +866,23 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4">
+      <footer className="bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 text-white py-16 px-4 mt-20">
         <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Trophy className="w-8 h-8" />
-            <span className="text-2xl font-bold">ALAB Sports</span>
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-2xl">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+              </svg>
+            </div>
+            <span className="text-3xl font-black tracking-tight">ALAB SPORTS</span>
           </div>
-          <p className="text-gray-400">
-            Professional League Management System for Basketball & Volleyball
+          <p className="text-blue-200 text-lg mb-2 font-medium">
+            Professional League Management System
           </p>
-          <p className="text-gray-500 text-sm mt-4">
+          <p className="text-blue-300 text-sm">
+            Basketball • Volleyball • Real-time Scoring
+          </p>
+          <p className="text-blue-400 text-sm mt-8">
             © 2025 ALAB Sports. All rights reserved.
           </p>
         </div>
