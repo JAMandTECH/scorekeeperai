@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -470,9 +471,11 @@ export default function LiveScoring() {
             <Badge variant="outline" className="text-blue-600 border-blue-600">
               {game.sport}
             </Badge>
-            <Badge variant="outline" className="text-purple-600 border-purple-600">
-              {game.game_type.replace('_', ' ').toUpperCase()}
-            </Badge>
+            {game.game_type && (
+              <Badge variant="outline" className="text-purple-600 border-purple-600">
+                {game.game_type.replace('_', ' ').toUpperCase()}
+              </Badge>
+            )}
           </div>
           <p className="text-sm text-gray-600">{new Date(game.game_date).toLocaleDateString()}</p>
         </div>
