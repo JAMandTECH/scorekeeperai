@@ -55,8 +55,11 @@ export default function Games() {
       home_team_id: formData.get('home_team_id'),
       away_team_id: formData.get('away_team_id'),
       sport: formData.get('sport'),
+      game_type: formData.get('game_type'),
       game_date: new Date(formData.get('game_date')).toISOString(),
       location: formData.get('location'),
+      penalty_limit_per_quarter: parseInt(formData.get('penalty_limit_per_quarter')),
+      player_foul_limit: parseInt(formData.get('player_foul_limit')),
       status: 'scheduled',
     };
 
@@ -195,7 +198,7 @@ export default function Games() {
         </Tabs>
 
         <Dialog open={showForm} onOpenChange={setShowForm}>
-          <DialogContent className="bg-white border-gray-200">
+          <DialogContent className="bg-white border-gray-200 max-w-xl">
             <DialogHeader>
               <DialogTitle className="text-gray-900">Schedule New Game</DialogTitle>
             </DialogHeader>
@@ -206,20 +209,67 @@ export default function Games() {
                   id="sport"
                   name="sport"
                   required
-                  className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg px-3 py-2"
+                  className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2"
                 >
                   <option value="">Select sport</option>
                   <option value="basketball">Basketball</option>
                   <option value="volleyball">Volleyball</option>
                 </select>
               </div>
+
+              <div>
+                <Label htmlFor="game_type">Game Type</Label>
+                <select
+                  id="game_type"
+                  name="game_type"
+                  required
+                  className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2"
+                >
+                  <option value="regular_season">Regular Season</option>
+                  <option value="playoffs">Playoffs</option>
+                  <option value="semi_finals">Semi Finals</option>
+                  <option value="finals">Finals</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="penalty_limit_per_quarter">Team Foul Penalty Limit</Label>
+                  <Input
+                    id="penalty_limit_per_quarter"
+                    name="penalty_limit_per_quarter"
+                    type="number"
+                    defaultValue="5"
+                    min="1"
+                    max="10"
+                    required
+                    className="bg-white border-gray-300 text-gray-900"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Fouls per quarter before penalty</p>
+                </div>
+                <div>
+                  <Label htmlFor="player_foul_limit">Player Foul Limit</Label>
+                  <Input
+                    id="player_foul_limit"
+                    name="player_foul_limit"
+                    type="number"
+                    defaultValue="5"
+                    min="1"
+                    max="10"
+                    required
+                    className="bg-white border-gray-300 text-gray-900"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Personal fouls before ejection</p>
+                </div>
+              </div>
+
               <div>
                 <Label htmlFor="home_team_id">Home Team</Label>
                 <select
                   id="home_team_id"
                   name="home_team_id"
                   required
-                  className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg px-3 py-2"
+                  className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2"
                 >
                   <option value="">Select team</option>
                   {teams.map(team => (
@@ -233,7 +283,7 @@ export default function Games() {
                   id="away_team_id"
                   name="away_team_id"
                   required
-                  className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg px-3 py-2"
+                  className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2"
                 >
                   <option value="">Select team</option>
                   {teams.map(team => (
@@ -248,7 +298,7 @@ export default function Games() {
                   name="game_date"
                   type="datetime-local"
                   required
-                  className="bg-gray-950 border-gray-800 text-white"
+                  className="bg-white border-gray-300 text-gray-900"
                 />
               </div>
               <div>
@@ -257,11 +307,11 @@ export default function Games() {
                   id="location"
                   name="location"
                   placeholder="e.g., Main Gym, Court 1"
-                  className="bg-gray-950 border-gray-800 text-white"
+                  className="bg-white border-gray-300 text-gray-900"
                 />
               </div>
               <div className="flex justify-end gap-3">
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-gray-700 text-white">
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-gray-300 text-gray-700">
                   Cancel
                 </Button>
                 <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
