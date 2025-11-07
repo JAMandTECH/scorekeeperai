@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -170,17 +171,20 @@ export default function LiveScoringVolleyball() {
       away_score: newAwayScore,
     });
 
-    // Update player stats based on point type
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
-    await updatePlayerStat(selectedPlayer.id, teamId, 'points', 1);
     
-    // Track specific volleyball stats
-    if (pointType === 'attack') {
-      await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1);
-    } else if (pointType === 'block') {
-      await updatePlayerStat(selectedPlayer.id, teamId, 'blocks', 1);
-    } else if (pointType === 'ace') {
-      await updatePlayerStat(selectedPlayer.id, teamId, 'three_pointers', 1);
+    // Only track player stats for attack, block, and ace (NOT rally points)
+    if (pointType !== 'rally') {
+      await updatePlayerStat(selectedPlayer.id, teamId, 'points', 1);
+      
+      // Track specific volleyball stats
+      if (pointType === 'attack') {
+        await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1);
+      } else if (pointType === 'block') {
+        await updatePlayerStat(selectedPlayer.id, teamId, 'blocks', 1);
+      } else if (pointType === 'ace') {
+        await updatePlayerStat(selectedPlayer.id, teamId, 'three_pointers', 1);
+      }
     }
   };
 
@@ -200,7 +204,8 @@ export default function LiveScoringVolleyball() {
       away_score: newAwayScore,
     });
 
-    if (lastAction.playerId) {
+    // Only undo player stats if it wasn't a rally point
+    if (lastAction.playerId && lastAction.pointType !== 'rally') {
       const teamId = lastAction.team === 'home' ? game.home_team_id : game.away_team_id;
       await updatePlayerStat(lastAction.playerId, teamId, 'points', -1);
       
