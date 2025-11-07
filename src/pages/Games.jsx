@@ -88,7 +88,7 @@ export default function Games() {
               {game.status === 'scheduled' && <Clock className="w-3 h-3 mr-1" />}
               {game.status === 'in_progress' && <PlayCircle className="w-3 h-3 mr-1" />}
               {game.status === 'completed' && <CheckCircle className="w-3 h-3 mr-1" />}
-              {game.status.replace('_', ' ')}
+              {game.status ? game.status.replace('_', ' ') : 'scheduled'}
             </Badge>
             <p className="text-gray-500 text-sm mt-2">{new Date(game.game_date).toLocaleDateString()}</p>
           </div>
