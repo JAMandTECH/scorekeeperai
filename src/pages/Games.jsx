@@ -121,7 +121,7 @@ export default function Games() {
           <p className="text-gray-500 text-sm">📍 {game.location}</p>
         )}
         {game.status === 'scheduled' && (
-          <Link to={createPageUrl("LiveScoring") + `?game_id=${game.id}`}>
+          <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}`}>
             <Button className="w-full bg-blue-600 hover:bg-blue-700">
               <PlayCircle className="w-4 h-4 mr-2" />
               Start Game
@@ -129,7 +129,7 @@ export default function Games() {
           </Link>
         )}
         {game.status === 'in_progress' && (
-          <Link to={createPageUrl("LiveScoring") + `?game_id=${game.id}`}>
+          <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}`}>
             <Button className="w-full bg-blue-600 hover:bg-blue-700">
               Continue Scoring
             </Button>
