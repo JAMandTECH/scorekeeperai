@@ -40,7 +40,7 @@ export default function AllGames() {
               {game.status === 'scheduled' && <Clock className="w-3 h-3 mr-1" />}
               {game.status === 'in_progress' && <PlayCircle className="w-3 h-3 mr-1" />}
               {game.status === 'completed' && <CheckCircle className="w-3 h-3 mr-1" />}
-              {game.status.replace('_', ' ')}
+              {game.status ? game.status.replace('_', ' ') : 'scheduled'}
             </Badge>
             <p className="text-gray-500 text-sm mt-2">
               <Calendar className="w-3 h-3 inline mr-1" />
