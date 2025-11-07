@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Minus, CheckCircle, PlayCircle, AlertTriangle, ChevronRight } from "lucide-react";
@@ -28,10 +28,11 @@ export default function LiveScoring() {
   const [homeTeamFouls, setHomeTeamFouls] = useState(0);
   const [awayTeamFouls, setAwayTeamFouls] = useState(0);
   const [playerStats, setPlayerStats] = useState({});
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [selectedTeam, setSelectedTeam] = useState(null);
   const [showQuarterEnd, setShowQuarterEnd] = useState(false);
   const [scoreHistory, setScoreHistory] = useState([]);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     loadGame();
@@ -66,7 +67,6 @@ export default function LiveScoring() {
       await base44.entities.Game.update(gameId, { status: 'in_progress' });
     }
 
-    // Load player stats
     const stats = await base44.entities.PlayerGameStats.filter({ game_id: gameId });
     const statsMap = {};
     stats.forEach(stat => {
@@ -160,17 +160,19 @@ export default function LiveScoring() {
     }
   };
 
-  const addScore = async (team, points, playerId) => {
-    const newHomeScore = team === 'home' ? homeScore + points : homeScore;
-    const newAwayScore = team === 'away' ? awayScore + points : awayScore;
+  const addScore = async (points) => {
+    if (!selectedPlayer || !selectedTeam) return;
+
+    const newHomeScore = selectedTeam === 'home' ? homeScore + points : homeScore;
+    const newAwayScore = selectedTeam === 'away' ? awayScore + points : awayScore;
 
     setHomeScore(newHomeScore);
     setAwayScore(newAwayScore);
 
     setScoreHistory(prev => [...prev, {
-      team,
+      team: selectedTeam,
       points,
-      playerId,
+      playerId: selectedPlayer.id,
       quarter: currentQuarter,
       homeScore: newHomeScore,
       awayScore: newAwayScore,
@@ -181,9 +183,12 @@ export default function LiveScoring() {
       away_score: newAwayScore,
     });
 
-    if (playerId) {
-      await updatePlayerStat(playerId, team === 'home' ? game.home_team_id : game.away_team_id, 'points', points);
-    }
+    await updatePlayerStat(
+      selectedPlayer.id, 
+      selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 
+      'points', 
+      points
+    );
   };
 
   const undoLastScore = async () => {
@@ -212,50 +217,60 @@ export default function LiveScoring() {
     }
   };
 
-  const addFoul = async (playerId, teamId, team) => {
-    await updatePlayerStat(playerId, teamId, 'fouls', 1);
+  const addFoul = async () => {
+    if (!selectedPlayer || !selectedTeam) return;
+
+    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
+    await updatePlayerStat(selectedPlayer.id, teamId, 'fouls', 1);
     
-    const newTeamFouls = team === 'home' ? homeTeamFouls + 1 : awayTeamFouls + 1;
-    if (team === 'home') {
+    const newTeamFouls = selectedTeam === 'home' ? homeTeamFouls + 1 : awayTeamFouls + 1;
+    if (selectedTeam === 'home') {
       setHomeTeamFouls(newTeamFouls);
     } else {
       setAwayTeamFouls(newTeamFouls);
     }
 
     await base44.entities.Game.update(game.id, {
-      home_team_fouls: team === 'home' ? newTeamFouls : homeTeamFouls,
-      away_team_fouls: team === 'away' ? newTeamFouls : awayTeamFouls,
+      home_team_fouls: selectedTeam === 'home' ? newTeamFouls : homeTeamFouls,
+      away_team_fouls: selectedTeam === 'away' ? newTeamFouls : awayTeamFouls,
     });
 
-    const totalFouls = getTotalPlayerFouls(playerId) + 1;
+    const totalFouls = getTotalPlayerFouls(selectedPlayer.id) + 1;
     if (totalFouls >= game.player_foul_limit) {
       alert(`⚠️ Player has reached foul limit (${game.player_foul_limit} fouls) and is disqualified!`);
+      setSelectedPlayer(null);
+      setSelectedTeam(null);
     } else if (totalFouls === game.player_foul_limit - 1) {
       alert(`⚠️ Warning: Player has ${totalFouls} fouls! One more foul and they will be disqualified.`);
     }
   };
 
-  const removeFoul = async (playerId, teamId, team) => {
-    const currentFouls = getPlayerStat(playerId, 'fouls');
+  const removeFoul = async () => {
+    if (!selectedPlayer || !selectedTeam) return;
+
+    const currentFouls = getPlayerStat(selectedPlayer.id, 'fouls');
     if (currentFouls === 0) return;
 
-    await updatePlayerStat(playerId, teamId, 'fouls', -1);
+    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
+    await updatePlayerStat(selectedPlayer.id, teamId, 'fouls', -1);
     
-    const newTeamFouls = Math.max(0, (team === 'home' ? homeTeamFouls : awayTeamFouls) - 1);
-    if (team === 'home') {
+    const newTeamFouls = Math.max(0, (selectedTeam === 'home' ? homeTeamFouls : awayTeamFouls) - 1);
+    if (selectedTeam === 'home') {
       setHomeTeamFouls(newTeamFouls);
     } else {
       setAwayTeamFouls(newTeamFouls);
     }
 
     await base44.entities.Game.update(game.id, {
-      home_team_fouls: team === 'home' ? newTeamFouls : homeTeamFouls,
-      away_team_fouls: team === 'away' ? newTeamFouls : awayTeamFouls,
+      home_team_fouls: selectedTeam === 'home' ? newTeamFouls : homeTeamFouls,
+      away_team_fouls: selectedTeam === 'away' ? newTeamFouls : awayTeamFouls,
     });
   };
 
-  const updateStat = async (playerId, teamId, statType, value) => {
-    await updatePlayerStat(playerId, teamId, statType, value);
+  const updateStat = async (statType, value) => {
+    if (!selectedPlayer || !selectedTeam) return;
+    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
+    await updatePlayerStat(selectedPlayer.id, teamId, statType, value);
   };
 
   const useTimeout = async (team) => {
@@ -279,7 +294,6 @@ export default function LiveScoring() {
 
     const newQuarterScores = [...quarterScores, quarterScore];
     setQuarterScores(newQuarterScores);
-
     setHomeTeamFouls(0);
     setAwayTeamFouls(0);
 
@@ -363,18 +377,31 @@ export default function LiveScoring() {
     const points = getPlayerStat(player.id, 'points');
     const rebounds = getPlayerStat(player.id, 'rebounds');
     const assists = getPlayerStat(player.id, 'assists');
-    const fouls = getPlayerStat(player.id, 'fouls');
     const steals = getPlayerStat(player.id, 'steals');
     const blocks = getPlayerStat(player.id, 'blocks');
     const isFouledOut = totalFouls >= game.player_foul_limit;
+    const isSelected = selectedPlayer?.id === player.id;
 
     return (
-      <div className={`border border-gray-200 rounded-lg p-3 mb-2 ${isFouledOut ? 'bg-red-50 opacity-60' : 'bg-white'}`}>
-        {/* Player Info */}
-        <div className="flex items-center gap-2 mb-3">
-          <Avatar className="w-10 h-10 border-2 border-gray-300">
+      <button
+        onClick={() => {
+          if (isFouledOut) return;
+          setSelectedPlayer(player);
+          setSelectedTeam(team);
+        }}
+        className={`w-full text-left border rounded-lg p-3 mb-2 transition-all ${
+          isFouledOut 
+            ? 'bg-red-50 opacity-50 cursor-not-allowed border-red-200' 
+            : isSelected
+              ? 'bg-blue-50 border-blue-600 ring-2 ring-blue-600 shadow-md'
+              : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm'
+        }`}
+        disabled={isFouledOut}
+      >
+        <div className="flex items-center gap-3">
+          <Avatar className="w-12 h-12 border-2 border-gray-300">
             <AvatarImage src={player.photo_url} />
-            <AvatarFallback className="text-xs bg-gray-700 text-white font-bold">
+            <AvatarFallback className={`text-sm font-bold ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white'}`}>
               {player.jersey_number}
             </AvatarFallback>
           </Avatar>
@@ -382,7 +409,7 @@ export default function LiveScoring() {
             <p className="text-sm font-bold text-gray-900 truncate">
               #{player.jersey_number} {player.first_name} {player.last_name}
             </p>
-            <div className="flex gap-3 text-xs text-gray-600 mt-0.5">
+            <div className="flex gap-3 text-xs text-gray-600 mt-1">
               <span className="font-semibold">PTS: {points}</span>
               <span>REB: {rebounds}</span>
               <span>AST: {assists}</span>
@@ -397,152 +424,7 @@ export default function LiveScoring() {
             <Badge className="bg-red-600 text-white text-xs">Fouled Out</Badge>
           )}
         </div>
-
-        {!isFouledOut && (
-          <>
-            {/* Quick Score Buttons */}
-            <div className="grid grid-cols-3 gap-2 mb-2">
-              <Button
-                size="sm"
-                onClick={() => addScore(team, 1, player.id)}
-                className="h-9 text-sm font-bold bg-green-600 hover:bg-green-700 text-white"
-              >
-                +1
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => addScore(team, 2, player.id)}
-                className="h-9 text-sm font-bold bg-green-600 hover:bg-green-700 text-white"
-              >
-                +2
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => addScore(team, 3, player.id)}
-                className="h-9 text-sm font-bold bg-green-600 hover:bg-green-700 text-white"
-              >
-                +3
-              </Button>
-            </div>
-
-            {/* Stats Controls */}
-            <div className="grid grid-cols-2 gap-2 mb-2">
-              <div className="flex items-center justify-between bg-gray-50 rounded px-2 py-1">
-                <span className="text-xs font-medium text-gray-700">REB</span>
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => updateStat(player.id, teamId, 'rebounds', -1)}
-                  >
-                    <Minus className="w-3 h-3" />
-                  </Button>
-                  <span className="text-xs font-bold w-6 text-center">{rebounds}</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => updateStat(player.id, teamId, 'rebounds', 1)}
-                  >
-                    <Plus className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between bg-gray-50 rounded px-2 py-1">
-                <span className="text-xs font-medium text-gray-700">AST</span>
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => updateStat(player.id, teamId, 'assists', -1)}
-                  >
-                    <Minus className="w-3 h-3" />
-                  </Button>
-                  <span className="text-xs font-bold w-6 text-center">{assists}</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => updateStat(player.id, teamId, 'assists', 1)}
-                  >
-                    <Plus className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between bg-gray-50 rounded px-2 py-1">
-                <span className="text-xs font-medium text-gray-700">STL</span>
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => updateStat(player.id, teamId, 'steals', -1)}
-                  >
-                    <Minus className="w-3 h-3" />
-                  </Button>
-                  <span className="text-xs font-bold w-6 text-center">{steals}</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => updateStat(player.id, teamId, 'steals', 1)}
-                  >
-                    <Plus className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between bg-gray-50 rounded px-2 py-1">
-                <span className="text-xs font-medium text-gray-700">BLK</span>
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => updateStat(player.id, teamId, 'blocks', -1)}
-                  >
-                    <Minus className="w-3 h-3" />
-                  </Button>
-                  <span className="text-xs font-bold w-6 text-center">{blocks}</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => updateStat(player.id, teamId, 'blocks', 1)}
-                  >
-                    <Plus className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Foul Controls */}
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={() => addFoul(player.id, teamId, team)}
-                className="flex-1 h-8 text-xs bg-red-600 hover:bg-red-700 text-white font-bold"
-              >
-                Add Foul
-              </Button>
-              {fouls > 0 && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => removeFoul(player.id, teamId, team)}
-                  className="h-8 px-3 text-xs border-red-300 text-red-600 hover:bg-red-50"
-                >
-                  Undo Foul
-                </Button>
-              )}
-            </div>
-          </>
-        )}
-      </div>
+      </button>
     );
   };
 
@@ -566,9 +448,6 @@ export default function LiveScoring() {
             )}
           </div>
           <p className="text-xs text-gray-600">{new Date(game.game_date).toLocaleDateString()}</p>
-          <div className="text-xs text-gray-500 mt-1">
-            Team Foul Limit: {game.penalty_limit_per_quarter}/quarter | Player Foul Limit: {game.player_foul_limit}
-          </div>
         </div>
 
         {/* Quarter Scores */}
@@ -623,11 +502,135 @@ export default function LiveScoring() {
           <Alert className="bg-yellow-50 border-yellow-300 py-2">
             <AlertTriangle className="h-4 w-4 text-yellow-600" />
             <AlertDescription className="text-xs text-yellow-800">
-              {inPenalty('home') && `${homeTeam.name} in penalty (${homeTeamFouls} team fouls)`}
+              {inPenalty('home') && `${homeTeam.name} in penalty`}
               {inPenalty('home') && inPenalty('away') && ' | '}
-              {inPenalty('away') && `${awayTeam.name} in penalty (${awayTeamFouls} team fouls)`}
+              {inPenalty('away') && `${awayTeam.name} in penalty`}
             </AlertDescription>
           </Alert>
+        )}
+
+        {/* UNIVERSAL CONTROL PANEL */}
+        {selectedPlayer && (
+          <Card className="bg-gradient-to-r from-blue-600 to-blue-700 border-2 border-blue-800 shadow-lg sticky top-3 z-10">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-12 h-12 border-2 border-white">
+                    <AvatarImage src={selectedPlayer.photo_url} />
+                    <AvatarFallback className="bg-white text-blue-600 font-bold">
+                      {selectedPlayer.jersey_number}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-white font-bold">
+                      #{selectedPlayer.jersey_number} {selectedPlayer.first_name} {selectedPlayer.last_name}
+                    </p>
+                    <p className="text-blue-100 text-xs">
+                      {selectedTeam === 'home' ? homeTeam.name : awayTeam.name} • {selectedTeam.toUpperCase()}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => {
+                    setSelectedPlayer(null);
+                    setSelectedTeam(null);
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-blue-800"
+                >
+                  ✕
+                </Button>
+              </div>
+
+              {/* Quick Score */}
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <Button
+                  onClick={() => addScore(1)}
+                  className="h-12 text-lg font-bold bg-green-500 hover:bg-green-600 text-white border-2 border-white"
+                >
+                  +1 PT
+                </Button>
+                <Button
+                  onClick={() => addScore(2)}
+                  className="h-12 text-lg font-bold bg-green-500 hover:bg-green-600 text-white border-2 border-white"
+                >
+                  +2 PTS
+                </Button>
+                <Button
+                  onClick={() => addScore(3)}
+                  className="h-12 text-lg font-bold bg-green-500 hover:bg-green-600 text-white border-2 border-white"
+                >
+                  +3 PTS
+                </Button>
+              </div>
+
+              {/* Stats Row */}
+              <div className="grid grid-cols-4 gap-2 mb-3">
+                {['rebounds', 'assists', 'steals', 'blocks'].map((stat) => (
+                  <div key={stat} className="bg-white/10 backdrop-blur rounded-lg p-2">
+                    <div className="text-white text-xs font-medium mb-1 text-center">
+                      {stat === 'rebounds' ? 'REB' : stat === 'assists' ? 'AST' : stat === 'steals' ? 'STL' : 'BLK'}
+                    </div>
+                    <div className="flex items-center justify-center gap-1">
+                      <Button
+                        onClick={() => updateStat(stat, -1)}
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 w-7 p-0 text-white hover:bg-white/20"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </Button>
+                      <span className="text-white font-bold w-6 text-center">
+                        {getPlayerStat(selectedPlayer.id, stat)}
+                      </span>
+                      <Button
+                        onClick={() => updateStat(stat, 1)}
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 w-7 p-0 text-white hover:bg-white/20"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Foul Controls */}
+              <div className="flex gap-2">
+                <Button
+                  onClick={addFoul}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold border-2 border-white"
+                >
+                  Add Foul
+                </Button>
+                {getPlayerStat(selectedPlayer.id, 'fouls') > 0 && (
+                  <Button
+                    onClick={removeFoul}
+                    variant="outline"
+                    className="bg-white/10 text-white border-2 border-white hover:bg-white/20"
+                  >
+                    Undo Foul
+                  </Button>
+                )}
+                <Button
+                  onClick={undoLastScore}
+                  disabled={scoreHistory.length === 0}
+                  variant="outline"
+                  className="bg-white/10 text-white border-2 border-white hover:bg-white/20"
+                >
+                  Undo Score
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {!selectedPlayer && (
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center">
+            <p className="text-blue-900 font-medium">👆 Select a player to start tracking stats</p>
+          </div>
         )}
 
         {/* Teams Grid */}
@@ -654,24 +657,15 @@ export default function LiveScoring() {
                 <PlayerRow key={player.id} player={player} team="home" teamId={game.home_team_id} />
               ))}
             </CardContent>
-            <div className="p-2 border-t flex gap-2">
+            <div className="p-2 border-t">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => useTimeout('home')}
                 disabled={homeTimeouts === 0}
-                className="flex-1 text-xs"
+                className="w-full text-xs"
               >
                 Timeout ({homeTimeouts})
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={undoLastScore}
-                disabled={scoreHistory.length === 0}
-                className="flex-1 text-xs"
-              >
-                Undo Score
               </Button>
             </div>
           </Card>
@@ -698,24 +692,15 @@ export default function LiveScoring() {
                 <PlayerRow key={player.id} player={player} team="away" teamId={game.away_team_id} />
               ))}
             </CardContent>
-            <div className="p-2 border-t flex gap-2">
+            <div className="p-2 border-t">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => useTimeout('away')}
                 disabled={awayTimeouts === 0}
-                className="flex-1 text-xs"
+                className="w-full text-xs"
               >
                 Timeout ({awayTimeouts})
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={undoLastScore}
-                disabled={scoreHistory.length === 0}
-                className="flex-1 text-xs"
-              >
-                Undo Score
               </Button>
             </div>
           </Card>
