@@ -173,19 +173,15 @@ export default function LiveScoringVolleyball() {
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
     
-    // Only track player stats for attack, block, and ace (NOT rally points)
-    if (pointType !== 'rally') {
-      await updatePlayerStat(selectedPlayer.id, teamId, 'points', 1);
-      
-      // Track specific volleyball stats
-      if (pointType === 'attack') {
-        await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1);
-      } else if (pointType === 'block') {
-        await updatePlayerStat(selectedPlayer.id, teamId, 'blocks', 1);
-      } else if (pointType === 'ace') {
-        await updatePlayerStat(selectedPlayer.id, teamId, 'three_pointers', 1);
-      }
+    // Track specific volleyball stats (points will be calculated as sum of these)
+    if (pointType === 'attack') {
+      await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1);
+    } else if (pointType === 'block') {
+      await updatePlayerStat(selectedPlayer.id, teamId, 'blocks', 1);
+    } else if (pointType === 'ace') {
+      await updatePlayerStat(selectedPlayer.id, teamId, 'three_pointers', 1);
     }
+    // Rally points don't count toward individual player stats
   };
 
   const undoLastScore = async () => {
@@ -207,7 +203,6 @@ export default function LiveScoringVolleyball() {
     // Only undo player stats if it wasn't a rally point
     if (lastAction.playerId && lastAction.pointType !== 'rally') {
       const teamId = lastAction.team === 'home' ? game.home_team_id : game.away_team_id;
-      await updatePlayerStat(lastAction.playerId, teamId, 'points', -1);
       
       if (lastAction.pointType === 'attack') {
         await updatePlayerStat(lastAction.playerId, teamId, 'field_goals_made', -1);
@@ -325,11 +320,11 @@ export default function LiveScoringVolleyball() {
   const setLabel = `Set ${currentSet}`;
 
   const PlayerRow = ({ player, team, teamId }) => {
-    const points = getPlayerStat(player.id, 'points');
     const attacks = getPlayerStat(player.id, 'field_goals_made');
     const blocks = getPlayerStat(player.id, 'blocks');
     const aces = getPlayerStat(player.id, 'three_pointers');
     const assists = getPlayerStat(player.id, 'assists');
+    const points = attacks + blocks + aces; // Calculate points as sum of attack, block, ace
     const isSelected = selectedPlayer?.id === player.id;
 
     return (
