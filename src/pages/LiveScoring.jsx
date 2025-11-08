@@ -595,10 +595,10 @@ export default function LiveScoring() {
         </div>
       </div>
 
-      {/* Control Panel */}
+      {/* Control Panel - NOW STICKY */}
       {selectedPlayer ? (
-        <div className="mx-4 mt-4">
-          <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl z-30">
+        <div className="sticky top-0 z-40 mx-4 mt-4">
+          <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -715,7 +715,7 @@ export default function LiveScoring() {
           </Card>
         </div>
       ) : (
-        <div className="mx-4 mt-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-gray-700 rounded-xl p-8 text-center shadow-lg z-30">
+        <div className="mx-4 mt-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-gray-700 rounded-xl p-8 text-center shadow-lg">
           <User className="w-16 h-16 text-blue-400 dark:text-blue-500 mx-auto mb-4" />
           <p className="text-xl font-black text-gray-900 dark:text-white mb-2">Select a Player</p>
           <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
@@ -724,7 +724,7 @@ export default function LiveScoring() {
         </div>
       )}
 
-      {/* Players Section - NEW STRUCTURE WITH FREEZE PANES */}
+      {/* Players Section */}
       <div className="max-w-7xl mx-auto p-4 pb-24">
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Home Team Card */}
