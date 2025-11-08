@@ -83,28 +83,44 @@ export default function Home() {
           
           teamGames.forEach(game => {
             const isHome = game.home_team_id === team.id;
-            // For volleyball, pointsFor means sets won. For basketball, pointsFor is score.
-            let teamScore, oppScore;
+            let currentTeamScore = 0; // Total points for the current team in this game
+            let currentOppScore = 0;  // Total points for the opponent in this game
 
             if (sport === 'volleyball') {
+              // For volleyball: calculate total points across all sets
+              const homeTotalPoints = (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0);
+              const awayTotalPoints = (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0);
               const homeSetsWon = (game.quarter_scores || []).filter(s => s.home > s.away).length;
               const awaySetsWon = (game.quarter_scores || []).filter(s => s.away > s.home).length;
-              teamScore = isHome ? homeSetsWon : awaySetsWon;
-              oppScore = isHome ? awaySetsWon : homeSetsWon;
+              
+              currentTeamScore = isHome ? homeTotalPoints : awayTotalPoints;
+              currentOppScore = isHome ? awayTotalPoints : homeTotalPoints;
+              
+              // Win/loss based on sets won
+              if (homeSetsWon > awaySetsWon) {
+                if (isHome) wins++;
+                else losses++; // Away team won in sets
+              } else if (awaySetsWon > homeSetsWon) {
+                if (isHome) losses++; // Home team lost in sets
+                else wins++;
+              }
             } else { // Basketball
-              teamScore = isHome ? game.home_score : game.away_score;
-              oppScore = isHome ? game.away_score : game.home_score;
+              currentTeamScore = isHome ? game.home_score : game.away_score;
+              currentOppScore = isHome ? game.away_score : game.home_score;
+              
+              if (currentTeamScore > currentOppScore) wins++;
+              else losses++;
             }
             
-            if (teamScore > oppScore) wins++;
-            else losses++;
-            
-            pointsFor += teamScore;
-            pointsAgainst += oppScore;
+            pointsFor += currentTeamScore;
+            pointsAgainst += currentOppScore;
           });
 
           const gamesPlayed = wins + losses;
           const winPct = gamesPlayed > 0 ? (wins / gamesPlayed) : 0;
+          const avgPointsFor = gamesPlayed > 0 ? (pointsFor / gamesPlayed).toFixed(1) : 0;
+          const avgPointsAgainst = gamesPlayed > 0 ? (pointsAgainst / gamesPlayed).toFixed(1) : 0;
+          const diff = pointsFor - pointsAgainst;
 
           return {
             ...team,
@@ -112,10 +128,11 @@ export default function Home() {
             losses,
             gamesPlayed,
             winPct,
-            pointsFor, // For volleyball, this is sets won
-            pointsAgainst, // For volleyball, this is sets lost
-            avgPointsFor: gamesPlayed > 0 && sport === 'basketball' ? (pointsFor / gamesPlayed).toFixed(1) : pointsFor, // Only average for basketball
-            avgPointsAgainst: gamesPlayed > 0 && sport === 'basketball' ? (pointsAgainst / gamesPlayed).toFixed(1) : pointsAgainst, // Only average for basketball
+            pointsFor, // For volleyball, this is total points scored
+            pointsAgainst, // For volleyball, this is total points conceded
+            avgPointsFor,
+            avgPointsAgainst,
+            diff,
           };
         })
         .sort((a, b) => b.winPct - a.winPct);
@@ -326,9 +343,10 @@ export default function Home() {
                             <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">TEAM</th>
                             <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">W</th>
                             <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">L</th>
-                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">WIN%</th>
-                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PPG</th>
-                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PAPG</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PCT</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PF</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PA</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">DIFF</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -339,8 +357,11 @@ export default function Home() {
                               <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold text-lg">{team.wins}</td>
                               <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-bold text-lg">{team.losses}</td>
                               <td className="py-4 px-4 text-center font-bold text-gray-900 dark:text-white">{(team.winPct * 100).toFixed(0)}%</td>
-                              <td className="py-4 px-4 text-center text-gray-700 dark:text-gray-300 font-semibold">{team.avgPointsFor}</td>
-                              <td className="py-4 px-4 text-center text-gray-700 dark:text-gray-300 font-semibold">{team.avgPointsAgainst}</td>
+                              <td className="py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-semibold">{team.avgPointsFor}</td>
+                              <td className="py-4 px-4 text-center text-orange-600 dark:text-orange-400 font-semibold">{team.avgPointsAgainst}</td>
+                              <td className={`py-4 px-4 text-center font-bold text-lg ${team.diff > 0 ? 'text-green-600 dark:text-green-400' : team.diff < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                                {team.diff > 0 ? '+' : ''}{team.diff}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -696,8 +717,10 @@ export default function Home() {
                             <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">TEAM</th>
                             <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">W</th>
                             <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">L</th>
-                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">WIN%</th>
-                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">Sets Won</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PCT</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PF</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PA</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">DIFF</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -708,7 +731,11 @@ export default function Home() {
                               <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold text-lg">{team.wins}</td>
                               <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-bold text-lg">{team.losses}</td>
                               <td className="py-4 px-4 text-center font-bold text-gray-900 dark:text-white">{(team.winPct * 100).toFixed(0)}%</td>
-                              <td className="py-4 px-4 text-center text-gray-700 dark:text-gray-300 font-semibold">{team.pointsFor}</td>
+                              <td className="py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-semibold">{team.avgPointsFor}</td>
+                              <td className="py-4 px-4 text-center text-orange-600 dark:text-orange-400 font-semibold">{team.avgPointsAgainst}</td>
+                              <td className={`py-4 px-4 text-center font-bold text-lg ${team.diff > 0 ? 'text-green-600 dark:text-green-400' : team.diff < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                                {team.diff > 0 ? '+' : ''}{team.diff}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
