@@ -48,6 +48,15 @@ export default function Statistics() {
     enabled: teams.length > 0,
   });
 
+  // Fetch PlayerGameStats to calculate real-time totals
+  const { data: playerGameStats = [] } = useQuery({
+    queryKey: ['playerGameStats', user?.organization_id],
+    queryFn: async () => {
+      return base44.entities.PlayerGameStats.list();
+    },
+    enabled: !!user?.organization_id,
+  });
+
   // Get unique divisions and sports
   const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division'))];
   const sports = ['all', 'basketball', 'volleyball'];
@@ -63,13 +72,34 @@ export default function Statistics() {
 
   // Filter games based on filtered teams
   const filteredGames = games.filter(game =>
-    filteredTeamIds.includes(game.home_team_id) && filteredTeamIds.includes(game.away_team_id)
+    (filteredTeamIds.includes(game.home_team_id) || filteredTeamIds.includes(game.away_team_id))
   );
 
   // Filter players based on filtered teams
   const filteredPlayers = players.filter(p => filteredTeamIds.includes(p.team_id));
 
   const completedGames = filteredGames.filter(g => g.status === 'completed');
+
+  // Filter PlayerGameStats to only include stats from games that are in completedGames and are relevant to filtered players.
+  const relevantPlayerGameStats = playerGameStats.filter(stat => {
+    const gameIsCompletedAndFiltered = completedGames.some(game => game.id === stat.game_id);
+    const playerIsFiltered = filteredPlayers.some(player => player.id === stat.player_id);
+    return gameIsCompletedAndFiltered && playerIsFiltered;
+  });
+
+  // Calculate player totals from PlayerGameStats
+  const calculatePlayerStats = (playerId) => {
+    const playerSpecificStats = relevantPlayerGameStats.filter(s => s.player_id === playerId);
+    const totalPoints = playerSpecificStats.reduce((sum, s) => sum + (s.points || 0), 0);
+    const totalRebounds = playerSpecificStats.reduce((sum, s) => sum + (s.rebounds || 0), 0);
+    const totalAssists = playerSpecificStats.reduce((sum, s) => sum + (s.assists || 0), 0);
+    
+    return {
+      points: totalPoints,
+      rebounds: totalRebounds,
+      assists: totalAssists,
+    };
+  };
 
   // Calculate head-to-head records
   const getHeadToHead = (teamId) => {
@@ -136,14 +166,19 @@ export default function Statistics() {
     });
   };
 
-  // Top scorers
-  const topScorers = [...filteredPlayers]
-    .sort((a, b) => (b.total_points || 0) - (a.total_points || 0))
-    .slice(0, 5)
-    .map(p => ({
-      name: `${p.first_name} ${p.last_name}`,
-      points: p.total_points || 0,
-    }));
+  // Top scorers - Calculate from PlayerGameStats
+  const topScorers = filteredPlayers
+    .map(player => {
+      const stats = calculatePlayerStats(player.id);
+      return {
+        name: `${player.first_name} ${player.last_name}`,
+        points: stats.points,
+        playerId: player.id,
+      };
+    })
+    .filter(p => p.points > 0)
+    .sort((a, b) => b.points - a.points)
+    .slice(0, 5);
 
   // Team stats with recent form
   const teamStats = filteredTeams.map(team => {
@@ -397,7 +432,12 @@ export default function Statistics() {
               </div>
 
               {/* Team Selection Cards / Table */}
-              {viewMode === 'card' ? (
+              {teamStats.length === 0 ? (
+                <div className="text-center py-20">
+                  <Trophy className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">No teams found for the selected filters.</p>
+                </div>
+              ) : viewMode === 'card' ? (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {teamStats.map((team) => {
                     const sportColor = team.sport === 'basketball' ? 'orange' : 'blue';
@@ -669,7 +709,7 @@ export default function Statistics() {
                 </div>
               )}
 
-              {!selectedTeam && (
+              {!selectedTeam && teamStats.length > 0 && (
                 <div className="text-center py-20">
                   <div className="w-24 h-24 bg-gradient-to-br from-blue-200 to-blue-300 dark:from-blue-800 dark:to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Trophy className="w-12 h-12 text-blue-600 dark:text-blue-300" />
