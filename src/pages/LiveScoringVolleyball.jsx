@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -25,11 +24,11 @@ export default function LiveScoringVolleyball() {
   const [setScores, setSetScores] = useState([]);
   const [homeTimeouts, setHomeTimeouts] = useState(5);
   const [awayTimeouts, setAwayTimeouts] = useState(5);
-  const [playerStats, setPlayerStats] = useState({}); // Stores stats for current set by player_id_quarter
-  const [selectedPlayer, setSelectedPlayer] = useState(null); // Full player object
-  const [selectedTeam, setSelectedTeam] = useState(null); // 'home' or 'away'
+  const [playerStats, setPlayerStats] = useState({});
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [selectedTeam, setSelectedTeam] = useState(null);
   const [showSetEnd, setShowSetEnd] = useState(false);
-  const [actionHistory, setActionHistory] = useState([]); // Stores all actions for undo functionality
+  const [actionHistory, setActionHistory] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -110,7 +109,6 @@ export default function LiveScoringVolleyball() {
 
   const getPlayerStatKey = (playerId) => `${playerId}_${currentSet}`;
 
-  // Gets cumulative stats across all quarters up to currentSet
   const getPlayerStat = (playerId, statType) => {
     let total = 0;
     for (let s = 1; s <= currentSet; s++) {
@@ -120,7 +118,6 @@ export default function LiveScoringVolleyball() {
     return total;
   };
 
-  // Updates a player stat for the CURRENT SET
   const updatePlayerStat = async (playerId, teamId, statType, value) => {
     const key = getPlayerStatKey(playerId);
     const existingStat = playerStats[key];
@@ -133,7 +130,7 @@ export default function LiveScoringVolleyball() {
       player_id: playerId,
       team_id: teamId,
       quarter: currentSet,
-      [statType]: Math.max(0, newStatValue), // Ensure stat doesn't go below 0
+      [statType]: Math.max(0, newStatValue),
     };
 
     setPlayerStats(prev => ({
@@ -160,15 +157,14 @@ export default function LiveScoringVolleyball() {
     const key = getPlayerStatKey(selectedPlayer.id);
     const currentStatValue = playerStats[key]?.[statType] || 0;
 
-    // Record action before updating stat
     const action = {
         type: 'stat_update',
         playerId: selectedPlayer.id,
         teamId: teamId,
         statType: statType,
-        value: value, // The change value (+1 or -1)
+        value: value,
         quarter: currentSet,
-        previousStatValue: currentStatValue, // Value before this action for undo
+        previousStatValue: currentStatValue,
     };
     setActionHistory(prev => [...prev, action]);
 
@@ -181,7 +177,6 @@ export default function LiveScoringVolleyball() {
     const newHomeScore = selectedTeam === 'home' ? homeScore + 1 : homeScore;
     const newAwayScore = selectedTeam === 'away' ? awayScore + 1 : awayScore;
 
-    // Record action before updating scores
     const action = {
         type: 'score_point',
         team: selectedTeam,
@@ -204,36 +199,13 @@ export default function LiveScoringVolleyball() {
     });
   };
 
-  const handleFoul = async (playerId) => {
-    if (!selectedPlayer || !selectedTeam || !game) return;
-
-    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
-    const key = getPlayerStatKey(playerId);
-    const currentFouls = playerStats[key]?.fouls || 0;
-
-    const action = {
-        type: 'foul',
-        playerId: playerId,
-        teamId: teamId,
-        quarter: currentSet,
-        value: 1, // Fouls are always +1
-        previousStatValue: currentFouls, // Value before this action for undo
-    };
-    setActionHistory(prev => [...prev, action]);
-
-    await updatePlayerStat(playerId, teamId, 'fouls', 1);
-  };
-
   const handleUndo = async () => {
     if (actionHistory.length === 0) return;
 
     const lastAction = actionHistory[actionHistory.length - 1];
-    setActionHistory(prev => prev.slice(0, -1)); // Remove last action
+    setActionHistory(prev => prev.slice(0, -1));
 
     if (lastAction.quarter !== currentSet) {
-      // If the undo action is from a previous set, we cannot directly undo it in the current context.
-      // For simplicity, we'll prevent undoing actions from previous sets for now.
-      // A more robust solution would involve reloading the game state for the previous set.
       console.warn("Cannot undo action from a previous set.");
       return; 
     }
@@ -248,9 +220,7 @@ export default function LiveScoringVolleyball() {
             away_score: newAwayScore,
         });
     } else if (lastAction.type === 'stat_update') {
-        await updatePlayerStat(lastAction.playerId, lastAction.teamId, lastAction.statType, -lastAction.value); // Reverse the change
-    } else if (lastAction.type === 'foul') {
-        await updatePlayerStat(lastAction.playerId, lastAction.teamId, 'fouls', -lastAction.value); // Reverse the foul
+        await updatePlayerStat(lastAction.playerId, lastAction.teamId, lastAction.statType, -lastAction.value);
     } else if (lastAction.type === 'timeout') {
       if (lastAction.team === 'home') {
         const newTimeouts = homeTimeouts + 1;
@@ -303,9 +273,9 @@ export default function LiveScoringVolleyball() {
     if (currentSet < 5) {
       setCurrentSet(currentSet + 1);
     }
-    setHomeScore(0); // Reset score for new set
-    setAwayScore(0); // Reset score for new set
-    setActionHistory([]); // Clear history for the new set
+    setHomeScore(0);
+    setAwayScore(0);
+    setActionHistory([]);
     setShowSetEnd(false);
   };
 
@@ -313,21 +283,18 @@ export default function LiveScoringVolleyball() {
     let homeSetsWon = 0;
     let awaySetsWon = 0;
     
-    // Count sets won from past sets
     setScores.forEach(set => {
       if (set.home > set.away) homeSetsWon++;
       else if (set.away > set.home) awaySetsWon++;
     });
 
-    // Add current set's winner if applicable
     if (homeScore > awayScore) homeSetsWon++;
     else if (awayScore > homeScore) awaySetsWon++;
 
-
     await base44.entities.Game.update(game.id, {
       status: 'completed',
-      home_score: homeSetsWon, // Final home score should be sets won
-      away_score: awaySetsWon, // Final away score should be sets won
+      home_score: homeSetsWon,
+      away_score: awaySetsWon,
     });
 
     const allTeams = await base44.entities.Team.list();
@@ -376,7 +343,7 @@ export default function LiveScoringVolleyball() {
     const blocks = getPlayerStat(player.id, 'blocks');
     const aces = getPlayerStat(player.id, 'three_pointers');
     const assists = getPlayerStat(player.id, 'assists');
-    const points = attacks + blocks + aces; // Points calculation needs to be cumulative
+    const points = attacks + blocks + aces;
 
     const isSelected = selectedPlayer?.id === player.id;
 
@@ -420,7 +387,6 @@ export default function LiveScoringVolleyball() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900">
-      {/* STICKY HEADER - Scoreboard */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 border-b-4 border-blue-500 shadow-2xl">
         <div className="max-w-7xl mx-auto p-4">
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -474,7 +440,6 @@ export default function LiveScoringVolleyball() {
         </div>
       </div>
 
-      {/* Control Panel - Sticky at top when player selected */}
       {selectedPlayer ? (
         <Card className="sticky top-4 z-30 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl mx-4">
           <CardContent className="p-6">
@@ -536,7 +501,7 @@ export default function LiveScoringVolleyball() {
                 ACE
               </Button>
               <Button
-                onClick={handleScorePoint('rally', selectedPlayer.id)}
+                onClick={() => handleScorePoint('rally', selectedPlayer.id)}
                 className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 <Trophy className="w-4 h-4 mr-1" />
@@ -642,7 +607,7 @@ export default function LiveScoringVolleyball() {
                   <ChevronRight className="w-5 h-5 ml-2" />
                 </Button>
               )}
-              {currentSet >= 3 && ( // Typically, volleyball games are best of 3 or 5 sets. If currentSet is 3, a team could have won 2 sets already.
+              {currentSet >= 3 && (
                 <Button
                   onClick={endGame}
                   className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-black text-lg px-8 py-6"
