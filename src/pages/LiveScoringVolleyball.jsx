@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -359,24 +360,24 @@ export default function LiveScoringVolleyball() {
           setSelectedPlayer(player);
           setSelectedTeam(team);
         }}
-        className={`w-full text-left border-2 rounded-xl p-4 mb-2 transition-all ${
+        className={`w-full text-left border-2 rounded-lg p-2 mb-2 transition-all ${
           isSelected
-            ? 'bg-gradient-to-r from-blue-500 to-blue-600 border-blue-400 ring-4 ring-blue-300 shadow-xl scale-105'
-            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-lg'
+            ? 'bg-gradient-to-r from-blue-500 to-blue-600 border-blue-400 ring-2 ring-blue-300 shadow-lg scale-105'
+            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md'
         }`}
       >
-        <div className="flex items-center gap-3">
-          <Avatar className="w-14 h-14 border-3 border-white dark:border-gray-700 shadow-lg">
+        <div className="flex items-center gap-2">
+          <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
             <AvatarImage src={player.photo_url} />
-            <AvatarFallback className={`text-base font-black ${isSelected ? 'bg-white text-blue-600' : 'bg-gradient-to-br from-blue-600 to-blue-700 text-white'}`}>
+            <AvatarFallback className={`text-sm font-black ${isSelected ? 'bg-white text-blue-600' : 'bg-gradient-to-br from-blue-600 to-blue-700 text-white'}`}>
               {player.jersey_number}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className={`text-base font-black truncate ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+            <p className={`text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
               #{player.jersey_number} {player.first_name} {player.last_name}
             </p>
-            <div className={`flex gap-3 text-xs mt-1 font-bold ${isSelected ? 'text-blue-100' : 'text-gray-600 dark:text-gray-400'}`}>
+            <div className={`flex gap-2 text-[10px] mt-0.5 font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-600 dark:text-gray-400'}`}>
               <span>PTS: {points}</span>
               <span>ATK: {attacks}</span>
               <span>BLK: {blocks}</span>
@@ -562,7 +563,7 @@ export default function LiveScoringVolleyball() {
                     ACE
                   </Button>
                   <Button
-                    onClick={() => handleScorePoint('rally', selectedPlayer.id)}
+                    onClick={handleScorePoint('rally', selectedPlayer.id)}
                     className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Trophy className="w-4 h-4 mr-1" />
@@ -637,27 +638,27 @@ export default function LiveScoringVolleyball() {
 
       {/* Players Section - USING FLEXBOX FOR TRULY FROZEN HEADERS */}
       <div className="max-w-7xl mx-auto p-4 pb-24">
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-2 gap-4">
           {/* Home Team - FLEXBOX STRUCTURE */}
           <div className="flex flex-col h-[700px] bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm rounded-xl">
             {/* FROZEN HEADER */}
-            <div className="flex-shrink-0 bg-blue-900/95 backdrop-blur-sm border-b-4 border-blue-500 p-4 rounded-t-xl">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-2xl font-black text-white">
+            <div className="flex-shrink-0 bg-blue-900/95 backdrop-blur-sm border-b-4 border-blue-500 p-3 rounded-t-xl">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-xl font-black text-white">
                   {homeTeam.name} - HOME
                 </h2>
                 <Button
                   onClick={() => useTimeout('home')}
                   disabled={homeTimeouts === 0}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-black text-sm px-4 py-2 disabled:opacity-50 whitespace-nowrap"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
                 >
-                  <Clock className="w-4 h-4 mr-2" />
+                  <Clock className="w-3 h-3 mr-1" />
                   TO ({homeTimeouts})
                 </Button>
               </div>
             </div>
             {/* SCROLLABLE PLAYERS */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-3">
               {homePlayers.map(player => (
                 <PlayerRow key={player.id} player={player} team="home" teamId={game.home_team_id} />
               ))}
@@ -667,23 +668,23 @@ export default function LiveScoringVolleyball() {
           {/* Away Team - FLEXBOX STRUCTURE */}
           <div className="flex flex-col h-[700px] bg-gradient-to-br from-cyan-900/40 to-cyan-950/40 border-4 border-cyan-500 backdrop-blur-sm rounded-xl">
             {/* FROZEN HEADER */}
-            <div className="flex-shrink-0 bg-cyan-900/95 backdrop-blur-sm border-b-4 border-cyan-500 p-4 rounded-t-xl">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-2xl font-black text-white">
+            <div className="flex-shrink-0 bg-cyan-900/95 backdrop-blur-sm border-b-4 border-cyan-500 p-3 rounded-t-xl">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-xl font-black text-white">
                   {awayTeam.name} - AWAY
                 </h2>
                 <Button
                   onClick={() => useTimeout('away')}
                   disabled={awayTimeouts === 0}
-                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-black text-sm px-4 py-2 disabled:opacity-50 whitespace-nowrap"
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
                 >
-                  <Clock className="w-4 h-4 mr-2" />
+                  <Clock className="w-3 h-3 mr-1" />
                   TO ({awayTimeouts})
                 </Button>
               </div>
             </div>
             {/* SCROLLABLE PLAYERS */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-3">
               {awayPlayers.map(player => (
                 <PlayerRow key={player.id} player={player} team="away" teamId={game.away_team_id} />
               ))}
