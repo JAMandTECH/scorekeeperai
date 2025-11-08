@@ -595,124 +595,124 @@ export default function LiveScoring() {
         </div>
       </div>
 
-      {/* Control Panel - FIXED with proper calculation */}
+      {/* Control Panel - STICKY */}
       {selectedPlayer ? (
         <div className="sticky z-40 bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900" style={{ top: '300px' }}>
           <div className="mx-4 my-4">
             <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-14 h-14 border-4 border-blue-200 dark:border-blue-800 shadow-lg">
-                      <AvatarImage src={selectedPlayer.photo_url} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
-                        {selectedPlayer.jersey_number}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="text-xl font-black text-gray-900 dark:text-white">
-                        #{selectedPlayer.jersey_number} {selectedPlayer.first_name} {selectedPlayer.last_name}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">
-                        {selectedTeam === 'home' ? homeTeam?.name : awayTeam?.name}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    onClick={() => setSelectedPlayer(null)}
-                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                  >
-                    ✕
-                  </Button>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    onClick={() => addPoints(1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
-                  >
-                    +1 PT
-                  </Button>
-                  <Button
-                    onClick={() => addPoints(2)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
-                  >
-                    +2 PTS
-                  </Button>
-                  <Button
-                    onClick={() => addPoints(3)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
-                  >
-                    +3 PTS
-                  </Button>
-                  <Button
-                    onClick={() => addPlayerStat('rebounds', 1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
-                  >
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    REB
-                  </Button>
-                  <Button
-                    onClick={() => addPlayerStat('assists', 1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
-                  >
-                    <Target className="w-4 h-4 mr-1" />
-                    AST
-                  </Button>
-                  <Button
-                    onClick={() => addPlayerStat('steals', 1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
-                  >
-                    <Zap className="w-4 h-4 mr-1" />
-                    STL
-                  </Button>
-                  <Button
-                    onClick={() => addPlayerStat('blocks', 1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
-                  >
-                    <Shield className="w-4 h-4 mr-1" />
-                    BLK
-                  </Button>
-                  <Button
-                    onClick={handleFoul}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
-                  >
-                    <AlertTriangle className="w-4 h-4 mr-1" />
-                    FOUL
-                  </Button>
-                  <Button
-                    onClick={handleUndo}
-                    disabled={actionHistory.length === 0}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <RotateCcw className="w-4 h-4 mr-1" />
-                    UNDO
-                  </Button>
-                </div>
-
-                <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
-                  <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Quarter Stats:</p>
-                  <div className="grid grid-cols-4 gap-2 text-center">
-                    <div>
-                      <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'points')}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">PTS</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-black text-green-600 dark:text-green-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'rebounds')}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">REB</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-black text-purple-600 dark:text-purple-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'assists')}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">AST</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'fouls')}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">FOULS</div>
-                    </div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-14 h-14 border-4 border-blue-200 dark:border-blue-800 shadow-lg">
+                    <AvatarImage src={selectedPlayer.photo_url} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
+                      {selectedPlayer.jersey_number}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="text-xl font-black text-gray-900 dark:text-white">
+                      #{selectedPlayer.jersey_number} {selectedPlayer.first_name} {selectedPlayer.last_name}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">
+                      {selectedTeam === 'home' ? homeTeam?.name : awayTeam?.name}
+                    </p>
                   </div>
                 </div>
-              </CardContent>
+                <Button
+                  variant="ghost"
+                  onClick={() => setSelectedPlayer(null)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  ✕
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={() => addPoints(1)}
+                  className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
+                >
+                  +1 PT
+                </Button>
+                <Button
+                  onClick={() => addPoints(2)}
+                  className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
+                >
+                  +2 PTS
+                </Button>
+                <Button
+                  onClick={() => addPoints(3)}
+                  className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
+                >
+                  +3 PTS
+                </Button>
+                <Button
+                  onClick={() => addPlayerStat('rebounds', 1)}
+                  className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                >
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  REB
+                </Button>
+                <Button
+                  onClick={() => addPlayerStat('assists', 1)}
+                  className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                >
+                  <Target className="w-4 h-4 mr-1" />
+                  AST
+                </Button>
+                <Button
+                  onClick={() => addPlayerStat('steals', 1)}
+                  className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                >
+                  <Zap className="w-4 h-4 mr-1" />
+                  STL
+                </Button>
+                <Button
+                  onClick={() => addPlayerStat('blocks', 1)}
+                  className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                >
+                  <Shield className="w-4 h-4 mr-1" />
+                  BLK
+                </Button>
+                <Button
+                  onClick={handleFoul}
+                  className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                >
+                  <AlertTriangle className="w-4 h-4 mr-1" />
+                  FOUL
+                </Button>
+                <Button
+                  onClick={handleUndo}
+                  disabled={actionHistory.length === 0}
+                  className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <RotateCcw className="w-4 h-4 mr-1" />
+                  UNDO
+                </Button>
+              </div>
+
+              <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+                <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Quarter Stats:</p>
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  <div>
+                    <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'points')}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">PTS</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-black text-green-600 dark:text-green-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'rebounds')}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">REB</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-black text-purple-600 dark:text-purple-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'assists')}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">AST</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'fouls')}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">FOULS</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
             </Card>
           </div>
         </div>
@@ -726,13 +726,13 @@ export default function LiveScoring() {
         </div>
       )}
 
-      {/* Players Section - NEW STRUCTURE WITH TRULY FROZEN HEADERS */}
+      {/* Players Section - CORRECTED STRUCTURE WITH TRULY FROZEN HEADERS */}
       <div className="max-w-7xl mx-auto p-4 pb-24">
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Home Team - NEW STRUCTURE */}
-          <div className="relative">
-            {/* FROZEN HEADER */}
-            <div className="sticky bg-orange-900/95 backdrop-blur-sm border-4 border-orange-500 rounded-t-xl p-4 z-30" style={{ top: selectedPlayer ? '530px' : '310px' }}>
+          {/* Home Team - FIXED CONTAINER WITH STICKY HEADER INSIDE */}
+          <div className="h-[700px] bg-gradient-to-br from-orange-900/40 to-orange-950/40 border-4 border-orange-500 backdrop-blur-sm rounded-xl overflow-y-auto">
+            {/* STICKY HEADER - FROZEN WITHIN SCROLL CONTAINER */}
+            <div className="sticky top-0 z-30 bg-orange-900/95 backdrop-blur-sm border-b-4 border-orange-500 p-4">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-2xl font-black text-white">
                   {homeTeam.name} - HOME
@@ -748,17 +748,17 @@ export default function LiveScoring() {
               </div>
             </div>
             {/* SCROLLABLE PLAYERS */}
-            <div className="bg-gradient-to-br from-orange-900/40 to-orange-950/40 border-4 border-t-0 border-orange-500 rounded-b-xl p-4 max-h-[600px] overflow-y-auto">
+            <div className="p-4">
               {homePlayers.map(player => (
                 <PlayerRow key={player.id} player={player} team="home" teamId={game.home_team_id} />
               ))}
             </div>
           </div>
 
-          {/* Away Team - NEW STRUCTURE */}
-          <div className="relative">
-            {/* FROZEN HEADER */}
-            <div className="sticky bg-blue-900/95 backdrop-blur-sm border-4 border-blue-500 rounded-t-xl p-4 z-30" style={{ top: selectedPlayer ? '530px' : '310px' }}>
+          {/* Away Team - FIXED CONTAINER WITH STICKY HEADER INSIDE */}
+          <div className="h-[700px] bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm rounded-xl overflow-y-auto">
+            {/* STICKY HEADER - FROZEN WITHIN SCROLL CONTAINER */}
+            <div className="sticky top-0 z-30 bg-blue-900/95 backdrop-blur-sm border-b-4 border-blue-500 p-4">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-2xl font-black text-white">
                   {awayTeam.name} - AWAY
@@ -774,7 +774,7 @@ export default function LiveScoring() {
               </div>
             </div>
             {/* SCROLLABLE PLAYERS */}
-            <div className="bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-t-0 border-blue-500 rounded-b-xl p-4 max-h-[600px] overflow-y-auto">
+            <div className="p-4">
               {awayPlayers.map(player => (
                 <PlayerRow key={player.id} player={player} team="away" teamId={game.away_team_id} />
               ))}
