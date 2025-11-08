@@ -8,12 +8,14 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button"; // Added Button import
 
 export default function Statistics() {
   const [user, setUser] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedDivision, setSelectedDivision] = useState('all');
   const [selectedSport, setSelectedSport] = useState('all');
+  const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
 
   useEffect(() => {
     loadUser();
@@ -370,81 +372,186 @@ export default function Statistics() {
 
             {/* TEAM PERFORMANCE TAB */}
             <TabsContent value="performance" className="space-y-6">
-              {/* Team Selection Cards */}
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {teamStats.map((team) => {
-                  const sportColor = team.sport === 'basketball' ? 'orange' : 'blue';
-
-                  return (
-                    <Card
-                      key={team.id}
-                      className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 cursor-pointer transition-all shadow-lg hover:shadow-2xl ${
-                        selectedTeam?.id === team.id ? 'ring-4 ring-blue-600' : ''
-                      }`}
-                      onClick={() => setSelectedTeam(team)}
-                    >
-                      <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-${sportColor}-500/20 to-transparent rounded-full blur-3xl`}></div>
-                      <CardHeader className="relative z-10">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-3 flex-1">
-                            <Avatar className="w-14 h-14 border-4 border-white dark:border-gray-700 shadow-xl">
-                              <AvatarImage src={team.logo_url} />
-                              <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white font-black text-sm`}>
-                                {team.name?.substring(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{team.name}</CardTitle>
-                              <Badge className={`mt-2 bg-${sportColor}-100 text-${sportColor}-700 border-${sportColor}-200 dark:bg-${sportColor}-950 dark:text-${sportColor}-300 dark:border-${sportColor}-800 font-bold`}>
-                                {team.sport}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3 relative z-10">
-                        <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                          <span className="text-gray-600 dark:text-gray-400 font-bold">Record</span>
-                          <span className="text-gray-900 dark:text-white font-black">
-                            {team.wins || 0}W - {team.losses || 0}L
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                          <span className="text-gray-600 dark:text-gray-400 font-bold">Win Rate</span>
-                          <span className="text-gray-900 dark:text-white font-black">
-                            {team.gamesPlayed > 0
-                              ? ((team.wins / team.gamesPlayed) * 100).toFixed(0)
-                              : 0}%
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                          <span className="text-gray-600 dark:text-gray-400 font-bold">Avg Points</span>
-                          <span className="text-gray-900 dark:text-white font-black">
-                            {team.avgPointsFor} / {team.avgPointsAgainst}
-                          </span>
-                        </div>
-                        {team.last5.length > 0 && (
-                          <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-bold">Last 5 Games</p>
-                            <div className="flex gap-1">
-                              {team.last5.map((result, i) => (
-                                <div
-                                  key={i}
-                                  className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-black shadow-md ${
-                                    result === 'W' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'
-                                  }`}
-                                >
-                                  {result}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+              {/* View Toggle Header */}
+              <div className="flex justify-end">
+                <div className="flex bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-1 shadow-sm">
+                  <Button
+                    variant={viewMode === 'card' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('card')}
+                    className={`font-bold ${viewMode === 'card' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                  >
+                    <Trophy className="w-4 h-4 mr-2" />
+                    Cards
+                  </Button>
+                  <Button
+                    variant={viewMode === 'table' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('table')}
+                    className={`font-bold ${viewMode === 'table' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                  >
+                    <Target className="w-4 h-4 mr-2" />
+                    Table
+                  </Button>
+                </div>
               </div>
+
+              {/* Team Selection Cards / Table */}
+              {viewMode === 'card' ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {teamStats.map((team) => {
+                    const sportColor = team.sport === 'basketball' ? 'orange' : 'blue';
+
+                    return (
+                      <Card
+                        key={team.id}
+                        className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 cursor-pointer transition-all shadow-lg hover:shadow-2xl ${
+                          selectedTeam?.id === team.id ? 'ring-4 ring-blue-600' : ''
+                        }`}
+                        onClick={() => setSelectedTeam(team)}
+                      >
+                        <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-${sportColor}-500/20 to-transparent rounded-full blur-3xl`}></div>
+                        <CardHeader className="relative z-10">
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-3 flex-1">
+                              <Avatar className="w-14 h-14 border-4 border-white dark:border-gray-700 shadow-xl">
+                                <AvatarImage src={team.logo_url} />
+                                <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white font-black text-sm`}>
+                                  {team.name?.substring(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{team.name}</CardTitle>
+                                <Badge className={`mt-2 bg-${sportColor}-100 text-${sportColor}-700 border-${sportColor}-200 dark:bg-${sportColor}-950 dark:text-${sportColor}-300 dark:border-${sportColor}-800 font-bold`}>
+                                  {team.sport}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3 relative z-10">
+                          <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+                            <span className="text-gray-600 dark:text-gray-400 font-bold">Record</span>
+                            <span className="text-gray-900 dark:text-white font-black">
+                              {team.wins || 0}W - {team.losses || 0}L
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+                            <span className="text-gray-600 dark:text-gray-400 font-bold">Win Rate</span>
+                            <span className="text-gray-900 dark:text-white font-black">
+                              {team.gamesPlayed > 0
+                                ? ((team.wins / team.gamesPlayed) * 100).toFixed(0)
+                                : 0}%
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+                            <span className="text-gray-600 dark:text-gray-400 font-bold">Avg Points</span>
+                            <span className="text-gray-900 dark:text-white font-black">
+                              {team.avgPointsFor} / {team.avgPointsAgainst}
+                            </span>
+                          </div>
+                          {team.last5.length > 0 && (
+                            <div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-bold">Last 5 Games</p>
+                              <div className="flex gap-1">
+                                {team.last5.map((result, i) => (
+                                  <div
+                                    key={i}
+                                    className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-black shadow-md ${
+                                      result === 'W' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'
+                                    }`}
+                                  >
+                                    {result}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
+                            <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">TEAM</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">SPORT</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">W</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">L</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">WIN %</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PF</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PA</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">LAST 5</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ACTION</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {teamStats.map((team) => {
+                            const sportColor = team.sport === 'basketball' ? 'orange' : 'blue';
+                            return (
+                              <tr key={team.id} className={`border-b border-gray-100 dark:border-gray-700 hover:bg-${sportColor}-50/50 dark:hover:bg-${sportColor}-950/20 transition-colors`}>
+                                <td className="py-4 px-4">
+                                  <div className="flex items-center gap-3">
+                                    <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
+                                      <AvatarImage src={team.logo_url} />
+                                      <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white text-xs font-bold`}>
+                                        {team.name?.substring(0, 2).toUpperCase()}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span className="font-bold text-gray-900 dark:text-white">{team.name}</span>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-4 text-center">
+                                  <Badge className={`bg-${sportColor}-100 text-${sportColor}-700 border-${sportColor}-200 dark:bg-${sportColor}-950 dark:text-${sportColor}-300 dark:border-${sportColor}-800 font-bold`}>
+                                    {team.sport}
+                                  </Badge>
+                                </td>
+                                <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold text-lg">{team.wins || 0}</td>
+                                <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-bold text-lg">{team.losses || 0}</td>
+                                <td className="py-4 px-4 text-center font-bold text-gray-900 dark:text-white">
+                                  {team.gamesPlayed > 0
+                                    ? ((team.wins / team.gamesPlayed) * 100).toFixed(0)
+                                    : 0}%
+                                </td>
+                                <td className="py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-semibold">{team.avgPointsFor}</td>
+                                <td className="py-4 px-4 text-center text-orange-600 dark:text-orange-400 font-semibold">{team.avgPointsAgainst}</td>
+                                <td className="py-4 px-4">
+                                  <div className="flex gap-1 justify-center">
+                                    {team.last5.length > 0 ? team.last5.map((result, i) => (
+                                      <div
+                                        key={i}
+                                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shadow-sm ${
+                                          result === 'W' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'
+                                        }`}
+                                      >
+                                        {result}
+                                      </div>
+                                    )) : <span className="text-gray-400 text-sm">-</span>}
+                                  </div>
+                                </td>
+                                <td className="py-4 px-4 text-center">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => setSelectedTeam(team)}
+                                    className={`bg-gradient-to-r from-${sportColor}-600 to-${sportColor}-700 hover:from-${sportColor}-700 hover:to-${sportColor}-800 text-white font-bold`}
+                                  >
+                                    View Details
+                                  </Button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Selected Team Detailed Analysis */}
               {selectedTeam && (
