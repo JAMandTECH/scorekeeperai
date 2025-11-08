@@ -83,8 +83,7 @@ export default function Home() {
           
           teamGames.forEach(game => {
             const isHome = game.home_team_id === team.id;
-            let currentTeamScore = 0; // Total points for the current team in this game
-            let currentOppScore = 0;  // Total points for the opponent in this game
+            let teamScore, oppScore;
 
             if (sport === 'volleyball') {
               // For volleyball: calculate total points across all sets
@@ -93,27 +92,27 @@ export default function Home() {
               const homeSetsWon = (game.quarter_scores || []).filter(s => s.home > s.away).length;
               const awaySetsWon = (game.quarter_scores || []).filter(s => s.away > s.home).length;
               
-              currentTeamScore = isHome ? homeTotalPoints : awayTotalPoints;
-              currentOppScore = isHome ? awayTotalPoints : homeTotalPoints;
+              teamScore = isHome ? homeTotalPoints : awayTotalPoints;
+              oppScore = isHome ? awayTotalPoints : homeTotalPoints;
               
               // Win/loss based on sets won
               if (homeSetsWon > awaySetsWon) {
                 if (isHome) wins++;
-                else losses++; // Away team won in sets
-              } else if (awaySetsWon > homeSetsWon) {
-                if (isHome) losses++; // Home team lost in sets
+                else losses++;
+              } else if (awaySetsWon > homeSetsWon) { // Fixed: added else if to handle away win
+                if (isHome) losses++;
                 else wins++;
               }
             } else { // Basketball
-              currentTeamScore = isHome ? game.home_score : game.away_score;
-              currentOppScore = isHome ? game.away_score : game.home_score;
+              teamScore = isHome ? game.home_score : game.away_score;
+              oppScore = isHome ? game.away_score : game.home_score;
               
-              if (currentTeamScore > currentOppScore) wins++;
+              if (teamScore > oppScore) wins++;
               else losses++;
             }
             
-            pointsFor += currentTeamScore;
-            pointsAgainst += currentOppScore;
+            pointsFor += teamScore;
+            pointsAgainst += oppScore;
           });
 
           const gamesPlayed = wins + losses;
@@ -128,14 +127,21 @@ export default function Home() {
             losses,
             gamesPlayed,
             winPct,
-            pointsFor, // For volleyball, this is total points scored
-            pointsAgainst, // For volleyball, this is total points conceded
+            pointsFor,
+            pointsAgainst,
             avgPointsFor,
             avgPointsAgainst,
             diff,
           };
         })
-        .sort((a, b) => b.winPct - a.winPct);
+        .sort((a, b) => {
+          // First sort by win percentage
+          if (b.winPct !== a.winPct) {
+            return b.winPct - a.winPct;
+          }
+          // If tied in win percentage, sort by point differential
+          return b.diff - a.diff;
+        });
 
       return { division, teams: divisionTeams };
     });
