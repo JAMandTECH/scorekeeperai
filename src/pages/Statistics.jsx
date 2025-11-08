@@ -3,12 +3,11 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, TrendingUp, Target, TrendingDown } from "lucide-react";
+import { Trophy, TrendingUp, Target, TrendingDown, Filter } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Statistics() {
   const [user, setUser] = useState(null);
@@ -47,44 +46,37 @@ export default function Statistics() {
     enabled: teams.length > 0,
   });
 
-  const completedGames = games.filter(g => g.status === 'completed');
-
   // Get unique divisions and sports
-  const allDivisions = [...new Set(teams.map(t => t.division || 'No Division'))];
-  const divisions = ['all', ...allDivisions];
-  const sports = ['all', 'basketball', 'volleyball']; // Hardcoded for now, can be dynamic if needed
+  const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division'))];
+  const sports = ['all', 'basketball', 'volleyball'];
 
-  // Filter teams by division and sport
+  // Filter teams based on division and sport
   const filteredTeams = teams.filter(team => {
     const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
     const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
     return divisionMatch && sportMatch;
   });
 
-  // Filter players by filtered teams
-  const filteredPlayers = players.filter(p => filteredTeams.some(t => t.id === p.team_id));
+  const filteredTeamIds = filteredTeams.map(t => t.id);
 
-  // Filter completed games to only include games involving filtered teams
-  const filteredCompletedGames = completedGames.filter(g =>
-    filteredTeams.some(t => t.id === g.home_team_id || t.id === g.away_team_id)
+  // Filter games based on filtered teams
+  const filteredGames = games.filter(game =>
+    filteredTeamIds.includes(game.home_team_id) && filteredTeamIds.includes(game.away_team_id)
   );
 
-  // Reset selectedTeam if it's no longer in filteredTeams
-  useEffect(() => {
-    if (selectedTeam && !filteredTeams.some(t => t.id === selectedTeam.id)) {
-      setSelectedTeam(null);
-    }
-  }, [selectedDivision, selectedSport, filteredTeams, selectedTeam]);
+  // Filter players based on filtered teams
+  const filteredPlayers = players.filter(p => filteredTeamIds.includes(p.team_id));
 
+  const completedGames = filteredGames.filter(g => g.status === 'completed');
 
   // Calculate head-to-head records
   const getHeadToHead = (teamId) => {
     const h2h = {};
 
-    filteredCompletedGames.forEach(game => { // Use filteredCompletedGames here
+    completedGames.forEach(game => {
       if (game.home_team_id === teamId || game.away_team_id === teamId) {
         const opponentId = game.home_team_id === teamId ? game.away_team_id : game.home_team_id;
-        const opponent = teams.find(t => t.id === opponentId); // `teams` (unfiltered) is correct for finding opponent name.
+        const opponent = filteredTeams.find(t => t.id === opponentId);
 
         if (!opponent) return;
 
@@ -118,7 +110,7 @@ export default function Statistics() {
 
   // Get performance trend over time (last 10 games)
   const getPerformanceTrend = (teamId) => {
-    const teamGames = filteredCompletedGames // Use filteredCompletedGames here
+    const teamGames = completedGames
       .filter(g => g.home_team_id === teamId || g.away_team_id === teamId)
       .sort((a, b) => new Date(a.game_date) - new Date(b.game_date))
       .slice(-10);
@@ -142,8 +134,8 @@ export default function Statistics() {
     });
   };
 
-  // Top scorers from filtered players
-  const topScorers = [...filteredPlayers] // Use filteredPlayers here
+  // Top scorers
+  const topScorers = [...filteredPlayers]
     .sort((a, b) => (b.total_points || 0) - (a.total_points || 0))
     .slice(0, 5)
     .map(p => ({
@@ -151,9 +143,9 @@ export default function Statistics() {
       points: p.total_points || 0,
     }));
 
-  // Team stats with recent form for filtered teams
-  const teamStats = filteredTeams.map(team => { // Iterate over filteredTeams
-    const teamGames = filteredCompletedGames.filter(g => g.home_team_id === team.id || g.away_team_id === team.id); // Use filteredCompletedGames here
+  // Team stats with recent form
+  const teamStats = filteredTeams.map(team => {
+    const teamGames = completedGames.filter(g => g.home_team_id === team.id || g.away_team_id === team.id);
     const last5Games = teamGames.slice(-5);
     const last5Results = last5Games.map(game => {
       const isHome = game.home_team_id === team.id;
@@ -207,56 +199,67 @@ export default function Statistics() {
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <h1 className="text-4xl font-black text-gray-900 dark:text-white">Statistics & Analytics</h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Performance insights and trends</p>
-              </div>
-
-              {/* Filters */}
-              <div className="flex gap-3 flex-wrap">
-                <Select value={selectedSport} onValueChange={setSelectedSport}>
-                  <SelectTrigger className="w-[180px] bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 font-bold">
-                    <SelectValue placeholder="All Sports" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600">
-                    <SelectItem value="all" className="font-bold">All Sports</SelectItem>
-                    <SelectItem value="basketball" className="font-bold">🏀 Basketball</SelectItem>
-                    <SelectItem value="volleyball" className="font-bold">🏐 Volleyball</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={selectedDivision} onValueChange={setSelectedDivision}>
-                  <SelectTrigger className="w-[180px] bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 font-bold">
-                    <SelectValue placeholder="All Divisions" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600">
-                    {divisions.map(div => (
-                      <SelectItem key={div} value={div} className="font-bold">
-                        {div === 'all' ? 'All Divisions' : div}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Active Filters Display */}
-            {(selectedDivision !== 'all' || selectedSport !== 'all') && (
-              <div className="flex gap-2 mt-4 flex-wrap">
-                {selectedSport !== 'all' && (
-                  <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold px-3 py-1">
-                    Sport: {selectedSport === 'basketball' ? '🏀 Basketball' : '🏐 Volleyball'}
-                  </Badge>
-                )}
-                {selectedDivision !== 'all' && (
-                  <Badge className="bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800 font-bold px-3 py-1">
-                    Division: {selectedDivision}
-                  </Badge>
-                )}
-              </div>
-            )}
+            <h1 className="text-4xl font-black text-gray-900 dark:text-white">Statistics & Analytics</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Performance insights and trends</p>
           </div>
+
+          {/* Filters */}
+          <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Filter by:</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <label htmlFor="sport-filter" className="text-sm font-semibold text-gray-600 dark:text-gray-400 sr-only">Sport filter</label>
+                  <select
+                    id="sport-filter"
+                    value={selectedSport}
+                    onChange={(e) => {
+                      setSelectedSport(e.target.value);
+                      setSelectedTeam(null);
+                    }}
+                    className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-4 py-2 font-bold shadow-sm"
+                  >
+                    {sports.map(sport => (
+                      <option key={sport} value={sport}>
+                        {sport === 'all' ? 'All Sports' : sport.charAt(0).toUpperCase() + sport.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <label htmlFor="division-filter" className="text-sm font-semibold text-gray-600 dark:text-gray-400 sr-only">Division filter</label>
+                  <select
+                    id="division-filter"
+                    value={selectedDivision}
+                    onChange={(e) => {
+                      setSelectedDivision(e.target.value);
+                      setSelectedTeam(null);
+                    }}
+                    className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-4 py-2 font-bold shadow-sm"
+                  >
+                    {divisions.map(div => (
+                      <option key={div} value={div}>
+                        {div === 'all' ? 'All Divisions' : div}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {(selectedDivision !== 'all' || selectedSport !== 'all') && (
+                  <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold">
+                    {selectedSport !== 'all' && (selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1))}
+                    {selectedSport !== 'all' && selectedDivision !== 'all' && ' • '}
+                    {selectedDivision !== 'all' && selectedDivision}
+                  </Badge>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           <Tabs defaultValue="overview" className="space-y-6">
             <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl shadow-lg">
@@ -284,7 +287,7 @@ export default function Statistics() {
                     </div>
                   </CardHeader>
                   <CardContent className="relative z-10">
-                    <div className="text-4xl font-black text-gray-900 dark:text-white">{filteredCompletedGames.length}</div>
+                    <div className="text-4xl font-black text-gray-900 dark:text-white">{completedGames.length}</div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold">Completed games</p>
                   </CardContent>
                 </Card>
@@ -299,10 +302,10 @@ export default function Statistics() {
                   </CardHeader>
                   <CardContent className="relative z-10">
                     <div className="text-4xl font-black text-gray-900 dark:text-white">
-                      {filteredCompletedGames.length > 0
+                      {completedGames.length > 0
                         ? Math.round(
-                            filteredCompletedGames.reduce((sum, g) => sum + g.home_score + g.away_score, 0) /
-                            filteredCompletedGames.length
+                            completedGames.reduce((sum, g) => sum + g.home_score + g.away_score, 0) /
+                            completedGames.length
                           )
                         : 0}
                     </div>
@@ -328,14 +331,7 @@ export default function Statistics() {
               {/* Top Scorers Chart */}
               <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl">
                 <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                  <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">
-                    Top Scorers
-                    {(selectedDivision !== 'all' || selectedSport !== 'all') && (
-                      <span className="text-lg font-semibold text-gray-500 dark:text-gray-400 ml-2">
-                        ({selectedDivision !== 'all' ? selectedDivision : ''}{selectedDivision !== 'all' && selectedSport !== 'all' ? ' - ' : ''}{selectedSport !== 'all' ? selectedSport : ''})
-                      </span>
-                    )}
-                  </CardTitle>
+                  <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">Top Scorers</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
                   {topScorers.length > 0 ? (
@@ -365,7 +361,7 @@ export default function Statistics() {
                   ) : (
                     <div className="text-center py-20">
                       <Trophy className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                      <p className="text-gray-500 dark:text-gray-400 font-medium">No player statistics for selected filter</p>
+                      <p className="text-gray-500 dark:text-gray-400 font-medium">No player statistics yet</p>
                     </div>
                   )}
                 </CardContent>
@@ -375,90 +371,80 @@ export default function Statistics() {
             {/* TEAM PERFORMANCE TAB */}
             <TabsContent value="performance" className="space-y-6">
               {/* Team Selection Cards */}
-              {teamStats.length > 0 ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {teamStats.map((team) => {
-                    const sportColor = team.sport === 'basketball' ? 'orange' : 'blue';
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {teamStats.map((team) => {
+                  const sportColor = team.sport === 'basketball' ? 'orange' : 'blue';
 
-                    return (
-                      <Card
-                        key={team.id}
-                        className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 cursor-pointer transition-all shadow-lg hover:shadow-2xl ${
-                          selectedTeam?.id === team.id ? 'ring-4 ring-blue-600' : ''
-                        }`}
-                        onClick={() => setSelectedTeam(team)}
-                      >
-                        <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-${sportColor}-500/20 to-transparent rounded-full blur-3xl`}></div>
-                        <CardHeader className="relative z-10">
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-3 flex-1">
-                              <Avatar className="w-14 h-14 border-4 border-white dark:border-gray-700 shadow-xl">
-                                <AvatarImage src={team.logo_url} />
-                                <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white font-black text-sm`}>
-                                  {team.name?.substring(0, 2).toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{team.name}</CardTitle>
-                                <Badge className={`mt-2 bg-${sportColor}-100 text-${sportColor}-700 border-${sportColor}-200 dark:bg-${sportColor}-950 dark:text-${sportColor}-300 dark:border-${sportColor}-800 font-bold`}>
-                                  {team.sport}
-                                </Badge>
-                              </div>
+                  return (
+                    <Card
+                      key={team.id}
+                      className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 cursor-pointer transition-all shadow-lg hover:shadow-2xl ${
+                        selectedTeam?.id === team.id ? 'ring-4 ring-blue-600' : ''
+                      }`}
+                      onClick={() => setSelectedTeam(team)}
+                    >
+                      <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-${sportColor}-500/20 to-transparent rounded-full blur-3xl`}></div>
+                      <CardHeader className="relative z-10">
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-3 flex-1">
+                            <Avatar className="w-14 h-14 border-4 border-white dark:border-gray-700 shadow-xl">
+                              <AvatarImage src={team.logo_url} />
+                              <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white font-black text-sm`}>
+                                {team.name?.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{team.name}</CardTitle>
+                              <Badge className={`mt-2 bg-${sportColor}-100 text-${sportColor}-700 border-${sportColor}-200 dark:bg-${sportColor}-950 dark:text-${sportColor}-300 dark:border-${sportColor}-800 font-bold`}>
+                                {team.sport}
+                              </Badge>
                             </div>
                           </div>
-                        </CardHeader>
-                        <CardContent className="space-y-3 relative z-10">
-                          <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                            <span className="text-gray-600 dark:text-gray-400 font-bold">Record</span>
-                            <span className="text-gray-900 dark:text-white font-black">
-                              {team.wins || 0}W - {team.losses || 0}L
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                            <span className="text-gray-600 dark:text-gray-400 font-bold">Win Rate</span>
-                            <span className="text-gray-900 dark:text-white font-black">
-                              {team.gamesPlayed > 0
-                                ? ((team.wins / team.gamesPlayed) * 100).toFixed(0)
-                                : 0}%
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                            <span className="text-gray-600 dark:text-gray-400 font-bold">Avg Points</span>
-                            <span className="text-gray-900 dark:text-white font-black">
-                              {team.avgPointsFor} / {team.avgPointsAgainst}
-                            </span>
-                          </div>
-                          {team.last5.length > 0 && (
-                            <div>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-bold">Last 5 Games</p>
-                              <div className="flex gap-1">
-                                {team.last5.map((result, i) => (
-                                  <div
-                                    key={i}
-                                    className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-black shadow-md ${
-                                      result === 'W' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'
-                                    }`}
-                                  >
-                                    {result}
-                                  </div>
-                                ))}
-                              </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3 relative z-10">
+                        <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+                          <span className="text-gray-600 dark:text-gray-400 font-bold">Record</span>
+                          <span className="text-gray-900 dark:text-white font-black">
+                            {team.wins || 0}W - {team.losses || 0}L
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+                          <span className="text-gray-600 dark:text-gray-400 font-bold">Win Rate</span>
+                          <span className="text-gray-900 dark:text-white font-black">
+                            {team.gamesPlayed > 0
+                              ? ((team.wins / team.gamesPlayed) * 100).toFixed(0)
+                              : 0}%
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+                          <span className="text-gray-600 dark:text-gray-400 font-bold">Avg Points</span>
+                          <span className="text-gray-900 dark:text-white font-black">
+                            {team.avgPointsFor} / {team.avgPointsAgainst}
+                          </span>
+                        </div>
+                        {team.last5.length > 0 && (
+                          <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-bold">Last 5 Games</p>
+                            <div className="flex gap-1">
+                              {team.last5.map((result, i) => (
+                                <div
+                                  key={i}
+                                  className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-black shadow-md ${
+                                    result === 'W' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'
+                                  }`}
+                                >
+                                  {result}
+                                </div>
+                              ))}
                             </div>
-                          )}
+                          </div>
+                        )}
                       </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-20">
-                  <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Trophy className="w-12 h-12 text-gray-400 dark:text-gray-500" />
-                  </div>
-                  <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No teams found for selected filter</p>
-                  <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Try adjusting your division or sport filter</p>
-                </div>
-              )}
+                    </Card>
+                  );
+                })}
+              </div>
 
               {/* Selected Team Detailed Analysis */}
               {selectedTeam && (
@@ -576,7 +562,7 @@ export default function Statistics() {
                 </div>
               )}
 
-              {!selectedTeam && teamStats.length > 0 && ( // Only show if there are teams available after filter
+              {!selectedTeam && (
                 <div className="text-center py-20">
                   <div className="w-24 h-24 bg-gradient-to-br from-blue-200 to-blue-300 dark:from-blue-800 dark:to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Trophy className="w-12 h-12 text-blue-600 dark:text-blue-300" />
@@ -590,14 +576,7 @@ export default function Statistics() {
             <TabsContent value="players" className="space-y-6">
               <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl">
                 <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                  <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">
-                    Top Players Leaderboard
-                    {(selectedDivision !== 'all' || selectedSport !== 'all') && (
-                      <span className="text-lg font-semibold text-gray-500 dark:text-gray-400 ml-2">
-                        ({selectedDivision !== 'all' ? selectedDivision : ''}{selectedDivision !== 'all' && selectedSport !== 'all' ? ' - ' : ''}{selectedSport !== 'all' ? selectedSport : ''})
-                      </span>
-                    )}
-                  </CardTitle>
+                  <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">Top Players Leaderboard</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
                   {topScorers.length > 0 ? (
@@ -625,7 +604,7 @@ export default function Statistics() {
                   ) : (
                     <div className="text-center py-20">
                       <Trophy className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                      <p className="text-gray-500 dark:text-gray-400 font-medium">No player statistics for selected filter</p>
+                      <p className="text-gray-500 dark:text-gray-400 font-medium">No player statistics yet</p>
                     </div>
                   )}
                 </CardContent>
