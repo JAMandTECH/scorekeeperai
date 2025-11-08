@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, User, Edit, TrendingUp, Target, Award } from "lucide-react";
+import { Plus, User, Edit, TrendingUp, Target, Award, LayoutGrid, Table } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ export default function Players() {
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [user, setUser] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState('all');
+  const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -101,6 +102,188 @@ export default function Players() {
     return team?.sport || 'basketball';
   };
 
+  const PlayerCard = ({ player, sport, sportColor, teamLogo }) => (
+    <Card key={player.id} className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 shadow-lg hover:shadow-2xl transition-all group`}>
+      <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-${sportColor}-500/20 to-transparent rounded-full blur-3xl`}></div>
+      
+      <CardHeader className="pb-3 relative z-10">
+        <div className="flex justify-between items-start">
+          <div className="flex items-start gap-3 flex-1">
+            <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
+              <AvatarImage src={player.photo_url} />
+              <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-600 to-${sportColor}-700 text-white font-black text-lg`}>
+                {player.jersey_number}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-gray-900 dark:text-white font-black text-lg truncate">
+                {player.first_name} {player.last_name}
+              </h3>
+              <div className="flex items-center gap-2 mt-1">
+                {teamLogo && (
+                  <Avatar className="w-5 h-5 border border-gray-300 dark:border-gray-600">
+                    <AvatarImage src={teamLogo} />
+                    <AvatarFallback className="text-[8px]">T</AvatarFallback>
+                  </Avatar>
+                )}
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium truncate">{getTeamName(player.team_id)}</p>
+              </div>
+            </div>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => {
+              setEditingPlayer(player);
+              setShowForm(true);
+            }}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="space-y-4 relative z-10">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+            <span className="text-gray-500 dark:text-gray-400 text-xs font-semibold">Position</span>
+            <p className="text-gray-900 dark:text-white font-bold">{player.position || '-'}</p>
+          </div>
+          <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+            <span className="text-gray-500 dark:text-gray-400 text-xs font-semibold">Height</span>
+            <p className="text-gray-900 dark:text-white font-bold">{player.height || '-'}</p>
+          </div>
+        </div>
+        
+        <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-4">
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+              <div className={`text-${sportColor}-600 dark:text-${sportColor}-400 font-black text-2xl`}>
+                {player.total_points || 0}
+              </div>
+              <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">PTS</div>
+            </div>
+            <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+              <div className={`text-${sportColor}-600 dark:text-${sportColor}-400 font-black text-2xl`}>
+                {player.total_rebounds || 0}
+              </div>
+              <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">REB</div>
+            </div>
+            <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+              <div className={`text-${sportColor}-600 dark:text-${sportColor}-400 font-black text-2xl`}>
+                {player.total_assists || 0}
+              </div>
+              <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">AST</div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="text-center bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-xl p-3">
+          <span className="text-sm text-gray-600 dark:text-gray-400 font-bold">
+            {player.games_played || 0} games played
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const PlayerTable = ({ players }) => (
+    <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
+                <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PLAYER</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">TEAM</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">POS</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">HT</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PTS</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">REB</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">AST</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">GP</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {players.map((player) => {
+                const sport = getTeamSport(player.team_id);
+                const sportColor = sport === 'basketball' ? 'orange' : 'blue';
+                const teamLogo = getTeamLogo(player.team_id);
+                
+                return (
+                  <tr key={player.id} className={`border-b border-gray-100 dark:border-gray-700 hover:bg-${sportColor}-50/50 dark:hover:bg-${sportColor}-950/20 transition-colors`}>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
+                          <AvatarImage src={player.photo_url} />
+                          <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white text-xs font-bold`}>
+                            {player.jersey_number}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-bold text-gray-900 dark:text-white">
+                            {player.first_name} {player.last_name}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">#{player.jersey_number}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center justify-center gap-2">
+                        {teamLogo && (
+                          <Avatar className="w-6 h-6 border border-gray-300 dark:border-gray-600">
+                            <AvatarImage src={teamLogo} />
+                            <AvatarFallback className="text-[8px]">T</AvatarFallback>
+                          </Avatar>
+                        )}
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{getTeamName(player.team_id)}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold text-sm">
+                      {player.position || '-'}
+                    </td>
+                    <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold text-sm">
+                      {player.height || '-'}
+                    </td>
+                    <td className="py-4 px-4 text-center font-bold text-lg text-blue-600 dark:text-blue-400">
+                      {player.total_points || 0}
+                    </td>
+                    <td className="py-4 px-4 text-center font-bold text-lg text-green-600 dark:text-green-400">
+                      {player.total_rebounds || 0}
+                    </td>
+                    <td className="py-4 px-4 text-center font-bold text-lg text-purple-600 dark:text-purple-400">
+                      {player.total_assists || 0}
+                    </td>
+                    <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold">
+                      {player.games_played || 0}
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center justify-center">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => {
+                            setEditingPlayer(player);
+                            setShowForm(true);
+                          }}
+                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-50 dark:from-gray-900 dark:via-purple-950/10 dark:to-gray-900">
       <div className="p-6 lg:p-8">
@@ -111,7 +294,28 @@ export default function Players() {
               <h1 className="text-4xl font-black text-gray-900 dark:text-white">Players</h1>
               <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Manage player rosters</p>
             </div>
-            <div className="flex gap-3 w-full md:w-auto">
+            <div className="flex gap-3 w-full md:w-auto flex-wrap">
+              {/* View Toggle */}
+              <div className="flex bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-1 shadow-sm">
+                <Button
+                  variant={viewMode === 'card' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('card')}
+                  className={`font-bold ${viewMode === 'card' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                >
+                  <LayoutGrid className="w-4 h-4 mr-2" />
+                  Cards
+                </Button>
+                <Button
+                  variant={viewMode === 'table' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('table')}
+                  className={`font-bold ${viewMode === 'table' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                >
+                  <Table className="w-4 h-4 mr-2" />
+                  Table
+                </Button>
+              </div>
               <select
                 value={selectedTeam}
                 onChange={(e) => setSelectedTeam(e.target.value)}
@@ -135,100 +339,28 @@ export default function Players() {
             </div>
           </div>
 
-          {/* Players Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {players.map((player) => {
-              const sport = getTeamSport(player.team_id);
-              const sportColor = sport === 'basketball' ? 'orange' : 'blue';
-              const teamLogo = getTeamLogo(player.team_id);
-              
-              return (
-                <Card key={player.id} className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 shadow-lg hover:shadow-2xl transition-all group`}>
-                  <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-${sportColor}-500/20 to-transparent rounded-full blur-3xl`}></div>
-                  
-                  <CardHeader className="pb-3 relative z-10">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-start gap-3 flex-1">
-                        <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
-                          <AvatarImage src={player.photo_url} />
-                          <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-600 to-${sportColor}-700 text-white font-black text-lg`}>
-                            {player.jersey_number}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-gray-900 dark:text-white font-black text-lg truncate">
-                            {player.first_name} {player.last_name}
-                          </h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            {teamLogo && (
-                              <Avatar className="w-5 h-5 border border-gray-300 dark:border-gray-600">
-                                <AvatarImage src={teamLogo} />
-                                <AvatarFallback className="text-[8px]">T</AvatarFallback>
-                              </Avatar>
-                            )}
-                            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium truncate">{getTeamName(player.team_id)}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => {
-                          setEditingPlayer(player);
-                          setShowForm(true);
-                        }}
-                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4 relative z-10">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                        <span className="text-gray-500 dark:text-gray-400 text-xs font-semibold">Position</span>
-                        <p className="text-gray-900 dark:text-white font-bold">{player.position || '-'}</p>
-                      </div>
-                      <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                        <span className="text-gray-500 dark:text-gray-400 text-xs font-semibold">Height</span>
-                        <p className="text-gray-900 dark:text-white font-bold">{player.height || '-'}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-4">
-                      <div className="grid grid-cols-3 gap-2 text-center">
-                        <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                          <div className={`text-${sportColor}-600 dark:text-${sportColor}-400 font-black text-2xl`}>
-                            {player.total_points || 0}
-                          </div>
-                          <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">PTS</div>
-                        </div>
-                        <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                          <div className={`text-${sportColor}-600 dark:text-${sportColor}-400 font-black text-2xl`}>
-                            {player.total_rebounds || 0}
-                          </div>
-                          <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">REB</div>
-                        </div>
-                        <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                          <div className={`text-${sportColor}-600 dark:text-${sportColor}-400 font-black text-2xl`}>
-                            {player.total_assists || 0}
-                          </div>
-                          <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">AST</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="text-center bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-xl p-3">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 font-bold">
-                        {player.games_played || 0} games played
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          {/* Players Grid or Table */}
+          {viewMode === 'card' ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {players.map((player) => {
+                const sport = getTeamSport(player.team_id);
+                const sportColor = sport === 'basketball' ? 'orange' : 'blue';
+                const teamLogo = getTeamLogo(player.team_id);
+                
+                return (
+                  <PlayerCard 
+                    key={player.id} 
+                    player={player} 
+                    sport={sport} 
+                    sportColor={sportColor} 
+                    teamLogo={teamLogo} 
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <PlayerTable players={players} />
+          )}
 
           {players.length === 0 && (
             <div className="text-center py-20">
