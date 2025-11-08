@@ -334,24 +334,24 @@ export default function LiveScoring() {
     });
 
     if (homeScore > awayScore) {
-      const teams = await base44.entities.Team.list(); // Fetch all teams once
-      const home = teams.find(t => t.id === game.home_team_id);
+      const homeTeamData = await base44.entities.Team.list();
+      const home = homeTeamData.find(t => t.id === game.home_team_id);
       await base44.entities.Team.update(game.home_team_id, {
         wins: (home.wins || 0) + 1
       });
       
-      const away = teams.find(t => t.id === game.away_team_id);
+      const away = homeTeamData.find(t => t.id === game.away_team_id);
       await base44.entities.Team.update(game.away_team_id, {
         losses: (away.losses || 0) + 1
       });
     } else {
-      const teams = await base44.entities.Team.list(); // Fetch all teams once
-      const home = teams.find(t => t.id === game.home_team_id);
+      const homeTeamData = await base44.entities.Team.list();
+      const home = homeTeamData.find(t => t.id === game.home_team_id);
       await base44.entities.Team.update(game.home_team_id, {
         losses: (home.losses || 0) + 1
       });
       
-      const away = teams.find(t => t.id === game.away_team_id);
+      const away = homeTeamData.find(t => t.id === game.away_team_id);
       await base44.entities.Team.update(game.away_team_id, {
         wins: (away.wins || 0) + 1
       });
@@ -459,16 +459,17 @@ export default function LiveScoring() {
 
             <div className="text-center">
               <div className="text-white text-xl font-black mb-2">{quarterLabel}</div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
-                {[1, 2, 3, 4].map(q => {
-                  const qScore = quarterScores.find(qs => qs.quarter === q);
-                  return (
-                    <div key={q} className="flex justify-between text-sm font-bold text-white mb-1">
-                      <span>Q{q}:</span>
-                      <span>{qScore ? `${qScore.home} - ${qScore.away}` : '-'}</span>
-                    </div>
-                  );
-                })}
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2">
+                <div className="flex justify-center gap-2 flex-wrap">
+                  {[1, 2, 3, 4].map(q => {
+                    const qScore = quarterScores.find(qs => qs.quarter === q);
+                    return (
+                      <div key={q} className="text-xs font-bold text-white">
+                        <span className="text-gray-400">Q{q}:</span> {qScore ? `${qScore.home}-${qScore.away}` : '-'}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
