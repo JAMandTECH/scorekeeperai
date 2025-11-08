@@ -253,11 +253,8 @@ export default function LiveScoring() {
   const removeFoul = async () => {
     if (!selectedPlayer || !selectedTeam) return;
 
-    const currentFouls = getPlayerStat(selectedPlayer.id, 'fouls'); // This gets cumulative fouls
     // We need to check the fouls for the CURRENT quarter to decrement from `updatePlayerStat` properly.
-    // However, the `getTotalPlayerFouls` also gets cumulative fouls.
-    // The `updatePlayerStat` *adds* to the current quarter's fouls, so we must check for current quarter's fouls.
-    const currentQuarterFouls = playerStats[`${selectedPlayer.id}_${currentQuarter}`]?.fouls || 0;
+    const currentQuarterFouls = playerStats[getPlayerStatKey(selectedPlayer.id)]?.fouls || 0;
 
     if (currentQuarterFouls === 0) return; // Only allow removing fouls from the current quarter's tally
 
@@ -543,49 +540,46 @@ export default function LiveScoring() {
               </Button>
             </div>
 
-            <div className="flex gap-2 mb-3">
+            <div className="flex gap-2">
               <Button
                 onClick={() => addScore(1)}
-                className="flex-1 h-14 text-xl font-black bg-white text-orange-600 hover:bg-orange-50 border-3 border-white shadow-xl"
+                className="flex-1 h-12 text-lg font-black bg-white text-orange-600 hover:bg-orange-50 border-3 border-white shadow-xl"
               >
                 +1
               </Button>
               <Button
                 onClick={() => addScore(2)}
-                className="flex-1 h-14 text-xl font-black bg-white text-orange-600 hover:bg-orange-50 border-3 border-white shadow-xl"
+                className="flex-1 h-12 text-lg font-black bg-white text-orange-600 hover:bg-orange-50 border-3 border-white shadow-xl"
               >
                 +2
               </Button>
               <Button
                 onClick={() => addScore(3)}
-                className="flex-1 h-14 text-xl font-black bg-white text-orange-600 hover:bg-orange-50 border-3 border-white shadow-xl"
+                className="flex-1 h-12 text-lg font-black bg-white text-orange-600 hover:bg-orange-50 border-3 border-white shadow-xl"
               >
                 +3
               </Button>
               <Button
+                onClick={addFoul}
+                className="flex-1 h-12 text-sm font-black bg-red-600 hover:bg-red-700 text-white border-2 border-white shadow-xl"
+              >
+                FOUL
+              </Button>
+              {playerStats[getPlayerStatKey(selectedPlayer.id)]?.fouls > 0 && (
+                <Button
+                  onClick={removeFoul}
+                  className="flex-1 h-12 text-xs font-black bg-white/20 hover:bg-white/30 text-white border-2 border-white shadow-xl"
+                >
+                  UNDO FL
+                </Button>
+              )}
+              <Button
                 onClick={undoLastScore}
                 disabled={scoreHistory.length === 0}
-                className="flex-1 h-14 text-base font-black bg-yellow-600 hover:bg-yellow-700 text-white border-3 border-white shadow-xl disabled:opacity-50"
+                className="flex-1 h-12 text-sm font-black bg-yellow-600 hover:bg-yellow-700 text-white border-3 border-white shadow-xl disabled:opacity-50"
               >
                 UNDO
               </Button>
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                onClick={addFoul}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-black border-2 border-white h-11 text-sm"
-              >
-                ADD FOUL
-              </Button>
-              {playerStats[`${selectedPlayer?.id}_${currentQuarter}`]?.fouls > 0 && ( // Check fouls in current quarter
-                <Button
-                  onClick={removeFoul}
-                  className="flex-1 bg-white/20 hover:bg-white/30 text-white border-2 border-white font-black h-11 text-sm"
-                >
-                  UNDO FOUL
-                </Button>
-              )}
             </div>
           </div>
         </div>
