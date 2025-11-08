@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -29,10 +28,10 @@ export default function LiveScoring() {
   const [homeTeamFouls, setHomeTeamFouls] = useState(0);
   const [awayTeamFouls, setAwayTeamFouls] = useState(0);
   const [playerStats, setPlayerStats] = useState({});
-  const [selectedPlayer, setSelectedPlayer] = useState(null); // This holds the raw player object
-  const [selectedTeam, setSelectedTeam] = useState(null); // 'home' or 'away'
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [selectedTeam, setSelectedTeam] = useState(null);
   const [showQuarterEnd, setShowQuarterEnd] = useState(false);
-  const [actionHistory, setActionHistory] = useState([]); // Replaced scoreHistory
+  const [actionHistory, setActionHistory] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -124,7 +123,6 @@ export default function LiveScoring() {
     return total;
   };
 
-  // New helper to get stats only for the current quarter
   const getCurrentQuarterPlayerStat = (playerId, statType) => {
     const key = `${playerId}_${currentQuarter}`;
     return playerStats[key]?.[statType] || 0;
@@ -139,51 +137,67 @@ export default function LiveScoring() {
     return totalFouls;
   };
 
-  // FIXED: Simplified updatePlayerStat to do ONE state update
-  // This function is now a lower-level helper that updates state and DB for a single stat
+  // FIXED: Use callback form to read from latest state
   const updatePlayerStat = async (playerId, teamId, statType, value) => {
     const key = getPlayerStatKey(playerId);
-    const existingStat = playerStats[key];
-
-    const newStatValue = (existingStat?.[statType] || 0) + value;
     
-    let currentStat = {
-      ...existingStat,
-      game_id: game.id,
-      player_id: playerId,
-      team_id: teamId,
-      quarter: currentQuarter,
-      [statType]: Math.max(0, newStatValue), // Ensure stat doesn't go below 0
-    };
+    return new Promise((resolve) => {
+      setPlayerStats(prev => {
+        const existingStat = prev[key];
+        const newStatValue = (existingStat?.[statType] || 0) + value;
+        
+        const updatedStat = {
+          ...existingStat,
+          game_id: game.id,
+          player_id: playerId,
+          team_id: teamId,
+          quarter: currentQuarter,
+          [statType]: Math.max(0, newStatValue),
+        };
 
-    let savedStatInDb;
-    if (existingStat?.id) {
-      savedStatInDb = await base44.entities.PlayerGameStats.update(existingStat.id, currentStat);
-    } else {
-      savedStatInDb = await base44.entities.PlayerGameStats.create(currentStat);
-      currentStat.id = savedStatInDb.id; // Assign the newly created ID to our currentStat object
-    }
-    
-    // Single state update with the final stat including DB id
-    setPlayerStats(prev => ({
-      ...prev,
-      [key]: currentStat,
-    }));
+        // Save to database asynchronously
+        (async () => {
+          try {
+            let savedStatInDb;
+            if (existingStat?.id) {
+              savedStatInDb = await base44.entities.PlayerGameStats.update(existingStat.id, updatedStat);
+            } else {
+              savedStatInDb = await base44.entities.PlayerGameStats.create(updatedStat);
+              updatedStat.id = savedStatInDb.id;
+            }
+            
+            const finalStat = { ...updatedStat, id: savedStatInDb.id || existingStat?.id };
+            
+            // Update state again with DB id if it was a new record
+            if (!existingStat?.id && savedStatInDb.id) {
+              setPlayerStats(prev => ({
+                ...prev,
+                [key]: finalStat,
+              }));
+            }
+            
+            resolve({
+              statObjectId: finalStat.id,
+              playerId: playerId,
+              teamId: teamId,
+              quarter: currentQuarter,
+              statType: statType,
+              value: value
+            });
+          } catch (error) {
+            console.error("Error saving player stat:", error);
+            resolve(null);
+          }
+        })();
 
-    // Return enough information to reverse this specific stat update
-    return { 
-      statObjectId: currentStat.id, // The ID of the PlayerGameStats entity
-      playerId: playerId, 
-      teamId: teamId, 
-      quarter: currentQuarter, 
-      statType: statType, 
-      value: value // The value that was ADDED/SUBTRACTED
-    };
+        return {
+          ...prev,
+          [key]: updatedStat,
+        };
+      });
+    });
   };
 
-  // --- New/Modified Action Handlers ---
-
-  // Replaces existing `addScore`
   const addPoints = async (points) => {
     if (!selectedPlayer || !selectedTeam) return;
 
@@ -203,10 +217,8 @@ export default function LiveScoring() {
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
     const statUpdatesForUndo = [];
 
-    // Update general points
     statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'points', points));
 
-    // Track specific shot types
     if (points === 3) {
       statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'three_pointers', 1));
       statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1));
@@ -227,28 +239,28 @@ export default function LiveScoring() {
       quarter: currentQuarter,
       oldHomeScore: oldHomeScore,
       oldAwayScore: oldAwayScore,
-      statChanges: statUpdatesForUndo, // Store details to undo specific player stats
+      statChanges: statUpdatesForUndo.filter(s => s !== null),
     }]);
   };
 
-  // Replaces existing `updateStat` for other player stats (rebounds, assists, etc.)
   const addPlayerStat = async (statType, value) => {
     if (!selectedPlayer || !selectedTeam) return;
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
     const statUpdateForUndo = await updatePlayerStat(selectedPlayer.id, teamId, statType, value);
     
-    setActionHistory(prev => [...prev, {
-      type: statType, // e.g., 'rebounds', 'assists'
-      playerId: selectedPlayer.id,
-      teamId: teamId,
-      quarter: currentQuarter,
-      value: value, // The value added (should be 1 for these buttons)
-      statChanges: [statUpdateForUndo], // Store specific details for reversal
-    }]);
+    if (statUpdateForUndo) {
+      setActionHistory(prev => [...prev, {
+        type: statType,
+        playerId: selectedPlayer.id,
+        teamId: teamId,
+        quarter: currentQuarter,
+        value: value,
+        statChanges: [statUpdateForUndo],
+      }]);
+    }
   };
 
-  // Replaces existing `addFoul` and `removeFoul` related logic. `removeFoul` is now part of `handleUndo`
   const handleFoul = async () => {
     if (!selectedPlayer || !selectedTeam) return;
 
@@ -266,27 +278,28 @@ export default function LiveScoring() {
       await base44.entities.Game.update(game.id, { away_team_fouls: newTeamFouls });
     }
 
-    setActionHistory(prev => [...prev, {
-      type: 'foul',
-      playerId: selectedPlayer.id,
-      teamId: teamId,
-      quarter: currentQuarter,
-      team: selectedTeam, // 'home' or 'away'
-      oldTeamFouls: oldTeamFouls, // To revert team fouls
-      statChanges: [statUpdateForUndo],
-    }]);
+    if (statUpdateForUndo) {
+      setActionHistory(prev => [...prev, {
+        type: 'foul',
+        playerId: selectedPlayer.id,
+        teamId: teamId,
+        quarter: currentQuarter,
+        team: selectedTeam,
+        oldTeamFouls: oldTeamFouls,
+        statChanges: [statUpdateForUndo],
+      }]);
+    }
 
-    const totalFouls = getTotalPlayerFouls(selectedPlayer.id) + 1; // +1 because we just added one
+    const totalFouls = getTotalPlayerFouls(selectedPlayer.id) + 1;
     if (totalFouls >= game.player_foul_limit) {
       alert(`⚠️ Player has reached foul limit (${game.player_foul_limit} fouls) and is disqualified!`);
-      setSelectedPlayer(null); // Deselect player if fouled out
+      setSelectedPlayer(null);
       setSelectedTeam(null);
     } else if (totalFouls === game.player_foul_limit - 1) {
       alert(`⚠️ Warning: Player has ${totalFouls} fouls! One more foul and they will be disqualified.`);
     }
   };
 
-  // Modified `useTimeout` to record in history
   const useTimeout = async (team) => {
     const oldHomeTimeouts = homeTimeouts;
     const oldAwayTimeouts = awayTimeouts;
@@ -314,15 +327,13 @@ export default function LiveScoring() {
     }
   };
 
-  // Replaces existing `undoLastScore`
   const handleUndo = async () => {
     if (actionHistory.length === 0) return;
 
     const lastAction = actionHistory[actionHistory.length - 1];
-    setActionHistory(prev => prev.slice(0, -1)); // Remove from history
+    setActionHistory(prev => prev.slice(0, -1));
 
     if (lastAction.type === 'score') {
-      // Revert game score
       setHomeScore(lastAction.oldHomeScore);
       setAwayScore(lastAction.oldAwayScore);
       await base44.entities.Game.update(game.id, {
@@ -330,56 +341,73 @@ export default function LiveScoring() {
         away_score: lastAction.oldAwayScore,
       });
 
-      // Revert player stats
       for (const actionChange of lastAction.statChanges) {
         const { playerId, quarter, statType, value, statObjectId } = actionChange;
         const key = `${playerId}_${quarter}`;
-        const existingStat = playerStats[key];
+        
+        setPlayerStats(prev => {
+          const existingStat = prev[key];
+          if (existingStat && statObjectId) {
+            const newStatValue = Math.max(0, (existingStat?.[statType] || 0) - value);
+            const updatedStat = { ...existingStat, [statType]: newStatValue };
+            
+            base44.entities.PlayerGameStats.update(statObjectId, updatedStat);
+            
+            return {
+              ...prev,
+              [key]: updatedStat,
+            };
+          }
+          return prev;
+        });
+      }
+    } else if (['rebounds', 'assists', 'steals', 'blocks'].includes(lastAction.type)) {
+      const actionChange = lastAction.statChanges[0];
+      const { playerId, quarter, statType, value, statObjectId } = actionChange;
+      const key = `${playerId}_${quarter}`;
+      
+      setPlayerStats(prev => {
+        const existingStat = prev[key];
         if (existingStat && statObjectId) {
           const newStatValue = Math.max(0, (existingStat?.[statType] || 0) - value);
           const updatedStat = { ...existingStat, [statType]: newStatValue };
-          setPlayerStats(prev => ({
+          
+          base44.entities.PlayerGameStats.update(statObjectId, updatedStat);
+          
+          return {
             ...prev,
             [key]: updatedStat,
-          }));
-          await base44.entities.PlayerGameStats.update(statObjectId, updatedStat);
+          };
         }
-      }
-    } else if (['rebounds', 'assists', 'steals', 'blocks'].includes(lastAction.type)) {
-      const actionChange = lastAction.statChanges[0]; // These actions have only one stat change
-      const { playerId, quarter, statType, value, statObjectId } = actionChange;
-      const key = `${playerId}_${quarter}`;
-      const existingStat = playerStats[key];
-      if (existingStat && statObjectId) {
-          const newStatValue = Math.max(0, (existingStat?.[statType] || 0) - value);
-          const updatedStat = { ...existingStat, [statType]: newStatValue };
-          setPlayerStats(prev => ({
-            ...prev,
-            [key]: updatedStat,
-          }));
-          await base44.entities.PlayerGameStats.update(statObjectId, updatedStat);
-      }
+        return prev;
+      });
     } else if (lastAction.type === 'foul') {
       const actionChange = lastAction.statChanges[0];
       const { playerId, quarter, statType, value, statObjectId } = actionChange;
       const key = `${playerId}_${quarter}`;
-      const existingStat = playerStats[key];
-      if (existingStat && statObjectId) {
+      
+      setPlayerStats(prev => {
+        const existingStat = prev[key];
+        if (existingStat && statObjectId) {
           const newStatValue = Math.max(0, (existingStat?.[statType] || 0) - value);
           const updatedStat = { ...existingStat, [statType]: newStatValue };
-          setPlayerStats(prev => ({
+          
+          base44.entities.PlayerGameStats.update(statObjectId, updatedStat);
+          
+          return {
             ...prev,
             [key]: updatedStat,
-          }));
-          await base44.entities.PlayerGameStats.update(statObjectId, updatedStat);
-      }
-      // Revert team fouls
+          };
+        }
+        return prev;
+      });
+      
       if (lastAction.team === 'home') {
-          setHomeTeamFouls(lastAction.oldTeamFouls);
-          await base44.entities.Game.update(game.id, { home_team_fouls: lastAction.oldTeamFouls });
+        setHomeTeamFouls(lastAction.oldTeamFouls);
+        await base44.entities.Game.update(game.id, { home_team_fouls: lastAction.oldTeamFouls });
       } else {
-          setAwayTeamFouls(lastAction.oldTeamFouls);
-          await base44.entities.Game.update(game.id, { away_team_fouls: lastAction.oldTeamFouls });
+        setAwayTeamFouls(lastAction.oldTeamFouls);
+        await base44.entities.Game.update(game.id, { away_team_fouls: lastAction.oldTeamFouls });
       }
     } else if (lastAction.type === 'timeout') {
       if (lastAction.team === 'home') {
@@ -405,19 +433,19 @@ export default function LiveScoring() {
     setAwayTeamFouls(0);
 
     const nextQuarter = currentQuarter + 1;
-    const newOvertimeCount = nextQuarter > 4 ? (nextQuarter - 4) : 0; // Calculate overtime count dynamically
+    const newOvertimeCount = nextQuarter > 4 ? (nextQuarter - 4) : 0;
 
     await base44.entities.Game.update(game.id, {
       quarter_scores: newQuarterScores,
-      current_quarter: nextQuarter, // Always increment current_quarter
+      current_quarter: nextQuarter,
       home_team_fouls: 0,
       away_team_fouls: 0,
       overtime_count: newOvertimeCount,
     });
 
-    setCurrentQuarter(nextQuarter); // Update local state
+    setCurrentQuarter(nextQuarter);
     setShowQuarterEnd(false);
-    setActionHistory([]); // Reset action history for new quarter
+    setActionHistory([]);
   };
 
   const endGame = async () => {
@@ -433,7 +461,7 @@ export default function LiveScoring() {
     });
 
     if (homeScore > awayScore) {
-      const allTeams = await base44.entities.Team.list(); // Fetch all teams once
+      const allTeams = await base44.entities.Team.list();
       const home = allTeams.find(t => t.id === game.home_team_id);
       await base44.entities.Team.update(game.home_team_id, {
         wins: (home.wins || 0) + 1
@@ -444,7 +472,7 @@ export default function LiveScoring() {
         losses: (away.losses || 0) + 1
       });
     } else {
-      const allTeams = await base44.entities.Team.list(); // Fetch all teams once
+      const allTeams = await base44.entities.Team.list();
       const home = allTeams.find(t => t.id === game.home_team_id);
       await base44.entities.Team.update(game.home_team_id, {
         losses: (home.losses || 0) + 1
@@ -530,7 +558,6 @@ export default function LiveScoring() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900">
-      {/* STICKY HEADER - Scoreboard */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-gray-900 via-orange-900 to-gray-900 border-b-4 border-orange-500 shadow-2xl">
         <div className="max-w-7xl mx-auto p-4">
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -608,14 +635,14 @@ export default function LiveScoring() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <Avatar className="w-14 h-14 border-4 border-blue-200 dark:border-blue-800 shadow-lg">
-                  <AvatarImage src={selectedPlayer.photo_url} /> {/* Corrected from selectedPlayer.player?.photo_url */}
+                  <AvatarImage src={selectedPlayer.photo_url} />
                   <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
-                    {selectedPlayer.jersey_number} {/* Corrected from selectedPlayer.player?.jersey_number */}
+                    {selectedPlayer.jersey_number}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <h3 className="text-xl font-black text-gray-900 dark:text-white">
-                    #{selectedPlayer.jersey_number} {selectedPlayer.first_name} {selectedPlayer.last_name} {/* Corrected */}
+                    #{selectedPlayer.jersey_number} {selectedPlayer.first_name} {selectedPlayer.last_name}
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">
                     {selectedTeam === 'home' ? homeTeam?.name : awayTeam?.name}
@@ -682,7 +709,7 @@ export default function LiveScoring() {
                 Block
               </Button>
               <Button
-                onClick={handleFoul} // Corrected: no need to pass selectedPlayer.id as it's in scope
+                onClick={handleFoul}
                 className="h-16 bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold shadow-md"
               >
                 <AlertTriangle className="w-5 h-5 mr-2" />
