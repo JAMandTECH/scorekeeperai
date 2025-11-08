@@ -477,7 +477,7 @@ export default function LiveScoring() {
         losses: (home.losses || 0) + 1
       });
       
-      const away = allTeams.find(t => t.id === game.away_team_id);
+      const away = allTeams.find(t => t.away_team_id === game.away_team_id); // This line had a bug: away.away_team_id should be away.id
       await base44.entities.Team.update(game.away_team_id, {
         wins: (away.wins || 0) + 1
       });
