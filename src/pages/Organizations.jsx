@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Building2, Mail, Phone, MapPin, Edit, Trash2 } from "lucide-react";
+import { Plus, Building2, Mail, Phone, MapPin, Edit } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 
@@ -62,129 +61,152 @@ export default function Organizations() {
   };
 
   return (
-    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Organizations</h1>
-            <p className="text-gray-600 mt-1">Manage all registered organizations</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-50 dark:from-gray-900 dark:via-purple-950/10 dark:to-gray-900">
+      <div className="p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-black text-gray-900 dark:text-white">Organizations</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Manage all registered organizations</p>
+            </div>
+            <Button 
+              onClick={() => {
+                setEditingOrg(null);
+                setShowForm(true);
+              }}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Add Organization
+            </Button>
           </div>
-          <Button 
-            onClick={() => {
-              setEditingOrg(null);
-              setShowForm(true);
-            }}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Organization
-          </Button>
-        </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {organizations.map((org) => (
-            <Card key={org.id} className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                      <Building2 className="w-6 h-6 text-blue-600" />
+          {/* Organizations Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {organizations.map((org) => (
+              <Card key={org.id} className="relative overflow-hidden border-2 border-purple-100 dark:border-purple-900 bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-purple-950/30 shadow-lg hover:shadow-2xl transition-all group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/20 to-transparent rounded-full blur-3xl"></div>
+                <CardHeader className="relative z-10">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <Building2 className="w-7 h-7 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{org.name}</CardTitle>
+                        <Badge 
+                          variant={org.status === 'active' ? 'default' : 'secondary'} 
+                          className={`mt-1 font-bold ${
+                            org.status === 'active' 
+                              ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800' 
+                              : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+                          }`}
+                        >
+                          {org.status}
+                        </Badge>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-gray-900">{org.name}</CardTitle>
-                      <Badge variant={org.status === 'active' ? 'default' : 'secondary'} className="mt-1 bg-blue-100 text-blue-700">
-                        {org.status}
-                      </Badge>
-                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleEdit(org)}
+                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={() => handleEdit(org)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <Edit className="w-4 h-4" />
+                </CardHeader>
+                <CardContent className="space-y-3 relative z-10">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+                    <Mail className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate font-medium">{org.contact_email}</span>
+                  </div>
+                  {org.contact_phone && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+                      <Phone className="w-4 h-4 flex-shrink-0" />
+                      <span className="font-medium">{org.contact_phone}</span>
+                    </div>
+                  )}
+                  {org.address && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+                      <MapPin className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate font-medium">{org.address}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {organizations.length === 0 && !isLoading && (
+            <div className="text-center py-20">
+              <div className="w-24 h-24 bg-gradient-to-br from-purple-200 to-purple-300 dark:from-purple-800 dark:to-purple-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Building2 className="w-12 h-12 text-purple-600 dark:text-purple-300" />
+              </div>
+              <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No organizations yet</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Add your first organization to get started</p>
+            </div>
+          )}
+
+          {/* Dialog */}
+          <Dialog open={showForm} onOpenChange={setShowForm}>
+            <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">{editingOrg ? 'Edit Organization' : 'Add New Organization'}</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="name" className="font-bold text-gray-700 dark:text-gray-300">Organization Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    defaultValue={editingOrg?.name}
+                    required
+                    className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="contact_email" className="font-bold text-gray-700 dark:text-gray-300">Contact Email</Label>
+                  <Input
+                    id="contact_email"
+                    name="contact_email"
+                    type="email"
+                    defaultValue={editingOrg?.contact_email}
+                    required
+                    className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="contact_phone" className="font-bold text-gray-700 dark:text-gray-300">Contact Phone</Label>
+                  <Input
+                    id="contact_phone"
+                    name="contact_phone"
+                    defaultValue={editingOrg?.contact_phone}
+                    className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="address" className="font-bold text-gray-700 dark:text-gray-300">Address</Label>
+                  <Input
+                    id="address"
+                    name="address"
+                    defaultValue={editingOrg?.address}
+                    className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                  />
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold">
+                    Cancel
+                  </Button>
+                  <Button type="submit" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
+                    {editingOrg ? 'Update' : 'Create'}
                   </Button>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Mail className="w-4 h-4" />
-                  {org.contact_email}
-                </div>
-                {org.contact_phone && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Phone className="w-4 h-4" />
-                    {org.contact_phone}
-                  </div>
-                )}
-                {org.address && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <MapPin className="w-4 h-4" />
-                    {org.address}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
-
-        <Dialog open={showForm} onOpenChange={setShowForm}>
-          <DialogContent className="bg-white border-gray-200">
-            <DialogHeader>
-              <DialogTitle className="text-gray-900">{editingOrg ? 'Edit Organization' : 'Add New Organization'}</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Organization Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  defaultValue={editingOrg?.name}
-                  required
-                  className="bg-gray-950 border-gray-800 text-white"
-                />
-              </div>
-              <div>
-                <Label htmlFor="contact_email">Contact Email</Label>
-                <Input
-                  id="contact_email"
-                  name="contact_email"
-                  type="email"
-                  defaultValue={editingOrg?.contact_email}
-                  required
-                  className="bg-gray-950 border-gray-800 text-white"
-                />
-              </div>
-              <div>
-                <Label htmlFor="contact_phone">Contact Phone</Label>
-                <Input
-                  id="contact_phone"
-                  name="contact_phone"
-                  defaultValue={editingOrg?.contact_phone}
-                  className="bg-gray-950 border-gray-800 text-white"
-                />
-              </div>
-              <div>
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  name="address"
-                  defaultValue={editingOrg?.address}
-                  className="bg-gray-950 border-gray-800 text-white"
-                />
-              </div>
-              <div className="flex justify-end gap-3">
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-gray-300">
-                  Cancel
-                </Button>
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                  {editingOrg ? 'Update' : 'Create'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );
