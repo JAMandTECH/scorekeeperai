@@ -359,7 +359,17 @@ export default function Home() {
                           {divisionData.teams.map((team, i) => (
                             <tr key={team.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors">
                               <td className="py-4 px-4 font-black text-xl text-gray-400 dark:text-gray-500">{i + 1}</td>
-                              <td className="py-4 px-4 font-bold text-gray-900 dark:text-white">{team.name}</td>
+                              <td className="py-4 px-4">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+                                    <AvatarImage src={team.logo_url} />
+                                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white text-xs font-bold">
+                                      {team.name?.substring(0, 2).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="font-bold text-gray-900 dark:text-white">{team.name}</span>
+                                </div>
+                              </td>
                               <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold text-lg">{team.wins}</td>
                               <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-bold text-lg">{team.losses}</td>
                               <td className="py-4 px-4 text-center font-bold text-gray-900 dark:text-white">{(team.winPct * 100).toFixed(0)}%</td>
@@ -733,7 +743,17 @@ export default function Home() {
                           {divisionData.teams.map((team, i) => (
                             <tr key={team.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-orange-50/50 dark:hover:bg-blue-950/20 transition-colors">
                               <td className="py-4 px-4 font-black text-xl text-gray-400 dark:text-gray-500">{i + 1}</td>
-                              <td className="py-4 px-4 font-bold text-gray-900 dark:text-white">{team.name}</td>
+                              <td className="py-4 px-4">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+                                    <AvatarImage src={team.logo_url} />
+                                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold">
+                                      {team.name?.substring(0, 2).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="font-bold text-gray-900 dark:text-white">{team.name}</span>
+                                </div>
+                              </td>
                               <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold text-lg">{team.wins}</td>
                               <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-bold text-lg">{team.losses}</td>
                               <td className="py-4 px-4 text-center font-bold text-gray-900 dark:text-white">{(team.winPct * 100).toFixed(0)}%</td>
