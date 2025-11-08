@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Minus, CheckCircle, PlayCircle, ChevronRight, Clock, Target, Shield, Zap, Trophy, AlertTriangle, RotateCcw, User } from "lucide-react";
+import { Plus, Minus, CheckCircle, PlayCircle, ChevronRight, Clock, Target, Shield, Zap, Trophy, AlertTriangle, RotateCcw, User, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -30,6 +29,7 @@ export default function LiveScoringVolleyball() {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [showSetEnd, setShowSetEnd] = useState(false);
   const [actionHistory, setActionHistory] = useState([]);
+  const [showSetStats, setShowSetStats] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -117,6 +117,11 @@ export default function LiveScoringVolleyball() {
       total += playerStats[key]?.[statType] || 0;
     }
     return total;
+  };
+
+  const getCurrentSetPlayerStat = (playerId, statType) => {
+    const key = `${playerId}_${currentSet}`;
+    return playerStats[key]?.[statType] || 0;
   };
 
   const updatePlayerStat = async (playerId, teamId, statType, value) => {
@@ -388,6 +393,7 @@ export default function LiveScoringVolleyball() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900">
+      {/* Main Scoreboard - Sticky at top WITH TEAM LOGOS */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 border-b-4 border-blue-500 shadow-2xl">
         <div className="max-w-7xl mx-auto p-4">
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -404,18 +410,28 @@ export default function LiveScoringVolleyball() {
           </div>
 
           <div className="grid grid-cols-3 gap-4 items-center mb-4">
+            {/* HOME TEAM WITH LOGO */}
             <div className="text-center">
               <div className="text-blue-400 text-sm font-black mb-2">HOME</div>
-              <div className="text-white text-2xl font-black mb-1">{homeTeam.name}</div>
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <Avatar className="w-16 h-16 border-4 border-blue-400 shadow-2xl">
+                  <AvatarImage src={homeTeam.logo_url} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
+                    {homeTeam.name?.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-white text-2xl font-black text-left">{homeTeam.name}</div>
+              </div>
               <div className="text-blue-500 text-7xl font-black mb-2">{homeScore}</div>
               <div className="text-white text-xs font-bold">
                 Sets Won: {setScores.filter(s => s.home > s.away).length}
               </div>
             </div>
 
+            {/* SET SCORES WITH BUTTONS BELOW */}
             <div className="text-center">
               <div className="text-white text-2xl font-black mb-3">{setLabel}</div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
                 <div className="flex justify-center gap-3 flex-wrap">
                   {[1, 2, 3, 4, 5].map(s => {
                     const setScore = setScores.find(ss => ss.quarter === s);
@@ -427,11 +443,52 @@ export default function LiveScoringVolleyball() {
                   })}
                 </div>
               </div>
+
+              {/* END SET AND CANCEL BUTTONS */}
+              <div className="flex gap-2 justify-center">
+                {currentSet <= 5 && (
+                  <Button
+                    onClick={() => setShowSetEnd(true)}
+                    size="sm"
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-black text-xs px-4 py-2"
+                  >
+                    END {setLabel}
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                )}
+                {currentSet >= 3 && (
+                  <Button
+                    onClick={endGame}
+                    size="sm"
+                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-black text-xs px-4 py-2"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    END GAME
+                  </Button>
+                )}
+                <Button
+                  onClick={() => navigate(createPageUrl("Games"))}
+                  variant="outline"
+                  size="sm"
+                  className="border-2 border-gray-400 text-white hover:bg-gray-700 font-black text-xs px-4 py-2"
+                >
+                  CANCEL
+                </Button>
+              </div>
             </div>
 
+            {/* AWAY TEAM WITH LOGO */}
             <div className="text-center">
               <div className="text-cyan-400 text-sm font-black mb-2">AWAY</div>
-              <div className="text-white text-2xl font-black mb-1">{awayTeam.name}</div>
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <div className="text-white text-2xl font-black text-right">{awayTeam.name}</div>
+                <Avatar className="w-16 h-16 border-4 border-cyan-400 shadow-2xl">
+                  <AvatarImage src={awayTeam.logo_url} />
+                  <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-cyan-600 text-white font-black text-lg">
+                    {awayTeam.name?.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
               <div className="text-cyan-500 text-7xl font-black mb-2">{awayScore}</div>
               <div className="text-white text-xs font-bold">
                 Sets Won: {setScores.filter(s => s.away > s.home).length}
@@ -441,104 +498,135 @@ export default function LiveScoringVolleyball() {
         </div>
       </div>
 
+      {/* Control Panel - STICKY */}
       {selectedPlayer ? (
-        <Card className="sticky top-4 z-30 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl mx-4">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Avatar className="w-14 h-14 border-4 border-blue-200 dark:border-blue-800 shadow-lg">
-                  <AvatarImage src={selectedPlayer?.photo_url} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
-                    {selectedPlayer?.jersey_number}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="text-xl font-black text-gray-900 dark:text-white">
-                    #{selectedPlayer?.jersey_number} {selectedPlayer?.first_name} {selectedPlayer?.last_name}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">
-                    {selectedTeam === 'home' ? homeTeam?.name : awayTeam?.name}
-                  </p>
+        <div className="sticky z-40 bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900" style={{ top: '300px' }}>
+          <div className="mx-4 my-4">
+            <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="w-14 h-14 border-4 border-blue-200 dark:border-blue-800 shadow-lg">
+                      <AvatarImage src={selectedPlayer?.photo_url} />
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
+                        {selectedPlayer?.jersey_number}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="text-xl font-black text-gray-900 dark:text-white">
+                        #{selectedPlayer?.jersey_number} {selectedPlayer?.first_name} {selectedPlayer?.last_name}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">
+                        {selectedTeam === 'home' ? homeTeam?.name : awayTeam?.name}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setSelectedPlayer(null)}
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    ✕
+                  </Button>
                 </div>
-              </div>
-              <Button
-                variant="ghost"
-                onClick={() => setSelectedPlayer(null)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                ✕
-              </Button>
-            </div>
 
-            <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={async () => {
-                  await handleStatUpdate('field_goals_made', 1);
-                  await handleScorePoint('attack', selectedPlayer.id);
-                }}
-                className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
-              >
-                <Target className="w-4 h-4 mr-1" />
-                ATTACK
-              </Button>
-              <Button
-                onClick={async () => {
-                  await handleStatUpdate('blocks', 1);
-                  await handleScorePoint('block', selectedPlayer.id);
-                }}
-                className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:scale-95 text-white font-black text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
-              >
-                <Shield className="w-4 h-4 mr-1" />
-                BLOCK
-              </Button>
-              <Button
-                onClick={async () => {
-                  await handleStatUpdate('three_pointers', 1);
-                  await handleScorePoint('ace', selectedPlayer.id);
-                }}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
-              >
-                <Zap className="w-4 h-4 mr-1" />
-                ACE
-              </Button>
-              <Button
-                onClick={() => handleScorePoint('rally', selectedPlayer.id)}
-                className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
-              >
-                <Trophy className="w-4 h-4 mr-1" />
-                RALLY
-              </Button>
-              <Button
-                onClick={handleUndo}
-                disabled={actionHistory.length === 0}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <RotateCcw className="w-4 h-4 mr-1" />
-                UNDO
-              </Button>
-            </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    onClick={async () => {
+                      await handleStatUpdate('field_goals_made', 1);
+                      await handleScorePoint('attack', selectedPlayer.id);
+                    }}
+                    className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                  >
+                    <Target className="w-4 h-4 mr-1" />
+                    ATTACK
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      await handleStatUpdate('blocks', 1);
+                      await handleScorePoint('block', selectedPlayer.id);
+                    }}
+                    className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:scale-95 text-white font-black text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                  >
+                    <Shield className="w-4 h-4 mr-1" />
+                    BLOCK
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      await handleStatUpdate('three_pointers', 1);
+                      await handleScorePoint('ace', selectedPlayer.id);
+                    }}
+                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                  >
+                    <Zap className="w-4 h-4 mr-1" />
+                    ACE
+                  </Button>
+                  <Button
+                    onClick={() => handleScorePoint('rally', selectedPlayer.id)}
+                    className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                  >
+                    <Trophy className="w-4 h-4 mr-1" />
+                    RALLY
+                  </Button>
+                  <Button
+                    onClick={handleUndo}
+                    disabled={actionHistory.length === 0}
+                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-1" />
+                    UNDO
+                  </Button>
+                </div>
 
-            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
-              <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Set Stats:</p>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{currentSetStats.field_goals_made || 0}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">ATK</div>
+                {/* SET STATS WITH TOGGLE */}
+                <div className="mt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Set Stats:</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowSetStats(!showSetStats)}
+                      className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                    >
+                      {showSetStats ? (
+                        <>
+                          <EyeOff className="w-4 h-4 mr-1" />
+                          Hide
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="w-4 h-4 mr-1" />
+                          Show
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {showSetStats && (
+                    <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div>
+                          <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{currentSetStats.field_goals_made || 0}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">ATK</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{currentSetStats.blocks || 0}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">BLK</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-black text-cyan-600 dark:text-cyan-400">{currentSetStats.three_pointers || 0}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">ACE</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{currentSetStats.blocks || 0}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">BLK</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-cyan-600 dark:text-cyan-400">{currentSetStats.three_pointers || 0}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">ACE</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       ) : (
-        <div className="sticky top-4 z-30 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-gray-700 rounded-xl p-8 text-center shadow-lg mx-4">
+        <div className="mx-4 mt-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-gray-700 rounded-xl p-8 text-center shadow-lg">
           <User className="w-16 h-16 text-blue-400 dark:text-blue-500 mx-auto mb-4" />
           <p className="text-xl font-black text-gray-900 dark:text-white mb-2">Select a Player</p>
           <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
@@ -547,14 +635,17 @@ export default function LiveScoringVolleyball() {
         </div>
       )}
 
+      {/* Players Section - USING FLEXBOX FOR TRULY FROZEN HEADERS */}
       <div className="max-w-7xl mx-auto p-4 pb-24">
         <div className="grid lg:grid-cols-2 gap-6">
-          <Card className="bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm overflow-hidden">
-            <CardHeader className="sticky top-0 z-10 border-b-4 border-blue-500 bg-blue-900/95 backdrop-blur-sm">
+          {/* Home Team - FLEXBOX STRUCTURE */}
+          <div className="flex flex-col h-[700px] bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm rounded-xl">
+            {/* FROZEN HEADER */}
+            <div className="flex-shrink-0 bg-blue-900/95 backdrop-blur-sm border-b-4 border-blue-500 p-4 rounded-t-xl">
               <div className="flex items-center justify-between gap-3">
-                <CardTitle className="text-2xl font-black text-white">
+                <h2 className="text-2xl font-black text-white">
                   {homeTeam.name} - HOME
-                </CardTitle>
+                </h2>
                 <Button
                   onClick={() => useTimeout('home')}
                   disabled={homeTimeouts === 0}
@@ -564,20 +655,23 @@ export default function LiveScoringVolleyball() {
                   TO ({homeTimeouts})
                 </Button>
               </div>
-            </CardHeader>
-            <CardContent className="p-4 max-h-[600px] overflow-y-auto">
+            </div>
+            {/* SCROLLABLE PLAYERS */}
+            <div className="flex-1 overflow-y-auto p-4">
               {homePlayers.map(player => (
                 <PlayerRow key={player.id} player={player} team="home" teamId={game.home_team_id} />
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card className="bg-gradient-to-br from-cyan-900/40 to-cyan-950/40 border-4 border-cyan-500 backdrop-blur-sm overflow-hidden">
-            <CardHeader className="sticky top-0 z-10 border-b-4 border-cyan-500 bg-cyan-900/95 backdrop-blur-sm">
+          {/* Away Team - FLEXBOX STRUCTURE */}
+          <div className="flex flex-col h-[700px] bg-gradient-to-br from-cyan-900/40 to-cyan-950/40 border-4 border-cyan-500 backdrop-blur-sm rounded-xl">
+            {/* FROZEN HEADER */}
+            <div className="flex-shrink-0 bg-cyan-900/95 backdrop-blur-sm border-b-4 border-cyan-500 p-4 rounded-t-xl">
               <div className="flex items-center justify-between gap-3">
-                <CardTitle className="text-2xl font-black text-white">
+                <h2 className="text-2xl font-black text-white">
                   {awayTeam.name} - AWAY
-                </CardTitle>
+                </h2>
                 <Button
                   onClick={() => useTimeout('away')}
                   disabled={awayTimeouts === 0}
@@ -587,48 +681,18 @@ export default function LiveScoringVolleyball() {
                   TO ({awayTimeouts})
                 </Button>
               </div>
-            </CardHeader>
-            <CardContent className="p-4 max-h-[600px] overflow-y-auto">
+            </div>
+            {/* SCROLLABLE PLAYERS */}
+            <div className="flex-1 overflow-y-auto p-4">
               {awayPlayers.map(player => (
                 <PlayerRow key={player.id} player={player} team="away" teamId={game.away_team_id} />
               ))}
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card className="mt-6 bg-gray-900 border-4 border-gray-700">
-          <CardContent className="p-6">
-            <div className="flex flex-wrap gap-4 justify-center">
-              {currentSet <= 5 && (
-                <Button
-                  onClick={() => setShowSetEnd(true)}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-black text-lg px-8 py-6"
-                >
-                  END {setLabel}
-                  <ChevronRight className="w-5 h-5 ml-2" />
-                </Button>
-              )}
-              {currentSet >= 3 && (
-                <Button
-                  onClick={endGame}
-                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-black text-lg px-8 py-6"
-                >
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  END GAME
-                </Button>
-              )}
-              <Button
-                onClick={() => navigate(createPageUrl("Games"))}
-                variant="outline"
-                className="border-2 border-gray-600 text-white hover:bg-gray-800 font-black text-lg px-8 py-6"
-              >
-                CANCEL
-              </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
+      {/* End Set Dialog */}
       <Dialog open={showSetEnd} onOpenChange={setShowSetEnd}>
         <DialogContent className="bg-gray-900 border-4 border-blue-500 max-w-md">
           <DialogHeader>
