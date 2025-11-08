@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, Building2 } from "lucide-react";
+import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, Building2, Trophy, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -289,55 +289,140 @@ export default function Home() {
         {/* Dark Mode Toggle - Top Right */}
         <button
           onClick={toggleDarkMode}
-          className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-all"
+          className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-all z-50"
         >
           {darkMode ? <Sun className="w-6 h-6 text-white" /> : <Moon className="w-6 h-6 text-white" />}
         </button>
 
         <div className="max-w-7xl mx-auto text-center relative z-10">
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-2xl transform rotate-6 hover:rotate-0 transition-transform duration-300">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
-              </svg>
-            </div>
-          </div>
-          
-          <h1 className="text-6xl md:text-7xl font-black mb-6 tracking-tight">
-            ALAB <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">SPORTS</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-blue-100 mb-3 max-w-3xl mx-auto font-medium">
-            Professional Basketball & Volleyball League Management
-          </p>
-          <p className="text-blue-200 mb-10 max-w-2xl mx-auto">
-            Real-time scoring • Live statistics • Tournament management
-          </p>
-          
-          {!isAuthenticated ? (
-            <div className="flex gap-4 justify-center flex-wrap">
-              <Button 
-                onClick={() => base44.auth.redirectToLogin(createPageUrl("Dashboard"))}
-                className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all"
-              >
-                Get Started
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Link to={createPageUrl("RequestAdminAccess")}>
+          {/* Organization-specific Hero */}
+          {organization ? (
+            <div className="space-y-8">
+              {/* Organization Logo - Large & Prominent */}
+              <div className="flex justify-center">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-600 rounded-3xl blur-3xl opacity-30 animate-pulse"></div>
+                  <Avatar className="relative w-40 h-40 border-8 border-white/20 shadow-2xl backdrop-blur-sm">
+                    <AvatarImage src={organization.logo_url} className="object-cover" />
+                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-6xl">
+                      {organization.name?.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+              </div>
+
+              {/* Organization Name */}
+              <div>
+                <Badge className="mb-4 bg-orange-500/20 text-orange-300 border border-orange-400/30 text-sm font-bold px-6 py-2 backdrop-blur-sm">
+                  YOUR ORGANIZATION
+                </Badge>
+                <h1 className="text-6xl md:text-7xl font-black mb-4 tracking-tight">
+                  {organization.name}
+                </h1>
+                <p className="text-xl md:text-2xl text-blue-100 mb-6 max-w-3xl mx-auto font-medium">
+                  Sports League Management Dashboard
+                </p>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                  <div className="text-4xl font-black text-white">{teams.length}</div>
+                  <div className="text-sm text-blue-200 font-semibold">Teams</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                  <div className="text-4xl font-black text-white">{players.length}</div>
+                  <div className="text-sm text-blue-200 font-semibold">Players</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                  <div className="text-4xl font-black text-white">{games.length}</div>
+                  <div className="text-sm text-blue-200 font-semibold">Games</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                  <div className="text-4xl font-black text-white">{games.filter(g => g.status === 'completed').length}</div>
+                  <div className="text-sm text-blue-200 font-semibold">Completed</div>
+                </div>
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="flex gap-4 justify-center flex-wrap">
+                <Link to={createPageUrl("Dashboard")}>
+                  <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all">
+                    Go to Dashboard
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
                 <Button 
+                  onClick={() => setViewMode(viewMode === 'my-org' ? 'all' : 'my-org')}
                   variant="outline"
                   className="border-2 border-white text-white hover:bg-white hover:text-blue-900 text-lg px-10 py-7 font-bold backdrop-blur-sm"
                 >
-                  Request Admin Access
+                  {viewMode === 'my-org' ? (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                        <path d="M2 12h20"/>
+                      </svg>
+                      View All Leagues
+                    </>
+                  ) : (
+                    <>
+                      <Building2 className="w-5 h-5 mr-2" />
+                      View My Organization
+                    </>
+                  )}
                 </Button>
-              </Link>
+              </div>
             </div>
           ) : (
-            <Link to={createPageUrl("Dashboard")}>
-              <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all">
-                Go to Dashboard
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
+            /* Default Hero for non-organization users */
+            <>
+              <div className="flex items-center justify-center gap-4 mb-8">
+                <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-2xl transform rotate-6 hover:rotate-0 transition-transform duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                  </svg>
+                </div>
+              </div>
+              
+              <h1 className="text-6xl md:text-7xl font-black mb-6 tracking-tight">
+                ALAB <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">SPORTS</span>
+              </h1>
+              <p className="text-xl md:text-2xl text-blue-100 mb-3 max-w-3xl mx-auto font-medium">
+                Professional Basketball & Volleyball League Management
+              </p>
+              <p className="text-blue-200 mb-10 max-w-2xl mx-auto">
+                Real-time scoring • Live statistics • Tournament management
+              </p>
+              
+              {!isAuthenticated ? (
+                <div className="flex gap-4 justify-center flex-wrap">
+                  <Button 
+                    onClick={() => base44.auth.redirectToLogin(createPageUrl("Dashboard"))}
+                    className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all"
+                  >
+                    Get Started
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                  <Link to={createPageUrl("RequestAdminAccess")}>
+                    <Button 
+                      variant="outline"
+                      className="border-2 border-white text-white hover:bg-white hover:text-blue-900 text-lg px-10 py-7 font-bold backdrop-blur-sm"
+                    >
+                      Request Admin Access
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <Link to={createPageUrl("Dashboard")}>
+                  <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all">
+                    Go to Dashboard
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
+              )}
+            </>
           )}
         </div>
         
@@ -346,59 +431,123 @@ export default function Home() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 py-16">
-        {/* Organization Header & Filter */}
-        {organization && (
+        {/* Organization Info Banner - Below Hero */}
+        {organization && viewMode === 'my-org' && (
           <div className="mb-12">
-            <Card className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-800 dark:via-blue-950/20 dark:to-purple-950/20 border-2 border-blue-200 dark:border-blue-800 shadow-xl">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                  {/* Organization Info */}
-                  <div className="flex items-center gap-4">
-                    <Avatar className="w-20 h-20 border-4 border-white dark:border-gray-700 shadow-2xl">
-                      <AvatarImage src={organization.logo_url} />
-                      <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-2xl">
-                        {organization.name?.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h2 className="text-3xl font-black text-gray-900 dark:text-white">{organization.name}</h2>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">Your Organization</p>
+            <Card className="relative overflow-hidden border-2 border-blue-200 dark:border-blue-800 shadow-2xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-white via-blue-50/50 to-purple-50/50 dark:from-gray-800 dark:via-blue-950/30 dark:to-purple-950/30"></div>
+              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+              
+              <CardContent className="relative z-10 p-8">
+                <div className="flex flex-col lg:flex-row items-center gap-8">
+                  {/* Left: Organization Branding */}
+                  <div className="flex-shrink-0">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur-xl opacity-30"></div>
+                      <Avatar className="relative w-32 h-32 border-4 border-white dark:border-gray-700 shadow-2xl">
+                        <AvatarImage src={organization.logo_url} className="object-cover" />
+                        <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-5xl">
+                          {organization.name?.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
                     </div>
                   </div>
 
-                  {/* View Toggle */}
-                  <div className="flex bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 rounded-xl p-1 shadow-lg">
+                  {/* Center: Organization Details */}
+                  <div className="flex-1 text-center lg:text-left">
+                    <Badge className="mb-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0 font-bold px-4 py-1">
+                      VIEWING YOUR ORGANIZATION
+                    </Badge>
+                    <h2 className="text-4xl font-black text-gray-900 dark:text-white mb-2">
+                      {organization.name}
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400 font-medium mb-4">
+                      Complete sports league management and statistics
+                    </p>
+                    
+                    {/* Mini Stats Row */}
+                    <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
+                      <div className="flex items-center gap-2 bg-white/60 dark:bg-gray-900/60 rounded-lg px-4 py-2 border border-gray-200 dark:border-gray-700">
+                        <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+                          <Trophy className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-xl font-black text-gray-900 dark:text-white">{teams.filter(t => t.sport === 'basketball').length}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Basketball</div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 bg-white/60 dark:bg-gray-900/60 rounded-lg px-4 py-2 border border-gray-200 dark:border-gray-700">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                          <Trophy className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-xl font-black text-gray-900 dark:text-white">{teams.filter(t => t.sport === 'volleyball').length}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Volleyball</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 bg-white/60 dark:bg-gray-900/60 rounded-lg px-4 py-2 border border-gray-200 dark:border-gray-700">
+                        <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                          <Users className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-xl font-black text-gray-900 dark:text-white">{players.length}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Players</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Action Button */}
+                  <div className="flex-shrink-0">
                     <Button
-                      variant={viewMode === 'my-org' ? 'default' : 'ghost'}
-                      onClick={() => setViewMode('my-org')}
-                      className={`font-bold px-6 ${viewMode === 'my-org' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
-                    >
-                      <Building2 className="w-4 h-4 mr-2" />
-                      My Organization
-                    </Button>
-                    <Button
-                      variant={viewMode === 'all' ? 'default' : 'ghost'}
                       onClick={() => setViewMode('all')}
-                      className={`font-bold px-6 ${viewMode === 'all' ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                      size="lg"
+                      variant="outline"
+                      className="border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                         <circle cx="12" cy="12" r="10"/>
                         <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
                         <path d="M2 12h20"/>
                       </svg>
-                      All Leagues
+                      View All Leagues
                     </Button>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-                {/* Active Filter Badge */}
-                {viewMode === 'my-org' && (
-                  <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
-                    <Badge className="bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold text-sm px-4 py-2">
-                      🏆 Showing {organization.name} data only
-                    </Badge>
+        {/* "Viewing All Leagues" Banner */}
+        {organization && viewMode === 'all' && (
+          <div className="mb-12">
+            <Card className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 border-0 shadow-2xl">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-white">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                        <path d="M2 12h20"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black">Viewing All Leagues</h3>
+                      <p className="text-sm text-blue-100">Showing data from all organizations</p>
+                    </div>
                   </div>
-                )}
+                  <Button
+                    onClick={() => setViewMode('my-org')}
+                    className="bg-white text-indigo-600 hover:bg-gray-100 font-bold"
+                  >
+                    <Building2 className="w-4 h-4 mr-2" />
+                    Back to {organization.name}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
