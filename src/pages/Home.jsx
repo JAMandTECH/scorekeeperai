@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Calendar, TrendingUp, Target, Award, Zap, Shield, ArrowRight } from "lucide-react";
+import { Calendar, TrendingUp, Target, Award, Zap, Shield, ArrowRight, Sun, Moon } from "lucide-react"; // Added Sun and Moon imports
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,14 +13,35 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [darkMode, setDarkMode] = useState(false); // Added dark mode state
 
   React.useEffect(() => {
     checkAuth();
+    // Load dark mode preference
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark'); // Ensure it's removed if not dark
+    }
   }, []);
 
   const checkAuth = async () => {
     const authenticated = await base44.auth.isAuthenticated();
     setIsAuthenticated(authenticated);
+  };
+
+  // Dark mode toggle function
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   // Fetch all data
@@ -109,16 +130,16 @@ export default function Home() {
           total = playerStats.reduce((sum, s) => sum + (s.points || 0), 0);
         } else {
           total = playerStats.reduce((sum, s) => 
-            sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0);
+            sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0); // Assuming three_pointers is for aces in volleyball
         }
       } else if (statType === 'rebounds') {
         total = playerStats.reduce((sum, s) => sum + (s.rebounds || 0), 0);
       } else if (statType === 'blocks') {
         total = playerStats.reduce((sum, s) => sum + (s.blocks || 0), 0);
       } else if (statType === 'three_pointers') {
-        total = playerStats.reduce((sum, s) => sum + (s.three_pointers || 0), 0);
+        total = playerStats.reduce((sum, s) => sum + (s.three_pointers || 0), 0); // Used for 3Ps in basketball and Aces in volleyball
       } else if (statType === 'attacks') {
-        total = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0), 0);
+        total = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0), 0); // Renamed from field_goals_made to attacks for volleyball context
       }
 
       const team = allTeams.find(t => t.id === player.team_id);
@@ -175,11 +196,19 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 text-white py-24 px-4 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-900 dark:to-indigo-950 text-white py-24 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iIzFmMmQzZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
         
+        {/* Dark Mode Toggle - Top Right */}
+        <button
+          onClick={toggleDarkMode}
+          className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-all"
+        >
+          {darkMode ? <Sun className="w-6 h-6 text-white" /> : <Moon className="w-6 h-6 text-white" />}
+        </button>
+
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <div className="flex items-center justify-center gap-4 mb-8">
             <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-2xl transform rotate-6 hover:rotate-0 transition-transform duration-300">
@@ -228,7 +257,7 @@ export default function Home() {
         </div>
         
         {/* Decorative Elements */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent"></div>
       </section>
 
       <div className="max-w-7xl mx-auto px-4 py-16">
@@ -243,54 +272,54 @@ export default function Home() {
               </svg>
             </div>
             <div>
-              <h2 className="text-4xl font-black text-gray-900">Basketball</h2>
-              <p className="text-gray-500 font-medium">League Standings & Player Stats</p>
+              <h2 className="text-4xl font-black text-gray-900 dark:text-white">Basketball</h2>
+              <p className="text-gray-500 dark:text-gray-400 font-medium">League Standings & Player Stats</p>
             </div>
           </div>
 
           <Tabs defaultValue="standings" className="space-y-8">
-            <TabsList className="bg-white border-2 border-gray-200 p-1 rounded-xl shadow-sm">
-              <TabsTrigger value="standings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white font-semibold rounded-lg px-6">
+            <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl shadow-sm">
+              <TabsTrigger value="standings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
                 Standings
               </TabsTrigger>
-              <TabsTrigger value="leaders" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white font-semibold rounded-lg px-6">
+              <TabsTrigger value="leaders" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
                 Player Leaders
               </TabsTrigger>
-              <TabsTrigger value="schedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white font-semibold rounded-lg px-6">
+              <TabsTrigger value="schedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
                 Schedule & Results
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="standings">
               {basketballStandings.map((divisionData, idx) => (
-                <Card key={idx} className="mb-6 bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-                    <CardTitle className="text-2xl font-black text-gray-900">{divisionData.division}</CardTitle>
+                <Card key={idx} className="mb-6 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
+                    <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">{divisionData.division}</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="bg-gray-50 border-b-2 border-gray-100">
-                            <th className="text-left py-4 px-4 text-gray-600 font-bold text-sm">#</th>
-                            <th className="text-left py-4 px-4 text-gray-600 font-bold text-sm">TEAM</th>
-                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">W</th>
-                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">L</th>
-                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">WIN%</th>
-                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">PPG</th>
-                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">PAPG</th>
+                          <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
+                            <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">#</th>
+                            <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">TEAM</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">W</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">L</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">WIN%</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PPG</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PAPG</th>
                           </tr>
                         </thead>
                         <tbody>
                           {divisionData.teams.map((team, i) => (
-                            <tr key={team.id} className="border-b border-gray-100 hover:bg-blue-50/50 transition-colors">
-                              <td className="py-4 px-4 font-black text-xl text-gray-400">{i + 1}</td>
-                              <td className="py-4 px-4 font-bold text-gray-900">{team.name}</td>
-                              <td className="py-4 px-4 text-center text-green-600 font-bold text-lg">{team.wins}</td>
-                              <td className="py-4 px-4 text-center text-red-600 font-bold text-lg">{team.losses}</td>
-                              <td className="py-4 px-4 text-center font-bold text-gray-900">{(team.winPct * 100).toFixed(0)}%</td>
-                              <td className="py-4 px-4 text-center text-gray-700 font-semibold">{team.avgPointsFor}</td>
-                              <td className="py-4 px-4 text-center text-gray-700 font-semibold">{team.avgPointsAgainst}</td>
+                            <tr key={team.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors">
+                              <td className="py-4 px-4 font-black text-xl text-gray-400 dark:text-gray-500">{i + 1}</td>
+                              <td className="py-4 px-4 font-bold text-gray-900 dark:text-white">{team.name}</td>
+                              <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold text-lg">{team.wins}</td>
+                              <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-bold text-lg">{team.losses}</td>
+                              <td className="py-4 px-4 text-center font-bold text-gray-900 dark:text-white">{(team.winPct * 100).toFixed(0)}%</td>
+                              <td className="py-4 px-4 text-center text-gray-700 dark:text-gray-300 font-semibold">{team.avgPointsFor}</td>
+                              <td className="py-4 px-4 text-center text-gray-700 dark:text-gray-300 font-semibold">{team.avgPointsAgainst}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -304,42 +333,42 @@ export default function Home() {
             <TabsContent value="leaders">
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Top Scorers */}
-                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-blue-50 to-white">
+                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
                         <Target className="w-6 h-6 text-white" />
                       </div>
-                      <CardTitle className="text-xl font-black text-gray-900">Top 10 Scorers</CardTitle>
+                      <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Scorers</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-2">
                       {topScorers.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                             i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
                             i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
                             i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
-                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
+                            'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
+                          <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
                             <AvatarImage src={player.photo_url} />
                             <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-black text-blue-600">{player.total}</p>
-                            <p className="text-xs text-gray-500 font-semibold">{player.average} PPG</p>
+                            <p className="text-2xl font-black text-blue-600 dark:text-blue-400">{player.total}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} PPG</p>
                           </div>
                         </div>
                       ))}
@@ -348,42 +377,42 @@ export default function Home() {
                 </Card>
 
                 {/* Top Rebounders */}
-                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-green-50 to-white">
+                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-green-50 to-white dark:from-gray-800 dark:to-gray-900">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
                         <TrendingUp className="w-6 h-6 text-white" />
                       </div>
-                      <CardTitle className="text-xl font-black text-gray-900">Top 10 Rebounders</CardTitle>
+                      <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Rebounders</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-2">
                       {topRebounders.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                             i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
                             i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
                             i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
-                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
+                            'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
+                          <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
                             <AvatarImage src={player.photo_url} />
                             <AvatarFallback className="bg-gradient-to-br from-green-600 to-green-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-black text-green-600">{player.total}</p>
-                            <p className="text-xs text-gray-500 font-semibold">{player.average} RPG</p>
+                            <p className="text-2xl font-black text-green-600 dark:text-green-400">{player.total}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} RPG</p>
                           </div>
                         </div>
                       ))}
@@ -392,42 +421,42 @@ export default function Home() {
                 </Card>
 
                 {/* Top Blockers */}
-                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-red-50 to-white">
+                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-red-50 to-white dark:from-gray-800 dark:to-gray-900">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
                         <Shield className="w-6 h-6 text-white" />
                       </div>
-                      <CardTitle className="text-xl font-black text-gray-900">Top 10 Blockers</CardTitle>
+                      <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Blockers</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-2">
                       {topBlockers.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                             i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
                             i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
                             i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
-                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
+                            'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
+                          <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
                             <AvatarImage src={player.photo_url} />
                             <AvatarFallback className="bg-gradient-to-br from-red-600 to-red-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-black text-red-600">{player.total}</p>
-                            <p className="text-xs text-gray-500 font-semibold">{player.average} BPG</p>
+                            <p className="text-2xl font-black text-red-600 dark:text-red-400">{player.total}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} BPG</p>
                           </div>
                         </div>
                       ))}
@@ -436,42 +465,42 @@ export default function Home() {
                 </Card>
 
                 {/* Top 3-Pointer Leaders */}
-                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-yellow-50 to-white">
+                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-yellow-50 to-white dark:from-gray-800 dark:to-gray-900">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
                         <Zap className="w-6 h-6 text-white" />
                       </div>
-                      <CardTitle className="text-xl font-black text-gray-900">Top 10 3-Pointer Leaders</CardTitle>
+                      <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 3-Pointer Leaders</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-2">
                       {top3Pointers.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                             i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
                             i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
                             i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
-                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
+                            'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
+                          <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
                             <AvatarImage src={player.photo_url} />
                             <AvatarFallback className="bg-gradient-to-br from-yellow-600 to-yellow-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-black text-yellow-600">{player.total}</p>
-                            <p className="text-xs text-gray-500 font-semibold">{player.average} 3PG</p>
+                            <p className="text-2xl font-black text-yellow-600 dark:text-yellow-400">{player.total}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} 3PG</p>
                           </div>
                         </div>
                       ))}
@@ -484,28 +513,28 @@ export default function Home() {
             <TabsContent value="schedule">
               <div className="grid lg:grid-cols-2 gap-6">
                 {/* Upcoming Games */}
-                <Card className="bg-white border-2 border-gray-100 shadow-lg">
-                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-blue-50 to-white">
-                    <CardTitle className="text-xl font-black text-gray-900">Upcoming Games</CardTitle>
+                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">
+                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
+                    <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Upcoming Games</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-3">
                       {upcomingBasketballGames.map(game => (
-                        <div key={game.id} className="border-2 border-gray-100 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50">
+                        <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
                           <div className="flex justify-between items-center mb-3">
-                            <span className="text-xs text-gray-500 font-semibold flex items-center gap-1">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
                               {new Date(game.game_date).toLocaleDateString()}
                             </span>
-                            <Badge className="bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold">
+                            <Badge className="bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-bold">
                               {game.game_type?.replace('_', ' ').toUpperCase() || 'REGULAR'}
                             </Badge>
                           </div>
-                          <div className="text-sm font-bold text-gray-900">
+                          <div className="text-sm font-bold text-gray-900 dark:text-white">
                             {getTeamName(game.home_team_id)} vs {getTeamName(game.away_team_id)}
                           </div>
                           {game.location && (
-                            <p className="text-xs text-gray-500 mt-2 font-medium">📍 {game.location}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">📍 {game.location}</p>
                           )}
                         </div>
                       ))}
@@ -514,31 +543,31 @@ export default function Home() {
                 </Card>
 
                 {/* Recent Results */}
-                <Card className="bg-white border-2 border-gray-100 shadow-lg">
-                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-green-50 to-white">
-                    <CardTitle className="text-xl font-black text-gray-900">Recent Results</CardTitle>
+                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">
+                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-green-50 to-white dark:from-gray-800 dark:to-gray-900">
+                    <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Recent Results</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-3">
                       {completedBasketballGames.map(game => (
-                        <div key={game.id} className="border-2 border-gray-100 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50">
+                        <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
                           <div className="flex justify-between items-center mb-3">
-                            <span className="text-xs text-gray-500 font-semibold">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
                               {new Date(game.game_date).toLocaleDateString()}
                             </span>
-                            <Badge className="bg-green-100 text-green-700 border border-green-200 text-xs font-bold">
+                            <Badge className="bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 text-xs font-bold">
                               FINAL
                             </Badge>
                           </div>
                           <div className="flex justify-between items-center">
                             <div>
-                              <div className="text-sm font-bold text-gray-900">{getTeamName(game.home_team_id)}</div>
-                              <div className="text-3xl font-black text-gray-900 mt-1">{game.home_score}</div>
+                              <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.home_team_id)}</div>
+                              <div className="text-3xl font-black text-gray-900 dark:text-white mt-1">{game.home_score}</div>
                             </div>
-                            <div className="text-gray-300 text-2xl font-black">-</div>
+                            <div className="text-gray-300 dark:text-gray-600 text-2xl font-black">-</div>
                             <div className="text-right">
-                              <div className="text-sm font-bold text-gray-900">{getTeamName(game.away_team_id)}</div>
-                              <div className="text-3xl font-black text-gray-900 mt-1">{game.away_score}</div>
+                              <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.away_team_id)}</div>
+                              <div className="text-3xl font-black text-gray-900 dark:text-white mt-1">{game.away_score}</div>
                             </div>
                           </div>
                         </div>
@@ -558,52 +587,52 @@ export default function Home() {
               <Award className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h2 className="text-4xl font-black text-gray-900">Volleyball</h2>
-              <p className="text-gray-500 font-medium">League Standings & Player Stats</p>
+              <h2 className="text-4xl font-black text-gray-900 dark:text-white">Volleyball</h2>
+              <p className="text-gray-500 dark:text-gray-400 font-medium">League Standings & Player Stats</p>
             </div>
           </div>
 
           <Tabs defaultValue="standings" className="space-y-8">
-            <TabsList className="bg-white border-2 border-gray-200 p-1 rounded-xl shadow-sm">
-              <TabsTrigger value="standings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white font-semibold rounded-lg px-6">
+            <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl shadow-sm">
+              <TabsTrigger value="standings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
                 Standings
               </TabsTrigger>
-              <TabsTrigger value="leaders" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white font-semibold rounded-lg px-6">
+              <TabsTrigger value="leaders" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
                 Player Leaders
               </TabsTrigger>
-              <TabsTrigger value="schedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white font-semibold rounded-lg px-6">
+              <TabsTrigger value="schedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
                 Schedule & Results
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="standings">
               {volleyballStandings.map((divisionData, idx) => (
-                <Card key={idx} className="mb-6 bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-                    <CardTitle className="text-2xl font-black text-gray-900">{divisionData.division}</CardTitle>
+                <Card key={idx} className="mb-6 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
+                    <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">{divisionData.division}</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="bg-gray-50 border-b-2 border-gray-100">
-                            <th className="text-left py-4 px-4 text-gray-600 font-bold text-sm">#</th>
-                            <th className="text-left py-4 px-4 text-gray-600 font-bold text-sm">TEAM</th>
-                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">W</th>
-                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">L</th>
-                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">WIN%</th>
-                            <th className="text-center py-4 px-4 text-gray-600 font-bold text-sm">Sets Won</th>
+                          <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
+                            <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">#</th>
+                            <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">TEAM</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">W</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">L</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">WIN%</th>
+                            <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">Sets Won</th>
                           </tr>
                         </thead>
                         <tbody>
                           {divisionData.teams.map((team, i) => (
-                            <tr key={team.id} className="border-b border-gray-100 hover:bg-orange-50/50 transition-colors">
-                              <td className="py-4 px-4 font-black text-xl text-gray-400">{i + 1}</td>
-                              <td className="py-4 px-4 font-bold text-gray-900">{team.name}</td>
-                              <td className="py-4 px-4 text-center text-green-600 font-bold text-lg">{team.wins}</td>
-                              <td className="py-4 px-4 text-center text-red-600 font-bold text-lg">{team.losses}</td>
-                              <td className="py-4 px-4 text-center font-bold text-gray-900">{(team.winPct * 100).toFixed(0)}%</td>
-                              <td className="py-4 px-4 text-center text-gray-700 font-semibold">{team.pointsFor}</td>
+                            <tr key={team.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-orange-50/50 dark:hover:bg-blue-950/20 transition-colors">
+                              <td className="py-4 px-4 font-black text-xl text-gray-400 dark:text-gray-500">{i + 1}</td>
+                              <td className="py-4 px-4 font-bold text-gray-900 dark:text-white">{team.name}</td>
+                              <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold text-lg">{team.wins}</td>
+                              <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-bold text-lg">{team.losses}</td>
+                              <td className="py-4 px-4 text-center font-bold text-gray-900 dark:text-white">{(team.winPct * 100).toFixed(0)}%</td>
+                              <td className="py-4 px-4 text-center text-gray-700 dark:text-gray-300 font-semibold">{team.pointsFor}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -617,42 +646,42 @@ export default function Home() {
             <TabsContent value="leaders">
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Top Scorers */}
-                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-blue-50 to-white">
+                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
                         <Target className="w-6 h-6 text-white" />
                       </div>
-                      <CardTitle className="text-xl font-black text-gray-900">Top 10 Scorers</CardTitle>
+                      <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Scorers</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-2">
                       {topVolleyballScorers.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                             i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
                             i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
                             i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
-                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
+                            'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
+                          <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
                             <AvatarImage src={player.photo_url} />
                             <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-black text-blue-600">{player.total}</p>
-                            <p className="text-xs text-gray-500 font-semibold">{player.average} PPG</p>
+                            <p className="text-2xl font-black text-blue-600 dark:text-blue-400">{player.total}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} PPG</p>
                           </div>
                         </div>
                       ))}
@@ -661,42 +690,42 @@ export default function Home() {
                 </Card>
 
                 {/* Top Attackers */}
-                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-orange-50 to-white">
+                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-orange-50 to-white dark:from-gray-800 dark:to-gray-900">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
                         <Zap className="w-6 h-6 text-white" />
                       </div>
-                      <CardTitle className="text-xl font-black text-gray-900">Top 10 Attackers</CardTitle>
+                      <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Attackers</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-2">
                       {topVolleyballAttackers.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                             i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
                             i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
                             i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
-                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
+                            'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
+                          <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
                             <AvatarImage src={player.photo_url} />
                             <AvatarFallback className="bg-gradient-to-br from-orange-600 to-orange-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-black text-orange-600">{player.total}</p>
-                            <p className="text-xs text-gray-500 font-semibold">{player.average} APG</p>
+                            <p className="text-2xl font-black text-orange-600 dark:text-orange-400">{player.total}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} APG</p>
                           </div>
                         </div>
                       ))}
@@ -705,42 +734,42 @@ export default function Home() {
                 </Card>
 
                 {/* Top Blockers */}
-                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-red-50 to-white">
+                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-red-50 to-white dark:from-gray-800 dark:to-gray-900">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
                         <Shield className="w-6 h-6 text-white" />
                       </div>
-                      <CardTitle className="text-xl font-black text-gray-900">Top 10 Blockers</CardTitle>
+                      <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Blockers</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-2">
                       {topVolleyballBlockers.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                             i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
                             i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
                             i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
-                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
+                            'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
+                          <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
                             <AvatarImage src={player.photo_url} />
                             <AvatarFallback className="bg-gradient-to-br from-red-600 to-red-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-black text-red-600">{player.total}</p>
-                            <p className="text-xs text-gray-500 font-semibold">{player.average} BPG</p>
+                            <p className="text-2xl font-black text-red-600 dark:text-red-400">{player.total}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} BPG</p>
                           </div>
                         </div>
                       ))}
@@ -749,42 +778,42 @@ export default function Home() {
                 </Card>
 
                 {/* Top Ace Leaders */}
-                <Card className="bg-white border-2 border-gray-100 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-yellow-50 to-white">
+                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-yellow-50 to-white dark:from-gray-800 dark:to-gray-900">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
                         <Zap className="w-6 h-6 text-white" />
                       </div>
-                      <CardTitle className="text-xl font-black text-gray-900">Top 10 Ace Leaders</CardTitle>
+                      <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Ace Leaders</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-2">
                       {topVolleyballAces.map((player, i) => (
-                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all">
+                        <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                             i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
                             i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
                             i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' :
-                            'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
+                            'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'
                           }`}>
                             {i + 1}
                           </div>
-                          <Avatar className="w-12 h-12 border-2 border-white shadow-md">
+                          <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
                             <AvatarImage src={player.photo_url} />
                             <AvatarFallback className="bg-gradient-to-br from-yellow-600 to-yellow-700 text-white text-xs font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-900 truncate">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500 font-medium">{player.teamName}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-black text-yellow-600">{player.total}</p>
-                            <p className="text-xs text-gray-500 font-semibold">{player.average} ACE/G</p>
+                            <p className="text-2xl font-black text-yellow-600 dark:text-yellow-400">{player.total}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} ACE/G</p>
                           </div>
                         </div>
                       ))}
@@ -797,28 +826,28 @@ export default function Home() {
             <TabsContent value="schedule">
               <div className="grid lg:grid-cols-2 gap-6">
                 {/* Upcoming Games */}
-                <Card className="bg-white border-2 border-gray-100 shadow-lg">
-                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-blue-50 to-white">
-                    <CardTitle className="text-xl font-black text-gray-900">Upcoming Games</CardTitle>
+                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">
+                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
+                    <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Upcoming Games</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-3">
                       {upcomingVolleyballGames.map(game => (
-                        <div key={game.id} className="border-2 border-gray-100 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50">
+                        <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
                           <div className="flex justify-between items-center mb-3">
-                            <span className="text-xs text-gray-500 font-semibold flex items-center gap-1">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
                               {new Date(game.game_date).toLocaleDateString()}
                             </span>
-                            <Badge className="bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold">
+                            <Badge className="bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-bold">
                               {game.game_type?.replace('_', ' ').toUpperCase() || 'REGULAR'}
                             </Badge>
                           </div>
-                          <div className="text-sm font-bold text-gray-900">
+                          <div className="text-sm font-bold text-gray-900 dark:text-white">
                             {getTeamName(game.home_team_id)} vs {getTeamName(game.away_team_id)}
                           </div>
                           {game.location && (
-                            <p className="text-xs text-gray-500 mt-2 font-medium">📍 {game.location}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">📍 {game.location}</p>
                           )}
                         </div>
                       ))}
@@ -827,31 +856,31 @@ export default function Home() {
                 </Card>
 
                 {/* Recent Results */}
-                <Card className="bg-white border-2 border-gray-100 shadow-lg">
-                  <CardHeader className="border-b-2 border-gray-100 bg-gradient-to-r from-green-50 to-white">
-                    <CardTitle className="text-xl font-black text-gray-900">Recent Results</CardTitle>
+                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">
+                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-green-50 to-white dark:from-gray-800 dark:to-gray-900">
+                    <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Recent Results</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-3">
                       {completedVolleyballGames.map(game => (
-                        <div key={game.id} className="border-2 border-gray-100 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50">
+                        <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
                           <div className="flex justify-between items-center mb-3">
-                            <span className="text-xs text-gray-500 font-semibold">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
                               {new Date(game.game_date).toLocaleDateString()}
                             </span>
-                            <Badge className="bg-green-100 text-green-700 border border-green-200 text-xs font-bold">
+                            <Badge className="bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 text-xs font-bold">
                               FINAL
                             </Badge>
                           </div>
                           <div className="flex justify-between items-center">
                             <div>
-                              <div className="text-sm font-bold text-gray-900">{getTeamName(game.home_team_id)}</div>
-                              <div className="text-3xl font-black text-gray-900 mt-1">{game.home_score}</div>
+                              <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.home_team_id)}</div>
+                              <div className="text-3xl font-black text-gray-900 dark:text-white mt-1">{game.home_score}</div>
                             </div>
-                            <div className="text-gray-300 text-2xl font-black">-</div>
+                            <div className="text-gray-300 dark:text-gray-600 text-2xl font-black">-</div>
                             <div className="text-right">
-                              <div className="text-sm font-bold text-gray-900">{getTeamName(game.away_team_id)}</div>
-                              <div className="text-3xl font-black text-gray-900 mt-1">{game.away_score}</div>
+                              <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.away_team_id)}</div>
+                              <div className="text-3xl font-black text-gray-900 dark:text-white mt-1">{game.away_score}</div>
                             </div>
                           </div>
                         </div>
@@ -866,7 +895,7 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 text-white py-16 px-4 mt-20">
+      <footer className="bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-950 dark:to-indigo-950 text-white py-16 px-4 mt-20">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center gap-4 mb-6">
             <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-2xl">
@@ -876,13 +905,13 @@ export default function Home() {
             </div>
             <span className="text-3xl font-black tracking-tight">ALAB SPORTS</span>
           </div>
-          <p className="text-blue-200 text-lg mb-2 font-medium">
+          <p className="text-blue-200 dark:text-blue-300 text-lg mb-2 font-medium">
             Professional League Management System
           </p>
-          <p className="text-blue-300 text-sm">
+          <p className="text-blue-300 dark:text-blue-400 text-sm">
             Basketball • Volleyball • Real-time Scoring
           </p>
-          <p className="text-blue-400 text-sm mt-8">
+          <p className="text-blue-400 dark:text-blue-500 text-sm mt-8">
             © 2025 ALAB Sports. All rights reserved.
           </p>
         </div>
