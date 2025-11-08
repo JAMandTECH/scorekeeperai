@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -548,8 +549,8 @@ export default function LiveScoringVolleyball() {
 
       <div className="max-w-7xl mx-auto p-4 pb-24">
         <div className="grid lg:grid-cols-2 gap-6">
-          <Card className="bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm">
-            <CardHeader className="border-b-4 border-blue-500 bg-blue-900/50">
+          <Card className="bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm overflow-hidden">
+            <CardHeader className="sticky top-0 z-10 border-b-4 border-blue-500 bg-blue-900/95 backdrop-blur-sm">
               <div className="flex items-center justify-between gap-3">
                 <CardTitle className="text-2xl font-black text-white">
                   {homeTeam.name} - HOME
@@ -571,8 +572,8 @@ export default function LiveScoringVolleyball() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-cyan-900/40 to-cyan-950/40 border-4 border-cyan-500 backdrop-blur-sm">
-            <CardHeader className="border-b-4 border-cyan-500 bg-cyan-900/50">
+          <Card className="bg-gradient-to-br from-cyan-900/40 to-cyan-950/40 border-4 border-cyan-500 backdrop-blur-sm overflow-hidden">
+            <CardHeader className="sticky top-0 z-10 border-b-4 border-cyan-500 bg-cyan-900/95 backdrop-blur-sm">
               <div className="flex items-center justify-between gap-3">
                 <CardTitle className="text-2xl font-black text-white">
                   {awayTeam.name} - AWAY
