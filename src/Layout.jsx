@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AIAssistant from "@/components/AIAssistant";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
@@ -274,6 +275,9 @@ export default function Layout({ children, currentPageName }) {
           {children}
         </main>
       </div>
+      
+      {/* AI Assistant - Available on all pages */}
+      <AIAssistant />
     </div>
   );
 }

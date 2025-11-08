@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -7,6 +8,7 @@ import { Trophy, Users, Calendar, Building2, Shield, ArrowRight, TrendingUp, Fla
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import AIInsights from "@/components/AIInsights";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -82,7 +84,7 @@ export default function Dashboard() {
           {/* Super Admin Banner */}
           {isAdmin && !isSuperAdmin && (
             <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-700 dark:via-indigo-700 dark:to-purple-700 border-2 border-blue-400 dark:border-blue-500 rounded-2xl p-6 shadow-xl">
-              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvZz48L3N2Zz4=')] opacity-30"></div>
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAv/MjAwMC9zdmciPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+PHBhdGggZD0iTTM2IDE4YzMuMzE0IDAgNiAyLjY4NiA2IDZzLTIuNjg2IDYtNiA2LTYtMi42ODYtNi02IDIuNjg2LTYgNi02eiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjAuNSIgb3BhY2l0eT0iMC4xIi8+PC9nPg==')] opacity-30"></div>
               <div className="relative flex items-start justify-between gap-4">
                 <div className="flex items-start gap-4">
                   <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
@@ -186,6 +188,16 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* AI Insights Section - NEW */}
+          {(teams.length > 0 || games.length > 0) && (
+            <AIInsights
+              teams={teams}
+              players={players}
+              games={games}
+              organizationName={isSuperAdmin ? "ALAB Sports System" : user?.organization_id}
+            />
+          )}
 
           {/* Games Grid */}
           <div className="grid lg:grid-cols-2 gap-8">

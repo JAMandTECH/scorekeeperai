@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -13,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import AIGameSummary from "@/components/AIGameSummary";
 
 export default function AllGames() {
   const [user, setUser] = useState(null);
@@ -176,6 +178,27 @@ export default function AllGames() {
 
     const isExpanded = expandedGame === game.id;
     const { homeStats, awayStats } = isExpanded ? getGamePlayerStats(game.id, game.home_team_id, game.away_team_id) : { homeStats: [], awayStats: [] };
+
+    // Prepare top players for AI summary
+    const topPlayersForAI = [];
+    if (homeBestPlayer) {
+      topPlayersForAI.push({
+        name: `${homeBestPlayer.player?.first_name} ${homeBestPlayer.player?.last_name}`,
+        team: homeTeam?.name,
+        stats: game.sport === 'basketball'
+          ? `${homeBestPlayer.stats.points} PTS, ${homeBestPlayer.stats.rebounds || 0} REB, ${homeBestPlayer.stats.assists || 0} AST`
+          : `${homeBestPlayer.stats.field_goals_made || 0} ATK, ${homeBestPlayer.stats.blocks || 0} BLK, ${homeBestPlayer.stats.three_pointers || 0} ACE`
+      });
+    }
+    if (awayBestPlayer) {
+      topPlayersForAI.push({
+        name: `${awayBestPlayer.player?.first_name} ${awayBestPlayer.player?.last_name}`,
+        team: awayTeam?.name,
+        stats: game.sport === 'basketball'
+          ? `${awayBestPlayer.stats.points} PTS, ${awayBestPlayer.stats.rebounds || 0} REB, ${awayBestPlayer.stats.assists || 0} AST`
+          : `${awayBestPlayer.stats.field_goals_made || 0} ATK, ${awayBestPlayer.stats.blocks || 0} BLK, ${awayBestPlayer.stats.three_pointers || 0} ACE`
+      });
+    }
 
     return (
       <Card className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 shadow-lg hover:shadow-2xl transition-all`}>
@@ -417,6 +440,18 @@ export default function AllGames() {
                   ))}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* AI Game Summary - NEW (only for completed games) */}
+          {game.status === 'completed' && homeTeam && awayTeam && (
+            <div className="mt-4">
+              <AIGameSummary
+                game={game}
+                homeTeam={homeTeam}
+                awayTeam={awayTeam}
+                topPlayers={topPlayersForAI}
+              />
             </div>
           )}
         </CardContent>
