@@ -884,7 +884,9 @@ export default function Home() {
                   <CardContent className="p-4">
                     <div className="space-y-3">
                       {completedVolleyballGames.map(game => {
-                        // Count sets won for display
+                        // Calculate total points across all sets
+                        const homeTotalPoints = (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0);
+                        const awayTotalPoints = (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0);
                         const homeSetsWon = (game.quarter_scores || []).filter(s => s.home > s.away).length;
                         const awaySetsWon = (game.quarter_scores || []).filter(s => s.away > s.home).length;
                         
@@ -903,13 +905,19 @@ export default function Home() {
                                 <div className="flex-1">
                                   <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.home_team_id)}</div>
                                 </div>
-                                <div className="text-2xl font-black text-gray-900 dark:text-white">{homeSetsWon}</div>
+                                <div className="text-right">
+                                  <div className="text-3xl font-black text-gray-900 dark:text-white">{homeTotalPoints}</div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">({homeSetsWon} sets)</div>
+                                </div>
                               </div>
                               <div className="flex justify-between items-center">
                                 <div className="flex-1">
                                   <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.away_team_id)}</div>
                                 </div>
-                                <div className="text-2xl font-black text-gray-900 dark:text-white">{awaySetsWon}</div>
+                                <div className="text-right">
+                                  <div className="text-3xl font-black text-gray-900 dark:text-white">{awayTotalPoints}</div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">({awaySetsWon} sets)</div>
+                                </div>
                               </div>
                               {game.quarter_scores && game.quarter_scores.length > 0 && (
                                 <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
