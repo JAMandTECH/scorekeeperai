@@ -6,16 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Users, Edit, Trophy, TrendingUp, Flame } from "lucide-react";
+import { Plus, Users, Edit, Trophy, Upload, Image } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Teams() {
   const [showForm, setShowForm] = useState(false);
   const [editingTeam, setEditingTeam] = useState(null);
   const [user, setUser] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -39,6 +42,7 @@ export default function Teams() {
       queryClient.invalidateQueries(['teams']);
       setShowForm(false);
       setEditingTeam(null);
+      setLogoFile(null);
     },
   });
 
@@ -48,30 +52,46 @@ export default function Teams() {
       queryClient.invalidateQueries(['teams']);
       setShowForm(false);
       setEditingTeam(null);
+      setLogoFile(null);
     },
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = {
-      organization_id: user?.organization_id,
-      name: formData.get('name'),
-      sport: formData.get('sport'),
-      division: formData.get('division'),
-      coach_name: formData.get('coach_name'),
-      coach_contact: formData.get('coach_contact'),
-    };
+    setUploading(true);
 
-    if (editingTeam) {
-      updateMutation.mutate({ id: editingTeam.id, data });
-    } else {
-      createMutation.mutate(data);
+    try {
+      const formData = new FormData(e.target);
+      const data = {
+        organization_id: user?.organization_id,
+        name: formData.get('name'),
+        sport: formData.get('sport'),
+        division: formData.get('division'),
+        coach_name: formData.get('coach_name'),
+        coach_contact: formData.get('coach_contact'),
+      };
+
+      // Upload logo if a new file was selected
+      if (logoFile) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: logoFile });
+        data.logo_url = file_url;
+      }
+
+      if (editingTeam) {
+        updateMutation.mutate({ id: editingTeam.id, data });
+      } else {
+        createMutation.mutate(data);
+      }
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+    } finally {
+      setUploading(false);
     }
   };
 
   const handleEdit = (team) => {
     setEditingTeam(team);
+    setLogoFile(null);
     setShowForm(true);
   };
 
@@ -91,6 +111,7 @@ export default function Teams() {
             <Button 
               onClick={() => {
                 setEditingTeam(null);
+                setLogoFile(null);
                 setShowForm(true);
               }}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
@@ -122,16 +143,19 @@ export default function Teams() {
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full blur-3xl"></div>
                   <CardHeader className="relative z-10">
                     <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-md">
-                            <Trophy className="w-5 h-5 text-white" />
-                          </div>
-                          <CardTitle className="text-lg font-black text-gray-900 dark:text-white">{team.name}</CardTitle>
+                      <div className="flex items-center gap-3 flex-1">
+                        <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
+                          <AvatarImage src={team.logo_url} />
+                          <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-black text-lg">
+                            {team.name?.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{team.name}</CardTitle>
+                          <Badge className="bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 font-bold mt-2">
+                            {team.division || 'No Division'}
+                          </Badge>
                         </div>
-                        <Badge className="bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 font-bold">
-                          {team.division || 'No Division'}
-                        </Badge>
                       </div>
                       <Button 
                         variant="ghost" 
@@ -189,16 +213,19 @@ export default function Teams() {
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
                   <CardHeader className="relative z-10">
                     <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
-                            <Trophy className="w-5 h-5 text-white" />
-                          </div>
-                          <CardTitle className="text-lg font-black text-gray-900 dark:text-white">{team.name}</CardTitle>
+                      <div className="flex items-center gap-3 flex-1">
+                        <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
+                          <AvatarImage src={team.logo_url} />
+                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
+                            {team.name?.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{team.name}</CardTitle>
+                          <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold mt-2">
+                            {team.division || 'No Division'}
+                          </Badge>
                         </div>
-                        <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold">
-                          {team.division || 'No Division'}
-                        </Badge>
                       </div>
                       <Button 
                         variant="ghost" 
@@ -245,6 +272,28 @@ export default function Teams() {
                 <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">{editingTeam ? 'Edit Team' : 'Add New Team'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Team Logo Upload */}
+                <div>
+                  <Label className="font-bold text-gray-700 dark:text-gray-300">Team Logo</Label>
+                  <div className="mt-2 flex items-center gap-4">
+                    <Avatar className="w-20 h-20 border-4 border-gray-200 dark:border-gray-600">
+                      <AvatarImage src={logoFile ? URL.createObjectURL(logoFile) : editingTeam?.logo_url} />
+                      <AvatarFallback className="bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700">
+                        <Image className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setLogoFile(e.target.files[0])}
+                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">PNG, JPG, or GIF (Max 5MB)</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="name" className="font-bold text-gray-700 dark:text-gray-300">Team Name</Label>
                   <Input
@@ -300,8 +349,15 @@ export default function Teams() {
                   <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold">
                     Cancel
                   </Button>
-                  <Button type="submit" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
-                    {editingTeam ? 'Update' : 'Create'}
+                  <Button type="submit" disabled={uploading} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
+                    {uploading ? (
+                      <>
+                        <Upload className="w-4 h-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      editingTeam ? 'Update' : 'Create'
+                    )}
                   </Button>
                 </div>
               </form>

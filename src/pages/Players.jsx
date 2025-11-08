@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -90,6 +91,11 @@ export default function Players() {
     return team?.name || 'Unknown Team';
   };
 
+  const getTeamLogo = (teamId) => {
+    const team = teams.find(t => t.id === teamId);
+    return team?.logo_url || null;
+  };
+
   const getTeamSport = (teamId) => {
     const team = teams.find(t => t.id === teamId);
     return team?.sport || 'basketball';
@@ -134,6 +140,7 @@ export default function Players() {
             {players.map((player) => {
               const sport = getTeamSport(player.team_id);
               const sportColor = sport === 'basketball' ? 'orange' : 'blue';
+              const teamLogo = getTeamLogo(player.team_id);
               
               return (
                 <Card key={player.id} className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 shadow-lg hover:shadow-2xl transition-all group`}>
@@ -141,18 +148,26 @@ export default function Players() {
                   
                   <CardHeader className="pb-3 relative z-10">
                     <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-start gap-3 flex-1">
                         <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
                           <AvatarImage src={player.photo_url} />
                           <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-600 to-${sportColor}-700 text-white font-black text-lg`}>
                             {player.jersey_number}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <h3 className="text-gray-900 dark:text-white font-black text-lg">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-gray-900 dark:text-white font-black text-lg truncate">
                             {player.first_name} {player.last_name}
                           </h3>
-                          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{getTeamName(player.team_id)}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            {teamLogo && (
+                              <Avatar className="w-5 h-5 border border-gray-300 dark:border-gray-600">
+                                <AvatarImage src={teamLogo} />
+                                <AvatarFallback className="text-[8px]">T</AvatarFallback>
+                              </Avatar>
+                            )}
+                            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium truncate">{getTeamName(player.team_id)}</p>
+                          </div>
                         </div>
                       </div>
                       <Button 
