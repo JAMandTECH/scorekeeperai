@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Minus, CheckCircle, PlayCircle, ChevronRight, Clock } from "lucide-react";
+import { Plus, Minus, CheckCircle, PlayCircle, ChevronRight, Clock, Target, Shield, Zap, Trophy, AlertTriangle, RotateCcw, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -25,11 +25,11 @@ export default function LiveScoringVolleyball() {
   const [setScores, setSetScores] = useState([]);
   const [homeTimeouts, setHomeTimeouts] = useState(5);
   const [awayTimeouts, setAwayTimeouts] = useState(5);
-  const [playerStats, setPlayerStats] = useState({});
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [playerStats, setPlayerStats] = useState({}); // Stores stats for current set by player_id_quarter
+  const [selectedPlayer, setSelectedPlayer] = useState(null); // Full player object
+  const [selectedTeam, setSelectedTeam] = useState(null); // 'home' or 'away'
   const [showSetEnd, setShowSetEnd] = useState(false);
-  const [scoreHistory, setScoreHistory] = useState([]);
+  const [actionHistory, setActionHistory] = useState([]); // Stores all actions for undo functionality
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -110,6 +110,7 @@ export default function LiveScoringVolleyball() {
 
   const getPlayerStatKey = (playerId) => `${playerId}_${currentSet}`;
 
+  // Gets cumulative stats across all quarters up to currentSet
   const getPlayerStat = (playerId, statType) => {
     let total = 0;
     for (let s = 1; s <= currentSet; s++) {
@@ -119,6 +120,7 @@ export default function LiveScoringVolleyball() {
     return total;
   };
 
+  // Updates a player stat for the CURRENT SET
   const updatePlayerStat = async (playerId, teamId, statType, value) => {
     const key = getPlayerStatKey(playerId);
     const existingStat = playerStats[key];
@@ -131,7 +133,7 @@ export default function LiveScoringVolleyball() {
       player_id: playerId,
       team_id: teamId,
       quarter: currentSet,
-      [statType]: Math.max(0, newStatValue),
+      [statType]: Math.max(0, newStatValue), // Ensure stat doesn't go below 0
     };
 
     setPlayerStats(prev => ({
@@ -151,84 +153,135 @@ export default function LiveScoringVolleyball() {
     }
   };
 
-  const addPoint = async (pointType) => {
-    if (!selectedPlayer || !selectedTeam) return;
+  const handleStatUpdate = async (statType, value) => {
+    if (!selectedPlayer || !selectedTeam || !game) return;
+
+    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
+    const key = getPlayerStatKey(selectedPlayer.id);
+    const currentStatValue = playerStats[key]?.[statType] || 0;
+
+    // Record action before updating stat
+    const action = {
+        type: 'stat_update',
+        playerId: selectedPlayer.id,
+        teamId: teamId,
+        statType: statType,
+        value: value, // The change value (+1 or -1)
+        quarter: currentSet,
+        previousStatValue: currentStatValue, // Value before this action for undo
+    };
+    setActionHistory(prev => [...prev, action]);
+
+    await updatePlayerStat(selectedPlayer.id, teamId, statType, value);
+  };
+
+  const handleScorePoint = async (pointType = 'rally', playerId = null) => {
+    if (!selectedTeam || !game) return;
 
     const newHomeScore = selectedTeam === 'home' ? homeScore + 1 : homeScore;
     const newAwayScore = selectedTeam === 'away' ? awayScore + 1 : awayScore;
 
+    // Record action before updating scores
+    const action = {
+        type: 'score_point',
+        team: selectedTeam,
+        pointType: pointType,
+        playerId: playerId,
+        set: currentSet,
+        homeScoreChange: selectedTeam === 'home' ? 1 : 0,
+        awayScoreChange: selectedTeam === 'away' ? 1 : 0,
+        previousHomeScore: homeScore,
+        previousAwayScore: awayScore,
+    };
+    setActionHistory(prev => [...prev, action]);
+
     setHomeScore(newHomeScore);
     setAwayScore(newAwayScore);
 
-    setScoreHistory(prev => [...prev, {
-      team: selectedTeam,
-      pointType,
-      playerId: selectedPlayer.id,
-      set: currentSet,
-      homeScore: newHomeScore,
-      awayScore: newAwayScore,
-    }]);
-
     await base44.entities.Game.update(game.id, {
-      home_score: newHomeScore,
-      away_score: newAwayScore,
+        home_score: newHomeScore,
+        away_score: newAwayScore,
     });
-
-    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
-    
-    if (pointType === 'attack') {
-      await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1);
-    } else if (pointType === 'block') {
-      await updatePlayerStat(selectedPlayer.id, teamId, 'blocks', 1);
-    } else if (pointType === 'ace') {
-      await updatePlayerStat(selectedPlayer.id, teamId, 'three_pointers', 1);
-    }
   };
 
-  const undoLastScore = async () => {
-    if (scoreHistory.length === 0) return;
+  const handleFoul = async (playerId) => {
+    if (!selectedPlayer || !selectedTeam || !game) return;
 
-    const lastAction = scoreHistory[scoreHistory.length - 1];
-    const newHomeScore = homeScore - (lastAction.team === 'home' ? 1 : 0);
-    const newAwayScore = awayScore - (lastAction.team === 'away' ? 1 : 0);
+    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
+    const key = getPlayerStatKey(playerId);
+    const currentFouls = playerStats[key]?.fouls || 0;
 
-    setHomeScore(newHomeScore);
-    setAwayScore(newAwayScore);
-    setScoreHistory(prev => prev.slice(0, -1));
+    const action = {
+        type: 'foul',
+        playerId: playerId,
+        teamId: teamId,
+        quarter: currentSet,
+        value: 1, // Fouls are always +1
+        previousStatValue: currentFouls, // Value before this action for undo
+    };
+    setActionHistory(prev => [...prev, action]);
 
-    await base44.entities.Game.update(game.id, {
-      home_score: newHomeScore,
-      away_score: newAwayScore,
-    });
+    await updatePlayerStat(playerId, teamId, 'fouls', 1);
+  };
 
-    if (lastAction.playerId && lastAction.pointType !== 'rally') {
-      const teamId = lastAction.team === 'home' ? game.home_team_id : game.away_team_id;
-      
-      if (lastAction.pointType === 'attack') {
-        await updatePlayerStat(lastAction.playerId, teamId, 'field_goals_made', -1);
-      } else if (lastAction.pointType === 'block') {
-        await updatePlayerStat(lastAction.playerId, teamId, 'blocks', -1);
-      } else if (lastAction.pointType === 'ace') {
-        await updatePlayerStat(lastAction.playerId, teamId, 'three_pointers', -1);
+  const handleUndo = async () => {
+    if (actionHistory.length === 0) return;
+
+    const lastAction = actionHistory[actionHistory.length - 1];
+    setActionHistory(prev => prev.slice(0, -1)); // Remove last action
+
+    if (lastAction.quarter !== currentSet) {
+      // If the undo action is from a previous set, we cannot directly undo it in the current context.
+      // For simplicity, we'll prevent undoing actions from previous sets for now.
+      // A more robust solution would involve reloading the game state for the previous set.
+      console.warn("Cannot undo action from a previous set.");
+      return; 
+    }
+
+    if (lastAction.type === 'score_point') {
+        const newHomeScore = lastAction.previousHomeScore;
+        const newAwayScore = lastAction.previousAwayScore;
+        setHomeScore(newHomeScore);
+        setAwayScore(newAwayScore);
+        await base44.entities.Game.update(game.id, {
+            home_score: newHomeScore,
+            away_score: newAwayScore,
+        });
+    } else if (lastAction.type === 'stat_update') {
+        await updatePlayerStat(lastAction.playerId, lastAction.teamId, lastAction.statType, -lastAction.value); // Reverse the change
+    } else if (lastAction.type === 'foul') {
+        await updatePlayerStat(lastAction.playerId, lastAction.teamId, 'fouls', -lastAction.value); // Reverse the foul
+    } else if (lastAction.type === 'timeout') {
+      if (lastAction.team === 'home') {
+        const newTimeouts = homeTimeouts + 1;
+        setHomeTimeouts(newTimeouts);
+        await base44.entities.Game.update(game.id, { home_timeouts: newTimeouts });
+      } else if (lastAction.team === 'away') {
+        const newTimeouts = awayTimeouts + 1;
+        setAwayTimeouts(newTimeouts);
+        await base44.entities.Game.update(game.id, { away_timeouts: newTimeouts });
       }
     }
   };
 
-  const updateStat = async (statType, value) => {
-    if (!selectedPlayer || !selectedTeam) return;
-    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
-    await updatePlayerStat(selectedPlayer.id, teamId, statType, value);
-  };
-
   const useTimeout = async (team) => {
-    if (team === 'home' && homeTimeouts > 0) {
-      const newTimeouts = homeTimeouts - 1;
-      setHomeTimeouts(newTimeouts);
-      await base44.entities.Game.update(game.id, { home_timeouts: newTimeouts });
-    } else if (team === 'away' && awayTimeouts > 0) {
-      const newTimeouts = awayTimeouts - 1;
-      setAwayTimeouts(newTimeouts);
-      await base44.entities.Game.update(game.id, { away_timeouts: newTimeouts });
+    if (game) {
+      const action = {
+        type: 'timeout',
+        team: team,
+        quarter: currentSet,
+      };
+      setActionHistory(prev => [...prev, action]);
+
+      if (team === 'home' && homeTimeouts > 0) {
+        const newTimeouts = homeTimeouts - 1;
+        setHomeTimeouts(newTimeouts);
+        await base44.entities.Game.update(game.id, { home_timeouts: newTimeouts });
+      } else if (team === 'away' && awayTimeouts > 0) {
+        const newTimeouts = awayTimeouts - 1;
+        setAwayTimeouts(newTimeouts);
+        await base44.entities.Game.update(game.id, { away_timeouts: newTimeouts });
+      }
     }
   };
 
@@ -250,25 +303,25 @@ export default function LiveScoringVolleyball() {
     if (currentSet < 5) {
       setCurrentSet(currentSet + 1);
     }
-
+    setHomeScore(0); // Reset score for new set
+    setAwayScore(0); // Reset score for new set
+    setActionHistory([]); // Clear history for the new set
     setShowSetEnd(false);
-    setScoreHistory([]);
   };
 
   const endGame = async () => {
     let homeSetsWon = 0;
     let awaySetsWon = 0;
     
+    // Count sets won from past sets
     setScores.forEach(set => {
       if (set.home > set.away) homeSetsWon++;
-      else if (set.away > set.home) awaySetsWon++; // Ensure only one team gets a win per set
+      else if (set.away > set.home) awaySetsWon++;
     });
 
-    // Check if the current set has a winner before adding to total set wins
-    if (homeScore !== awayScore) { // A set must have a winner
-      if (homeScore > awayScore) homeSetsWon++;
-      else awaySetsWon++;
-    }
+    // Add current set's winner if applicable
+    if (homeScore > awayScore) homeSetsWon++;
+    else if (awayScore > homeScore) awaySetsWon++;
 
 
     await base44.entities.Game.update(game.id, {
@@ -292,7 +345,7 @@ export default function LiveScoringVolleyball() {
           losses: (awayTeamToUpdate.losses || 0) + 1
         });
       }
-    } else if (awaySetsWon > homeSetsWon) { // This implicitly means awaySetsWon > homeSetsWon for the game outcome
+    } else if (awaySetsWon > homeSetsWon) {
       if (homeTeamToUpdate) {
         await base44.entities.Team.update(game.home_team_id, {
           losses: (homeTeamToUpdate.losses || 0) + 1
@@ -363,6 +416,8 @@ export default function LiveScoringVolleyball() {
     );
   };
 
+  const currentSetStats = selectedPlayer ? (playerStats[`${selectedPlayer.id}_${currentSet}`] || {}) : {};
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900">
       {/* STICKY HEADER - Scoreboard */}
@@ -419,78 +474,115 @@ export default function LiveScoringVolleyball() {
         </div>
       </div>
 
-      {/* STICKY CONTROL PANEL */}
-      {selectedPlayer && (
-        <div className="sticky top-[250px] z-40 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 border-y-4 border-blue-400 shadow-2xl">
-          <div className="max-w-7xl mx-auto p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-4">
-                <Avatar className="w-14 h-14 border-4 border-white shadow-xl">
-                  <AvatarImage src={selectedPlayer.photo_url} />
-                  <AvatarFallback className="bg-white text-blue-600 font-black text-lg">
-                    {selectedPlayer.jersey_number}
+      {/* Control Panel - Sticky at top when player selected */}
+      {selectedPlayer ? (
+        <Card className="sticky top-[250px] z-30 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Avatar className="w-14 h-14 border-4 border-blue-200 dark:border-blue-800 shadow-lg">
+                  <AvatarImage src={selectedPlayer?.photo_url} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
+                    {selectedPlayer?.jersey_number}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-white font-black text-lg">
-                    #{selectedPlayer.jersey_number} {selectedPlayer.first_name} {selectedPlayer.last_name}
-                  </p>
-                  <p className="text-blue-100 text-xs font-bold">
-                    {selectedTeam === 'home' ? homeTeam.name : awayTeam.name} • {selectedTeam.toUpperCase()}
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white">
+                    #{selectedPlayer?.jersey_number} {selectedPlayer?.first_name} {selectedPlayer?.last_name}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">
+                    {selectedTeam === 'home' ? homeTeam?.name : awayTeam?.name}
                   </p>
                 </div>
               </div>
               <Button
-                onClick={() => {
-                  setSelectedPlayer(null);
-                  setSelectedTeam(null);
-                }}
-                className="bg-white/20 hover:bg-white/30 text-white border-2 border-white font-black text-sm px-4 py-2"
+                variant="ghost"
+                onClick={() => setSelectedPlayer(null)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
-                ✕ CLOSE
+                ✕
               </Button>
             </div>
 
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-3 mb-4">
               <Button
-                onClick={() => addPoint('attack')}
-                className="flex-1 h-12 text-sm font-black bg-orange-500 hover:bg-orange-600 text-white border-3 border-white shadow-xl"
+                onClick={() => { handleStatUpdate('field_goals_made', 1); handleScorePoint('attack', selectedPlayer.id); }}
+                className="flex flex-col items-center justify-center h-20 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-lg shadow-md"
               >
-                🏐 ATK
+                <Target className="w-6 h-6 mb-1" />
+                Attack
               </Button>
               <Button
-                onClick={() => addPoint('block')}
-                className="flex-1 h-12 text-sm font-black bg-red-500 hover:bg-red-600 text-white border-3 border-white shadow-xl"
+                onClick={() => { handleStatUpdate('blocks', 1); handleScorePoint('block', selectedPlayer.id); }}
+                className="flex flex-col items-center justify-center h-20 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-lg shadow-md"
               >
-                🚫 BLK
-              </Button>
-              <Button
-                onClick={() => addPoint('ace')}
-                className="flex-1 h-12 text-sm font-black bg-yellow-500 hover:bg-yellow-600 text-white border-3 border-white shadow-xl"
-              >
-                ⚡ ACE
-              </Button>
-              <Button
-                onClick={() => addPoint('rally')}
-                className="flex-1 h-12 text-sm font-black bg-green-500 hover:bg-green-600 text-white border-3 border-white shadow-xl"
-              >
-                🎯 RLY
-              </Button>
-              <Button
-                onClick={undoLastScore}
-                disabled={scoreHistory.length === 0}
-                className="flex-1 h-12 text-sm font-black bg-gray-700 hover:bg-gray-800 text-white border-3 border-white shadow-xl disabled:opacity-50"
-              >
-                UNDO
+                <Shield className="w-6 h-6 mb-1" />
+                Block
               </Button>
             </div>
-          </div>
-        </div>
-      )}
 
-      {!selectedPlayer && (
-        <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 border-y-4 border-cyan-400 py-6 text-center sticky top-[250px] z-40">
-          <p className="text-white font-black text-xl">👆 SELECT A PLAYER TO START TRACKING</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={() => { handleStatUpdate('three_pointers', 1); handleScorePoint('ace', selectedPlayer.id); }}
+                className="flex flex-col items-center justify-center h-16 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold shadow-md"
+              >
+                <Zap className="w-5 h-5" />
+                Ace
+              </Button>
+              <Button
+                onClick={() => handleScorePoint('rally', selectedPlayer.id)}
+                className="flex flex-col items-center justify-center h-16 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold shadow-md"
+              >
+                <Trophy className="w-5 h-5" />
+                Rally Point
+              </Button>
+              <Button
+                onClick={() => handleFoul(selectedPlayer.id)}
+                className="flex flex-col items-center justify-center h-16 bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold shadow-md"
+              >
+                <AlertTriangle className="w-5 h-5" />
+                Foul
+              </Button>
+              <Button
+                onClick={handleUndo}
+                disabled={actionHistory.length === 0}
+                className="flex flex-col items-center justify-center h-16 bg-gradient-to-br from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-bold shadow-md disabled:opacity-50"
+              >
+                <RotateCcw className="w-5 h-5" />
+                Undo
+              </Button>
+            </div>
+
+            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+              <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Set Stats:</p>
+              <div className="grid grid-cols-4 gap-2 text-center">
+                <div>
+                  <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{currentSetStats.field_goals_made || 0}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">ATK</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-green-600 dark:text-green-400">{currentSetStats.blocks || 0}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">BLK</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-purple-600 dark:text-purple-400">{currentSetStats.three_pointers || 0}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">ACE</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{currentSetStats.fouls || 0}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">FOULS</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="sticky top-[250px] z-30 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-gray-700 rounded-xl p-8 text-center shadow-lg">
+          <User className="w-16 h-16 text-blue-400 dark:text-blue-500 mx-auto mb-4" />
+          <p className="text-xl font-black text-gray-900 dark:text-white mb-2">Select a Player</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+            Click on a player below to start tracking statistics
+          </p>
         </div>
       )}
 

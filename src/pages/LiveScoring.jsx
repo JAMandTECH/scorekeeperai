@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Minus, CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock } from "lucide-react";
+import { Plus, Minus, CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User } from "lucide-react"; // Added new icons
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -29,10 +29,10 @@ export default function LiveScoring() {
   const [homeTeamFouls, setHomeTeamFouls] = useState(0);
   const [awayTeamFouls, setAwayTeamFouls] = useState(0);
   const [playerStats, setPlayerStats] = useState({});
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [selectedPlayer, setSelectedPlayer] = useState(null); // This holds the raw player object
+  const [selectedTeam, setSelectedTeam] = useState(null); // 'home' or 'away'
   const [showQuarterEnd, setShowQuarterEnd] = useState(false);
-  const [scoreHistory, setScoreHistory] = useState([]);
+  const [actionHistory, setActionHistory] = useState([]); // Replaced scoreHistory
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -124,6 +124,12 @@ export default function LiveScoring() {
     return total;
   };
 
+  // New helper to get stats only for the current quarter
+  const getCurrentQuarterPlayerStat = (playerId, statType) => {
+    const key = `${playerId}_${currentQuarter}`;
+    return playerStats[key]?.[statType] || 0;
+  };
+
   const getTotalPlayerFouls = (playerId) => {
     let totalFouls = 0;
     for (let q = 1; q <= currentQuarter; q++) {
@@ -133,6 +139,8 @@ export default function LiveScoring() {
     return totalFouls;
   };
 
+  // Modified `updatePlayerStat` to also return the updated stat object with its ID
+  // This function is now a lower-level helper that updates state and DB for a single stat
   const updatePlayerStat = async (playerId, teamId, statType, value) => {
     const key = getPlayerStatKey(playerId);
     const existingStat = playerStats[key];
@@ -145,175 +153,248 @@ export default function LiveScoring() {
       player_id: playerId,
       team_id: teamId,
       quarter: currentQuarter,
-      [statType]: Math.max(0, newStatValue),
+      [statType]: Math.max(0, newStatValue), // Ensure stat doesn't go below 0
     };
 
+    // Optimistic UI update
     setPlayerStats(prev => ({
       ...prev,
       [key]: updatedStat,
     }));
 
+    let savedStatInDb;
     if (existingStat?.id) {
-      await base44.entities.PlayerGameStats.update(existingStat.id, updatedStat);
+      savedStatInDb = await base44.entities.PlayerGameStats.update(existingStat.id, updatedStat);
     } else {
-      const created = await base44.entities.PlayerGameStats.create(updatedStat);
-      updatedStat.id = created.id;
-      setPlayerStats(prev => ({
-        ...prev,
-        [key]: updatedStat,
-      }));
+      savedStatInDb = await base44.entities.PlayerGameStats.create(updatedStat);
     }
+    
+    // Ensure the state includes the actual ID from the DB, especially for new entries
+    const finalStat = { ...updatedStat, id: savedStatInDb.id || existingStat?.id };
+    setPlayerStats(prev => ({
+      ...prev,
+      [key]: finalStat,
+    }));
+
+    // Return enough information to reverse this specific stat update
+    return { 
+      statObjectId: finalStat.id, // The ID of the PlayerGameStats entity
+      playerId: playerId, 
+      teamId: teamId, 
+      quarter: currentQuarter, 
+      statType: statType, 
+      value: value // The value that was ADDED/SUBTRACTED
+    };
   };
 
-  const addScore = async (points) => {
+  // --- New/Modified Action Handlers ---
+
+  // Replaces existing `addScore`
+  const addPoints = async (points) => {
     if (!selectedPlayer || !selectedTeam) return;
+
+    const oldHomeScore = homeScore;
+    const oldAwayScore = awayScore;
 
     const newHomeScore = selectedTeam === 'home' ? homeScore + points : homeScore;
     const newAwayScore = selectedTeam === 'away' ? awayScore + points : awayScore;
 
     setHomeScore(newHomeScore);
     setAwayScore(newAwayScore);
-
-    setScoreHistory(prev => [...prev, {
-      team: selectedTeam,
-      points,
-      playerId: selectedPlayer.id,
-      quarter: currentQuarter,
-      homeScore: newHomeScore,
-      awayScore: newAwayScore,
-    }]);
-
     await base44.entities.Game.update(game.id, {
       home_score: newHomeScore,
       away_score: newAwayScore,
     });
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
+    const statUpdatesForUndo = [];
 
     // Update general points
-    await updatePlayerStat(selectedPlayer.id, teamId, 'points', points);
+    statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'points', points));
 
     // Track specific shot types
     if (points === 3) {
-      // 3-pointer made
-      await updatePlayerStat(selectedPlayer.id, teamId, 'three_pointers', 1);
-      await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1);
-      await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_attempted', 1);
+      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'three_pointers', 1));
+      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1));
+      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_attempted', 1));
     } else if (points === 2) {
-      // 2-pointer made
-      await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1);
-      await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_attempted', 1);
+      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1));
+      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_attempted', 1));
     } else if (points === 1) {
-      // Free throw made
-      await updatePlayerStat(selectedPlayer.id, teamId, 'free_throws_made', 1);
-      await updatePlayerStat(selectedPlayer.id, teamId, 'free_throws_attempted', 1);
+      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'free_throws_made', 1));
+      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'free_throws_attempted', 1));
     }
+
+    setActionHistory(prev => [...prev, {
+      type: 'score',
+      team: selectedTeam,
+      points: points,
+      playerId: selectedPlayer.id,
+      quarter: currentQuarter,
+      oldHomeScore: oldHomeScore,
+      oldAwayScore: oldAwayScore,
+      statChanges: statUpdatesForUndo, // Store details to undo specific player stats
+    }]);
   };
 
-  const undoLastScore = async () => {
-    if (scoreHistory.length === 0) return;
-
-    const lastAction = scoreHistory[scoreHistory.length - 1];
-    const newHomeScore = homeScore - (lastAction.team === 'home' ? lastAction.points : 0);
-    const newAwayScore = awayScore - (lastAction.team === 'away' ? lastAction.points : 0);
-
-    setHomeScore(newHomeScore);
-    setAwayScore(newAwayScore);
-    setScoreHistory(prev => prev.slice(0, -1));
-
-    await base44.entities.Game.update(game.id, {
-      home_score: newHomeScore,
-      away_score: newAwayScore,
-    });
-
-    if (lastAction.playerId) {
-      const teamId = lastAction.team === 'home' ? game.home_team_id : game.away_team_id;
-      
-      // Undo general points
-      await updatePlayerStat(lastAction.playerId, teamId, 'points', -lastAction.points);
-
-      // Undo specific shot types
-      if (lastAction.points === 3) {
-        await updatePlayerStat(lastAction.playerId, teamId, 'three_pointers', -1);
-        await updatePlayerStat(lastAction.playerId, teamId, 'field_goals_made', -1);
-        await updatePlayerStat(lastAction.playerId, teamId, 'field_goals_attempted', -1);
-      } else if (lastAction.points === 2) {
-        await updatePlayerStat(lastAction.playerId, teamId, 'field_goals_made', -1);
-        await updatePlayerStat(lastAction.playerId, teamId, 'field_goals_attempted', -1);
-      } else if (lastAction.points === 1) {
-        await updatePlayerStat(lastAction.playerId, teamId, 'free_throws_made', -1);
-        await updatePlayerStat(lastAction.playerId, teamId, 'free_throws_attempted', -1);
-      }
-    }
-  };
-
-  const addFoul = async () => {
+  // Replaces existing `updateStat` for other player stats (rebounds, assists, etc.)
+  const addPlayerStat = async (statType, value) => {
     if (!selectedPlayer || !selectedTeam) return;
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
-    await updatePlayerStat(selectedPlayer.id, teamId, 'fouls', 1);
+    const statUpdateForUndo = await updatePlayerStat(selectedPlayer.id, teamId, statType, value);
     
-    const newTeamFouls = selectedTeam === 'home' ? homeTeamFouls + 1 : awayTeamFouls + 1;
+    setActionHistory(prev => [...prev, {
+      type: statType, // e.g., 'rebounds', 'assists'
+      playerId: selectedPlayer.id,
+      teamId: teamId,
+      quarter: currentQuarter,
+      value: value, // The value added (should be 1 for these buttons)
+      statChanges: [statUpdateForUndo], // Store specific details for reversal
+    }]);
+  };
+
+  // Replaces existing `addFoul` and `removeFoul` related logic. `removeFoul` is now part of `handleUndo`
+  const handleFoul = async () => {
+    if (!selectedPlayer || !selectedTeam) return;
+
+    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
+    const oldTeamFouls = selectedTeam === 'home' ? homeTeamFouls : awayTeamFouls;
+    
+    const statUpdateForUndo = await updatePlayerStat(selectedPlayer.id, teamId, 'fouls', 1);
+    
+    const newTeamFouls = oldTeamFouls + 1;
     if (selectedTeam === 'home') {
       setHomeTeamFouls(newTeamFouls);
+      await base44.entities.Game.update(game.id, { home_team_fouls: newTeamFouls });
     } else {
       setAwayTeamFouls(newTeamFouls);
+      await base44.entities.Game.update(game.id, { away_team_fouls: newTeamFouls });
     }
 
-    await base44.entities.Game.update(game.id, {
-      home_team_fouls: selectedTeam === 'home' ? newTeamFouls : homeTeamFouls,
-      away_team_fouls: selectedTeam === 'away' ? newTeamFouls : awayTeamFouls,
-    });
+    setActionHistory(prev => [...prev, {
+      type: 'foul',
+      playerId: selectedPlayer.id,
+      teamId: teamId,
+      quarter: currentQuarter,
+      team: selectedTeam, // 'home' or 'away'
+      oldTeamFouls: oldTeamFouls, // To revert team fouls
+      statChanges: [statUpdateForUndo],
+    }]);
 
-    const totalFouls = getTotalPlayerFouls(selectedPlayer.id) + 1;
+    const totalFouls = getTotalPlayerFouls(selectedPlayer.id) + 1; // +1 because we just added one
     if (totalFouls >= game.player_foul_limit) {
       alert(`⚠️ Player has reached foul limit (${game.player_foul_limit} fouls) and is disqualified!`);
-      setSelectedPlayer(null);
+      setSelectedPlayer(null); // Deselect player if fouled out
       setSelectedTeam(null);
     } else if (totalFouls === game.player_foul_limit - 1) {
       alert(`⚠️ Warning: Player has ${totalFouls} fouls! One more foul and they will be disqualified.`);
     }
   };
 
-  const removeFoul = async () => {
-    if (!selectedPlayer || !selectedTeam) return;
-
-    // We need to check the fouls for the CURRENT quarter to decrement from `updatePlayerStat` properly.
-    const currentQuarterFouls = playerStats[getPlayerStatKey(selectedPlayer.id)]?.fouls || 0;
-
-    if (currentQuarterFouls === 0) return; // Only allow removing fouls from the current quarter's tally
-
-    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
-    await updatePlayerStat(selectedPlayer.id, teamId, 'fouls', -1);
-    
-    const newTeamFouls = Math.max(0, (selectedTeam === 'home' ? homeTeamFouls : awayTeamFouls) - 1);
-    if (selectedTeam === 'home') {
-      setHomeTeamFouls(newTeamFouls);
-    } else {
-      setAwayTeamFouls(newTeamFouls);
-    }
-
-    await base44.entities.Game.update(game.id, {
-      home_team_fouls: selectedTeam === 'home' ? newTeamFouls : homeTeamFouls,
-      away_team_fouls: selectedTeam === 'away' ? newTeamFouls : awayTeamFouls,
-    });
-  };
-
-  const updateStat = async (statType, value) => {
-    if (!selectedPlayer || !selectedTeam) return;
-    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
-    await updatePlayerStat(selectedPlayer.id, teamId, statType, value);
-  };
-
+  // Modified `useTimeout` to record in history
   const useTimeout = async (team) => {
+    const oldHomeTimeouts = homeTimeouts;
+    const oldAwayTimeouts = awayTimeouts;
+
     if (team === 'home' && homeTimeouts > 0) {
       const newTimeouts = homeTimeouts - 1;
       setHomeTimeouts(newTimeouts);
       await base44.entities.Game.update(game.id, { home_timeouts: newTimeouts });
+      setActionHistory(prev => [...prev, {
+        type: 'timeout',
+        team: 'home',
+        quarter: currentQuarter,
+        oldTimeouts: oldHomeTimeouts,
+      }]);
     } else if (team === 'away' && awayTimeouts > 0) {
       const newTimeouts = awayTimeouts - 1;
       setAwayTimeouts(newTimeouts);
       await base44.entities.Game.update(game.id, { away_timeouts: newTimeouts });
+      setActionHistory(prev => [...prev, {
+        type: 'timeout',
+        team: 'away',
+        quarter: currentQuarter,
+        oldTimeouts: oldAwayTimeouts,
+      }]);
+    }
+  };
+
+  // Replaces existing `undoLastScore`
+  const handleUndo = async () => {
+    if (actionHistory.length === 0) return;
+
+    const lastAction = actionHistory[actionHistory.length - 1];
+    setActionHistory(prev => prev.slice(0, -1)); // Remove from history
+
+    if (lastAction.type === 'score') {
+      // Revert game score
+      setHomeScore(lastAction.oldHomeScore);
+      setAwayScore(lastAction.oldAwayScore);
+      await base44.entities.Game.update(game.id, {
+        home_score: lastAction.oldHomeScore,
+        away_score: lastAction.oldAwayScore,
+      });
+
+      // Revert player stats
+      for (const actionChange of lastAction.statChanges) {
+        const { playerId, quarter, statType, value, statObjectId } = actionChange;
+        const key = `${playerId}_${quarter}`;
+        const existingStat = playerStats[key];
+        if (existingStat && statObjectId) {
+          const newStatValue = Math.max(0, (existingStat?.[statType] || 0) - value);
+          const updatedStat = { ...existingStat, [statType]: newStatValue };
+          setPlayerStats(prev => ({
+            ...prev,
+            [key]: updatedStat,
+          }));
+          await base44.entities.PlayerGameStats.update(statObjectId, updatedStat);
+        }
+      }
+    } else if (['rebounds', 'assists', 'steals', 'blocks'].includes(lastAction.type)) {
+      const actionChange = lastAction.statChanges[0]; // These actions have only one stat change
+      const { playerId, quarter, statType, value, statObjectId } = actionChange;
+      const key = `${playerId}_${quarter}`;
+      const existingStat = playerStats[key];
+      if (existingStat && statObjectId) {
+          const newStatValue = Math.max(0, (existingStat?.[statType] || 0) - value);
+          const updatedStat = { ...existingStat, [statType]: newStatValue };
+          setPlayerStats(prev => ({
+            ...prev,
+            [key]: updatedStat,
+          }));
+          await base44.entities.PlayerGameStats.update(statObjectId, updatedStat);
+      }
+    } else if (lastAction.type === 'foul') {
+      const actionChange = lastAction.statChanges[0];
+      const { playerId, quarter, statType, value, statObjectId } = actionChange;
+      const key = `${playerId}_${quarter}`;
+      const existingStat = playerStats[key];
+      if (existingStat && statObjectId) {
+          const newStatValue = Math.max(0, (existingStat?.[statType] || 0) - value);
+          const updatedStat = { ...existingStat, [statType]: newStatValue };
+          setPlayerStats(prev => ({
+            ...prev,
+            [key]: updatedStat,
+          }));
+          await base44.entities.PlayerGameStats.update(statObjectId, updatedStat);
+      }
+      // Revert team fouls
+      if (lastAction.team === 'home') {
+          setHomeTeamFouls(lastAction.oldTeamFouls);
+          await base44.entities.Game.update(game.id, { home_team_fouls: lastAction.oldTeamFouls });
+      } else {
+          setAwayTeamFouls(lastAction.oldTeamFouls);
+          await base44.entities.Game.update(game.id, { away_team_fouls: lastAction.oldTeamFouls });
+      }
+    } else if (lastAction.type === 'timeout') {
+      if (lastAction.team === 'home') {
+        setHomeTimeouts(lastAction.oldTimeouts);
+        await base44.entities.Game.update(game.id, { home_timeouts: lastAction.oldTimeouts });
+      } else {
+        setAwayTimeouts(lastAction.oldTimeouts);
+        await base44.entities.Game.update(game.id, { away_timeouts: lastAction.oldTimeouts });
+      }
     }
   };
 
@@ -342,7 +423,7 @@ export default function LiveScoring() {
 
     setCurrentQuarter(nextQuarter); // Update local state
     setShowQuarterEnd(false);
-    setScoreHistory([]);
+    setActionHistory([]); // Reset action history for new quarter
   };
 
   const endGame = async () => {
@@ -526,166 +607,133 @@ export default function LiveScoring() {
         </div>
       </div>
 
-      {/* STICKY CONTROL PANEL */}
-      {selectedPlayer && (
-        <div className="sticky top-[280px] z-40 bg-gradient-to-r from-orange-600 via-orange-500 to-orange-600 border-y-4 border-orange-400 shadow-2xl">
-          <div className="max-w-7xl mx-auto p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-4">
-                <Avatar className="w-14 h-14 border-4 border-white shadow-xl">
-                  <AvatarImage src={selectedPlayer.photo_url} />
-                  <AvatarFallback className="bg-white text-orange-600 font-black text-lg">
-                    {selectedPlayer.jersey_number}
+      {/* Control Panel - Sticky at top when player selected */}
+      {selectedPlayer ? (
+        <Card className="sticky top-4 z-30 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Avatar className="w-14 h-14 border-4 border-blue-200 dark:border-blue-800 shadow-lg">
+                  <AvatarImage src={selectedPlayer.photo_url} /> {/* Corrected from selectedPlayer.player?.photo_url */}
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
+                    {selectedPlayer.jersey_number} {/* Corrected from selectedPlayer.player?.jersey_number */}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-white font-black text-lg">
-                    #{selectedPlayer.jersey_number} {selectedPlayer.first_name} {selectedPlayer.last_name}
-                  </p>
-                  <p className="text-orange-100 text-xs font-bold">
-                    {selectedTeam === 'home' ? homeTeam.name : awayTeam.name} • {selectedTeam.toUpperCase()}
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white">
+                    #{selectedPlayer.jersey_number} {selectedPlayer.first_name} {selectedPlayer.last_name} {/* Corrected */}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">
+                    {selectedTeam === 'home' ? homeTeam?.name : awayTeam?.name}
                   </p>
                 </div>
               </div>
               <Button
-                onClick={() => {
-                  setSelectedPlayer(null);
-                  setSelectedTeam(null);
-                }}
-                className="bg-white/20 hover:bg-white/30 text-white border-2 border-white font-black text-sm px-4 py-2"
+                variant="ghost"
+                onClick={() => setSelectedPlayer(null)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
-                ✕ CLOSE
+                ✕
               </Button>
             </div>
 
-            {/* Scoring Buttons */}
-            <div className="flex gap-2 mb-2">
+            <div className="grid grid-cols-3 gap-3 mb-4">
               <Button
-                onClick={() => addScore(1)}
-                className="flex-1 h-12 text-lg font-black bg-white text-orange-600 hover:bg-orange-50 border-3 border-white shadow-xl"
+                onClick={() => addPoints(1)}
+                className="h-20 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-lg shadow-md"
               >
-                +1
+                +1 PT
               </Button>
               <Button
-                onClick={() => addScore(2)}
-                className="flex-1 h-12 text-lg font-black bg-white text-orange-600 hover:bg-orange-50 border-3 border-white shadow-xl"
+                onClick={() => addPoints(2)}
+                className="h-20 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-lg shadow-md"
               >
-                +2
+                +2 PTS
               </Button>
               <Button
-                onClick={() => addScore(3)}
-                className="flex-1 h-12 text-lg font-black bg-white text-orange-600 hover:bg-orange-50 border-3 border-white shadow-xl"
+                onClick={() => addPoints(3)}
+                className="h-20 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-lg shadow-md"
               >
-                +3
-              </Button>
-              <Button
-                onClick={undoLastScore}
-                disabled={scoreHistory.length === 0}
-                className="flex-1 h-12 text-sm font-black bg-yellow-600 hover:bg-yellow-700 text-white border-3 border-white shadow-xl disabled:opacity-50"
-              >
-                UNDO
+                +3 PTS
               </Button>
             </div>
 
-            {/* Stats Buttons with Undo */}
-            <div className="grid grid-cols-4 gap-2 mb-2">
-              {/* Rebounds */}
-              <div className="flex flex-col gap-1">
-                <Button
-                  onClick={() => updateStat('rebounds', 1)}
-                  className="h-10 text-xs font-black bg-blue-500 hover:bg-blue-600 text-white border-2 border-white shadow-lg"
-                >
-                  +REB
-                </Button>
-                {getPlayerStat(selectedPlayer.id, 'rebounds') > 0 && (
-                  <Button
-                    onClick={() => updateStat('rebounds', -1)}
-                    className="h-8 text-[10px] font-black bg-blue-300 hover:bg-blue-400 text-blue-900 border border-white shadow-sm"
-                  >
-                    -REB
-                  </Button>
-                )}
-              </div>
-
-              {/* Assists */}
-              <div className="flex flex-col gap-1">
-                <Button
-                  onClick={() => updateStat('assists', 1)}
-                  className="h-10 text-xs font-black bg-green-500 hover:bg-green-600 text-white border-2 border-white shadow-lg"
-                >
-                  +AST
-                </Button>
-                {getPlayerStat(selectedPlayer.id, 'assists') > 0 && (
-                  <Button
-                    onClick={() => updateStat('assists', -1)}
-                    className="h-8 text-[10px] font-black bg-green-300 hover:bg-green-400 text-green-900 border border-white shadow-sm"
-                  >
-                    -AST
-                  </Button>
-                )}
-              </div>
-
-              {/* Steals */}
-              <div className="flex flex-col gap-1">
-                <Button
-                  onClick={() => updateStat('steals', 1)}
-                  className="h-10 text-xs font-black bg-purple-500 hover:bg-purple-600 text-white border-2 border-white shadow-lg"
-                >
-                  +STL
-                </Button>
-                {getPlayerStat(selectedPlayer.id, 'steals') > 0 && (
-                  <Button
-                    onClick={() => updateStat('steals', -1)}
-                    className="h-8 text-[10px] font-black bg-purple-300 hover:bg-purple-400 text-purple-900 border border-white shadow-sm"
-                  >
-                    -STL
-                  </Button>
-                )}
-              </div>
-
-              {/* Blocks */}
-              <div className="flex flex-col gap-1">
-                <Button
-                  onClick={() => updateStat('blocks', 1)}
-                  className="h-10 text-xs font-black bg-pink-500 hover:bg-pink-600 text-white border-2 border-white shadow-lg"
-                >
-                  +BLK
-                </Button>
-                {getPlayerStat(selectedPlayer.id, 'blocks') > 0 && (
-                  <Button
-                    onClick={() => updateStat('blocks', -1)}
-                    className="h-8 text-[10px] font-black bg-pink-300 hover:bg-pink-400 text-pink-900 border border-white shadow-sm"
-                  >
-                    -BLK
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Foul Buttons */}
-            <div className="flex gap-2">
+            <div className="grid grid-cols-3 gap-3">
               <Button
-                onClick={addFoul}
-                className="flex-1 h-10 text-sm font-black bg-red-600 hover:bg-red-700 text-white border-2 border-white shadow-lg"
+                onClick={() => addPlayerStat('rebounds', 1)}
+                className="h-16 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold shadow-md"
               >
-                ADD FOUL
+                <TrendingUp className="w-5 h-5 mr-2" />
+                Rebound
               </Button>
-              {getPlayerStat(selectedPlayer.id, 'fouls') > 0 && (
-                <Button
-                  onClick={removeFoul}
-                  className="flex-1 h-10 text-xs font-black bg-white/20 hover:bg-white/30 text-white border-2 border-white shadow-lg"
-                >
-                  UNDO FOUL
-                </Button>
-              )}
+              <Button
+                onClick={() => addPlayerStat('assists', 1)}
+                className="h-16 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold shadow-md"
+              >
+                <Target className="w-5 h-5 mr-2" />
+                Assist
+              </Button>
+              <Button
+                onClick={() => addPlayerStat('steals', 1)}
+                className="h-16 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold shadow-md"
+              >
+                <Zap className="w-5 h-5 mr-2" />
+                Steal
+              </Button>
+              <Button
+                onClick={() => addPlayerStat('blocks', 1)}
+                className="h-16 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold shadow-md"
+              >
+                <Shield className="w-5 h-5 mr-2" />
+                Block
+              </Button>
+              <Button
+                onClick={handleFoul} // Corrected: no need to pass selectedPlayer.id as it's in scope
+                className="h-16 bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold shadow-md"
+              >
+                <AlertTriangle className="w-5 h-5 mr-2" />
+                Foul
+              </Button>
+              <Button
+                onClick={handleUndo}
+                disabled={actionHistory.length === 0}
+                className="h-16 bg-gradient-to-br from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-bold shadow-md disabled:opacity-50"
+              >
+                <RotateCcw className="w-5 h-5 mr-2" />
+                Undo
+              </Button>
             </div>
-          </div>
-        </div>
-      )}
 
-      {!selectedPlayer && (
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 border-y-4 border-blue-400 py-6 text-center sticky top-[280px] z-40">
-          <p className="text-white font-black text-xl">👆 SELECT A PLAYER TO START TRACKING</p>
+            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+              <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Quarter Stats:</p>
+              <div className="grid grid-cols-4 gap-2 text-center">
+                <div>
+                  <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'points')}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">PTS</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-green-600 dark:text-green-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'rebounds')}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">REB</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-purple-600 dark:text-purple-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'assists')}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">AST</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'fouls')}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">FOULS</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="sticky top-4 z-30 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-gray-700 rounded-xl p-8 text-center shadow-lg">
+          <User className="w-16 h-16 text-blue-400 dark:text-blue-500 mx-auto mb-4" />
+          <p className="text-xl font-black text-gray-900 dark:text-white mb-2">Select a Player</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+            Click on a player below to start tracking statistics
+          </p>
         </div>
       )}
 
