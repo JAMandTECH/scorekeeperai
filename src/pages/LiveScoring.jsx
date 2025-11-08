@@ -188,12 +188,26 @@ export default function LiveScoring() {
       away_score: newAwayScore,
     });
 
-    await updatePlayerStat(
-      selectedPlayer.id, 
-      selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 
-      'points', 
-      points
-    );
+    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
+
+    // Update general points
+    await updatePlayerStat(selectedPlayer.id, teamId, 'points', points);
+
+    // Track specific shot types
+    if (points === 3) {
+      // 3-pointer made
+      await updatePlayerStat(selectedPlayer.id, teamId, 'three_pointers', 1);
+      await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1);
+      await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_attempted', 1);
+    } else if (points === 2) {
+      // 2-pointer made
+      await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1);
+      await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_attempted', 1);
+    } else if (points === 1) {
+      // Free throw made
+      await updatePlayerStat(selectedPlayer.id, teamId, 'free_throws_made', 1);
+      await updatePlayerStat(selectedPlayer.id, teamId, 'free_throws_attempted', 1);
+    }
   };
 
   const undoLastScore = async () => {
@@ -213,12 +227,23 @@ export default function LiveScoring() {
     });
 
     if (lastAction.playerId) {
-      await updatePlayerStat(
-        lastAction.playerId,
-        lastAction.team === 'home' ? game.home_team_id : game.away_team_id,
-        'points',
-        -lastAction.points
-      );
+      const teamId = lastAction.team === 'home' ? game.home_team_id : game.away_team_id;
+      
+      // Undo general points
+      await updatePlayerStat(lastAction.playerId, teamId, 'points', -lastAction.points);
+
+      // Undo specific shot types
+      if (lastAction.points === 3) {
+        await updatePlayerStat(lastAction.playerId, teamId, 'three_pointers', -1);
+        await updatePlayerStat(lastAction.playerId, teamId, 'field_goals_made', -1);
+        await updatePlayerStat(lastAction.playerId, teamId, 'field_goals_attempted', -1);
+      } else if (lastAction.points === 2) {
+        await updatePlayerStat(lastAction.playerId, teamId, 'field_goals_made', -1);
+        await updatePlayerStat(lastAction.playerId, teamId, 'field_goals_attempted', -1);
+      } else if (lastAction.points === 1) {
+        await updatePlayerStat(lastAction.playerId, teamId, 'free_throws_made', -1);
+        await updatePlayerStat(lastAction.playerId, teamId, 'free_throws_attempted', -1);
+      }
     }
   };
 
