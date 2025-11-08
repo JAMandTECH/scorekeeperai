@@ -504,52 +504,58 @@ export default function LiveScoringVolleyball() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="flex flex-wrap gap-2 mb-3">
               <Button
-                onClick={() => { handleStatUpdate('field_goals_made', 1); handleScorePoint('attack', selectedPlayer.id); }}
-                className="flex flex-col items-center justify-center h-20 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-lg shadow-md"
+                onClick={async () => {
+                  await handleStatUpdate('field_goals_made', 1);
+                  await handleScorePoint('attack', selectedPlayer.id);
+                }}
+                className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-xs shadow-md"
               >
-                <Target className="w-6 h-6 mb-1" />
-                Attack
+                <Target className="w-4 h-4 mr-1" />
+                ATTACK
               </Button>
               <Button
-                onClick={() => { handleStatUpdate('blocks', 1); handleScorePoint('block', selectedPlayer.id); }}
-                className="flex flex-col items-center justify-center h-20 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-lg shadow-md"
+                onClick={async () => {
+                  await handleStatUpdate('blocks', 1);
+                  await handleScorePoint('block', selectedPlayer.id);
+                }}
+                className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-xs shadow-md"
               >
-                <Shield className="w-6 h-6 mb-1" />
-                Block
+                <Shield className="w-4 h-4 mr-1" />
+                BLOCK
               </Button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
               <Button
-                onClick={() => { handleStatUpdate('three_pointers', 1); handleScorePoint('ace', selectedPlayer.id); }}
-                className="flex flex-col items-center justify-center h-16 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold shadow-md"
+                onClick={async () => {
+                  await handleStatUpdate('three_pointers', 1);
+                  await handleScorePoint('ace', selectedPlayer.id);
+                }}
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold text-xs shadow-md"
               >
-                <Zap className="w-5 h-5" />
-                Ace
+                <Zap className="w-4 h-4 mr-1" />
+                ACE
               </Button>
               <Button
                 onClick={() => handleScorePoint('rally', selectedPlayer.id)}
-                className="flex flex-col items-center justify-center h-16 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold shadow-md"
+                className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold text-xs shadow-md"
               >
-                <Trophy className="w-5 h-5" />
-                Rally Point
+                <Trophy className="w-4 h-4 mr-1" />
+                RALLY
               </Button>
               <Button
                 onClick={() => handleFoul(selectedPlayer.id)}
-                className="flex flex-col items-center justify-center h-16 bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold text-xs shadow-md"
               >
-                <AlertTriangle className="w-5 h-5" />
-                Foul
+                <AlertTriangle className="w-4 h-4 mr-1" />
+                FOUL
               </Button>
               <Button
                 onClick={handleUndo}
                 disabled={actionHistory.length === 0}
-                className="flex flex-col items-center justify-center h-16 bg-gradient-to-br from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-bold shadow-md disabled:opacity-50"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-bold text-xs shadow-md disabled:opacity-50"
               >
-                <RotateCcw className="w-5 h-5" />
-                Undo
+                <RotateCcw className="w-4 h-4 mr-1" />
+                UNDO
               </Button>
             </div>
 

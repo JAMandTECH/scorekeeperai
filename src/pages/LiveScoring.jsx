@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -658,70 +659,67 @@ export default function LiveScoring() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="flex flex-wrap gap-2 mb-3">
               <Button
                 onClick={() => addPoints(1)}
-                className="h-20 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-lg shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-sm shadow-md"
               >
                 +1 PT
               </Button>
               <Button
                 onClick={() => addPoints(2)}
-                className="h-20 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-lg shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-sm shadow-md"
               >
                 +2 PTS
               </Button>
               <Button
                 onClick={() => addPoints(3)}
-                className="h-20 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-lg shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-sm shadow-md"
               >
                 +3 PTS
               </Button>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
               <Button
                 onClick={() => addPlayerStat('rebounds', 1)}
-                className="h-16 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold text-xs shadow-md"
               >
-                <TrendingUp className="w-5 h-5 mr-2" />
-                Rebound
+                <TrendingUp className="w-4 h-4 mr-1" />
+                REB
               </Button>
               <Button
                 onClick={() => addPlayerStat('assists', 1)}
-                className="h-16 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold text-xs shadow-md"
               >
-                <Target className="w-5 h-5 mr-2" />
-                Assist
+                <Target className="w-4 h-4 mr-1" />
+                AST
               </Button>
               <Button
                 onClick={() => addPlayerStat('steals', 1)}
-                className="h-16 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold text-xs shadow-md"
               >
-                <Zap className="w-5 h-5 mr-2" />
-                Steal
+                <Zap className="w-4 h-4 mr-1" />
+                STL
               </Button>
               <Button
                 onClick={() => addPlayerStat('blocks', 1)}
-                className="h-16 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold text-xs shadow-md"
               >
-                <Shield className="w-5 h-5 mr-2" />
-                Block
+                <Shield className="w-4 h-4 mr-1" />
+                BLK
               </Button>
               <Button
                 onClick={handleFoul}
-                className="h-16 bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold text-xs shadow-md"
               >
-                <AlertTriangle className="w-5 h-5 mr-2" />
-                Foul
+                <AlertTriangle className="w-4 h-4 mr-1" />
+                FOUL
               </Button>
               <Button
                 onClick={handleUndo}
                 disabled={actionHistory.length === 0}
-                className="h-16 bg-gradient-to-br from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-bold shadow-md disabled:opacity-50"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-bold text-xs shadow-md disabled:opacity-50"
               >
-                <RotateCcw className="w-5 h-5 mr-2" />
-                Undo
+                <RotateCcw className="w-4 h-4 mr-1" />
+                UNDO
               </Button>
             </div>
 
