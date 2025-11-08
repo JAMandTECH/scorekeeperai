@@ -138,7 +138,6 @@ export default function LiveScoring() {
     return totalFouls;
   };
 
-  // FIXED: Use callback form to read from latest state
   const updatePlayerStat = async (playerId, teamId, statType, value) => {
     const key = getPlayerStatKey(playerId);
     
@@ -223,6 +222,7 @@ export default function LiveScoring() {
     if (points === 3) {
       statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'three_pointers', 1));
       statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1));
+      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'three_pointers_attempted', 1)); // Also increment 3PT attempts
       statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_attempted', 1));
     } else if (points === 2) {
       statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1));
@@ -252,7 +252,7 @@ export default function LiveScoring() {
     
     if (statUpdateForUndo) {
       setActionHistory(prev => [...prev, {
-        type: statType,
+        type: statType, // e.g., 'rebounds', 'assists'
         playerId: selectedPlayer.id,
         teamId: teamId,
         quarter: currentQuarter,
@@ -261,6 +261,33 @@ export default function LiveScoring() {
       }]);
     }
   };
+
+  const handleMissedShot = async (shotType) => {
+    if (!selectedPlayer || !selectedTeam) return;
+
+    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
+    const statUpdatesForUndo = [];
+
+    if (shotType === '3pt') {
+      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'three_pointers_attempted', 1));
+      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_attempted', 1));
+    } else if (shotType === '2pt') {
+      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_attempted', 1));
+    } else if (shotType === 'ft') {
+      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'free_throws_attempted', 1));
+    }
+
+    if (statUpdatesForUndo.length > 0) {
+      setActionHistory(prev => [...prev, {
+        type: `missed_${shotType}`,
+        playerId: selectedPlayer.id,
+        teamId: teamId,
+        quarter: currentQuarter,
+        statChanges: statUpdatesForUndo.filter(s => s !== null),
+      }]);
+    }
+  };
+
 
   const handleFoul = async () => {
     if (!selectedPlayer || !selectedTeam) return;
@@ -334,14 +361,21 @@ export default function LiveScoring() {
     const lastAction = actionHistory[actionHistory.length - 1];
     setActionHistory(prev => prev.slice(0, -1));
 
-    if (lastAction.type === 'score') {
-      setHomeScore(lastAction.oldHomeScore);
-      setAwayScore(lastAction.oldAwayScore);
-      await base44.entities.Game.update(game.id, {
-        home_score: lastAction.oldHomeScore,
-        away_score: lastAction.oldAwayScore,
-      });
+    if (lastAction.type === 'score' ||
+        ['rebounds', 'assists', 'steals', 'blocks', 'fouls'].includes(lastAction.type) ||
+        ['missed_3pt', 'missed_2pt', 'missed_ft'].includes(lastAction.type)) {
+      
+      // If it's a score, revert game score first
+      if (lastAction.type === 'score') {
+        setHomeScore(lastAction.oldHomeScore);
+        setAwayScore(lastAction.oldAwayScore);
+        await base44.entities.Game.update(game.id, {
+          home_score: lastAction.oldHomeScore,
+          away_score: lastAction.oldAwayScore,
+        });
+      }
 
+      // Revert player stats
       for (const actionChange of lastAction.statChanges) {
         const { playerId, quarter, statType, value, statObjectId } = actionChange;
         const key = `${playerId}_${quarter}`;
@@ -362,54 +396,18 @@ export default function LiveScoring() {
           return prev;
         });
       }
-    } else if (['rebounds', 'assists', 'steals', 'blocks'].includes(lastAction.type)) {
-      const actionChange = lastAction.statChanges[0];
-      const { playerId, quarter, statType, value, statObjectId } = actionChange;
-      const key = `${playerId}_${quarter}`;
-      
-      setPlayerStats(prev => {
-        const existingStat = prev[key];
-        if (existingStat && statObjectId) {
-          const newStatValue = Math.max(0, (existingStat?.[statType] || 0) - value);
-          const updatedStat = { ...existingStat, [statType]: newStatValue };
-          
-          base44.entities.PlayerGameStats.update(statObjectId, updatedStat);
-          
-          return {
-            ...prev,
-            [key]: updatedStat,
-          };
+
+      // Revert team fouls if the action was a foul
+      if (lastAction.type === 'foul') {
+        if (lastAction.team === 'home') {
+          setHomeTeamFouls(lastAction.oldTeamFouls);
+          await base44.entities.Game.update(game.id, { home_team_fouls: lastAction.oldTeamFouls });
+        } else {
+          setAwayTeamFouls(lastAction.oldTeamFouls);
+          await base44.entities.Game.update(game.id, { away_team_fouls: lastAction.oldTeamFouls });
         }
-        return prev;
-      });
-    } else if (lastAction.type === 'foul') {
-      const actionChange = lastAction.statChanges[0];
-      const { playerId, quarter, statType, value, statObjectId } = actionChange;
-      const key = `${playerId}_${quarter}`;
-      
-      setPlayerStats(prev => {
-        const existingStat = prev[key];
-        if (existingStat && statObjectId) {
-          const newStatValue = Math.max(0, (existingStat?.[statType] || 0) - value);
-          const updatedStat = { ...existingStat, [statType]: newStatValue };
-          
-          base44.entities.PlayerGameStats.update(statObjectId, updatedStat);
-          
-          return {
-            ...prev,
-            [key]: updatedStat,
-          };
-        }
-        return prev;
-      });
-      
-      if (lastAction.team === 'home') {
-        setHomeTeamFouls(lastAction.oldTeamFouls);
-        await base44.entities.Game.update(game.id, { home_team_fouls: lastAction.oldTeamFouls });
-      } else {
-        setAwayTeamFouls(lastAction.oldTeamFouls);
-        await base44.entities.Game.update(game.id, { away_team_fouls: lastAction.oldTeamFouls });
       }
+
     } else if (lastAction.type === 'timeout') {
       if (lastAction.team === 'home') {
         setHomeTimeouts(lastAction.oldTimeouts);
@@ -677,6 +675,27 @@ export default function LiveScoring() {
                 className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 +3 PTS
+              </Button>
+              <Button
+                onClick={() => handleMissedShot('3pt')}
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+              >
+                <Minus className="w-4 h-4 mr-1" />
+                MISS 3PT
+              </Button>
+              <Button
+                onClick={() => handleMissedShot('2pt')}
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+              >
+                <Minus className="w-4 h-4 mr-1" />
+                MISS 2PT
+              </Button>
+              <Button
+                onClick={() => handleMissedShot('ft')}
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+              >
+                <Minus className="w-4 h-4 mr-1" />
+                MISS FT
               </Button>
               <Button
                 onClick={() => addPlayerStat('rebounds', 1)}
