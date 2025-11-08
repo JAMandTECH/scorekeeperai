@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -444,18 +445,24 @@ export default function LiveScoring() {
           </div>
 
           <div className="grid grid-cols-3 gap-4 items-center mb-4">
+            {/* Home Team */}
             <div className="text-center">
               <div className="text-orange-400 text-sm font-black mb-2">HOME</div>
-              <div className="text-white text-2xl font-black mb-1">{homeTeam.name}</div>
+              <div className="text-white text-xl font-black mb-1 flex items-center justify-center gap-2">
+                <span>{homeTeam.name}</span>
+                <Badge className="bg-orange-500/30 text-orange-200 border border-orange-400 text-xs font-bold px-2">
+                  TO: {homeTimeouts}
+                </Badge>
+              </div>
               <div className="text-orange-500 text-7xl font-black mb-2">{homeScore}</div>
-              <div className="flex justify-center gap-4 text-xs font-bold">
+              <div className="flex justify-center text-xs font-bold">
                 <span className={`${inPenalty('home') ? 'text-red-400' : 'text-white'}`}>
                   FOULS: {homeTeamFouls}/{game.penalty_limit_per_quarter}
                 </span>
-                <span className="text-white">TO: {homeTimeouts}</span>
               </div>
             </div>
 
+            {/* Quarter Info */}
             <div className="text-center">
               <div className="text-white text-xl font-black mb-2">{quarterLabel}</div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
@@ -471,15 +478,20 @@ export default function LiveScoring() {
               </div>
             </div>
 
+            {/* Away Team */}
             <div className="text-center">
               <div className="text-blue-400 text-sm font-black mb-2">AWAY</div>
-              <div className="text-white text-2xl font-black mb-1">{awayTeam.name}</div>
+              <div className="text-white text-xl font-black mb-1 flex items-center justify-center gap-2">
+                <span>{awayTeam.name}</span>
+                <Badge className="bg-blue-500/30 text-blue-200 border border-blue-400 text-xs font-bold px-2">
+                  TO: {awayTimeouts}
+                </Badge>
+              </div>
               <div className="text-blue-500 text-7xl font-black mb-2">{awayScore}</div>
-              <div className="flex justify-center gap-4 text-xs font-bold">
+              <div className="flex justify-center text-xs font-bold">
                 <span className={`${inPenalty('away') ? 'text-red-400' : 'text-white'}`}>
                   FOULS: {awayTeamFouls}/{game.penalty_limit_per_quarter}
                 </span>
-                <span className="text-white">TO: {awayTimeouts}</span>
               </div>
             </div>
           </div>
@@ -529,7 +541,6 @@ export default function LiveScoring() {
               </Button>
             </div>
 
-            {/* Quick Score - Horizontal Single Line with Undo */}
             <div className="flex gap-2 mb-3">
               <Button
                 onClick={() => addScore(1)}
@@ -558,7 +569,6 @@ export default function LiveScoring() {
               </Button>
             </div>
 
-            {/* Foul Controls */}
             <div className="flex gap-2">
               <Button
                 onClick={addFoul}
