@@ -116,8 +116,12 @@ export default function LiveScoring() {
   const getPlayerStatKey = (playerId) => `${playerId}_${currentQuarter}`;
 
   const getPlayerStat = (playerId, statType) => {
-    const key = getPlayerStatKey(playerId);
-    return playerStats[key]?.[statType] || 0;
+    let total = 0;
+    for (let q = 1; q <= currentQuarter; q++) {
+      const key = `${playerId}_${q}`;
+      total += playerStats[key]?.[statType] || 0;
+    }
+    return total;
   };
 
   const getTotalPlayerFouls = (playerId) => {
@@ -249,8 +253,13 @@ export default function LiveScoring() {
   const removeFoul = async () => {
     if (!selectedPlayer || !selectedTeam) return;
 
-    const currentFouls = getPlayerStat(selectedPlayer.id, 'fouls');
-    if (currentFouls === 0) return;
+    const currentFouls = getPlayerStat(selectedPlayer.id, 'fouls'); // This gets cumulative fouls
+    // We need to check the fouls for the CURRENT quarter to decrement from `updatePlayerStat` properly.
+    // However, the `getTotalPlayerFouls` also gets cumulative fouls.
+    // The `updatePlayerStat` *adds* to the current quarter's fouls, so we must check for current quarter's fouls.
+    const currentQuarterFouls = playerStats[`${selectedPlayer.id}_${currentQuarter}`]?.fouls || 0;
+
+    if (currentQuarterFouls === 0) return; // Only allow removing fouls from the current quarter's tally
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
     await updatePlayerStat(selectedPlayer.id, teamId, 'fouls', -1);
@@ -569,7 +578,7 @@ export default function LiveScoring() {
               >
                 ADD FOUL
               </Button>
-              {getPlayerStat(selectedPlayer.id, 'fouls') > 0 && (
+              {playerStats[`${selectedPlayer?.id}_${currentQuarter}`]?.fouls > 0 && ( // Check fouls in current quarter
                 <Button
                   onClick={removeFoul}
                   className="flex-1 bg-white/20 hover:bg-white/30 text-white border-2 border-white font-black h-11 text-sm"
