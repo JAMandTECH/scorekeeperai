@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,7 @@ export default function LiveScoring() {
 
   useEffect(() => {
     loadGame();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadGame = async () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -114,32 +114,32 @@ export default function LiveScoring() {
     enabled: !!game?.away_team_id,
   });
 
-  const getPlayerStatKey = (playerId) => `${playerId}_${currentQuarter}`;
+  const getPlayerStatKey = useCallback((playerId) => `${playerId}_${currentQuarter}`, [currentQuarter]);
 
-  const getPlayerStat = (playerId, statType) => {
+  const getPlayerStat = useCallback((playerId, statType) => {
     let total = 0;
     for (let q = 1; q <= currentQuarter; q++) {
       const key = `${playerId}_${q}`;
       total += playerStats[key]?.[statType] || 0;
     }
     return total;
-  };
+  }, [currentQuarter, playerStats]);
 
-  const getCurrentQuarterPlayerStat = (playerId, statType) => {
+  const getCurrentQuarterPlayerStat = useCallback((playerId, statType) => {
     const key = `${playerId}_${currentQuarter}`;
     return playerStats[key]?.[statType] || 0;
-  };
+  }, [currentQuarter, playerStats]);
 
-  const getTotalPlayerFouls = (playerId) => {
+  const getTotalPlayerFouls = useCallback((playerId) => {
     let totalFouls = 0;
     for (let q = 1; q <= currentQuarter; q++) {
       const key = `${playerId}_${q}`;
       totalFouls += playerStats[key]?.fouls || 0;
     }
     return totalFouls;
-  };
+  }, [currentQuarter, playerStats]);
 
-  const updatePlayerStat = async (playerId, teamId, statType, value) => {
+  const updatePlayerStat = useCallback(async (playerId, teamId, statType, value) => {
     const key = getPlayerStatKey(playerId);
     const existingStat = playerStats[key];
     const newStatValue = (existingStat?.[statType] || 0) + value;
@@ -153,19 +153,16 @@ export default function LiveScoring() {
       [statType]: Math.max(0, newStatValue),
     };
 
-    // Update state immediately
     setPlayerStats(prev => ({
       ...prev,
       [key]: updatedStat,
     }));
 
-    // Save to database
     try {
       if (existingStat?.id) {
         await base44.entities.PlayerGameStats.update(existingStat.id, updatedStat);
       } else {
         const created = await base44.entities.PlayerGameStats.create(updatedStat);
-        // Update with the created ID
         updatedStat.id = created.id;
         setPlayerStats(prev => ({
           ...prev,
@@ -185,9 +182,9 @@ export default function LiveScoring() {
       console.error("Error saving player stat:", error);
       return null;
     }
-  };
+  }, [game, currentQuarter, playerStats, getPlayerStatKey]);
 
-  const addPoints = async (points) => {
+  const addPoints = useCallback(async (points) => {
     if (!selectedPlayer || !selectedTeam) return;
 
     const oldHomeScore = homeScore;
@@ -201,7 +198,6 @@ export default function LiveScoring() {
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
     
-    // Batch all stat updates
     const statUpdates = [
       { statType: 'points', value: points }
     ];
@@ -225,13 +221,11 @@ export default function LiveScoring() {
       );
     }
 
-    // Update game score
     await base44.entities.Game.update(game.id, {
       home_score: newHomeScore,
       away_score: newAwayScore,
     });
 
-    // Update all stats
     const statUpdatesForUndo = [];
     for (const statUpdate of statUpdates) {
       const result = await updatePlayerStat(selectedPlayer.id, teamId, statUpdate.statType, statUpdate.value);
@@ -248,9 +242,9 @@ export default function LiveScoring() {
       oldAwayScore: oldAwayScore,
       statChanges: statUpdatesForUndo,
     }]);
-  };
+  }, [selectedPlayer, selectedTeam, homeScore, awayScore, game, currentQuarter, updatePlayerStat]);
 
-  const addPlayerStat = async (statType, value) => {
+  const addPlayerStat = useCallback(async (statType, value) => {
     if (!selectedPlayer || !selectedTeam) return;
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
@@ -266,9 +260,9 @@ export default function LiveScoring() {
         statChanges: [statUpdateForUndo],
       }]);
     }
-  };
+  }, [selectedPlayer, selectedTeam, game, currentQuarter, updatePlayerStat]);
 
-  const handleFoul = async () => {
+  const handleFoul = useCallback(async () => {
     if (!selectedPlayer || !selectedTeam) return;
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
@@ -305,9 +299,9 @@ export default function LiveScoring() {
     } else if (totalFouls === game.player_foul_limit - 1) {
       alert(`⚠️ Warning: Player has ${totalFouls} fouls! One more foul and they will be disqualified.`);
     }
-  };
+  }, [selectedPlayer, selectedTeam, game, currentQuarter, homeTeamFouls, awayTeamFouls, updatePlayerStat, getTotalPlayerFouls]);
 
-  const useTimeout = async (team) => {
+  const useTimeout = useCallback(async (team) => {
     const oldHomeTimeouts = homeTimeouts;
     const oldAwayTimeouts = awayTimeouts;
 
@@ -332,9 +326,9 @@ export default function LiveScoring() {
         oldTimeouts: oldAwayTimeouts,
       }]);
     }
-  };
+  }, [game, currentQuarter, homeTimeouts, awayTimeouts]);
 
-  const handleUndo = async () => {
+  const handleUndo = useCallback(async () => {
     if (actionHistory.length === 0) return;
 
     const lastAction = actionHistory[actionHistory.length - 1];
@@ -392,9 +386,9 @@ export default function LiveScoring() {
         await base44.entities.Game.update(game.id, { away_timeouts: lastAction.oldTimeouts });
       }
     }
-  };
+  }, [actionHistory, game]);
 
-  const endQuarter = async () => {
+  const endQuarter = useCallback(async () => {
     const quarterScore = {
       quarter: currentQuarter,
       home: homeScore,
@@ -420,9 +414,9 @@ export default function LiveScoring() {
     setCurrentQuarter(nextQuarter);
     setShowQuarterEnd(false);
     setActionHistory([]);
-  };
+  }, [currentQuarter, homeScore, awayScore, quarterScores, game]);
 
-  const endGame = async () => {
+  const endGame = useCallback(async () => {
     if (homeScore === awayScore && currentQuarter >= 4) {
       alert("Game is tied! Please play overtime period.");
       return;
@@ -459,7 +453,7 @@ export default function LiveScoring() {
     }
 
     navigate(createPageUrl("Games"));
-  };
+  }, [game, homeScore, awayScore, currentQuarter, navigate]);
 
   if (!game || !homeTeam || !awayTeam) {
     return (
@@ -474,7 +468,7 @@ export default function LiveScoring() {
     return (team === 'home' ? homeTeamFouls : awayTeamFouls) >= game.penalty_limit_per_quarter;
   };
 
-  const PlayerRow = ({ player, team, teamId }) => {
+  const PlayerRow = React.memo(({ player, team, teamId, onSelect }) => {
     const totalFouls = getTotalPlayerFouls(player.id);
     const points = getPlayerStat(player.id, 'points');
     const rebounds = getPlayerStat(player.id, 'rebounds');
@@ -488,8 +482,7 @@ export default function LiveScoring() {
       <button
         onClick={() => {
           if (isFouledOut) return;
-          setSelectedPlayer(player);
-          setSelectedTeam(team);
+          onSelect(player, team);
         }}
         className={`w-full text-left border-2 rounded-lg p-2 mb-2 transition-all ${
           isFouledOut 
@@ -528,7 +521,12 @@ export default function LiveScoring() {
         </div>
       </button>
     );
-  };
+  });
+
+  const handlePlayerSelect = useCallback((player, team) => {
+    setSelectedPlayer(player);
+    setSelectedTeam(team);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900">
@@ -809,27 +807,27 @@ export default function LiveScoring() {
                       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
                         <div>
                           <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'points')}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">PTS</div>
+                          <div className="xs text-gray-500 dark:text-gray-400 font-semibold">PTS</div>
                         </div>
                         <div>
                           <div className="text-2xl font-black text-green-600 dark:text-green-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'rebounds')}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">REB</div>
+                          <div className="xs text-gray-500 dark:text-gray-400 font-semibold">REB</div>
                         </div>
                         <div>
                           <div className="text-2xl font-black text-purple-600 dark:text-purple-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'assists')}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">AST</div>
+                          <div className="xs text-gray-500 dark:text-gray-400 font-semibold">AST</div>
                         </div>
                         <div>
                           <div className="text-2xl font-black text-cyan-600 dark:text-cyan-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'steals')}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">STL</div>
+                          <div className="xs text-gray-500 dark:text-gray-400 font-semibold">STL</div>
                         </div>
                         <div>
                           <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'blocks')}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">BLK</div>
+                          <div className="xs text-gray-500 dark:text-gray-400 font-semibold">BLK</div>
                         </div>
                         <div>
                           <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'fouls')}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">FOULS</div>
+                          <div className="xs text-gray-500 dark:text-gray-400 font-semibold">FOULS</div>
                         </div>
                       </div>
                     </div>
@@ -873,7 +871,7 @@ export default function LiveScoring() {
             {/* SCROLLABLE PLAYERS */}
             <div className="flex-1 overflow-y-auto p-3">
               {homePlayers.map(player => (
-                <PlayerRow key={player.id} player={player} team="home" teamId={game.home_team_id} />
+                <PlayerRow key={player.id} player={player} team="home" teamId={game.home_team_id} onSelect={handlePlayerSelect} />
               ))}
             </div>
           </div>
@@ -899,7 +897,7 @@ export default function LiveScoring() {
             {/* SCROLLABLE PLAYERS */}
             <div className="flex-1 overflow-y-auto p-3">
               {awayPlayers.map(player => (
-                <PlayerRow key={player.id} player={player} team="away" teamId={game.away_team_id} />
+                <PlayerRow key={player.id} player={player} team="away" teamId={game.away_team_id} onSelect={handlePlayerSelect} />
               ))}
             </div>
           </div>

@@ -1,10 +1,10 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Minus, CheckCircle, PlayCircle, ChevronRight, Clock, Target, Shield, Zap, Trophy, AlertTriangle, RotateCcw, User, Eye, EyeOff } from "lucide-react";
+import { PlayCircle, ChevronRight, Clock, Target, Shield, Zap, Trophy, RotateCcw, User, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -35,7 +35,7 @@ export default function LiveScoringVolleyball() {
 
   useEffect(() => {
     loadGame();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadGame = async () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -109,23 +109,23 @@ export default function LiveScoringVolleyball() {
     enabled: !!game?.away_team_id,
   });
 
-  const getPlayerStatKey = (playerId) => `${playerId}_${currentSet}`;
+  const getPlayerStatKey = useCallback((playerId) => `${playerId}_${currentSet}`, [currentSet]);
 
-  const getPlayerStat = (playerId, statType) => {
+  const getPlayerStat = useCallback((playerId, statType) => {
     let total = 0;
     for (let s = 1; s <= currentSet; s++) {
       const key = `${playerId}_${s}`;
       total += playerStats[key]?.[statType] || 0;
     }
     return total;
-  };
+  }, [currentSet, playerStats]);
 
-  const getCurrentSetPlayerStat = (playerId, statType) => {
+  const getCurrentSetPlayerStat = useCallback((playerId, statType) => {
     const key = `${playerId}_${currentSet}`;
     return playerStats[key]?.[statType] || 0;
-  };
+  }, [currentSet, playerStats]);
 
-  const updatePlayerStat = async (playerId, teamId, statType, value) => {
+  const updatePlayerStat = useCallback(async (playerId, teamId, statType, value) => {
     const key = getPlayerStatKey(playerId);
     const existingStat = playerStats[key];
     const newStatValue = (existingStat?.[statType] || 0) + value;
@@ -160,9 +160,9 @@ export default function LiveScoringVolleyball() {
     } catch (error) {
       console.error("Error saving player stat:", error);
     }
-  };
+  }, [game, currentSet, playerStats, getPlayerStatKey]);
 
-  const handleStatUpdate = async (statType, value) => {
+  const handleStatUpdate = useCallback(async (statType, value) => {
     if (!selectedPlayer || !selectedTeam || !game) return;
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
@@ -181,9 +181,9 @@ export default function LiveScoringVolleyball() {
     setActionHistory(prev => [...prev, action]);
 
     await updatePlayerStat(selectedPlayer.id, teamId, statType, value);
-  };
+  }, [selectedPlayer, selectedTeam, game, currentSet, playerStats, getPlayerStatKey, updatePlayerStat]);
 
-  const handleScorePoint = async (pointType = 'rally', playerId = null) => {
+  const handleScorePoint = useCallback(async (pointType = 'rally', playerId = null) => {
     if (!selectedTeam || !game) return;
 
     const newHomeScore = selectedTeam === 'home' ? homeScore + 1 : homeScore;
@@ -209,9 +209,9 @@ export default function LiveScoringVolleyball() {
         home_score: newHomeScore,
         away_score: newAwayScore,
     });
-  };
+  }, [selectedTeam, game, homeScore, awayScore, currentSet]);
 
-  const handleUndo = async () => {
+  const handleUndo = useCallback(async () => {
     if (actionHistory.length === 0) return;
 
     const lastAction = actionHistory[actionHistory.length - 1];
@@ -244,9 +244,9 @@ export default function LiveScoringVolleyball() {
         await base44.entities.Game.update(game.id, { away_timeouts: newTimeouts });
       }
     }
-  };
+  }, [actionHistory, currentSet, game, homeTimeouts, awayTimeouts, updatePlayerStat]);
 
-  const useTimeout = async (team) => {
+  const useTimeout = useCallback(async (team) => {
     if (game) {
       const action = {
         type: 'timeout',
@@ -265,9 +265,9 @@ export default function LiveScoringVolleyball() {
         await base44.entities.Game.update(game.id, { away_timeouts: newTimeouts });
       }
     }
-  };
+  }, [game, currentSet, homeTimeouts, awayTimeouts]);
 
-  const endSet = async () => {
+  const endSet = useCallback(async () => {
     const setScore = {
       quarter: currentSet,
       home: homeScore,
@@ -289,9 +289,9 @@ export default function LiveScoringVolleyball() {
     setAwayScore(0);
     setActionHistory([]);
     setShowSetEnd(false);
-  };
+  }, [currentSet, homeScore, awayScore, setScores, game]);
 
-  const endGame = async () => {
+  const endGame = useCallback(async () => {
     let homeSetsWon = 0;
     let awaySetsWon = 0;
     
@@ -338,7 +338,7 @@ export default function LiveScoringVolleyball() {
     }
 
     navigate(createPageUrl("Games"));
-  };
+  }, [game, homeScore, awayScore, setScores, navigate]);
 
   if (!game || !homeTeam || !awayTeam) {
     return (
@@ -349,8 +349,9 @@ export default function LiveScoringVolleyball() {
   }
 
   const setLabel = `Set ${currentSet}`;
+  const currentSetStats = selectedPlayer ? (playerStats[`${selectedPlayer.id}_${currentSet}`] || {}) : {};
 
-  const PlayerRow = ({ player, team, teamId }) => {
+  const PlayerRow = React.memo(({ player, team, teamId, onSelect }) => {
     const attacks = getPlayerStat(player.id, 'field_goals_made');
     const blocks = getPlayerStat(player.id, 'blocks');
     const aces = getPlayerStat(player.id, 'three_pointers');
@@ -361,10 +362,7 @@ export default function LiveScoringVolleyball() {
 
     return (
       <button
-        onClick={() => {
-          setSelectedPlayer(player);
-          setSelectedTeam(team);
-        }}
+        onClick={() => onSelect(player, team)}
         className={`w-full text-left border-2 rounded-lg p-2 mb-2 transition-all ${
           isSelected
             ? 'bg-gradient-to-r from-blue-500 to-blue-600 border-blue-400 ring-2 ring-blue-300 shadow-lg scale-105'
@@ -393,9 +391,12 @@ export default function LiveScoringVolleyball() {
         </div>
       </button>
     );
-  };
+  });
 
-  const currentSetStats = selectedPlayer ? (playerStats[`${selectedPlayer.id}_${currentSet}`] || {}) : {};
+  const handlePlayerSelect = useCallback((player, team) => {
+    setSelectedPlayer(player);
+    setSelectedTeam(team);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900">
@@ -568,7 +569,7 @@ export default function LiveScoringVolleyball() {
                     ACE
                   </Button>
                   <Button
-                    onClick={handleScorePoint('rally', selectedPlayer.id)}
+                    onClick={() => handleScorePoint('rally', selectedPlayer.id)}
                     className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Trophy className="w-4 h-4 mr-1" />
@@ -665,7 +666,7 @@ export default function LiveScoringVolleyball() {
             {/* SCROLLABLE PLAYERS */}
             <div className="flex-1 overflow-y-auto p-3">
               {homePlayers.map(player => (
-                <PlayerRow key={player.id} player={player} team="home" teamId={game.home_team_id} />
+                <PlayerRow key={player.id} player={player} team="home" teamId={game.home_team_id} onSelect={handlePlayerSelect} />
               ))}
             </div>
           </div>
@@ -691,7 +692,7 @@ export default function LiveScoringVolleyball() {
             {/* SCROLLABLE PLAYERS */}
             <div className="flex-1 overflow-y-auto p-3">
               {awayPlayers.map(player => (
-                <PlayerRow key={player.id} player={player} team="away" teamId={game.away_team_id} />
+                <PlayerRow key={player.id} player={player} team="away" teamId={game.away_team_id} onSelect={handlePlayerSelect} />
               ))}
             </div>
           </div>
