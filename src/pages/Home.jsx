@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Calendar, TrendingUp, Target, Award, Zap, Shield, ArrowRight, Sun, Moon } from "lucide-react";
+import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon } from "lucide-react"; // Removed Award
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -697,7 +697,13 @@ export default function Home() {
         <section className="mb-20">
           <div className="flex items-center gap-4 mb-10">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Award className="w-7 h-7 text-white" />
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 2a10 10 0 0 0 0 20"/>
+                <path d="M12 2a10 10 0 0 1 0 20"/>
+                <path d="M2 12h20"/>
+                <path d="M12 2v20"/>
+              </svg>
             </div>
             <div>
               <h2 className="text-4xl font-black text-gray-900 dark:text-white">Volleyball</h2>
