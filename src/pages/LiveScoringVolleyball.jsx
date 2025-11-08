@@ -543,13 +543,6 @@ export default function LiveScoringVolleyball() {
                 RALLY
               </Button>
               <Button
-                onClick={() => handleFoul(selectedPlayer.id)}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
-              >
-                <AlertTriangle className="w-4 h-4 mr-1" />
-                FOUL
-              </Button>
-              <Button
                 onClick={handleUndo}
                 disabled={actionHistory.length === 0}
                 className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
