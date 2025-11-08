@@ -304,25 +304,18 @@ export default function LiveScoring() {
     setHomeTeamFouls(0);
     setAwayTeamFouls(0);
 
+    const nextQuarter = currentQuarter + 1;
+    const newOvertimeCount = nextQuarter > 4 ? (nextQuarter - 4) : 0; // Calculate overtime count dynamically
+
     await base44.entities.Game.update(game.id, {
       quarter_scores: newQuarterScores,
-      current_quarter: currentQuarter + 1,
+      current_quarter: nextQuarter, // Always increment current_quarter
       home_team_fouls: 0,
       away_team_fouls: 0,
+      overtime_count: newOvertimeCount,
     });
 
-    if (currentQuarter < 4) {
-      setCurrentQuarter(currentQuarter + 1);
-    } else {
-      if (homeScore === awayScore) {
-        setCurrentQuarter(5);
-        await base44.entities.Game.update(game.id, {
-          current_quarter: 5,
-          overtime_count: 1,
-        });
-      }
-    }
-
+    setCurrentQuarter(nextQuarter); // Update local state
     setShowQuarterEnd(false);
     setScoreHistory([]);
   };
@@ -340,24 +333,24 @@ export default function LiveScoring() {
     });
 
     if (homeScore > awayScore) {
-      const homeTeamData = await base44.entities.Team.list();
-      const home = homeTeamData.find(t => t.id === game.home_team_id);
+      const allTeams = await base44.entities.Team.list(); // Fetch all teams once
+      const home = allTeams.find(t => t.id === game.home_team_id);
       await base44.entities.Team.update(game.home_team_id, {
         wins: (home.wins || 0) + 1
       });
       
-      const away = homeTeamData.find(t => t.id === game.away_team_id);
+      const away = allTeams.find(t => t.id === game.away_team_id);
       await base44.entities.Team.update(game.away_team_id, {
         losses: (away.losses || 0) + 1
       });
     } else {
-      const homeTeamData = await base44.entities.Team.list();
-      const home = homeTeamData.find(t => t.id === game.home_team_id);
+      const allTeams = await base44.entities.Team.list(); // Fetch all teams once
+      const home = allTeams.find(t => t.id === game.home_team_id);
       await base44.entities.Team.update(game.home_team_id, {
         losses: (home.losses || 0) + 1
       });
       
-      const away = homeTeamData.find(t => t.id === game.away_team_id);
+      const away = allTeams.find(t => t.id === game.away_team_id);
       await base44.entities.Team.update(game.away_team_id, {
         wins: (away.wins || 0) + 1
       });
@@ -735,7 +728,16 @@ export default function LiveScoring() {
                   <ChevronRight className="w-5 h-5 ml-2" />
                 </Button>
               )}
-              {currentQuarter >= 4 && (
+              {currentQuarter > 4 && (
+                <Button
+                  onClick={() => setShowQuarterEnd(true)}
+                  className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-black text-lg px-8 py-6"
+                >
+                  END {quarterLabel}
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </Button>
+              )}
+              {currentQuarter >= 4 && homeScore !== awayScore && (
                 <Button
                   onClick={endGame}
                   className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-black text-lg px-8 py-6"
@@ -743,6 +745,25 @@ export default function LiveScoring() {
                   <CheckCircle className="w-5 h-5 mr-2" />
                   END GAME
                 </Button>
+              )}
+              {currentQuarter >= 4 && homeScore === awayScore && (
+                <div className="w-full">
+                  <Alert className="bg-yellow-900/50 border-2 border-yellow-500 mb-4">
+                    <AlertTriangle className="h-5 w-5 text-yellow-400" />
+                    <AlertDescription className="text-yellow-200 font-bold text-center">
+                      ⚠️ Game is TIED! Must play overtime period before ending game.
+                    </AlertDescription>
+                  </Alert>
+                  {currentQuarter === 4 && (
+                    <Button
+                      onClick={() => setShowQuarterEnd(true)}
+                      className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-black text-lg px-8 py-6"
+                    >
+                      START OVERTIME (OT)
+                      <ChevronRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  )}
+                </div>
               )}
               <Button
                 onClick={() => navigate(createPageUrl("Games"))}
@@ -759,9 +780,13 @@ export default function LiveScoring() {
       <Dialog open={showQuarterEnd} onOpenChange={setShowQuarterEnd}>
         <DialogContent className="bg-gray-900 border-4 border-orange-500 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white text-2xl font-black">End of {quarterLabel}</DialogTitle>
+            <DialogTitle className="text-white text-2xl font-black">
+              End of {quarterLabel}
+            </DialogTitle>
             <DialogDescription className="text-gray-300 font-bold">
-              Save quarter data and proceed to next period?
+              {currentQuarter === 4 && homeScore === awayScore 
+                ? 'Game is tied! Overtime will begin.' 
+                : 'Save quarter data and proceed to next period?'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -776,19 +801,29 @@ export default function LiveScoring() {
               </div>
             </div>
             {currentQuarter === 4 && homeScore === awayScore && (
-              <Alert className="bg-yellow-900/50 border-2 border-yellow-500">
-                <AlertTriangle className="h-4 w-4 text-yellow-400" />
-                <AlertDescription className="text-yellow-200 font-bold">
-                  Game is tied! Overtime period will begin.
+              <Alert className="bg-purple-900/50 border-2 border-purple-500">
+                <AlertTriangle className="h-4 w-4 text-purple-400" />
+                <AlertDescription className="text-purple-200 font-bold">
+                  🏀 Game is tied! Overtime period (OT) will begin.
                 </AlertDescription>
               </Alert>
             )}
             <div className="flex gap-3">
               <Button
                 onClick={endQuarter}
-                className="flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-black"
+                className={`flex-1 font-black ${
+                  currentQuarter >= 4 && homeScore === awayScore
+                    ? 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
+                    : 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800'
+                } text-white`}
               >
-                PROCEED TO {currentQuarter < 4 ? `Q${currentQuarter + 1}` : (homeScore === awayScore ? 'OT' : 'END GAME')}
+                {currentQuarter < 4 
+                  ? `PROCEED TO Q${currentQuarter + 1}` 
+                  : currentQuarter === 4 && homeScore === awayScore 
+                    ? 'START OVERTIME' 
+                    : currentQuarter > 4 && homeScore === awayScore
+                      ? `PROCEED TO OT${currentQuarter - 3}`
+                      : 'FINISH QUARTER'}
               </Button>
               <Button
                 onClick={() => setShowQuarterEnd(false)}
