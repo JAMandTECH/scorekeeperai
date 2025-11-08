@@ -15,6 +15,7 @@ import VerifyAdminCode from './pages/VerifyAdminCode';
 import LiveScoringVolleyball from './pages/LiveScoringVolleyball';
 import Divisions from './pages/Divisions';
 import Scorekeepers from './pages/Scorekeepers';
+import PublicLanding from './pages/PublicLanding';
 import Layout from './Layout.jsx';
 
 
@@ -36,6 +37,7 @@ export const PAGES = {
     "LiveScoringVolleyball": LiveScoringVolleyball,
     "Divisions": Divisions,
     "Scorekeepers": Scorekeepers,
+    "PublicLanding": PublicLanding,
 }
 
 export const pagesConfig = {
