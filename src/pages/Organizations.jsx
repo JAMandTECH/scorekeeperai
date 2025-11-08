@@ -5,13 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Building2, Mail, Phone, MapPin, Edit } from "lucide-react";
+import { Plus, Building2, Mail, Phone, MapPin, Edit, Upload, Image } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Organizations() {
   const [showForm, setShowForm] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: organizations = [], isLoading } = useQuery({
@@ -25,6 +28,7 @@ export default function Organizations() {
       queryClient.invalidateQueries(['organizations']);
       setShowForm(false);
       setEditingOrg(null);
+      setLogoFile(null);
     },
   });
 
@@ -34,29 +38,45 @@ export default function Organizations() {
       queryClient.invalidateQueries(['organizations']);
       setShowForm(false);
       setEditingOrg(null);
+      setLogoFile(null);
     },
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = {
-      name: formData.get('name'),
-      contact_email: formData.get('contact_email'),
-      contact_phone: formData.get('contact_phone'),
-      address: formData.get('address'),
-      status: formData.get('status') || 'active',
-    };
+    setUploading(true);
 
-    if (editingOrg) {
-      updateMutation.mutate({ id: editingOrg.id, data });
-    } else {
-      createMutation.mutate(data);
+    try {
+      const formData = new FormData(e.target);
+      const data = {
+        name: formData.get('name'),
+        contact_email: formData.get('contact_email'),
+        contact_phone: formData.get('contact_phone'),
+        address: formData.get('address'),
+        status: formData.get('status') || 'active',
+      };
+
+      // Upload logo if a new file was selected
+      if (logoFile) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: logoFile });
+        data.logo_url = file_url;
+      }
+
+      if (editingOrg) {
+        updateMutation.mutate({ id: editingOrg.id, data });
+      } else {
+        createMutation.mutate(data);
+      }
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+    } finally {
+      setUploading(false);
     }
   };
 
   const handleEdit = (org) => {
     setEditingOrg(org);
+    setLogoFile(null);
     setShowForm(true);
   };
 
@@ -73,6 +93,7 @@ export default function Organizations() {
             <Button 
               onClick={() => {
                 setEditingOrg(null);
+                setLogoFile(null);
                 setShowForm(true);
               }}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
@@ -90,9 +111,12 @@ export default function Organizations() {
                 <CardHeader className="relative z-10">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <Building2 className="w-7 h-7 text-white" />
-                      </div>
+                      <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
+                        <AvatarImage src={org.logo_url} />
+                        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-purple-600 text-white font-black text-lg">
+                          {org.name?.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
                       <div className="flex-1 min-w-0">
                         <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{org.name}</CardTitle>
                         <Badge 
@@ -156,6 +180,28 @@ export default function Organizations() {
                 <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">{editingOrg ? 'Edit Organization' : 'Add New Organization'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Organization Logo Upload */}
+                <div>
+                  <Label className="font-bold text-gray-700 dark:text-gray-300">Organization Logo</Label>
+                  <div className="mt-2 flex items-center gap-4">
+                    <Avatar className="w-20 h-20 border-4 border-gray-200 dark:border-gray-600">
+                      <AvatarImage src={logoFile ? URL.createObjectURL(logoFile) : editingOrg?.logo_url} />
+                      <AvatarFallback className="bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700">
+                        <Image className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setLogoFile(e.target.files[0])}
+                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">PNG, JPG, or GIF (Max 5MB)</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="name" className="font-bold text-gray-700 dark:text-gray-300">Organization Name</Label>
                   <Input
@@ -199,8 +245,15 @@ export default function Organizations() {
                   <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold">
                     Cancel
                   </Button>
-                  <Button type="submit" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
-                    {editingOrg ? 'Update' : 'Create'}
+                  <Button type="submit" disabled={uploading} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
+                    {uploading ? (
+                      <>
+                        <Upload className="w-4 h-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      editingOrg ? 'Update' : 'Create'
+                    )}
                   </Button>
                 </div>
               </form>
