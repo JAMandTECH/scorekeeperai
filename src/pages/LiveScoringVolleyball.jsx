@@ -376,6 +376,9 @@ export default function LiveScoringVolleyball() {
             <Badge className="bg-blue-600 text-white border-2 border-blue-400 px-4 py-2 text-sm font-black">
               VOLLEYBALL
             </Badge>
+            <Badge className="bg-purple-600 text-white border-2 border-purple-400 px-4 py-2 text-sm font-black">
+              {game.game_type?.replace('_', ' ').toUpperCase() || 'REGULAR SEASON'}
+            </Badge>
           </div>
 
           <div className="grid grid-cols-3 gap-4 items-center mb-4">
