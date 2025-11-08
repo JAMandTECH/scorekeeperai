@@ -136,14 +136,14 @@ export default function Players() {
               <h3 className="text-gray-900 dark:text-white font-black text-lg truncate">
                 {player.first_name} {player.last_name}
               </h3>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-2 mt-2"> {/* Changed mt-1 to mt-2 */}
                 {teamLogo && (
-                  <Avatar className="w-5 h-5 border border-gray-300 dark:border-gray-600">
+                  <Avatar className="w-7 h-7 border-2 border-gray-300 dark:border-gray-600 shadow-md"> {/* Changed w-5 h-5 border to w-7 h-7 border-2 shadow-md */}
                     <AvatarImage src={teamLogo} />
-                    <AvatarFallback className="text-[8px]">T</AvatarFallback>
+                    <AvatarFallback className="text-[10px] bg-gray-200 dark:bg-gray-700">T</AvatarFallback> {/* Changed text-[8px] to text-[10px] bg-gray-200 dark:bg-gray-700 */}
                   </Avatar>
                 )}
-                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium truncate">{getTeamName(player.team_id)}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-bold truncate">{getTeamName(player.team_id)}</p> {/* Changed font-medium to font-bold */}
               </div>
             </div>
           </div>
@@ -248,14 +248,18 @@ export default function Players() {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="flex items-center justify-center gap-2">
-                        {teamLogo && (
-                          <Avatar className="w-6 h-6 border border-gray-300 dark:border-gray-600">
+                      <div className="flex items-center justify-center gap-3"> {/* Changed gap-2 to gap-3 */}
+                        {teamLogo ? (
+                          <Avatar className="w-8 h-8 border-2 border-gray-300 dark:border-gray-600 shadow-md"> {/* Changed w-6 h-6 border to w-8 h-8 border-2 shadow-md */}
                             <AvatarImage src={teamLogo} />
-                            <AvatarFallback className="text-[8px]">T</AvatarFallback>
+                            <AvatarFallback className="text-[10px] bg-gray-200 dark:bg-gray-700 font-bold">T</AvatarFallback> {/* Changed text-[8px] to text-[10px] bg-gray-200 dark:bg-gray-700 font-bold */}
                           </Avatar>
+                        ) : (
+                          <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-bold">T</span>
+                          </div>
                         )}
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">{getTeamName(player.team_id)}</span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(player.team_id)}</span> {/* Changed font-medium to font-bold */}
                       </div>
                     </td>
                     <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold text-sm">
