@@ -111,8 +111,12 @@ export default function LiveScoringVolleyball() {
   const getPlayerStatKey = (playerId) => `${playerId}_${currentSet}`;
 
   const getPlayerStat = (playerId, statType) => {
-    const key = getPlayerStatKey(playerId);
-    return playerStats[key]?.[statType] || 0;
+    let total = 0;
+    for (let s = 1; s <= currentSet; s++) {
+      const key = `${playerId}_${s}`;
+      total += playerStats[key]?.[statType] || 0;
+    }
+    return total;
   };
 
   const updatePlayerStat = async (playerId, teamId, statType, value) => {
@@ -257,16 +261,20 @@ export default function LiveScoringVolleyball() {
     
     setScores.forEach(set => {
       if (set.home > set.away) homeSetsWon++;
-      else awaySetsWon++;
+      else if (set.away > set.home) awaySetsWon++; // Ensure only one team gets a win per set
     });
 
-    if (homeScore > awayScore) homeSetsWon++;
-    else awaySetsWon++;
+    // Check if the current set has a winner before adding to total set wins
+    if (homeScore !== awayScore) { // A set must have a winner
+      if (homeScore > awayScore) homeSetsWon++;
+      else awaySetsWon++;
+    }
+
 
     await base44.entities.Game.update(game.id, {
       status: 'completed',
-      home_score: homeSetsWon,
-      away_score: awaySetsWon,
+      home_score: homeSetsWon, // Final home score should be sets won
+      away_score: awaySetsWon, // Final away score should be sets won
     });
 
     const allTeams = await base44.entities.Team.list();
@@ -284,7 +292,7 @@ export default function LiveScoringVolleyball() {
           losses: (awayTeamToUpdate.losses || 0) + 1
         });
       }
-    } else { // This implicitly means awaySetsWon > homeSetsWon for the game outcome
+    } else if (awaySetsWon > homeSetsWon) { // This implicitly means awaySetsWon > homeSetsWon for the game outcome
       if (homeTeamToUpdate) {
         await base44.entities.Team.update(game.home_team_id, {
           losses: (homeTeamToUpdate.losses || 0) + 1
@@ -315,7 +323,8 @@ export default function LiveScoringVolleyball() {
     const blocks = getPlayerStat(player.id, 'blocks');
     const aces = getPlayerStat(player.id, 'three_pointers');
     const assists = getPlayerStat(player.id, 'assists');
-    const points = attacks + blocks + aces;
+    const points = attacks + blocks + aces; // Points calculation needs to be cumulative
+
     const isSelected = selectedPlayer?.id === player.id;
 
     return (
@@ -543,7 +552,7 @@ export default function LiveScoringVolleyball() {
                   <ChevronRight className="w-5 h-5 ml-2" />
                 </Button>
               )}
-              {currentSet >= 3 && (
+              {currentSet >= 3 && ( // Typically, volleyball games are best of 3 or 5 sets. If currentSet is 3, a team could have won 2 sets already.
                 <Button
                   onClick={endGame}
                   className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-black text-lg px-8 py-6"
