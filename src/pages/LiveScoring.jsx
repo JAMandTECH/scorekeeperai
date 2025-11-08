@@ -726,13 +726,13 @@ export default function LiveScoring() {
         </div>
       )}
 
-      {/* Players Section */}
+      {/* Players Section - NEW STRUCTURE WITH TRULY FROZEN HEADERS */}
       <div className="max-w-7xl mx-auto p-4 pb-24">
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Home Team Card */}
-          <div className="bg-gradient-to-br from-orange-900/40 to-orange-950/40 border-4 border-orange-500 backdrop-blur-sm rounded-xl overflow-hidden flex flex-col h-[700px]">
+          {/* Home Team - NEW STRUCTURE */}
+          <div className="relative">
             {/* FROZEN HEADER */}
-            <div className="flex-shrink-0 border-b-4 border-orange-500 bg-orange-900/95 backdrop-blur-sm p-4">
+            <div className="sticky bg-orange-900/95 backdrop-blur-sm border-4 border-orange-500 rounded-t-xl p-4 z-30" style={{ top: selectedPlayer ? '530px' : '310px' }}>
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-2xl font-black text-white">
                   {homeTeam.name} - HOME
@@ -748,17 +748,17 @@ export default function LiveScoring() {
               </div>
             </div>
             {/* SCROLLABLE PLAYERS */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="bg-gradient-to-br from-orange-900/40 to-orange-950/40 border-4 border-t-0 border-orange-500 rounded-b-xl p-4 max-h-[600px] overflow-y-auto">
               {homePlayers.map(player => (
                 <PlayerRow key={player.id} player={player} team="home" teamId={game.home_team_id} />
               ))}
             </div>
           </div>
 
-          {/* Away Team Card */}
-          <div className="bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm rounded-xl overflow-hidden flex flex-col h-[700px]">
+          {/* Away Team - NEW STRUCTURE */}
+          <div className="relative">
             {/* FROZEN HEADER */}
-            <div className="flex-shrink-0 border-b-4 border-blue-500 bg-blue-900/95 backdrop-blur-sm p-4">
+            <div className="sticky bg-blue-900/95 backdrop-blur-sm border-4 border-blue-500 rounded-t-xl p-4 z-30" style={{ top: selectedPlayer ? '530px' : '310px' }}>
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-2xl font-black text-white">
                   {awayTeam.name} - AWAY
@@ -774,7 +774,7 @@ export default function LiveScoring() {
               </div>
             </div>
             {/* SCROLLABLE PLAYERS */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-t-0 border-blue-500 rounded-b-xl p-4 max-h-[600px] overflow-y-auto">
               {awayPlayers.map(player => (
                 <PlayerRow key={player.id} player={player} team="away" teamId={game.away_team_id} />
               ))}
@@ -882,7 +882,7 @@ export default function LiveScoring() {
                 className={`flex-1 font-black ${
                   currentQuarter >= 4 && homeScore === awayScore
                     ? 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
-                    : 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800'
+                    : 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-600 hover:to-orange-800'
                 } text-white`}
               >
                 {currentQuarter < 4 
