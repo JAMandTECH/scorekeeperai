@@ -220,7 +220,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-900 dark:to-indigo-950 text-white py-24 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iIzFmMmQzZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGciPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iIzFmMmQzZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
         
         {/* Dark Mode Toggle - Top Right */}
         <button
@@ -571,8 +571,11 @@ export default function Home() {
                   <CardContent className="p-4">
                     <div className="space-y-3">
                       {completedBasketballGames.map(game => {
-                        // Find best player (highest points in this game)
-                        const gameStats = allPlayerStats.filter(s => s.game_id === game.id);
+                        // Determine winning team
+                        const winningTeamId = game.home_score > game.away_score ? game.home_team_id : game.away_team_id;
+                        
+                        // Find best player from WINNING team only
+                        const gameStats = allPlayerStats.filter(s => s.game_id === game.id && s.team_id === winningTeamId);
                         const bestPlayerStat = gameStats.reduce((best, current) => {
                           const currentPoints = current.points || 0;
                           const bestPoints = best?.points || 0;
@@ -580,6 +583,9 @@ export default function Home() {
                         }, null);
                         
                         const bestPlayer = bestPlayerStat ? allPlayers.find(p => p.id === bestPlayerStat.player_id) : null;
+                        
+                        const homeTeamData = allTeams.find(t => t.id === game.home_team_id);
+                        const awayTeamData = allTeams.find(t => t.id === game.away_team_id);
 
                         return (
                           <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
@@ -592,19 +598,35 @@ export default function Home() {
                               </Badge>
                             </div>
                             <div className="flex justify-between items-center mb-3">
-                              <div>
-                                <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.home_team_id)}</div>
-                                <div className="text-3xl font-black text-gray-900 dark:text-white mt-1">{game.home_score}</div>
+                              <div className="flex items-center gap-2 flex-1">
+                                <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700">
+                                  <AvatarImage src={homeTeamData?.logo_url} />
+                                  <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white text-xs font-bold">
+                                    {homeTeamData?.name?.substring(0, 2).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-bold text-gray-900 dark:text-white truncate">{getTeamName(game.home_team_id)}</div>
+                                  <div className="text-3xl font-black text-gray-900 dark:text-white mt-1">{game.home_score}</div>
+                                </div>
                               </div>
-                              <div className="text-gray-300 dark:text-gray-600 text-2xl font-black">-</div>
-                              <div className="text-right">
-                                <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.away_team_id)}</div>
-                                <div className="text-3xl font-black text-gray-900 dark:text-white mt-1">{game.away_score}</div>
+                              <div className="text-gray-300 dark:text-gray-600 text-2xl font-black px-4">-</div>
+                              <div className="flex items-center gap-2 flex-1 justify-end">
+                                <div className="flex-1 min-w-0 text-right">
+                                  <div className="text-sm font-bold text-gray-900 dark:text-white truncate">{getTeamName(game.away_team_id)}</div>
+                                  <div className="text-3xl font-black text-gray-900 dark:text-white mt-1">{game.away_score}</div>
+                                </div>
+                                <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700">
+                                  <AvatarImage src={awayTeamData?.logo_url} />
+                                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold">
+                                    {awayTeamData?.name?.substring(0, 2).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
                               </div>
                             </div>
                             {bestPlayer && bestPlayerStat && (
                               <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                                <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">⭐ Best Player:</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">⭐ Best Player (Winner):</p>
                                 <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 rounded-lg p-2 border border-yellow-200 dark:border-yellow-800">
                                   <Avatar className="w-8 h-8 border-2 border-white dark:border-gray-700">
                                     <AvatarImage src={bestPlayer.photo_url} />
@@ -923,8 +945,11 @@ export default function Home() {
                         const homeSetsWon = (game.quarter_scores || []).filter(s => s.home > s.away).length;
                         const awaySetsWon = (game.quarter_scores || []).filter(s => s.away > s.home).length;
                         
-                        // Find best player (highest combined attacks + blocks + aces in this game)
-                        const gameStats = allPlayerStats.filter(s => s.game_id === game.id);
+                        // Determine winning team based on sets won
+                        const winningTeamId = homeSetsWon > awaySetsWon ? game.home_team_id : game.away_team_id;
+                        
+                        // Find best player from WINNING team only
+                        const gameStats = allPlayerStats.filter(s => s.game_id === game.id && s.team_id === winningTeamId);
                         const bestPlayerStat = gameStats.reduce((best, current) => {
                           const currentScore = (current.field_goals_made || 0) + (current.blocks || 0) + (current.three_pointers || 0);
                           const bestScore = best ? ((best.field_goals_made || 0) + (best.blocks || 0) + (best.three_pointers || 0)) : 0;
@@ -932,6 +957,9 @@ export default function Home() {
                         }, null);
                         
                         const bestPlayer = bestPlayerStat ? allPlayers.find(p => p.id === bestPlayerStat.player_id) : null;
+                        
+                        const homeTeamData = allTeams.find(t => t.id === game.home_team_id);
+                        const awayTeamData = allTeams.find(t => t.id === game.away_team_id);
                         
                         return (
                           <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
@@ -944,18 +972,30 @@ export default function Home() {
                               </Badge>
                             </div>
                             <div className="space-y-2 mb-3">
-                              <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                  <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.home_team_id)}</div>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700">
+                                  <AvatarImage src={homeTeamData?.logo_url} />
+                                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold">
+                                    {homeTeamData?.name?.substring(0, 2).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-bold text-gray-900 dark:text-white truncate">{getTeamName(game.home_team_id)}</div>
                                 </div>
                                 <div className="text-right">
                                   <div className="text-3xl font-black text-gray-900 dark:text-white">{homeTotalPoints}</div>
                                   <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">({homeSetsWon} sets)</div>
                                 </div>
                               </div>
-                              <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                  <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.away_team_id)}</div>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700">
+                                  <AvatarImage src={awayTeamData?.logo_url} />
+                                  <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white text-xs font-bold">
+                                    {awayTeamData?.name?.substring(0, 2).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-bold text-gray-900 dark:text-white truncate">{getTeamName(game.away_team_id)}</div>
                                 </div>
                                 <div className="text-right">
                                   <div className="text-3xl font-black text-gray-900 dark:text-white">{awayTotalPoints}</div>
@@ -965,7 +1005,7 @@ export default function Home() {
                             </div>
                             {bestPlayer && bestPlayerStat && (
                               <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
-                                <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">⭐ Best Player:</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">⭐ Best Player (Winner):</p>
                                 <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 rounded-lg p-2 border border-yellow-200 dark:border-yellow-800">
                                   <Avatar className="w-8 h-8 border-2 border-white dark:border-gray-700">
                                     <AvatarImage src={bestPlayer.photo_url} />
