@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -486,50 +487,52 @@ export default function LiveScoringVolleyball() {
       {/* SCROLLABLE PLAYERS SECTION */}
       <div className="max-w-7xl mx-auto p-4 pb-24">
         <div className="grid lg:grid-cols-2 gap-6">
+          {/* Home Team */}
           <Card className="bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm">
             <CardHeader className="border-b-4 border-blue-500 bg-blue-900/50">
-              <CardTitle className="text-2xl font-black text-white">
-                {homeTeam.name} - HOME
-              </CardTitle>
+              <div className="flex items-center justify-between gap-3">
+                <CardTitle className="text-2xl font-black text-white">
+                  {homeTeam.name} - HOME
+                </CardTitle>
+                <Button
+                  onClick={() => useTimeout('home')}
+                  disabled={homeTimeouts === 0}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-black text-sm px-4 py-2 disabled:opacity-50 whitespace-nowrap"
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  TO ({homeTimeouts})
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="p-4 max-h-[600px] overflow-y-auto">
               {homePlayers.map(player => (
                 <PlayerRow key={player.id} player={player} team="home" teamId={game.home_team_id} />
               ))}
             </CardContent>
-            <div className="p-4 border-t-4 border-blue-500">
-              <Button
-                onClick={() => useTimeout('home')}
-                disabled={homeTimeouts === 0}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black h-12 disabled:opacity-50"
-              >
-                <Clock className="w-5 h-5 mr-2" />
-                TIMEOUT ({homeTimeouts} LEFT)
-              </Button>
-            </div>
           </Card>
 
+          {/* Away Team */}
           <Card className="bg-gradient-to-br from-cyan-900/40 to-cyan-950/40 border-4 border-cyan-500 backdrop-blur-sm">
             <CardHeader className="border-b-4 border-cyan-500 bg-cyan-900/50">
-              <CardTitle className="text-2xl font-black text-white">
-                {awayTeam.name} - AWAY
-              </CardTitle>
+              <div className="flex items-center justify-between gap-3">
+                <CardTitle className="text-2xl font-black text-white">
+                  {awayTeam.name} - AWAY
+                </CardTitle>
+                <Button
+                  onClick={() => useTimeout('away')}
+                  disabled={awayTimeouts === 0}
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-black text-sm px-4 py-2 disabled:opacity-50 whitespace-nowrap"
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  TO ({awayTimeouts})
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="p-4 max-h-[600px] overflow-y-auto">
               {awayPlayers.map(player => (
                 <PlayerRow key={player.id} player={player} team="away" teamId={game.away_team_id} />
               ))}
             </CardContent>
-            <div className="p-4 border-t-4 border-cyan-500">
-              <Button
-                onClick={() => useTimeout('away')}
-                disabled={awayTimeouts === 0}
-                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-black h-12 disabled:opacity-50"
-              >
-                <Clock className="w-5 h-5 mr-2" />
-                TIMEOUT ({awayTimeouts} LEFT)
-              </Button>
-            </div>
           </Card>
         </div>
 
