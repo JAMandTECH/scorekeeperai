@@ -389,13 +389,13 @@ export default function LiveScoringVolleyball() {
             </div>
 
             <div className="text-center">
-              <div className="text-white text-xl font-black mb-2">{setLabel}</div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2">
-                <div className="flex justify-center gap-2 flex-wrap">
+              <div className="text-white text-2xl font-black mb-3">{setLabel}</div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <div className="flex justify-center gap-3 flex-wrap">
                   {[1, 2, 3, 4, 5].map(s => {
                     const setScore = setScores.find(ss => ss.quarter === s);
                     return (
-                      <div key={s} className="text-xs font-bold text-white">
+                      <div key={s} className="text-base font-black text-white">
                         <span className="text-gray-400">S{s}:</span> {setScore ? `${setScore.home}-${setScore.away}` : '-'}
                       </div>
                     );
