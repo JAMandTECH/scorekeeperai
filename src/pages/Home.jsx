@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Calendar, TrendingUp, Target, Award, Zap, Shield, ArrowRight, Sun, Moon } from "lucide-react"; // Added Sun and Moon imports
+import { Calendar, TrendingUp, Target, Award, Zap, Shield, ArrowRight, Sun, Moon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -570,29 +570,62 @@ export default function Home() {
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-3">
-                      {completedBasketballGames.map(game => (
-                        <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
-                          <div className="flex justify-between items-center mb-3">
-                            <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
-                              {new Date(game.game_date).toLocaleDateString()}
-                            </span>
-                            <Badge className="bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 text-xs font-bold">
-                              FINAL
-                            </Badge>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.home_team_id)}</div>
-                              <div className="text-3xl font-black text-gray-900 dark:text-white mt-1">{game.home_score}</div>
+                      {completedBasketballGames.map(game => {
+                        // Find best player (highest points in this game)
+                        const gameStats = allPlayerStats.filter(s => s.game_id === game.id);
+                        const bestPlayerStat = gameStats.reduce((best, current) => {
+                          const currentPoints = current.points || 0;
+                          const bestPoints = best?.points || 0;
+                          return currentPoints > bestPoints ? current : best;
+                        }, null);
+                        
+                        const bestPlayer = bestPlayerStat ? allPlayers.find(p => p.id === bestPlayerStat.player_id) : null;
+
+                        return (
+                          <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+                            <div className="flex justify-between items-center mb-3">
+                              <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                                {new Date(game.game_date).toLocaleDateString()}
+                              </span>
+                              <Badge className="bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 text-xs font-bold">
+                                FINAL
+                              </Badge>
                             </div>
-                            <div className="text-gray-300 dark:text-gray-600 text-2xl font-black">-</div>
-                            <div className="text-right">
-                              <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.away_team_id)}</div>
-                              <div className="text-3xl font-black text-gray-900 dark:text-white mt-1">{game.away_score}</div>
+                            <div className="flex justify-between items-center mb-3">
+                              <div>
+                                <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.home_team_id)}</div>
+                                <div className="text-3xl font-black text-gray-900 dark:text-white mt-1">{game.home_score}</div>
+                              </div>
+                              <div className="text-gray-300 dark:text-gray-600 text-2xl font-black">-</div>
+                              <div className="text-right">
+                                <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.away_team_id)}</div>
+                                <div className="text-3xl font-black text-gray-900 dark:text-white mt-1">{game.away_score}</div>
+                              </div>
                             </div>
+                            {bestPlayer && bestPlayerStat && (
+                              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">⭐ Best Player:</p>
+                                <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 rounded-lg p-2 border border-yellow-200 dark:border-yellow-800">
+                                  <Avatar className="w-8 h-8 border-2 border-white dark:border-gray-700">
+                                    <AvatarImage src={bestPlayer.photo_url} />
+                                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white text-xs font-bold">
+                                      {bestPlayer.jersey_number}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                                      #{bestPlayer.jersey_number} {bestPlayer.first_name} {bestPlayer.last_name}
+                                    </p>
+                                    <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
+                                      {bestPlayerStat.points} PTS • {bestPlayerStat.rebounds || 0} REB • {bestPlayerStat.assists || 0} AST
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>
@@ -890,6 +923,16 @@ export default function Home() {
                         const homeSetsWon = (game.quarter_scores || []).filter(s => s.home > s.away).length;
                         const awaySetsWon = (game.quarter_scores || []).filter(s => s.away > s.home).length;
                         
+                        // Find best player (highest combined attacks + blocks + aces in this game)
+                        const gameStats = allPlayerStats.filter(s => s.game_id === game.id);
+                        const bestPlayerStat = gameStats.reduce((best, current) => {
+                          const currentScore = (current.field_goals_made || 0) + (current.blocks || 0) + (current.three_pointers || 0);
+                          const bestScore = best ? ((best.field_goals_made || 0) + (best.blocks || 0) + (best.three_pointers || 0)) : 0;
+                          return currentScore > bestScore ? current : best;
+                        }, null);
+                        
+                        const bestPlayer = bestPlayerStat ? allPlayers.find(p => p.id === bestPlayerStat.player_id) : null;
+                        
                         return (
                           <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
                             <div className="flex justify-between items-center mb-3">
@@ -900,7 +943,7 @@ export default function Home() {
                                 FINAL
                               </Badge>
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-2 mb-3">
                               <div className="flex justify-between items-center">
                                 <div className="flex-1">
                                   <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.home_team_id)}</div>
@@ -919,27 +962,48 @@ export default function Home() {
                                   <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">({awaySetsWon} sets)</div>
                                 </div>
                               </div>
-                              {game.quarter_scores && game.quarter_scores.length > 0 && (
-                                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-1">Set Scores:</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {game.quarter_scores.map((set, idx) => (
-                                      <Badge 
-                                        key={idx} 
-                                        variant="outline" 
-                                        className={`text-xs font-bold ${
-                                          set.home > set.away 
-                                            ? 'border-blue-400 dark:border-blue-600 text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30' 
-                                            : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'
-                                        }`}
-                                      >
-                                        {set.home}-{set.away}
-                                      </Badge>
-                                    ))}
+                            </div>
+                            {bestPlayer && bestPlayerStat && (
+                              <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">⭐ Best Player:</p>
+                                <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 rounded-lg p-2 border border-yellow-200 dark:border-yellow-800">
+                                  <Avatar className="w-8 h-8 border-2 border-white dark:border-gray-700">
+                                    <AvatarImage src={bestPlayer.photo_url} />
+                                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold">
+                                      {bestPlayer.jersey_number}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                                      #{bestPlayer.jersey_number} {bestPlayer.first_name} {bestPlayer.last_name}
+                                    </p>
+                                    <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
+                                      {bestPlayerStat.field_goals_made || 0} ATK • {bestPlayerStat.blocks || 0} BLK • {bestPlayerStat.three_pointers || 0} ACE
+                                    </p>
                                   </div>
                                 </div>
-                              )}
-                            </div>
+                              </div>
+                            )}
+                            {game.quarter_scores && game.quarter_scores.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-1">Set Scores:</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {game.quarter_scores.map((set, idx) => (
+                                    <Badge 
+                                      key={idx} 
+                                      variant="outline" 
+                                      className={`text-xs font-bold ${
+                                        set.home > set.away 
+                                          ? 'border-blue-400 dark:border-blue-600 text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30' 
+                                          : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'
+                                      }`}
+                                    >
+                                      {set.home}-{set.away}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
