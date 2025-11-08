@@ -244,13 +244,7 @@ export default function LiveScoringVolleyball() {
     });
 
     if (currentSet < 5) {
-      setHomeScore(0);
-      setAwayScore(0);
       setCurrentSet(currentSet + 1);
-      await base44.entities.Game.update(game.id, {
-        home_score: 0,
-        away_score: 0,
-      });
     }
 
     setShowSetEnd(false);
@@ -266,10 +260,8 @@ export default function LiveScoringVolleyball() {
       else awaySetsWon++;
     });
 
-    // Add score of the current set if not yet ended
     if (homeScore > awayScore) homeSetsWon++;
-    else if (awayScore > homeScore) awaySetsWon++;
-
+    else awaySetsWon++;
 
     await base44.entities.Game.update(game.id, {
       status: 'completed',
@@ -277,32 +269,27 @@ export default function LiveScoringVolleyball() {
       away_score: awaySetsWon,
     });
 
-    // Update team wins/losses
+    const allTeams = await base44.entities.Team.list();
+    const homeTeamToUpdate = allTeams.find(t => t.id === game.home_team_id);
+    const awayTeamToUpdate = allTeams.find(t => t.id === game.away_team_id);
+
     if (homeSetsWon > awaySetsWon) {
-      const allTeams = await base44.entities.Team.list();
-      const homeTeamToUpdate = allTeams.find(t => t.id === game.home_team_id);
       if (homeTeamToUpdate) {
         await base44.entities.Team.update(game.home_team_id, {
           wins: (homeTeamToUpdate.wins || 0) + 1
         });
       }
-      
-      const awayTeamToUpdate = allTeams.find(t => t.id === game.away_team_id);
       if (awayTeamToUpdate) {
         await base44.entities.Team.update(game.away_team_id, {
           losses: (awayTeamToUpdate.losses || 0) + 1
         });
       }
-    } else {
-      const allTeams = await base44.entities.Team.list();
-      const homeTeamToUpdate = allTeams.find(t => t.id === game.home_team_id);
+    } else { // This implicitly means awaySetsWon > homeSetsWon for the game outcome
       if (homeTeamToUpdate) {
         await base44.entities.Team.update(game.home_team_id, {
           losses: (homeTeamToUpdate.losses || 0) + 1
         });
       }
-      
-      const awayTeamToUpdate = allTeams.find(t => t.id === game.away_team_id);
       if (awayTeamToUpdate) {
         await base44.entities.Team.update(game.away_team_id, {
           wins: (awayTeamToUpdate.wins || 0) + 1
