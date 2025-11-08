@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -8,10 +7,12 @@ import {
   PlayCircle, LogOut, Shield, Menu, X, KeyRound, Moon, Sun
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = useState(null);
+  const [organization, setOrganization] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -41,6 +42,13 @@ export default function Layout({ children, currentPageName }) {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      
+      // Load organization if user has organization_id
+      if (currentUser?.organization_id) {
+        const orgs = await base44.entities.Organization.list();
+        const userOrg = orgs.find(o => o.id === currentUser.organization_id);
+        setOrganization(userOrg);
+      }
     } catch (error) {
       console.error("Error loading user:", error);
     }
@@ -102,14 +110,27 @@ export default function Layout({ children, currentPageName }) {
             <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
-              </svg>
-            </div>
+            {organization?.logo_url ? (
+              <Avatar className="w-10 h-10 border-2 border-orange-500 shadow-lg">
+                <AvatarImage src={organization.logo_url} />
+                <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black">
+                  {organization.name?.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                  <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                </svg>
+              </div>
+            )}
             <div>
-              <span className="font-bold text-xl text-gray-900 dark:text-white tracking-tight">ALAB</span>
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 -mt-1 font-medium tracking-wide">SPORTS LEAGUE</p>
+              <span className="font-bold text-xl text-gray-900 dark:text-white tracking-tight">
+                {organization?.name || 'ALAB'}
+              </span>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 -mt-1 font-medium tracking-wide">
+                {organization ? 'ORGANIZATION' : 'SPORTS LEAGUE'}
+              </p>
             </div>
             {isSuperAdmin && (
               <span className="ml-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1 rounded-full font-semibold shadow-sm">
@@ -161,6 +182,24 @@ export default function Layout({ children, currentPageName }) {
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}>
           <div className="h-full flex flex-col pt-6">
+            {/* Organization Info in Sidebar */}
+            {organization && (
+              <div className="px-4 mb-6">
+                <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 rounded-xl border-2 border-orange-200 dark:border-orange-800">
+                  <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-lg">
+                    <AvatarImage src={organization.logo_url} />
+                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-sm">
+                      {organization.name?.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-black text-gray-900 dark:text-white truncate">{organization.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Your Organization</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.url;
