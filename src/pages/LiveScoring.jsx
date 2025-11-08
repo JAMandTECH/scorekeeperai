@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Minus, CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User } from "lucide-react";
+import { Plus, Minus, CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -33,6 +33,7 @@ export default function LiveScoring() {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [showQuarterEnd, setShowQuarterEnd] = useState(false);
   const [actionHistory, setActionHistory] = useState([]);
+  const [showQuarterStats, setShowQuarterStats] = useState(true); // New state variable
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -691,26 +692,52 @@ export default function LiveScoring() {
                 </Button>
               </div>
 
-              <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
-                <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Quarter Stats:</p>
-                <div className="grid grid-cols-4 gap-2 text-center">
-                  <div>
-                    <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'points')}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">PTS</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-black text-green-600 dark:text-green-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'rebounds')}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">REB</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-black text-purple-600 dark:text-purple-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'assists')}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">AST</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'fouls')}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">FOULS</div>
-                  </div>
+              {/* QUARTER STATS WITH TOGGLE */}
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Quarter Stats:</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowQuarterStats(!showQuarterStats)}
+                    className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  >
+                    {showQuarterStats ? (
+                      <>
+                        <EyeOff className="w-4 h-4 mr-1" />
+                        Hide
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-4 h-4 mr-1" />
+                        Show
+                      </>
+                    )}
+                  </Button>
                 </div>
+                
+                {showQuarterStats && (
+                  <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div className="grid grid-cols-4 gap-2 text-center">
+                      <div>
+                        <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'points')}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">PTS</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-black text-green-600 dark:text-green-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'rebounds')}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">REB</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-black text-purple-600 dark:text-purple-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'assists')}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">AST</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'fouls')}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">FOULS</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
             </Card>
