@@ -445,7 +445,7 @@ export default function LiveScoring() {
         losses: (home.losses || 0) + 1
       });
       
-      const away = allTeams.find(t => t.id === game.away_team_id);
+      const away = allTeams.find(t => t.away_team_id === game.away_team_id); // Changed to away_team_id to match the filter context
       await base44.entities.Team.update(game.away_team_id, {
         wins: (away.wins || 0) + 1
       });
@@ -563,10 +563,10 @@ export default function LiveScoring() {
               </div>
             </div>
 
-            {/* QUARTER SCORES */}
+            {/* QUARTER SCORES WITH BUTTONS BELOW */}
             <div className="text-center">
               <div className="text-white text-2xl font-black mb-3">{quarterLabel}</div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
                 <div className="flex justify-center gap-3 flex-wrap">
                   {[1, 2, 3, 4].map(q => {
                     const qScore = quarterScores.find(qs => qs.quarter === q);
@@ -577,6 +577,58 @@ export default function LiveScoring() {
                     );
                   })}
                 </div>
+              </div>
+              
+              {/* QUARTER END AND CANCEL BUTTONS - MOVED HERE */}
+              <div className="flex gap-2 justify-center">
+                {currentQuarter <= 4 && (
+                  <Button
+                    onClick={() => setShowQuarterEnd(true)}
+                    size="sm"
+                    className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-black text-xs px-4 py-2"
+                  >
+                    END {quarterLabel}
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                )}
+                {currentQuarter > 4 && (
+                  <Button
+                    onClick={() => setShowQuarterEnd(true)}
+                    size="sm"
+                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-black text-xs px-4 py-2"
+                  >
+                    END {quarterLabel}
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                )}
+                {currentQuarter >= 4 && homeScore !== awayScore && (
+                  <Button
+                    onClick={endGame}
+                    size="sm"
+                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-black text-xs px-4 py-2"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    END GAME
+                  </Button>
+                )}
+                {currentQuarter === 4 && homeScore === awayScore && (
+                  <Button
+                    onClick={() => setShowQuarterEnd(true)}
+                    size="sm"
+                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-black text-xs px-4 py-2"
+                  >
+                    START OT
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                )}
+                <Button
+                  onClick={() => navigate(createPageUrl("Games"))}
+                  variant="outline"
+                  size="sm"
+                  className="border-2 border-gray-400 text-white hover:bg-gray-700 font-black text-xs px-4 py-2"
+                >
+                  CANCEL
+                </Button>
               </div>
             </div>
 
@@ -602,8 +654,18 @@ export default function LiveScoring() {
             </div>
           </div>
 
+          {/* TIED GAME ALERT */}
+          {currentQuarter >= 4 && homeScore === awayScore && (
+            <Alert className="bg-yellow-900/50 border-2 border-yellow-500 mb-4 mt-4">
+              <AlertTriangle className="h-5 w-5 text-yellow-400" />
+              <AlertDescription className="text-yellow-200 font-bold text-center">
+                ⚠️ Game is TIED! Must play overtime period before ending game.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {(inPenalty('home') || inPenalty('away')) && (
-            <Alert className="bg-yellow-900/50 border-2 border-yellow-500 mb-4">
+            <Alert className="bg-yellow-900/50 border-2 border-yellow-500 mb-4 mt-4">
               <AlertTriangle className="h-5 w-5 text-yellow-400" />
               <AlertDescription className="text-yellow-200 font-bold">
                 {inPenalty('home') && `${homeTeam.name} in penalty`}
@@ -765,8 +827,7 @@ export default function LiveScoring() {
                     </div>
                   </div>
                 )}
-              </div>
-            </CardContent>
+              </CardContent>
             </Card>
           </div>
         </div>
@@ -835,67 +896,6 @@ export default function LiveScoring() {
             </div>
           </div>
         </div>
-
-        {/* Game Control Buttons */}
-        <Card className="mt-6 bg-gray-900 border-4 border-gray-700">
-          <CardContent className="p-6">
-            <div className="flex flex-wrap gap-4 justify-center">
-              {currentQuarter <= 4 && (
-                <Button
-                  onClick={() => setShowQuarterEnd(true)}
-                  className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-black text-lg px-8 py-6"
-                >
-                  END {quarterLabel}
-                  <ChevronRight className="w-5 h-5 ml-2" />
-                </Button>
-              )}
-              {currentQuarter > 4 && (
-                <Button
-                  onClick={() => setShowQuarterEnd(true)}
-                  className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-black text-lg px-8 py-6"
-                >
-                  END {quarterLabel}
-                  <ChevronRight className="w-5 h-5 ml-2" />
-                </Button>
-              )}
-              {currentQuarter >= 4 && homeScore !== awayScore && (
-                <Button
-                  onClick={endGame}
-                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-black text-lg px-8 py-6"
-                >
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  END GAME
-                </Button>
-              )}
-              {currentQuarter >= 4 && homeScore === awayScore && (
-                <div className="w-full">
-                  <Alert className="bg-yellow-900/50 border-2 border-yellow-500 mb-4">
-                    <AlertTriangle className="h-4 w-4 text-yellow-400" />
-                    <AlertDescription className="text-yellow-200 font-bold text-center">
-                      ⚠️ Game is TIED! Must play overtime period before ending game.
-                    </AlertDescription>
-                  </Alert>
-                  {currentQuarter === 4 && (
-                    <Button
-                      onClick={() => setShowQuarterEnd(true)}
-                      className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-black text-lg px-8 py-6"
-                    >
-                      START OVERTIME (OT)
-                      <ChevronRight className="w-5 h-5 ml-2" />
-                    </Button>
-                  )}
-                </div>
-              )}
-              <Button
-                onClick={() => navigate(createPageUrl("Games"))}
-                variant="outline"
-                className="border-2 border-gray-600 text-white hover:bg-gray-800 font-black text-lg px-8 py-6"
-              >
-                CANCEL
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* End Quarter Dialog */}
