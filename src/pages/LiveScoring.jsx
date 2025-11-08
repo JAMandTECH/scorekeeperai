@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -434,7 +433,6 @@ export default function LiveScoring() {
       {/* STICKY HEADER - Scoreboard */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-gray-900 via-orange-900 to-gray-900 border-b-4 border-orange-500 shadow-2xl">
         <div className="max-w-7xl mx-auto p-4">
-          {/* Status Badge */}
           <div className="flex items-center justify-center gap-3 mb-4">
             <Badge className="bg-red-600 text-white border-2 border-red-400 px-6 py-2 text-base font-black shadow-lg">
               <PlayCircle className="w-5 h-5 mr-2 animate-pulse" />
@@ -445,9 +443,7 @@ export default function LiveScoring() {
             </Badge>
           </div>
 
-          {/* Scoreboard */}
           <div className="grid grid-cols-3 gap-4 items-center mb-4">
-            {/* Home Team */}
             <div className="text-center">
               <div className="text-orange-400 text-sm font-black mb-2">HOME</div>
               <div className="text-white text-2xl font-black mb-1">{homeTeam.name}</div>
@@ -460,7 +456,6 @@ export default function LiveScoring() {
               </div>
             </div>
 
-            {/* Quarter Info */}
             <div className="text-center">
               <div className="text-white text-xl font-black mb-2">{quarterLabel}</div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
@@ -476,7 +471,6 @@ export default function LiveScoring() {
               </div>
             </div>
 
-            {/* Away Team */}
             <div className="text-center">
               <div className="text-blue-400 text-sm font-black mb-2">AWAY</div>
               <div className="text-white text-2xl font-black mb-1">{awayTeam.name}</div>
@@ -490,7 +484,6 @@ export default function LiveScoring() {
             </div>
           </div>
 
-          {/* Penalty Warnings */}
           {(inPenalty('home') || inPenalty('away')) && (
             <Alert className="bg-yellow-900/50 border-2 border-yellow-500 mb-4">
               <AlertTriangle className="h-5 w-5 text-yellow-400" />
@@ -536,7 +529,7 @@ export default function LiveScoring() {
               </Button>
             </div>
 
-            {/* Quick Score - Horizontal Single Line */}
+            {/* Quick Score - Horizontal Single Line with Undo */}
             <div className="flex gap-2 mb-3">
               <Button
                 onClick={() => addScore(1)}
@@ -556,36 +549,13 @@ export default function LiveScoring() {
               >
                 +3
               </Button>
-            </div>
-
-            {/* Stats Row */}
-            <div className="grid grid-cols-4 gap-2 mb-3">
-              {['rebounds', 'assists', 'steals', 'blocks'].map((stat) => (
-                <div key={stat} className="bg-white/20 backdrop-blur rounded-lg p-2 border-2 border-white/30">
-                  <div className="text-white text-xs font-black mb-1 text-center uppercase">
-                    {stat.substring(0, 3)}
-                  </div>
-                  <div className="flex items-center justify-center gap-1">
-                    <Button
-                      onClick={() => updateStat(stat, -1)}
-                      size="sm"
-                      className="h-7 w-7 p-0 bg-white/30 hover:bg-white/40 text-white border border-white font-black"
-                    >
-                      <Minus className="w-3 h-3" />
-                    </Button>
-                    <span className="text-white font-black text-lg w-7 text-center">
-                      {getPlayerStat(selectedPlayer.id, stat)}
-                    </span>
-                    <Button
-                      onClick={() => updateStat(stat, 1)}
-                      size="sm"
-                      className="h-7 w-7 p-0 bg-white/30 hover:bg-white/40 text-white border border-white font-black"
-                    >
-                      <Plus className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+              <Button
+                onClick={undoLastScore}
+                disabled={scoreHistory.length === 0}
+                className="flex-1 h-14 text-base font-black bg-yellow-600 hover:bg-yellow-700 text-white border-3 border-white shadow-xl disabled:opacity-50"
+              >
+                UNDO
+              </Button>
             </div>
 
             {/* Foul Controls */}
@@ -604,13 +574,6 @@ export default function LiveScoring() {
                   UNDO FOUL
                 </Button>
               )}
-              <Button
-                onClick={undoLastScore}
-                disabled={scoreHistory.length === 0}
-                className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white border-2 border-white font-black h-11 text-sm disabled:opacity-50"
-              >
-                UNDO SCORE
-              </Button>
             </div>
           </div>
         </div>
@@ -625,7 +588,6 @@ export default function LiveScoring() {
       {/* SCROLLABLE PLAYERS SECTION */}
       <div className="max-w-7xl mx-auto p-4 pb-24">
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Home Team */}
           <Card className="bg-gradient-to-br from-orange-900/40 to-orange-950/40 border-4 border-orange-500 backdrop-blur-sm">
             <CardHeader className="border-b-4 border-orange-500 bg-orange-900/50">
               <CardTitle className="text-2xl font-black text-white">
@@ -649,7 +611,6 @@ export default function LiveScoring() {
             </div>
           </Card>
 
-          {/* Away Team */}
           <Card className="bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm">
             <CardHeader className="border-b-4 border-blue-500 bg-blue-900/50">
               <CardTitle className="text-2xl font-black text-white">
@@ -674,7 +635,6 @@ export default function LiveScoring() {
           </Card>
         </div>
 
-        {/* Game Controls */}
         <Card className="mt-6 bg-gray-900 border-4 border-gray-700">
           <CardContent className="p-6">
             <div className="flex flex-wrap gap-4 justify-center">
@@ -708,7 +668,6 @@ export default function LiveScoring() {
         </Card>
       </div>
 
-      {/* Quarter End Dialog */}
       <Dialog open={showQuarterEnd} onOpenChange={setShowQuarterEnd}>
         <DialogContent className="bg-gray-900 border-4 border-orange-500 max-w-md">
           <DialogHeader>
