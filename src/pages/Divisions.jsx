@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -38,7 +39,33 @@ export default function Divisions() {
 
   const { data: divisions = [], isLoading } = useQuery({
     queryKey: ['divisions', user?.organization_id],
-    queryFn: () => base44.entities.Division.filter({ organization_id: user?.organization_id }, '-created_date'),
+    queryFn: async () => {
+      // First try to get divisions by organization_id
+      if (user?.organization_id) {
+        const orgDivisions = await base44.entities.Division.filter({ organization_id: user?.organization_id }, '-created_date');
+        
+        // If no divisions found with organization_id, get all divisions and assign them
+        if (orgDivisions.length === 0) {
+          const allDivisions = await base44.entities.Division.list('-created_date');
+          
+          // Update divisions without organization_id
+          for (const division of allDivisions) {
+            if (!division.organization_id) {
+              await base44.entities.Division.update(division.id, {
+                organization_id: user.organization_id,
+                ...division, // Keep existing fields
+              });
+            }
+          }
+          
+          // Fetch again after updates to get the correct list for the organization
+          return base44.entities.Division.filter({ organization_id: user?.organization_id }, '-created_date');
+        }
+        
+        return orgDivisions;
+      }
+      return [];
+    },
     enabled: !!user?.organization_id,
   });
 
