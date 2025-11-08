@@ -442,6 +442,9 @@ export default function LiveScoring() {
             <Badge className="bg-orange-600 text-white border-2 border-orange-400 px-4 py-2 text-sm font-black">
               BASKETBALL
             </Badge>
+            <Badge className="bg-purple-600 text-white border-2 border-purple-400 px-4 py-2 text-sm font-black">
+              {game.game_type?.replace('_', ' ').toUpperCase() || 'REGULAR SEASON'}
+            </Badge>
           </div>
 
           <div className="grid grid-cols-3 gap-4 items-center mb-4">
