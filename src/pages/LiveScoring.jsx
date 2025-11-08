@@ -525,7 +525,7 @@ export default function LiveScoring() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900">
-      {/* Main Scoreboard - Sticky at top */}
+      {/* Main Scoreboard - Sticky at top WITH TEAM LOGOS */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-gray-900 via-orange-900 to-gray-900 border-b-4 border-orange-500 shadow-2xl">
         <div className="max-w-7xl mx-auto p-4">
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -542,9 +542,18 @@ export default function LiveScoring() {
           </div>
 
           <div className="grid grid-cols-3 gap-4 items-center mb-4">
+            {/* HOME TEAM WITH LOGO */}
             <div className="text-center">
               <div className="text-orange-400 text-sm font-black mb-2">HOME</div>
-              <div className="text-white text-2xl font-black mb-1">{homeTeam.name}</div>
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <Avatar className="w-16 h-16 border-4 border-orange-400 shadow-2xl">
+                  <AvatarImage src={homeTeam.logo_url} />
+                  <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-black text-lg">
+                    {homeTeam.name?.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-white text-2xl font-black text-left">{homeTeam.name}</div>
+              </div>
               <div className="text-orange-500 text-7xl font-black mb-2">{homeScore}</div>
               <div className="flex justify-center gap-4 text-xs font-bold">
                 <span className={`${inPenalty('home') ? 'text-red-400' : 'text-white'}`}>
@@ -554,6 +563,7 @@ export default function LiveScoring() {
               </div>
             </div>
 
+            {/* QUARTER SCORES */}
             <div className="text-center">
               <div className="text-white text-2xl font-black mb-3">{quarterLabel}</div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
@@ -570,9 +580,18 @@ export default function LiveScoring() {
               </div>
             </div>
 
+            {/* AWAY TEAM WITH LOGO */}
             <div className="text-center">
               <div className="text-blue-400 text-sm font-black mb-2">AWAY</div>
-              <div className="text-white text-2xl font-black mb-1">{awayTeam.name}</div>
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <div className="text-white text-2xl font-black text-right">{awayTeam.name}</div>
+                <Avatar className="w-16 h-16 border-4 border-blue-400 shadow-2xl">
+                  <AvatarImage src={awayTeam.logo_url} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
+                    {awayTeam.name?.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
               <div className="text-blue-500 text-7xl font-black mb-2">{awayScore}</div>
               <div className="flex justify-center gap-4 text-xs font-bold">
                 <span className={`${inPenalty('away') ? 'text-red-400' : 'text-white'}`}>
