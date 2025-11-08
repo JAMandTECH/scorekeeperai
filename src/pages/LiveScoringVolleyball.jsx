@@ -128,7 +128,6 @@ export default function LiveScoringVolleyball() {
   const updatePlayerStat = async (playerId, teamId, statType, value) => {
     const key = getPlayerStatKey(playerId);
     const existingStat = playerStats[key];
-
     const newStatValue = (existingStat?.[statType] || 0) + value;
     
     const updatedStat = {
@@ -140,20 +139,26 @@ export default function LiveScoringVolleyball() {
       [statType]: Math.max(0, newStatValue),
     };
 
+    // Update state immediately
     setPlayerStats(prev => ({
       ...prev,
       [key]: updatedStat,
     }));
 
-    if (existingStat?.id) {
-      await base44.entities.PlayerGameStats.update(existingStat.id, updatedStat);
-    } else {
-      const created = await base44.entities.PlayerGameStats.create(updatedStat);
-      updatedStat.id = created.id;
-      setPlayerStats(prev => ({
-        ...prev,
-        [key]: updatedStat,
-      }));
+    // Save to database
+    try {
+      if (existingStat?.id) {
+        await base44.entities.PlayerGameStats.update(existingStat.id, updatedStat);
+      } else {
+        const created = await base44.entities.PlayerGameStats.create(updatedStat);
+        // Update with the created ID
+        setPlayerStats(prev => ({
+          ...prev,
+          [key]: { ...updatedStat, id: created.id },
+        }));
+      }
+    } catch (error) {
+      console.error("Error saving player stat:", error);
     }
   };
 

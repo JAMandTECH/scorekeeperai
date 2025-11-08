@@ -141,60 +141,50 @@ export default function LiveScoring() {
 
   const updatePlayerStat = async (playerId, teamId, statType, value) => {
     const key = getPlayerStatKey(playerId);
+    const existingStat = playerStats[key];
+    const newStatValue = (existingStat?.[statType] || 0) + value;
     
-    return new Promise((resolve) => {
-      setPlayerStats(prev => {
-        const existingStat = prev[key];
-        const newStatValue = (existingStat?.[statType] || 0) + value;
-        
-        const updatedStat = {
-          ...existingStat,
-          game_id: game.id,
-          player_id: playerId,
-          team_id: teamId,
-          quarter: currentQuarter,
-          [statType]: Math.max(0, newStatValue),
-        };
+    const updatedStat = {
+      ...existingStat,
+      game_id: game.id,
+      player_id: playerId,
+      team_id: teamId,
+      quarter: currentQuarter,
+      [statType]: Math.max(0, newStatValue),
+    };
 
-        (async () => {
-          try {
-            let savedStatInDb;
-            if (existingStat?.id) {
-              savedStatInDb = await base44.entities.PlayerGameStats.update(existingStat.id, updatedStat);
-            } else {
-              savedStatInDb = await base44.entities.PlayerGameStats.create(updatedStat);
-              updatedStat.id = savedStatInDb.id;
-            }
-            
-            const finalStat = { ...updatedStat, id: savedStatInDb.id || existingStat?.id };
-            
-            if (!existingStat?.id && savedStatInDb.id) {
-              setPlayerStats(prev => ({
-                ...prev,
-                [key]: finalStat,
-              }));
-            }
-            
-            resolve({
-              statObjectId: finalStat.id,
-              playerId: playerId,
-              teamId: teamId,
-              quarter: currentQuarter,
-              statType: statType,
-              value: value
-            });
-          } catch (error) {
-            console.error("Error saving player stat:", error);
-            resolve(null);
-          }
-        })();
+    // Update state immediately
+    setPlayerStats(prev => ({
+      ...prev,
+      [key]: updatedStat,
+    }));
 
-        return {
+    // Save to database
+    try {
+      if (existingStat?.id) {
+        await base44.entities.PlayerGameStats.update(existingStat.id, updatedStat);
+      } else {
+        const created = await base44.entities.PlayerGameStats.create(updatedStat);
+        // Update with the created ID
+        updatedStat.id = created.id;
+        setPlayerStats(prev => ({
           ...prev,
-          [key]: updatedStat,
-        };
-      });
-    });
+          [key]: { ...updatedStat, id: created.id },
+        }));
+      }
+      
+      return {
+        statObjectId: updatedStat.id || existingStat?.id,
+        playerId: playerId,
+        teamId: teamId,
+        quarter: currentQuarter,
+        statType: statType,
+        value: value
+      };
+    } catch (error) {
+      console.error("Error saving player stat:", error);
+      return null;
+    }
   };
 
   const addPoints = async (points) => {
@@ -208,27 +198,44 @@ export default function LiveScoring() {
 
     setHomeScore(newHomeScore);
     setAwayScore(newAwayScore);
+
+    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
+    
+    // Batch all stat updates
+    const statUpdates = [
+      { statType: 'points', value: points }
+    ];
+    
+    if (points === 3) {
+      statUpdates.push(
+        { statType: 'three_pointers', value: 1 },
+        { statType: 'field_goals_made', value: 1 },
+        { statType: 'three_pointers_attempted', value: 1 },
+        { statType: 'field_goals_attempted', value: 1 }
+      );
+    } else if (points === 2) {
+      statUpdates.push(
+        { statType: 'field_goals_made', value: 1 },
+        { statType: 'field_goals_attempted', value: 1 }
+      );
+    } else if (points === 1) {
+      statUpdates.push(
+        { statType: 'free_throws_made', value: 1 },
+        { statType: 'free_throws_attempted', value: 1 }
+      );
+    }
+
+    // Update game score
     await base44.entities.Game.update(game.id, {
       home_score: newHomeScore,
       away_score: newAwayScore,
     });
 
-    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
+    // Update all stats
     const statUpdatesForUndo = [];
-
-    statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'points', points));
-
-    if (points === 3) {
-      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'three_pointers', 1));
-      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1));
-      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'three_pointers_attempted', 1));
-      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_attempted', 1));
-    } else if (points === 2) {
-      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_made', 1));
-      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'field_goals_attempted', 1));
-    } else if (points === 1) {
-      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'free_throws_made', 1));
-      statUpdatesForUndo.push(await updatePlayerStat(selectedPlayer.id, teamId, 'free_throws_attempted', 1));
+    for (const statUpdate of statUpdates) {
+      const result = await updatePlayerStat(selectedPlayer.id, teamId, statUpdate.statType, statUpdate.value);
+      if (result) statUpdatesForUndo.push(result);
     }
 
     setActionHistory(prev => [...prev, {
@@ -239,7 +246,7 @@ export default function LiveScoring() {
       quarter: currentQuarter,
       oldHomeScore: oldHomeScore,
       oldAwayScore: oldAwayScore,
-      statChanges: statUpdatesForUndo.filter(s => s !== null),
+      statChanges: statUpdatesForUndo,
     }]);
   };
 
