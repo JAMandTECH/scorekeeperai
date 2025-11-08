@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AIInsights from "@/components/AIInsights";
+import AIGameSummary from "@/components/AIGameSummary";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -553,6 +555,18 @@ export default function Home() {
           </div>
         )}
 
+        {/* AI Insights Section - NEW */}
+        {(teams.length > 0 || games.length > 0) && (
+          <div className="mb-12">
+            <AIInsights
+              teams={teams}
+              players={players}
+              games={games}
+              organizationName={organization?.name || "ALAB Sports"}
+            />
+          </div>
+        )}
+
         {/* BASKETBALL SECTION */}
         <section className="mb-20">
           <div className="flex items-center gap-4 mb-10">
@@ -872,6 +886,16 @@ export default function Home() {
                         const homeTeamData = allTeams.find(t => t.id === game.home_team_id);
                         const awayTeamData = allTeams.find(t => t.id === game.away_team_id);
 
+                        // Prepare top players for AI summary
+                        const topPlayersForAI = [];
+                        if (bestPlayer && bestPlayerStat) {
+                          topPlayersForAI.push({
+                            name: `${bestPlayer.first_name} ${bestPlayer.last_name}`,
+                            team: getTeamName(winningTeamId),
+                            stats: `${bestPlayerStat.points} PTS • ${bestPlayerStat.rebounds || 0} REB • ${bestPlayerStat.assists || 0} AST`
+                          });
+                        }
+
                         return (
                           <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
                             <div className="flex justify-between items-center mb-3">
@@ -928,6 +952,18 @@ export default function Home() {
                                     </p>
                                   </div>
                                 </div>
+                              </div>
+                            )}
+                            
+                            {/* AI Game Summary - NEW */}
+                            {homeTeamData && awayTeamData && topPlayersForAI.length > 0 && (
+                              <div className="mt-3">
+                                <AIGameSummary
+                                  game={game}
+                                  homeTeam={homeTeamData}
+                                  awayTeam={awayTeamData}
+                                  topPlayers={topPlayersForAI}
+                                />
                               </div>
                             )}
                           </div>
@@ -1267,6 +1303,16 @@ export default function Home() {
                         
                         const homeTeamData = allTeams.find(t => t.id === game.home_team_id);
                         const awayTeamData = allTeams.find(t => t.id === game.away_team_id);
+
+                        // Prepare top players for AI summary
+                        const topPlayersForAI = [];
+                        if (bestPlayer && bestPlayerStat) {
+                          topPlayersForAI.push({
+                            name: `${bestPlayer.first_name} ${bestPlayer.last_name}`,
+                            team: getTeamName(winningTeamId),
+                            stats: `${bestPlayerStat.field_goals_made || 0} ATK • ${bestPlayerStat.blocks || 0} BLK • ${bestPlayerStat.three_pointers || 0} ACE`
+                          });
+                        }
                         
                         return (
                           <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
@@ -1349,6 +1395,18 @@ export default function Home() {
                                     </Badge>
                                   ))}
                                 </div>
+                              </div>
+                            )}
+
+                            {/* AI Game Summary - NEW */}
+                            {homeTeamData && awayTeamData && topPlayersForAI.length > 0 && (
+                              <div className="mt-3">
+                                <AIGameSummary
+                                  game={game}
+                                  homeTeam={homeTeamData}
+                                  awayTeam={awayTeamData}
+                                  topPlayers={topPlayersForAI}
+                                />
                               </div>
                             )}
                           </div>
