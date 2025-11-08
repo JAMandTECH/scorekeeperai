@@ -659,56 +659,56 @@ export default function LiveScoring() {
               </Button>
             </div>
 
-            <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex flex-wrap gap-2">
               <Button
                 onClick={() => addPoints(1)}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-sm shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 +1 PT
               </Button>
               <Button
                 onClick={() => addPoints(2)}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-sm shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 +2 PTS
               </Button>
               <Button
                 onClick={() => addPoints(3)}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-sm shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 +3 PTS
               </Button>
               <Button
                 onClick={() => addPlayerStat('rebounds', 1)}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold text-xs shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 <TrendingUp className="w-4 h-4 mr-1" />
                 REB
               </Button>
               <Button
                 onClick={() => addPlayerStat('assists', 1)}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold text-xs shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 <Target className="w-4 h-4 mr-1" />
                 AST
               </Button>
               <Button
                 onClick={() => addPlayerStat('steals', 1)}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold text-xs shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 <Zap className="w-4 h-4 mr-1" />
                 STL
               </Button>
               <Button
                 onClick={() => addPlayerStat('blocks', 1)}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold text-xs shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 <Shield className="w-4 h-4 mr-1" />
                 BLK
               </Button>
               <Button
                 onClick={handleFoul}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold text-xs shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 <AlertTriangle className="w-4 h-4 mr-1" />
                 FOUL
@@ -716,7 +716,7 @@ export default function LiveScoring() {
               <Button
                 onClick={handleUndo}
                 disabled={actionHistory.length === 0}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-bold text-xs shadow-md disabled:opacity-50"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RotateCcw className="w-4 h-4 mr-1" />
                 UNDO
