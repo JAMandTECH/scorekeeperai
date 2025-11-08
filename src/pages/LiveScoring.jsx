@@ -569,32 +569,79 @@ export default function LiveScoring() {
               </Button>
             </div>
 
-            {/* Stats Buttons */}
-            <div className="flex gap-2 mb-2">
-              <Button
-                onClick={() => updateStat('rebounds', 1)}
-                className="flex-1 h-10 text-xs font-black bg-blue-500 hover:bg-blue-600 text-white border-2 border-white shadow-lg"
-              >
-                +REB
-              </Button>
-              <Button
-                onClick={() => updateStat('assists', 1)}
-                className="flex-1 h-10 text-xs font-black bg-green-500 hover:bg-green-600 text-white border-2 border-white shadow-lg"
-              >
-                +AST
-              </Button>
-              <Button
-                onClick={() => updateStat('steals', 1)}
-                className="flex-1 h-10 text-xs font-black bg-purple-500 hover:bg-purple-600 text-white border-2 border-white shadow-lg"
-              >
-                +STL
-              </Button>
-              <Button
-                onClick={() => updateStat('blocks', 1)}
-                className="flex-1 h-10 text-xs font-black bg-pink-500 hover:bg-pink-600 text-white border-2 border-white shadow-lg"
-              >
-                +BLK
-              </Button>
+            {/* Stats Buttons with Undo */}
+            <div className="grid grid-cols-4 gap-2 mb-2">
+              {/* Rebounds */}
+              <div className="flex flex-col gap-1">
+                <Button
+                  onClick={() => updateStat('rebounds', 1)}
+                  className="h-10 text-xs font-black bg-blue-500 hover:bg-blue-600 text-white border-2 border-white shadow-lg"
+                >
+                  +REB
+                </Button>
+                {getPlayerStat(selectedPlayer.id, 'rebounds') > 0 && (
+                  <Button
+                    onClick={() => updateStat('rebounds', -1)}
+                    className="h-8 text-[10px] font-black bg-blue-300 hover:bg-blue-400 text-blue-900 border border-white shadow-sm"
+                  >
+                    -REB
+                  </Button>
+                )}
+              </div>
+
+              {/* Assists */}
+              <div className="flex flex-col gap-1">
+                <Button
+                  onClick={() => updateStat('assists', 1)}
+                  className="h-10 text-xs font-black bg-green-500 hover:bg-green-600 text-white border-2 border-white shadow-lg"
+                >
+                  +AST
+                </Button>
+                {getPlayerStat(selectedPlayer.id, 'assists') > 0 && (
+                  <Button
+                    onClick={() => updateStat('assists', -1)}
+                    className="h-8 text-[10px] font-black bg-green-300 hover:bg-green-400 text-green-900 border border-white shadow-sm"
+                  >
+                    -AST
+                  </Button>
+                )}
+              </div>
+
+              {/* Steals */}
+              <div className="flex flex-col gap-1">
+                <Button
+                  onClick={() => updateStat('steals', 1)}
+                  className="h-10 text-xs font-black bg-purple-500 hover:bg-purple-600 text-white border-2 border-white shadow-lg"
+                >
+                  +STL
+                </Button>
+                {getPlayerStat(selectedPlayer.id, 'steals') > 0 && (
+                  <Button
+                    onClick={() => updateStat('steals', -1)}
+                    className="h-8 text-[10px] font-black bg-purple-300 hover:bg-purple-400 text-purple-900 border border-white shadow-sm"
+                  >
+                    -STL
+                  </Button>
+                )}
+              </div>
+
+              {/* Blocks */}
+              <div className="flex flex-col gap-1">
+                <Button
+                  onClick={() => updateStat('blocks', 1)}
+                  className="h-10 text-xs font-black bg-pink-500 hover:bg-pink-600 text-white border-2 border-white shadow-lg"
+                >
+                  +BLK
+                </Button>
+                {getPlayerStat(selectedPlayer.id, 'blocks') > 0 && (
+                  <Button
+                    onClick={() => updateStat('blocks', -1)}
+                    className="h-8 text-[10px] font-black bg-pink-300 hover:bg-pink-400 text-pink-900 border border-white shadow-sm"
+                  >
+                    -BLK
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Foul Buttons */}
