@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon } from "lucide-react"; // Removed Award
+import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,10 +13,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
-  const [darkMode, setDarkMode] = useState(false); // Added dark mode state
+  const [darkMode, setDarkMode] = useState(false);
+  const [user, setUser] = useState(null);
+  const [organization, setOrganization] = useState(null);
+  const [viewMode, setViewMode] = useState('all'); // 'all' or 'my-org'
 
   React.useEffect(() => {
     checkAuth();
+    loadUser();
     // Load dark mode preference
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
     setDarkMode(savedDarkMode);
@@ -30,6 +34,27 @@ export default function Home() {
   const checkAuth = async () => {
     const authenticated = await base44.auth.isAuthenticated();
     setIsAuthenticated(authenticated);
+  };
+
+  const loadUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      
+      // Load organization if user has organization_id
+      if (currentUser?.organization_id) {
+        const orgs = await base44.entities.Organization.list(); // Assuming Organization entity exists
+        const userOrg = orgs.find(o => o.id === currentUser.organization_id);
+        setOrganization(userOrg);
+        setViewMode('my-org'); // Default to showing their org data
+      }
+    } catch (error) {
+      // User not logged in or other error
+      console.log("User not authenticated or error loading user/org:", error);
+      setUser(null); // Ensure user is null if error
+      setOrganization(null);
+      setViewMode('all'); // Default to 'all' if no user/org
+    }
   };
 
   // Dark mode toggle function
@@ -65,16 +90,32 @@ export default function Home() {
     queryFn: () => base44.entities.PlayerGameStats.list(),
   });
 
+  // Filter data based on view mode
+  const teams = viewMode === 'my-org' && user?.organization_id
+    ? allTeams.filter(t => t.organization_id === user.organization_id)
+    : allTeams;
+
+  const games = viewMode === 'my-org' && user?.organization_id
+    ? allGames.filter(g => g.organization_id === user.organization_id)
+    : allGames;
+
+  const teamIds = teams.map(t => t.id);
+  const players = allPlayers.filter(p => teamIds.includes(p.team_id));
+  const playerStats = allPlayerStats.filter(s => {
+    const player = players.find(p => p.id === s.player_id); // Use filtered players here
+    return player && teamIds.includes(player.team_id);
+  });
+
   // Calculate team standings by division and sport
   const getTeamStandings = (sport) => {
-    const sportTeams = allTeams.filter(t => t.sport === sport);
+    const sportTeams = teams.filter(t => t.sport === sport);
     const divisions = [...new Set(sportTeams.map(t => t.division || 'No Division'))];
     
     return divisions.map(division => {
       const divisionTeams = sportTeams
         .filter(t => (t.division || 'No Division') === division)
         .map(team => {
-          const teamGames = allGames.filter(g => 
+          const teamGames = games.filter(g => 
             g.status === 'completed' && 
             (g.home_team_id === team.id || g.away_team_id === team.id)
           );
@@ -149,40 +190,40 @@ export default function Home() {
 
   // Calculate top players for basketball
   const getTopPlayers = (statType, sport = 'basketball', limit = 10) => {
-    const sportTeamIds = allTeams.filter(t => t.sport === sport).map(t => t.id);
-    const sportPlayers = allPlayers.filter(p => sportTeamIds.includes(p.team_id));
+    const sportTeamIds = teams.filter(t => t.sport === sport).map(t => t.id);
+    const sportPlayers = players.filter(p => sportTeamIds.includes(p.team_id));
 
     const playerTotals = sportPlayers.map(player => {
-      const playerStats = allPlayerStats.filter(s => s.player_id === player.id);
+      const playerStatsList = playerStats.filter(s => s.player_id === player.id);
       
       let total = 0;
       let averageLabel = "";
 
       if (statType === 'points') {
         if (sport === 'basketball') {
-          total = playerStats.reduce((sum, s) => sum + (s.points || 0), 0);
+          total = playerStatsList.reduce((sum, s) => sum + (s.points || 0), 0);
           averageLabel = "PPG";
         } else { // volleyball - total 'points' in this context means sum of attacks, blocks, aces
-          total = playerStats.reduce((sum, s) => 
+          total = playerStatsList.reduce((sum, s) => 
             sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0); // three_pointers used for aces
           averageLabel = "Score/G";
         }
       } else if (statType === 'rebounds') {
-        total = playerStats.reduce((sum, s) => sum + (s.rebounds || 0), 0);
+        total = playerStatsList.reduce((sum, s) => sum + (s.rebounds || 0), 0);
         averageLabel = "RPG";
       } else if (statType === 'blocks') {
-        total = playerStats.reduce((sum, s) => sum + (s.blocks || 0), 0);
+        total = playerStatsList.reduce((sum, s) => sum + (s.blocks || 0), 0);
         averageLabel = "BPG";
       } else if (statType === 'three_pointers') {
-        total = playerStats.reduce((sum, s) => sum + (s.three_pointers || 0), 0);
+        total = playerStatsList.reduce((sum, s) => sum + (s.three_pointers || 0), 0);
         averageLabel = sport === 'basketball' ? "3PG" : "ACE/G";
       } else if (statType === 'attacks') {
-        total = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0), 0); // field_goals_made used for attacks in volleyball
+        total = playerStatsList.reduce((sum, s) => sum + (s.field_goals_made || 0), 0); // field_goals_made used for attacks in volleyball
         averageLabel = "APG";
       }
 
       const team = allTeams.find(t => t.id === player.team_id);
-      const gamesPlayed = [...new Set(playerStats.map(s => s.game_id))].length;
+      const gamesPlayed = [...new Set(playerStatsList.map(s => s.game_id))].length;
 
       return {
         ...player,
@@ -214,22 +255,22 @@ export default function Home() {
   const topVolleyballBlockers = getTopPlayers('blocks', 'volleyball', 10);
   const topVolleyballAces = getTopPlayers('three_pointers', 'volleyball', 10);
 
-  const upcomingBasketballGames = allGames
+  const upcomingBasketballGames = games
     .filter(g => g.sport === 'basketball' && g.status === 'scheduled')
     .sort((a, b) => new Date(a.game_date).getTime() - new Date(b.game_date).getTime())
     .slice(0, 10);
 
-  const completedBasketballGames = allGames
+  const completedBasketballGames = games
     .filter(g => g.sport === 'basketball' && g.status === 'completed')
     .sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime())
     .slice(0, 10);
 
-  const upcomingVolleyballGames = allGames
+  const upcomingVolleyballGames = games
     .filter(g => g.sport === 'volleyball' && g.status === 'scheduled')
     .sort((a, b) => new Date(a.game_date).getTime() - new Date(b.game_date).getTime())
     .slice(0, 10);
 
-  const completedVolleyballGames = allGames
+  const completedVolleyballGames = games
     .filter(g => g.sport === 'volleyball' && g.status === 'completed')
     .sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime())
     .slice(0, 10);
@@ -305,6 +346,64 @@ export default function Home() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 py-16">
+        {/* Organization Header & Filter */}
+        {organization && (
+          <div className="mb-12">
+            <Card className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-800 dark:via-blue-950/20 dark:to-purple-950/20 border-2 border-blue-200 dark:border-blue-800 shadow-xl">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                  {/* Organization Info */}
+                  <div className="flex items-center gap-4">
+                    <Avatar className="w-20 h-20 border-4 border-white dark:border-gray-700 shadow-2xl">
+                      <AvatarImage src={organization.logo_url} />
+                      <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-2xl">
+                        {organization.name?.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h2 className="text-3xl font-black text-gray-900 dark:text-white">{organization.name}</h2>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">Your Organization</p>
+                    </div>
+                  </div>
+
+                  {/* View Toggle */}
+                  <div className="flex bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 rounded-xl p-1 shadow-lg">
+                    <Button
+                      variant={viewMode === 'my-org' ? 'default' : 'ghost'}
+                      onClick={() => setViewMode('my-org')}
+                      className={`font-bold px-6 ${viewMode === 'my-org' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                    >
+                      <Building2 className="w-4 h-4 mr-2" />
+                      My Organization
+                    </Button>
+                    <Button
+                      variant={viewMode === 'all' ? 'default' : 'ghost'}
+                      onClick={() => setViewMode('all')}
+                      className={`font-bold px-6 ${viewMode === 'all' ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                        <path d="M2 12h20"/>
+                      </svg>
+                      All Leagues
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Active Filter Badge */}
+                {viewMode === 'my-org' && (
+                  <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
+                    <Badge className="bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold text-sm px-4 py-2">
+                      🏆 Showing {organization.name} data only
+                    </Badge>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* BASKETBALL SECTION */}
         <section className="mb-20">
           <div className="flex items-center gap-4 mb-10">
