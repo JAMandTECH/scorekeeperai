@@ -458,13 +458,13 @@ export default function LiveScoring() {
             </div>
 
             <div className="text-center">
-              <div className="text-white text-xl font-black mb-2">{quarterLabel}</div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2">
-                <div className="flex justify-center gap-2 flex-wrap">
+              <div className="text-white text-2xl font-black mb-3">{quarterLabel}</div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <div className="flex justify-center gap-3 flex-wrap">
                   {[1, 2, 3, 4].map(q => {
                     const qScore = quarterScores.find(qs => qs.quarter === q);
                     return (
-                      <div key={q} className="text-xs font-bold text-white">
+                      <div key={q} className="text-base font-black text-white">
                         <span className="text-gray-400">Q{q}:</span> {qScore ? `${qScore.home}-${qScore.away}` : '-'}
                       </div>
                     );
