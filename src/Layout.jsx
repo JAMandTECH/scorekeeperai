@@ -77,6 +77,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "Teams", url: createPageUrl("Teams"), icon: Users },
     { title: "Players", url: createPageUrl("Players"), icon: Trophy },
     { title: "Games", url: createPageUrl("Games"), icon: Calendar },
+    { title: "Scorekeepers", url: createPageUrl("Scorekeepers"), icon: Shield },
     { title: "Live Scoring", url: createPageUrl("LiveScoring"), icon: PlayCircle },
     { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 },
   ];
