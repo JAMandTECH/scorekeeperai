@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Users, Edit, Trophy, Upload, Image } from "lucide-react";
+import { Plus, Users, Edit, Trophy, Upload, Image, LayoutGrid, Table } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
@@ -19,6 +20,7 @@ export default function Teams() {
   const [user, setUser] = useState(null);
   const [logoFile, setLogoFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -98,27 +100,171 @@ export default function Teams() {
   const basketballTeams = teams.filter(t => t.sport === 'basketball');
   const volleyballTeams = teams.filter(t => t.sport === 'volleyball');
 
+  const TeamCard = ({ team, sportColor }) => (
+    <Card className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 shadow-lg hover:shadow-2xl transition-all group`}>
+      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-${sportColor}-500/20 to-transparent rounded-full blur-3xl`}></div>
+      <CardHeader className="relative z-10">
+        <div className="flex justify-between items-start">
+          <div className="flex items-center gap-3 flex-1">
+            <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
+              <AvatarImage src={team.logo_url} />
+              <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white font-black text-lg`}>
+                {team.name?.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{team.name}</CardTitle>
+              <Badge className={`bg-${sportColor}-100 text-${sportColor}-700 border-${sportColor}-200 dark:bg-${sportColor}-950 dark:text-${sportColor}-300 dark:border-${sportColor}-800 font-bold mt-2`}>
+                {team.division || 'No Division'}
+              </Badge>
+            </div>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => handleEdit(team)}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="relative z-10 space-y-4">
+        <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-gray-900/50 rounded-xl">
+          <span className="text-sm text-gray-600 dark:text-gray-400 font-semibold">Record</span>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-black text-green-600 dark:text-green-400">{team.wins || 0}W</span>
+            <span className="text-gray-400">-</span>
+            <span className="text-lg font-black text-red-600 dark:text-red-400">{team.losses || 0}L</span>
+          </div>
+        </div>
+        
+        {team.coach_name && (
+          <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+            <span className="text-gray-500 dark:text-gray-500">Coach:</span> <span className="text-gray-900 dark:text-white font-bold">{team.coach_name}</span>
+          </div>
+        )}
+        
+        <Link to={createPageUrl("Players") + `?team_id=${team.id}`}>
+          <Button variant="outline" className={`w-full border-2 border-${sportColor}-200 dark:border-${sportColor}-800 text-${sportColor}-700 dark:text-${sportColor}-400 hover:bg-${sportColor}-50 dark:hover:bg-${sportColor}-950 font-bold`}>
+            <Users className="w-4 h-4 mr-2" />
+            View Players
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  );
+
+  const TeamTable = ({ teams, sportColor }) => (
+    <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
+                <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">TEAM</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">DIVISION</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">W</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">L</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">COACH</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {teams.map((team) => (
+                <tr key={team.id} className={`border-b border-gray-100 dark:border-gray-700 hover:bg-${sportColor}-50/50 dark:hover:bg-${sportColor}-950/20 transition-colors`}>
+                  <td className="py-4 px-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
+                        <AvatarImage src={team.logo_url} />
+                        <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white text-xs font-bold`}>
+                          {team.name?.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="font-bold text-gray-900 dark:text-white">{team.name}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-4 text-center">
+                    <Badge className={`bg-${sportColor}-100 text-${sportColor}-700 border-${sportColor}-200 dark:bg-${sportColor}-950 dark:text-${sportColor}-300 dark:border-${sportColor}-800 font-bold`}>
+                      {team.division || 'No Division'}
+                    </Badge>
+                  </td>
+                  <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold text-lg">{team.wins || 0}</td>
+                  <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-bold text-lg">{team.losses || 0}</td>
+                  <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-medium text-sm">
+                    {team.coach_name || '-'}
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="flex items-center justify-center gap-2">
+                      <Link to={createPageUrl("Players") + `?team_id=${team.id}`}>
+                        <Button variant="outline" size="sm" className={`border-2 border-${sportColor}-200 dark:border-${sportColor}-800 text-${sportColor}-700 dark:text-${sportColor}-400 hover:bg-${sportColor}-50 dark:hover:bg-${sportColor}-950 font-bold`}>
+                          <Users className="w-4 h-4 mr-1" />
+                          Players
+                        </Button>
+                      </Link>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleEdit(team)}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/30 to-gray-50 dark:from-gray-900 dark:via-orange-950/10 dark:to-gray-900">
       <div className="p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Header */}
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-4xl font-black text-gray-900 dark:text-white">Teams</h1>
               <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Manage your organization's teams</p>
             </div>
-            <Button 
-              onClick={() => {
-                setEditingTeam(null);
-                setLogoFile(null);
-                setShowForm(true);
-              }}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Add Team
-            </Button>
+            <div className="flex gap-3 w-full md:w-auto">
+              {/* View Toggle */}
+              <div className="flex bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-1 shadow-sm">
+                <Button
+                  variant={viewMode === 'card' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('card')}
+                  className={`font-bold ${viewMode === 'card' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                >
+                  <LayoutGrid className="w-4 h-4 mr-2" />
+                  Cards
+                </Button>
+                <Button
+                  variant={viewMode === 'table' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('table')}
+                  className={`font-bold ${viewMode === 'table' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                >
+                  <Table className="w-4 h-4 mr-2" />
+                  Table
+                </Button>
+              </div>
+              <Button 
+                onClick={() => {
+                  setEditingTeam(null);
+                  setLogoFile(null);
+                  setShowForm(true);
+                }}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Add Team
+              </Button>
+            </div>
           </div>
 
           {/* Basketball Teams */}
@@ -137,62 +283,15 @@ export default function Teams() {
               </div>
             </div>
             
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {basketballTeams.map((team) => (
-                <Card key={team.id} className="relative overflow-hidden border-2 border-orange-100 dark:border-orange-900 bg-gradient-to-br from-white to-orange-50 dark:from-gray-800 dark:to-orange-950/30 shadow-lg hover:shadow-2xl transition-all group">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full blur-3xl"></div>
-                  <CardHeader className="relative z-10">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-3 flex-1">
-                        <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
-                          <AvatarImage src={team.logo_url} />
-                          <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-black text-lg">
-                            {team.name?.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{team.name}</CardTitle>
-                          <Badge className="bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 font-bold mt-2">
-                            {team.division || 'No Division'}
-                          </Badge>
-                        </div>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleEdit(team)}
-                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="relative z-10 space-y-4">
-                    <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-gray-900/50 rounded-xl">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 font-semibold">Record</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-black text-green-600 dark:text-green-400">{team.wins || 0}W</span>
-                        <span className="text-gray-400">-</span>
-                        <span className="text-lg font-black text-red-600 dark:text-red-400">{team.losses || 0}L</span>
-                      </div>
-                    </div>
-                    
-                    {team.coach_name && (
-                      <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                        <span className="text-gray-500 dark:text-gray-500">Coach:</span> <span className="text-gray-900 dark:text-white font-bold">{team.coach_name}</span>
-                      </div>
-                    )}
-                    
-                    <Link to={createPageUrl("Players") + `?team_id=${team.id}`}>
-                      <Button variant="outline" className="w-full border-2 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950 font-bold">
-                        <Users className="w-4 h-4 mr-2" />
-                        View Players
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {viewMode === 'card' ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {basketballTeams.map((team) => (
+                  <TeamCard key={team.id} team={team} sportColor="orange" />
+                ))}
+              </div>
+            ) : (
+              <TeamTable teams={basketballTeams} sportColor="orange" />
+            )}
           </div>
 
           {/* Volleyball Teams */}
@@ -207,62 +306,15 @@ export default function Teams() {
               </div>
             </div>
             
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {volleyballTeams.map((team) => (
-                <Card key={team.id} className="relative overflow-hidden border-2 border-blue-100 dark:border-blue-900 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-950/30 shadow-lg hover:shadow-2xl transition-all group">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
-                  <CardHeader className="relative z-10">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-3 flex-1">
-                        <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
-                          <AvatarImage src={team.logo_url} />
-                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
-                            {team.name?.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{team.name}</CardTitle>
-                          <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold mt-2">
-                            {team.division || 'No Division'}
-                          </Badge>
-                        </div>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleEdit(team)}
-                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="relative z-10 space-y-4">
-                    <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-gray-900/50 rounded-xl">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 font-semibold">Record</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-black text-green-600 dark:text-green-400">{team.wins || 0}W</span>
-                        <span className="text-gray-400">-</span>
-                        <span className="text-lg font-black text-red-600 dark:text-red-400">{team.losses || 0}L</span>
-                      </div>
-                    </div>
-                    
-                    {team.coach_name && (
-                      <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                        <span className="text-gray-500 dark:text-gray-500">Coach:</span> <span className="text-gray-900 dark:text-white font-bold">{team.coach_name}</span>
-                      </div>
-                    )}
-                    
-                    <Link to={createPageUrl("Players") + `?team_id=${team.id}`}>
-                      <Button variant="outline" className="w-full border-2 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 font-bold">
-                        <Users className="w-4 h-4 mr-2" />
-                        View Players
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {viewMode === 'card' ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {volleyballTeams.map((team) => (
+                  <TeamCard key={team.id} team={team} sportColor="blue" />
+                ))}
+              </div>
+            ) : (
+              <TeamTable teams={volleyballTeams} sportColor="blue" />
+            )}
           </div>
 
           {/* Dialog */}
