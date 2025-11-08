@@ -8,10 +8,13 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Statistics() {
   const [user, setUser] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const [selectedDivision, setSelectedDivision] = useState('all');
+  const [selectedSport, setSelectedSport] = useState('all');
 
   useEffect(() => {
     loadUser();
@@ -46,17 +49,45 @@ export default function Statistics() {
 
   const completedGames = games.filter(g => g.status === 'completed');
 
+  // Get unique divisions and sports
+  const allDivisions = [...new Set(teams.map(t => t.division || 'No Division'))];
+  const divisions = ['all', ...allDivisions];
+  const sports = ['all', 'basketball', 'volleyball']; // Hardcoded for now, can be dynamic if needed
+
+  // Filter teams by division and sport
+  const filteredTeams = teams.filter(team => {
+    const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
+    const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
+    return divisionMatch && sportMatch;
+  });
+
+  // Filter players by filtered teams
+  const filteredPlayers = players.filter(p => filteredTeams.some(t => t.id === p.team_id));
+
+  // Filter completed games to only include games involving filtered teams
+  const filteredCompletedGames = completedGames.filter(g =>
+    filteredTeams.some(t => t.id === g.home_team_id || t.id === g.away_team_id)
+  );
+
+  // Reset selectedTeam if it's no longer in filteredTeams
+  useEffect(() => {
+    if (selectedTeam && !filteredTeams.some(t => t.id === selectedTeam.id)) {
+      setSelectedTeam(null);
+    }
+  }, [selectedDivision, selectedSport, filteredTeams, selectedTeam]);
+
+
   // Calculate head-to-head records
   const getHeadToHead = (teamId) => {
     const h2h = {};
-    
-    completedGames.forEach(game => {
+
+    filteredCompletedGames.forEach(game => { // Use filteredCompletedGames here
       if (game.home_team_id === teamId || game.away_team_id === teamId) {
         const opponentId = game.home_team_id === teamId ? game.away_team_id : game.home_team_id;
-        const opponent = teams.find(t => t.id === opponentId);
-        
+        const opponent = teams.find(t => t.id === opponentId); // `teams` (unfiltered) is correct for finding opponent name.
+
         if (!opponent) return;
-        
+
         if (!h2h[opponentId]) {
           h2h[opponentId] = {
             opponent: opponent.name,
@@ -87,7 +118,7 @@ export default function Statistics() {
 
   // Get performance trend over time (last 10 games)
   const getPerformanceTrend = (teamId) => {
-    const teamGames = completedGames
+    const teamGames = filteredCompletedGames // Use filteredCompletedGames here
       .filter(g => g.home_team_id === teamId || g.away_team_id === teamId)
       .sort((a, b) => new Date(a.game_date) - new Date(b.game_date))
       .slice(-10);
@@ -98,7 +129,7 @@ export default function Statistics() {
       const teamScore = isHome ? game.home_score : game.away_score;
       const oppScore = isHome ? game.away_score : game.home_score;
       const won = teamScore > oppScore;
-      
+
       if (won) wins++;
 
       return {
@@ -111,8 +142,8 @@ export default function Statistics() {
     });
   };
 
-  // Top scorers
-  const topScorers = [...players]
+  // Top scorers from filtered players
+  const topScorers = [...filteredPlayers] // Use filteredPlayers here
     .sort((a, b) => (b.total_points || 0) - (a.total_points || 0))
     .slice(0, 5)
     .map(p => ({
@@ -120,9 +151,9 @@ export default function Statistics() {
       points: p.total_points || 0,
     }));
 
-  // Team stats with recent form
-  const teamStats = teams.map(team => {
-    const teamGames = completedGames.filter(g => g.home_team_id === team.id || g.away_team_id === team.id);
+  // Team stats with recent form for filtered teams
+  const teamStats = filteredTeams.map(team => { // Iterate over filteredTeams
+    const teamGames = filteredCompletedGames.filter(g => g.home_team_id === team.id || g.away_team_id === team.id); // Use filteredCompletedGames here
     const last5Games = teamGames.slice(-5);
     const last5Results = last5Games.map(game => {
       const isHome = game.home_team_id === team.id;
@@ -131,7 +162,7 @@ export default function Statistics() {
       return teamScore > oppScore ? 'W' : 'L';
     });
 
-    const avgPointsFor = teamGames.length > 0 
+    const avgPointsFor = teamGames.length > 0
       ? (teamGames.reduce((sum, g) => {
           const isHome = g.home_team_id === team.id;
           return sum + (isHome ? g.home_score : g.away_score);
@@ -176,8 +207,55 @@ export default function Statistics() {
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-black text-gray-900 dark:text-white">Statistics & Analytics</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Performance insights and trends</p>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h1 className="text-4xl font-black text-gray-900 dark:text-white">Statistics & Analytics</h1>
+                <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Performance insights and trends</p>
+              </div>
+
+              {/* Filters */}
+              <div className="flex gap-3 flex-wrap">
+                <Select value={selectedSport} onValueChange={setSelectedSport}>
+                  <SelectTrigger className="w-[180px] bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 font-bold">
+                    <SelectValue placeholder="All Sports" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600">
+                    <SelectItem value="all" className="font-bold">All Sports</SelectItem>
+                    <SelectItem value="basketball" className="font-bold">🏀 Basketball</SelectItem>
+                    <SelectItem value="volleyball" className="font-bold">🏐 Volleyball</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedDivision} onValueChange={setSelectedDivision}>
+                  <SelectTrigger className="w-[180px] bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 font-bold">
+                    <SelectValue placeholder="All Divisions" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600">
+                    {divisions.map(div => (
+                      <SelectItem key={div} value={div} className="font-bold">
+                        {div === 'all' ? 'All Divisions' : div}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Active Filters Display */}
+            {(selectedDivision !== 'all' || selectedSport !== 'all') && (
+              <div className="flex gap-2 mt-4 flex-wrap">
+                {selectedSport !== 'all' && (
+                  <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold px-3 py-1">
+                    Sport: {selectedSport === 'basketball' ? '🏀 Basketball' : '🏐 Volleyball'}
+                  </Badge>
+                )}
+                {selectedDivision !== 'all' && (
+                  <Badge className="bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800 font-bold px-3 py-1">
+                    Division: {selectedDivision}
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
@@ -206,7 +284,7 @@ export default function Statistics() {
                     </div>
                   </CardHeader>
                   <CardContent className="relative z-10">
-                    <div className="text-4xl font-black text-gray-900 dark:text-white">{completedGames.length}</div>
+                    <div className="text-4xl font-black text-gray-900 dark:text-white">{filteredCompletedGames.length}</div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold">Completed games</p>
                   </CardContent>
                 </Card>
@@ -221,10 +299,10 @@ export default function Statistics() {
                   </CardHeader>
                   <CardContent className="relative z-10">
                     <div className="text-4xl font-black text-gray-900 dark:text-white">
-                      {completedGames.length > 0
+                      {filteredCompletedGames.length > 0
                         ? Math.round(
-                            completedGames.reduce((sum, g) => sum + g.home_score + g.away_score, 0) /
-                            completedGames.length
+                            filteredCompletedGames.reduce((sum, g) => sum + g.home_score + g.away_score, 0) /
+                            filteredCompletedGames.length
                           )
                         : 0}
                     </div>
@@ -241,8 +319,8 @@ export default function Statistics() {
                     </div>
                   </CardHeader>
                   <CardContent className="relative z-10">
-                    <div className="text-4xl font-black text-gray-900 dark:text-white">{players.length}</div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold">Across all teams</p>
+                    <div className="text-4xl font-black text-gray-900 dark:text-white">{filteredPlayers.length}</div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold">In selected filter</p>
                   </CardContent>
                 </Card>
               </div>
@@ -250,7 +328,14 @@ export default function Statistics() {
               {/* Top Scorers Chart */}
               <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl">
                 <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                  <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">Top Scorers</CardTitle>
+                  <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                    Top Scorers
+                    {(selectedDivision !== 'all' || selectedSport !== 'all') && (
+                      <span className="text-lg font-semibold text-gray-500 dark:text-gray-400 ml-2">
+                        ({selectedDivision !== 'all' ? selectedDivision : ''}{selectedDivision !== 'all' && selectedSport !== 'all' ? ' - ' : ''}{selectedSport !== 'all' ? selectedSport : ''})
+                      </span>
+                    )}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
                   {topScorers.length > 0 ? (
@@ -260,9 +345,9 @@ export default function Statistics() {
                         <XAxis dataKey="name" stroke="#6B7280" className="dark:stroke-gray-400" />
                         <YAxis stroke="#6B7280" className="dark:stroke-gray-400" />
                         <Tooltip
-                          contentStyle={{ 
-                            backgroundColor: 'var(--tw-bg-opacity, #FFFFFF)', 
-                            border: '1px solid #E5E7EB', 
+                          contentStyle={{
+                            backgroundColor: 'var(--tw-bg-opacity, #FFFFFF)',
+                            border: '1px solid #E5E7EB',
                             borderRadius: '12px',
                             boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                           }}
@@ -280,7 +365,7 @@ export default function Statistics() {
                   ) : (
                     <div className="text-center py-20">
                       <Trophy className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                      <p className="text-gray-500 dark:text-gray-400 font-medium">No player statistics yet</p>
+                      <p className="text-gray-500 dark:text-gray-400 font-medium">No player statistics for selected filter</p>
                     </div>
                   )}
                 </CardContent>
@@ -290,80 +375,90 @@ export default function Statistics() {
             {/* TEAM PERFORMANCE TAB */}
             <TabsContent value="performance" className="space-y-6">
               {/* Team Selection Cards */}
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {teamStats.map((team) => {
-                  const sportColor = team.sport === 'basketball' ? 'orange' : 'blue';
-                  
-                  return (
-                    <Card 
-                      key={team.id} 
-                      className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 cursor-pointer transition-all shadow-lg hover:shadow-2xl ${
-                        selectedTeam?.id === team.id ? 'ring-4 ring-blue-600' : ''
-                      }`}
-                      onClick={() => setSelectedTeam(team)}
-                    >
-                      <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-${sportColor}-500/20 to-transparent rounded-full blur-3xl`}></div>
-                      <CardHeader className="relative z-10">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-3 flex-1">
-                            <Avatar className="w-14 h-14 border-4 border-white dark:border-gray-700 shadow-xl">
-                              <AvatarImage src={team.logo_url} />
-                              <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white font-black text-sm`}>
-                                {team.name?.substring(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{team.name}</CardTitle>
-                              <Badge className={`mt-2 bg-${sportColor}-100 text-${sportColor}-700 border-${sportColor}-200 dark:bg-${sportColor}-950 dark:text-${sportColor}-300 dark:border-${sportColor}-800 font-bold`}>
-                                {team.sport}
-                              </Badge>
+              {teamStats.length > 0 ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {teamStats.map((team) => {
+                    const sportColor = team.sport === 'basketball' ? 'orange' : 'blue';
+
+                    return (
+                      <Card
+                        key={team.id}
+                        className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 cursor-pointer transition-all shadow-lg hover:shadow-2xl ${
+                          selectedTeam?.id === team.id ? 'ring-4 ring-blue-600' : ''
+                        }`}
+                        onClick={() => setSelectedTeam(team)}
+                      >
+                        <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-${sportColor}-500/20 to-transparent rounded-full blur-3xl`}></div>
+                        <CardHeader className="relative z-10">
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-3 flex-1">
+                              <Avatar className="w-14 h-14 border-4 border-white dark:border-gray-700 shadow-xl">
+                                <AvatarImage src={team.logo_url} />
+                                <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white font-black text-sm`}>
+                                  {team.name?.substring(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{team.name}</CardTitle>
+                                <Badge className={`mt-2 bg-${sportColor}-100 text-${sportColor}-700 border-${sportColor}-200 dark:bg-${sportColor}-950 dark:text-${sportColor}-300 dark:border-${sportColor}-800 font-bold`}>
+                                  {team.sport}
+                                </Badge>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3 relative z-10">
-                        <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                          <span className="text-gray-600 dark:text-gray-400 font-bold">Record</span>
-                          <span className="text-gray-900 dark:text-white font-black">
-                            {team.wins || 0}W - {team.losses || 0}L
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                          <span className="text-gray-600 dark:text-gray-400 font-bold">Win Rate</span>
-                          <span className="text-gray-900 dark:text-white font-black">
-                            {team.gamesPlayed > 0
-                              ? ((team.wins / team.gamesPlayed) * 100).toFixed(0)
-                              : 0}%
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                          <span className="text-gray-600 dark:text-gray-400 font-bold">Avg Points</span>
-                          <span className="text-gray-900 dark:text-white font-black">
-                            {team.avgPointsFor} / {team.avgPointsAgainst}
-                          </span>
-                        </div>
-                        {team.last5.length > 0 && (
-                          <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-bold">Last 5 Games</p>
-                            <div className="flex gap-1">
-                              {team.last5.map((result, i) => (
-                                <div
-                                  key={i}
-                                  className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-black shadow-md ${
-                                    result === 'W' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'
-                                  }`}
-                                >
-                                  {result}
-                                </div>
-                              ))}
-                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3 relative z-10">
+                          <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+                            <span className="text-gray-600 dark:text-gray-400 font-bold">Record</span>
+                            <span className="text-gray-900 dark:text-white font-black">
+                              {team.wins || 0}W - {team.losses || 0}L
+                            </span>
                           </div>
-                        )}
+                          <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+                            <span className="text-gray-600 dark:text-gray-400 font-bold">Win Rate</span>
+                            <span className="text-gray-900 dark:text-white font-black">
+                              {team.gamesPlayed > 0
+                                ? ((team.wins / team.gamesPlayed) * 100).toFixed(0)
+                                : 0}%
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+                            <span className="text-gray-600 dark:text-gray-400 font-bold">Avg Points</span>
+                            <span className="text-gray-900 dark:text-white font-black">
+                              {team.avgPointsFor} / {team.avgPointsAgainst}
+                            </span>
+                          </div>
+                          {team.last5.length > 0 && (
+                            <div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-bold">Last 5 Games</p>
+                              <div className="flex gap-1">
+                                {team.last5.map((result, i) => (
+                                  <div
+                                    key={i}
+                                    className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-black shadow-md ${
+                                      result === 'W' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'
+                                    }`}
+                                  >
+                                    {result}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                       </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Trophy className="w-12 h-12 text-gray-400 dark:text-gray-500" />
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No teams found for selected filter</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Try adjusting your division or sport filter</p>
+                </div>
+              )}
 
               {/* Selected Team Detailed Analysis */}
               {selectedTeam && (
@@ -372,8 +467,8 @@ export default function Statistics() {
                     <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
                       <AvatarImage src={selectedTeam.logo_url} />
                       <AvatarFallback className={`bg-gradient-to-br ${
-                        selectedTeam.sport === 'basketball' 
-                          ? 'from-orange-500 to-orange-600' 
+                        selectedTeam.sport === 'basketball'
+                          ? 'from-orange-500 to-orange-600'
                           : 'from-blue-500 to-blue-600'
                       } text-white font-black text-lg`}>
                         {selectedTeam.name?.substring(0, 2).toUpperCase()}
@@ -381,8 +476,8 @@ export default function Statistics() {
                     </Avatar>
                     <h2 className="text-3xl font-black text-gray-900 dark:text-white">{selectedTeam.name}</h2>
                     <Badge className={`${
-                      selectedTeam.sport === 'basketball' 
-                        ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800' 
+                      selectedTeam.sport === 'basketball'
+                        ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800'
                         : 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
                     } font-black`}>
                       {selectedTeam.sport}
@@ -403,7 +498,7 @@ export default function Statistics() {
                               <XAxis dataKey="game" stroke="#6B7280" className="dark:stroke-gray-400" />
                               <YAxis stroke="#6B7280" className="dark:stroke-gray-400" />
                               <Tooltip
-                                contentStyle={{ 
+                                contentStyle={{
                                   backgroundColor: '#FFFFFF',
                                   border: '2px solid #E5E7EB',
                                   borderRadius: '12px',
@@ -481,7 +576,7 @@ export default function Statistics() {
                 </div>
               )}
 
-              {!selectedTeam && (
+              {!selectedTeam && teamStats.length > 0 && ( // Only show if there are teams available after filter
                 <div className="text-center py-20">
                   <div className="w-24 h-24 bg-gradient-to-br from-blue-200 to-blue-300 dark:from-blue-800 dark:to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Trophy className="w-12 h-12 text-blue-600 dark:text-blue-300" />
@@ -495,7 +590,14 @@ export default function Statistics() {
             <TabsContent value="players" className="space-y-6">
               <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl">
                 <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                  <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">Top Players Leaderboard</CardTitle>
+                  <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                    Top Players Leaderboard
+                    {(selectedDivision !== 'all' || selectedSport !== 'all') && (
+                      <span className="text-lg font-semibold text-gray-500 dark:text-gray-400 ml-2">
+                        ({selectedDivision !== 'all' ? selectedDivision : ''}{selectedDivision !== 'all' && selectedSport !== 'all' ? ' - ' : ''}{selectedSport !== 'all' ? selectedSport : ''})
+                      </span>
+                    )}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
                   {topScorers.length > 0 ? (
@@ -523,7 +625,7 @@ export default function Statistics() {
                   ) : (
                     <div className="text-center py-20">
                       <Trophy className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                      <p className="text-gray-500 dark:text-gray-400 font-medium">No player statistics yet</p>
+                      <p className="text-gray-500 dark:text-gray-400 font-medium">No player statistics for selected filter</p>
                     </div>
                   )}
                 </CardContent>
