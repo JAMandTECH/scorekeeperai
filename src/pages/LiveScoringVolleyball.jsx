@@ -454,32 +454,32 @@ export default function LiveScoringVolleyball() {
             <div className="flex gap-2">
               <Button
                 onClick={() => addPoint('attack')}
-                className="flex-1 h-14 text-base font-black bg-orange-500 hover:bg-orange-600 text-white border-3 border-white shadow-xl"
+                className="flex-1 h-12 text-sm font-black bg-orange-500 hover:bg-orange-600 text-white border-3 border-white shadow-xl"
               >
                 🏐 ATK
               </Button>
               <Button
                 onClick={() => addPoint('block')}
-                className="flex-1 h-14 text-base font-black bg-red-500 hover:bg-red-600 text-white border-3 border-white shadow-xl"
+                className="flex-1 h-12 text-sm font-black bg-red-500 hover:bg-red-600 text-white border-3 border-white shadow-xl"
               >
                 🚫 BLK
               </Button>
               <Button
                 onClick={() => addPoint('ace')}
-                className="flex-1 h-14 text-base font-black bg-yellow-500 hover:bg-yellow-600 text-white border-3 border-white shadow-xl"
+                className="flex-1 h-12 text-sm font-black bg-yellow-500 hover:bg-yellow-600 text-white border-3 border-white shadow-xl"
               >
                 ⚡ ACE
               </Button>
               <Button
                 onClick={() => addPoint('rally')}
-                className="flex-1 h-14 text-base font-black bg-green-500 hover:bg-green-600 text-white border-3 border-white shadow-xl"
+                className="flex-1 h-12 text-sm font-black bg-green-500 hover:bg-green-600 text-white border-3 border-white shadow-xl"
               >
                 🎯 RLY
               </Button>
               <Button
                 onClick={undoLastScore}
                 disabled={scoreHistory.length === 0}
-                className="flex-1 h-14 text-base font-black bg-gray-700 hover:bg-gray-800 text-white border-3 border-white shadow-xl disabled:opacity-50"
+                className="flex-1 h-12 text-sm font-black bg-gray-700 hover:bg-gray-800 text-white border-3 border-white shadow-xl disabled:opacity-50"
               >
                 UNDO
               </Button>
