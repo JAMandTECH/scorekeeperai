@@ -536,7 +536,7 @@ export default function LiveScoringVolleyball() {
                 ACE
               </Button>
               <Button
-                onClick={() => handleScorePoint('rally', selectedPlayer.id)}
+                onClick={handleScorePoint('rally', selectedPlayer.id)}
                 className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 <Trophy className="w-4 h-4 mr-1" />
@@ -554,22 +554,18 @@ export default function LiveScoringVolleyball() {
 
             <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
               <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Set Stats:</p>
-              <div className="grid grid-cols-4 gap-2 text-center">
+              <div className="grid grid-cols-3 gap-2 text-center">
                 <div>
-                  <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{currentSetStats.field_goals_made || 0}</div>
+                  <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{currentSetStats.field_goals_made || 0}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">ATK</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-black text-green-600 dark:text-green-400">{currentSetStats.blocks || 0}</div>
+                  <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{currentSetStats.blocks || 0}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">BLK</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-black text-purple-600 dark:text-purple-400">{currentSetStats.three_pointers || 0}</div>
+                  <div className="text-2xl font-black text-cyan-600 dark:text-cyan-400">{currentSetStats.three_pointers || 0}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">ACE</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{currentSetStats.fouls || 0}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">FOULS</div>
                 </div>
               </div>
             </div>
