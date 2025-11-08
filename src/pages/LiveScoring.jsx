@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Minus, CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User } from "lucide-react"; // Added new icons
+import { Plus, Minus, CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -139,7 +139,7 @@ export default function LiveScoring() {
     return totalFouls;
   };
 
-  // Modified `updatePlayerStat` to also return the updated stat object with its ID
+  // FIXED: Simplified updatePlayerStat to do ONE state update
   // This function is now a lower-level helper that updates state and DB for a single stat
   const updatePlayerStat = async (playerId, teamId, statType, value) => {
     const key = getPlayerStatKey(playerId);
@@ -147,7 +147,7 @@ export default function LiveScoring() {
 
     const newStatValue = (existingStat?.[statType] || 0) + value;
     
-    const updatedStat = {
+    let currentStat = {
       ...existingStat,
       game_id: game.id,
       player_id: playerId,
@@ -156,29 +156,23 @@ export default function LiveScoring() {
       [statType]: Math.max(0, newStatValue), // Ensure stat doesn't go below 0
     };
 
-    // Optimistic UI update
-    setPlayerStats(prev => ({
-      ...prev,
-      [key]: updatedStat,
-    }));
-
     let savedStatInDb;
     if (existingStat?.id) {
-      savedStatInDb = await base44.entities.PlayerGameStats.update(existingStat.id, updatedStat);
+      savedStatInDb = await base44.entities.PlayerGameStats.update(existingStat.id, currentStat);
     } else {
-      savedStatInDb = await base44.entities.PlayerGameStats.create(updatedStat);
+      savedStatInDb = await base44.entities.PlayerGameStats.create(currentStat);
+      currentStat.id = savedStatInDb.id; // Assign the newly created ID to our currentStat object
     }
     
-    // Ensure the state includes the actual ID from the DB, especially for new entries
-    const finalStat = { ...updatedStat, id: savedStatInDb.id || existingStat?.id };
+    // Single state update with the final stat including DB id
     setPlayerStats(prev => ({
       ...prev,
-      [key]: finalStat,
+      [key]: currentStat,
     }));
 
     // Return enough information to reverse this specific stat update
     return { 
-      statObjectId: finalStat.id, // The ID of the PlayerGameStats entity
+      statObjectId: currentStat.id, // The ID of the PlayerGameStats entity
       playerId: playerId, 
       teamId: teamId, 
       quarter: currentQuarter, 
