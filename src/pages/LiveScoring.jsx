@@ -718,7 +718,7 @@ export default function LiveScoring() {
                 
                 {showQuarterStats && (
                   <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
-                    <div className="grid grid-cols-4 gap-2 text-center">
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
                       <div>
                         <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'points')}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">PTS</div>
@@ -730,6 +730,14 @@ export default function LiveScoring() {
                       <div>
                         <div className="text-2xl font-black text-purple-600 dark:text-purple-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'assists')}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">AST</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-black text-cyan-600 dark:text-cyan-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'steals')}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">STL</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'blocks')}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">BLK</div>
                       </div>
                       <div>
                         <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'fouls')}</div>
@@ -843,7 +851,7 @@ export default function LiveScoring() {
               {currentQuarter >= 4 && homeScore === awayScore && (
                 <div className="w-full">
                   <Alert className="bg-yellow-900/50 border-2 border-yellow-500 mb-4">
-                    <AlertTriangle className="h-5 w-5 text-yellow-400" />
+                    <AlertTriangle className="h-4 w-4 text-yellow-400" />
                     <AlertDescription className="text-yellow-200 font-bold text-center">
                       ⚠️ Game is TIED! Must play overtime period before ending game.
                     </AlertDescription>
