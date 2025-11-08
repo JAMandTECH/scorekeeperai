@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -72,6 +73,7 @@ export default function Layout({ children, currentPageName }) {
 
   const adminNav = [
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
+    { title: "Divisions", url: createPageUrl("Divisions"), icon: Trophy },
     { title: "Teams", url: createPageUrl("Teams"), icon: Users },
     { title: "Players", url: createPageUrl("Players"), icon: Trophy },
     { title: "Games", url: createPageUrl("Games"), icon: Calendar },

@@ -13,6 +13,7 @@ import RequestAdminAccess from './pages/RequestAdminAccess';
 import AdminApprovals from './pages/AdminApprovals';
 import VerifyAdminCode from './pages/VerifyAdminCode';
 import LiveScoringVolleyball from './pages/LiveScoringVolleyball';
+import Divisions from './pages/Divisions';
 import Layout from './Layout.jsx';
 
 
@@ -32,6 +33,7 @@ export const PAGES = {
     "AdminApprovals": AdminApprovals,
     "VerifyAdminCode": VerifyAdminCode,
     "LiveScoringVolleyball": LiveScoringVolleyball,
+    "Divisions": Divisions,
 }
 
 export const pagesConfig = {
