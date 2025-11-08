@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -6,6 +7,7 @@ import { Trophy, TrendingUp, Target, TrendingDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Statistics() {
   const [user, setUser] = useState(null);
@@ -303,11 +305,19 @@ export default function Statistics() {
                       <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-${sportColor}-500/20 to-transparent rounded-full blur-3xl`}></div>
                       <CardHeader className="relative z-10">
                         <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="text-lg font-black text-gray-900 dark:text-white">{team.name}</CardTitle>
-                            <Badge className={`mt-2 bg-${sportColor}-100 text-${sportColor}-700 border-${sportColor}-200 dark:bg-${sportColor}-950 dark:text-${sportColor}-300 dark:border-${sportColor}-800 font-bold`}>
-                              {team.sport}
-                            </Badge>
+                          <div className="flex items-center gap-3 flex-1">
+                            <Avatar className="w-14 h-14 border-4 border-white dark:border-gray-700 shadow-xl">
+                              <AvatarImage src={team.logo_url} />
+                              <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white font-black text-sm`}>
+                                {team.name?.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{team.name}</CardTitle>
+                              <Badge className={`mt-2 bg-${sportColor}-100 text-${sportColor}-700 border-${sportColor}-200 dark:bg-${sportColor}-950 dark:text-${sportColor}-300 dark:border-${sportColor}-800 font-bold`}>
+                                {team.sport}
+                              </Badge>
+                            </div>
                           </div>
                         </div>
                       </CardHeader>
@@ -359,6 +369,16 @@ export default function Statistics() {
               {selectedTeam && (
                 <div className="space-y-6">
                   <div className="flex items-center gap-4">
+                    <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
+                      <AvatarImage src={selectedTeam.logo_url} />
+                      <AvatarFallback className={`bg-gradient-to-br ${
+                        selectedTeam.sport === 'basketball' 
+                          ? 'from-orange-500 to-orange-600' 
+                          : 'from-blue-500 to-blue-600'
+                      } text-white font-black text-lg`}>
+                        {selectedTeam.name?.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
                     <h2 className="text-3xl font-black text-gray-900 dark:text-white">{selectedTeam.name}</h2>
                     <Badge className={`${
                       selectedTeam.sport === 'basketball' 
