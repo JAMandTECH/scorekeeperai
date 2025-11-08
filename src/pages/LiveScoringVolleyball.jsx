@@ -266,8 +266,10 @@ export default function LiveScoringVolleyball() {
       else awaySetsWon++;
     });
 
+    // Add score of the current set if not yet ended
     if (homeScore > awayScore) homeSetsWon++;
-    else awaySetsWon++;
+    else if (awayScore > homeScore) awaySetsWon++;
+
 
     await base44.entities.Game.update(game.id, {
       status: 'completed',
@@ -275,28 +277,37 @@ export default function LiveScoringVolleyball() {
       away_score: awaySetsWon,
     });
 
+    // Update team wins/losses
     if (homeSetsWon > awaySetsWon) {
-      const homeTeamData = await base44.entities.Team.list();
-      const home = homeTeamData.find(t => t.id === game.home_team_id);
-      await base44.entities.Team.update(game.home_team_id, {
-        wins: (home.wins || 0) + 1
-      });
+      const allTeams = await base44.entities.Team.list();
+      const homeTeamToUpdate = allTeams.find(t => t.id === game.home_team_id);
+      if (homeTeamToUpdate) {
+        await base44.entities.Team.update(game.home_team_id, {
+          wins: (homeTeamToUpdate.wins || 0) + 1
+        });
+      }
       
-      const away = homeTeamData.find(t => t.id === game.away_team_id);
-      await base44.entities.Team.update(game.away_team_id, {
-        losses: (away.losses || 0) + 1
-      });
+      const awayTeamToUpdate = allTeams.find(t => t.id === game.away_team_id);
+      if (awayTeamToUpdate) {
+        await base44.entities.Team.update(game.away_team_id, {
+          losses: (awayTeamToUpdate.losses || 0) + 1
+        });
+      }
     } else {
-      const homeTeamData = await base44.entities.Team.list();
-      const home = homeTeamData.find(t => t.id === game.home_team_id);
-      await base44.entities.Team.update(game.home_team_id, {
-        losses: (home.losses || 0) + 1
-      });
+      const allTeams = await base44.entities.Team.list();
+      const homeTeamToUpdate = allTeams.find(t => t.id === game.home_team_id);
+      if (homeTeamToUpdate) {
+        await base44.entities.Team.update(game.home_team_id, {
+          losses: (homeTeamToUpdate.losses || 0) + 1
+        });
+      }
       
-      const away = homeTeamData.find(t => t.id === game.away_team_id);
-      await base44.entities.Team.update(game.away_team_id, {
-        wins: (away.wins || 0) + 1
-      });
+      const awayTeamToUpdate = allTeams.find(t => t.id === game.away_team_id);
+      if (awayTeamToUpdate) {
+        await base44.entities.Team.update(game.away_team_id, {
+          wins: (awayTeamToUpdate.wins || 0) + 1
+        });
+      }
     }
 
     navigate(createPageUrl("Games"));
@@ -383,16 +394,17 @@ export default function LiveScoringVolleyball() {
 
             <div className="text-center">
               <div className="text-white text-xl font-black mb-2">{setLabel}</div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
-                {[1, 2, 3, 4, 5].map(s => {
-                  const setScore = setScores.find(ss => ss.quarter === s);
-                  return (
-                    <div key={s} className="flex justify-between text-sm font-bold text-white mb-1">
-                      <span>Set {s}:</span>
-                      <span>{setScore ? `${setScore.home} - ${setScore.away}` : '-'}</span>
-                    </div>
-                  );
-                })}
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2">
+                <div className="flex justify-center gap-2 flex-wrap">
+                  {[1, 2, 3, 4, 5].map(s => {
+                    const setScore = setScores.find(ss => ss.quarter === s);
+                    return (
+                      <div key={s} className="text-xs font-bold text-white">
+                        <span className="text-gray-400">S{s}:</span> {setScore ? `${setScore.home}-${setScore.away}` : '-'}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -440,7 +452,6 @@ export default function LiveScoringVolleyball() {
               </Button>
             </div>
 
-            {/* Volleyball Point Types - Horizontal Single Line with Undo */}
             <div className="flex gap-2">
               <Button
                 onClick={() => addPoint('attack')}
@@ -484,10 +495,8 @@ export default function LiveScoringVolleyball() {
         </div>
       )}
 
-      {/* SCROLLABLE PLAYERS SECTION */}
       <div className="max-w-7xl mx-auto p-4 pb-24">
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Home Team */}
           <Card className="bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm">
             <CardHeader className="border-b-4 border-blue-500 bg-blue-900/50">
               <div className="flex items-center justify-between gap-3">
@@ -511,7 +520,6 @@ export default function LiveScoringVolleyball() {
             </CardContent>
           </Card>
 
-          {/* Away Team */}
           <Card className="bg-gradient-to-br from-cyan-900/40 to-cyan-950/40 border-4 border-cyan-500 backdrop-blur-sm">
             <CardHeader className="border-b-4 border-cyan-500 bg-cyan-900/50">
               <div className="flex items-center justify-between gap-3">
