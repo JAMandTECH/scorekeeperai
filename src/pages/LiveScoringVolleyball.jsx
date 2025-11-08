@@ -476,7 +476,7 @@ export default function LiveScoringVolleyball() {
 
       {/* Control Panel - Sticky at top when player selected */}
       {selectedPlayer ? (
-        <Card className="sticky top-[250px] z-30 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
+        <Card className="sticky top-4 z-30 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl mx-4">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -504,13 +504,13 @@ export default function LiveScoringVolleyball() {
               </Button>
             </div>
 
-            <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex flex-wrap gap-2">
               <Button
                 onClick={async () => {
                   await handleStatUpdate('field_goals_made', 1);
                   await handleScorePoint('attack', selectedPlayer.id);
                 }}
-                className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-xs shadow-md"
+                className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 <Target className="w-4 h-4 mr-1" />
                 ATTACK
@@ -520,7 +520,7 @@ export default function LiveScoringVolleyball() {
                   await handleStatUpdate('blocks', 1);
                   await handleScorePoint('block', selectedPlayer.id);
                 }}
-                className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black text-xs shadow-md"
+                className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:scale-95 text-white font-black text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 <Shield className="w-4 h-4 mr-1" />
                 BLOCK
@@ -530,21 +530,21 @@ export default function LiveScoringVolleyball() {
                   await handleStatUpdate('three_pointers', 1);
                   await handleScorePoint('ace', selectedPlayer.id);
                 }}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold text-xs shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 <Zap className="w-4 h-4 mr-1" />
                 ACE
               </Button>
               <Button
                 onClick={() => handleScorePoint('rally', selectedPlayer.id)}
-                className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold text-xs shadow-md"
+                className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 <Trophy className="w-4 h-4 mr-1" />
                 RALLY
               </Button>
               <Button
                 onClick={() => handleFoul(selectedPlayer.id)}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold text-xs shadow-md"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
               >
                 <AlertTriangle className="w-4 h-4 mr-1" />
                 FOUL
@@ -552,7 +552,7 @@ export default function LiveScoringVolleyball() {
               <Button
                 onClick={handleUndo}
                 disabled={actionHistory.length === 0}
-                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-bold text-xs shadow-md disabled:opacity-50"
+                className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RotateCcw className="w-4 h-4 mr-1" />
                 UNDO
@@ -583,7 +583,7 @@ export default function LiveScoringVolleyball() {
           </CardContent>
         </Card>
       ) : (
-        <div className="sticky top-[250px] z-30 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-gray-700 rounded-xl p-8 text-center shadow-lg">
+        <div className="sticky top-4 z-30 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-gray-700 rounded-xl p-8 text-center shadow-lg mx-4">
           <User className="w-16 h-16 text-blue-400 dark:text-blue-500 mx-auto mb-4" />
           <p className="text-xl font-black text-gray-900 dark:text-white mb-2">Select a Player</p>
           <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
