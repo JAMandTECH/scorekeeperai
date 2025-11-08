@@ -17,6 +17,8 @@ export default function Players() {
   const [user, setUser] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
+  const [photoFile, setPhotoFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -68,22 +70,37 @@ export default function Players() {
     },
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = {
-      team_id: formData.get('team_id'),
-      first_name: formData.get('first_name'),
-      last_name: formData.get('last_name'),
-      jersey_number: formData.get('jersey_number'),
-      position: formData.get('position'),
-      height: formData.get('height'),
-    };
+    setUploading(true);
 
-    if (editingPlayer) {
-      updateMutation.mutate({ id: editingPlayer.id, data });
-    } else {
-      createMutation.mutate(data);
+    try {
+      const formData = new FormData(e.target);
+      const data = {
+        team_id: formData.get('team_id'),
+        first_name: formData.get('first_name'),
+        last_name: formData.get('last_name'),
+        jersey_number: formData.get('jersey_number'),
+        position: formData.get('position'),
+        height: formData.get('height'),
+      };
+
+      // Upload photo if a new file was selected
+      if (photoFile) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: photoFile });
+        data.photo_url = file_url;
+      }
+
+      if (editingPlayer) {
+        updateMutation.mutate({ id: editingPlayer.id, data });
+      } else {
+        createMutation.mutate(data);
+      }
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+    } finally {
+      setUploading(false);
+      setPhotoFile(null);
     }
   };
 
@@ -381,6 +398,28 @@ export default function Players() {
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Player Photo Upload */}
+                <div>
+                  <Label className="font-bold text-gray-700 dark:text-gray-300">Player Photo</Label>
+                  <div className="mt-2 flex items-center gap-4">
+                    <Avatar className="w-20 h-20 border-4 border-gray-200 dark:border-gray-600">
+                      <AvatarImage src={photoFile ? URL.createObjectURL(photoFile) : editingPlayer?.photo_url} />
+                      <AvatarFallback className="bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700">
+                        <User className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setPhotoFile(e.target.files[0])}
+                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">PNG, JPG, or GIF (Max 5MB)</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="team_id" className="font-bold text-gray-700 dark:text-gray-300">Team</Label>
                   <select
@@ -451,11 +490,23 @@ export default function Players() {
                   />
                 </div>
                 <div className="flex justify-end gap-3 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setShowForm(false);
+                      setPhotoFile(null);
+                    }} 
+                    className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
+                  >
                     Cancel
                   </Button>
-                  <Button type="submit" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
-                    {editingPlayer ? 'Update' : 'Create'}
+                  <Button 
+                    type="submit" 
+                    disabled={uploading}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                  >
+                    {uploading ? 'Uploading...' : editingPlayer ? 'Update' : 'Create'}
                   </Button>
                 </div>
               </form>
