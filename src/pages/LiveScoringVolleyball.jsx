@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -265,13 +266,14 @@ export default function LiveScoringVolleyball() {
       else awaySetsWon++;
     });
 
+    // Add score for the current set before finalizing
     if (homeScore > awayScore) homeSetsWon++;
     else awaySetsWon++;
 
     await base44.entities.Game.update(game.id, {
       status: 'completed',
-      home_score: homeSetsWon,
-      away_score: awaySetsWon,
+      home_score: homeSetsWon, // Store total sets won, not current score
+      away_score: awaySetsWon, // Store total sets won, not current score
     });
 
     if (homeSetsWon > awaySetsWon) {
@@ -416,19 +418,19 @@ export default function LiveScoringVolleyball() {
       {selectedPlayer && (
         <div className="sticky top-[250px] z-40 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 border-y-4 border-blue-400 shadow-2xl">
           <div className="max-w-7xl mx-auto p-4">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-4">
-                <Avatar className="w-16 h-16 border-4 border-white shadow-xl">
+                <Avatar className="w-14 h-14 border-4 border-white shadow-xl">
                   <AvatarImage src={selectedPlayer.photo_url} />
-                  <AvatarFallback className="bg-white text-blue-600 font-black text-xl">
+                  <AvatarFallback className="bg-white text-blue-600 font-black text-lg">
                     {selectedPlayer.jersey_number}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-white font-black text-xl">
+                  <p className="text-white font-black text-lg">
                     #{selectedPlayer.jersey_number} {selectedPlayer.first_name} {selectedPlayer.last_name}
                   </p>
-                  <p className="text-blue-100 text-sm font-bold">
+                  <p className="text-blue-100 text-xs font-bold">
                     {selectedTeam === 'home' ? homeTeam.name : awayTeam.name} • {selectedTeam.toUpperCase()}
                   </p>
                 </div>
@@ -438,64 +440,64 @@ export default function LiveScoringVolleyball() {
                   setSelectedPlayer(null);
                   setSelectedTeam(null);
                 }}
-                className="bg-white/20 hover:bg-white/30 text-white border-2 border-white font-black"
+                className="bg-white/20 hover:bg-white/30 text-white border-2 border-white font-black text-sm px-4 py-2"
               >
                 ✕ CLOSE
               </Button>
             </div>
 
-            {/* Volleyball Point Types - Large Buttons */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            {/* Volleyball Point Types - Horizontal Single Line */}
+            <div className="flex gap-2 mb-3">
               <Button
                 onClick={() => addPoint('attack')}
-                className="h-20 text-xl font-black bg-orange-500 hover:bg-orange-600 text-white border-4 border-white shadow-xl"
+                className="flex-1 h-14 text-lg font-black bg-orange-500 hover:bg-orange-600 text-white border-3 border-white shadow-xl"
               >
                 🏐 ATTACK
               </Button>
               <Button
                 onClick={() => addPoint('block')}
-                className="h-20 text-xl font-black bg-red-500 hover:bg-red-600 text-white border-4 border-white shadow-xl"
+                className="flex-1 h-14 text-lg font-black bg-red-500 hover:bg-red-600 text-white border-3 border-white shadow-xl"
               >
                 🚫 BLOCK
               </Button>
               <Button
                 onClick={() => addPoint('ace')}
-                className="h-20 text-xl font-black bg-yellow-500 hover:bg-yellow-600 text-white border-4 border-white shadow-xl"
+                className="flex-1 h-14 text-lg font-black bg-yellow-500 hover:bg-yellow-600 text-white border-3 border-white shadow-xl"
               >
                 ⚡ ACE
               </Button>
               <Button
                 onClick={() => addPoint('rally')}
-                className="h-20 text-xl font-black bg-green-500 hover:bg-green-600 text-white border-4 border-white shadow-xl"
+                className="flex-1 h-14 text-lg font-black bg-green-500 hover:bg-green-600 text-white border-3 border-white shadow-xl"
               >
                 🎯 RALLY
               </Button>
             </div>
 
             {/* Additional Stats */}
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="flex gap-2 mb-3">
               {['assists', 'rebounds'].map((stat) => (
-                <div key={stat} className="bg-white/20 backdrop-blur rounded-xl p-3 border-2 border-white/30">
-                  <div className="text-white text-xs font-black mb-2 text-center uppercase">
+                <div key={stat} className="flex-1 bg-white/20 backdrop-blur rounded-lg p-2 border-2 border-white/30">
+                  <div className="text-white text-xs font-black mb-1 text-center uppercase">
                     {stat === 'assists' ? 'ASSISTS' : 'DIGS'}
                   </div>
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center justify-center gap-1">
                     <Button
                       onClick={() => updateStat(stat, -1)}
                       size="sm"
-                      className="h-8 w-8 p-0 bg-white/30 hover:bg-white/40 text-white border-2 border-white font-black"
+                      className="h-7 w-7 p-0 bg-white/30 hover:bg-white/40 text-white border border-white font-black"
                     >
-                      <Minus className="w-4 h-4" />
+                      <Minus className="w-3 h-3" />
                     </Button>
-                    <span className="text-white font-black text-xl w-8 text-center">
+                    <span className="text-white font-black text-lg w-7 text-center">
                       {getPlayerStat(selectedPlayer.id, stat)}
                     </span>
                     <Button
                       onClick={() => updateStat(stat, 1)}
                       size="sm"
-                      className="h-8 w-8 p-0 bg-white/30 hover:bg-white/40 text-white border-2 border-white font-black"
+                      className="h-7 w-7 p-0 bg-white/30 hover:bg-white/40 text-white border border-white font-black"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-3 h-3" />
                     </Button>
                   </div>
                 </div>
@@ -506,7 +508,7 @@ export default function LiveScoringVolleyball() {
             <Button
               onClick={undoLastScore}
               disabled={scoreHistory.length === 0}
-              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white border-2 border-white font-black h-12 text-base disabled:opacity-50"
+              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white border-2 border-white font-black h-11 text-sm disabled:opacity-50"
             >
               UNDO LAST POINT
             </Button>
