@@ -540,7 +540,8 @@ export default function LiveScoring() {
               </Button>
             </div>
 
-            <div className="flex gap-2">
+            {/* Scoring Buttons */}
+            <div className="flex gap-2 mb-2">
               <Button
                 onClick={() => addScore(1)}
                 className="flex-1 h-12 text-lg font-black bg-white text-orange-600 hover:bg-orange-50 border-3 border-white shadow-xl"
@@ -560,26 +561,58 @@ export default function LiveScoring() {
                 +3
               </Button>
               <Button
-                onClick={addFoul}
-                className="flex-1 h-12 text-sm font-black bg-red-600 hover:bg-red-700 text-white border-2 border-white shadow-xl"
-              >
-                FOUL
-              </Button>
-              {playerStats[getPlayerStatKey(selectedPlayer.id)]?.fouls > 0 && (
-                <Button
-                  onClick={removeFoul}
-                  className="flex-1 h-12 text-xs font-black bg-white/20 hover:bg-white/30 text-white border-2 border-white shadow-xl"
-                >
-                  UNDO FL
-                </Button>
-              )}
-              <Button
                 onClick={undoLastScore}
                 disabled={scoreHistory.length === 0}
                 className="flex-1 h-12 text-sm font-black bg-yellow-600 hover:bg-yellow-700 text-white border-3 border-white shadow-xl disabled:opacity-50"
               >
                 UNDO
               </Button>
+            </div>
+
+            {/* Stats Buttons */}
+            <div className="flex gap-2 mb-2">
+              <Button
+                onClick={() => updateStat('rebounds', 1)}
+                className="flex-1 h-10 text-xs font-black bg-blue-500 hover:bg-blue-600 text-white border-2 border-white shadow-lg"
+              >
+                +REB
+              </Button>
+              <Button
+                onClick={() => updateStat('assists', 1)}
+                className="flex-1 h-10 text-xs font-black bg-green-500 hover:bg-green-600 text-white border-2 border-white shadow-lg"
+              >
+                +AST
+              </Button>
+              <Button
+                onClick={() => updateStat('steals', 1)}
+                className="flex-1 h-10 text-xs font-black bg-purple-500 hover:bg-purple-600 text-white border-2 border-white shadow-lg"
+              >
+                +STL
+              </Button>
+              <Button
+                onClick={() => updateStat('blocks', 1)}
+                className="flex-1 h-10 text-xs font-black bg-pink-500 hover:bg-pink-600 text-white border-2 border-white shadow-lg"
+              >
+                +BLK
+              </Button>
+            </div>
+
+            {/* Foul Buttons */}
+            <div className="flex gap-2">
+              <Button
+                onClick={addFoul}
+                className="flex-1 h-10 text-sm font-black bg-red-600 hover:bg-red-700 text-white border-2 border-white shadow-lg"
+              >
+                ADD FOUL
+              </Button>
+              {getPlayerStat(selectedPlayer.id, 'fouls') > 0 && (
+                <Button
+                  onClick={removeFoul}
+                  className="flex-1 h-10 text-xs font-black bg-white/20 hover:bg-white/30 text-white border-2 border-white shadow-lg"
+                >
+                  UNDO FOUL
+                </Button>
+              )}
             </div>
           </div>
         </div>
