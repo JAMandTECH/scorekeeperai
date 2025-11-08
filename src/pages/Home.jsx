@@ -83,8 +83,18 @@ export default function Home() {
           
           teamGames.forEach(game => {
             const isHome = game.home_team_id === team.id;
-            const teamScore = isHome ? game.home_score : game.away_score;
-            const oppScore = isHome ? game.away_score : game.home_score;
+            // For volleyball, pointsFor means sets won. For basketball, pointsFor is score.
+            let teamScore, oppScore;
+
+            if (sport === 'volleyball') {
+              const homeSetsWon = (game.quarter_scores || []).filter(s => s.home > s.away).length;
+              const awaySetsWon = (game.quarter_scores || []).filter(s => s.away > s.home).length;
+              teamScore = isHome ? homeSetsWon : awaySetsWon;
+              oppScore = isHome ? awaySetsWon : homeSetsWon;
+            } else { // Basketball
+              teamScore = isHome ? game.home_score : game.away_score;
+              oppScore = isHome ? game.away_score : game.home_score;
+            }
             
             if (teamScore > oppScore) wins++;
             else losses++;
@@ -102,10 +112,10 @@ export default function Home() {
             losses,
             gamesPlayed,
             winPct,
-            pointsFor,
-            pointsAgainst,
-            avgPointsFor: gamesPlayed > 0 ? (pointsFor / gamesPlayed).toFixed(1) : 0,
-            avgPointsAgainst: gamesPlayed > 0 ? (pointsAgainst / gamesPlayed).toFixed(1) : 0,
+            pointsFor, // For volleyball, this is sets won
+            pointsAgainst, // For volleyball, this is sets lost
+            avgPointsFor: gamesPlayed > 0 && sport === 'basketball' ? (pointsFor / gamesPlayed).toFixed(1) : pointsFor, // Only average for basketball
+            avgPointsAgainst: gamesPlayed > 0 && sport === 'basketball' ? (pointsAgainst / gamesPlayed).toFixed(1) : pointsAgainst, // Only average for basketball
           };
         })
         .sort((a, b) => b.winPct - a.winPct);
@@ -123,23 +133,29 @@ export default function Home() {
       const playerStats = allPlayerStats.filter(s => s.player_id === player.id);
       
       let total = 0;
+      let averageLabel = "";
+
       if (statType === 'points') {
-        // For basketball: sum all points
-        // For volleyball: sum attacks + blocks + aces
         if (sport === 'basketball') {
           total = playerStats.reduce((sum, s) => sum + (s.points || 0), 0);
-        } else {
+          averageLabel = "PPG";
+        } else { // volleyball - total 'points' in this context means sum of attacks, blocks, aces
           total = playerStats.reduce((sum, s) => 
-            sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0); // Assuming three_pointers is for aces in volleyball
+            sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0); // three_pointers used for aces
+          averageLabel = "Score/G";
         }
       } else if (statType === 'rebounds') {
         total = playerStats.reduce((sum, s) => sum + (s.rebounds || 0), 0);
+        averageLabel = "RPG";
       } else if (statType === 'blocks') {
         total = playerStats.reduce((sum, s) => sum + (s.blocks || 0), 0);
+        averageLabel = "BPG";
       } else if (statType === 'three_pointers') {
-        total = playerStats.reduce((sum, s) => sum + (s.three_pointers || 0), 0); // Used for 3Ps in basketball and Aces in volleyball
+        total = playerStats.reduce((sum, s) => sum + (s.three_pointers || 0), 0);
+        averageLabel = sport === 'basketball' ? "3PG" : "ACE/G";
       } else if (statType === 'attacks') {
-        total = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0), 0); // Renamed from field_goals_made to attacks for volleyball context
+        total = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0), 0); // field_goals_made used for attacks in volleyball
+        averageLabel = "APG";
       }
 
       const team = allTeams.find(t => t.id === player.team_id);
@@ -150,6 +166,7 @@ export default function Home() {
         total,
         gamesPlayed,
         average: gamesPlayed > 0 ? (total / gamesPlayed).toFixed(1) : 0,
+        averageLabel,
         teamName: team?.name || 'Unknown',
         division: team?.division || 'No Division',
       };
@@ -176,18 +193,22 @@ export default function Home() {
 
   const upcomingBasketballGames = allGames
     .filter(g => g.sport === 'basketball' && g.status === 'scheduled')
+    .sort((a, b) => new Date(a.game_date).getTime() - new Date(b.game_date).getTime())
     .slice(0, 10);
 
   const completedBasketballGames = allGames
     .filter(g => g.sport === 'basketball' && g.status === 'completed')
+    .sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime())
     .slice(0, 10);
 
   const upcomingVolleyballGames = allGames
     .filter(g => g.sport === 'volleyball' && g.status === 'scheduled')
+    .sort((a, b) => new Date(a.game_date).getTime() - new Date(b.game_date).getTime())
     .slice(0, 10);
 
   const completedVolleyballGames = allGames
     .filter(g => g.sport === 'volleyball' && g.status === 'completed')
+    .sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime())
     .slice(0, 10);
 
   const getTeamName = (teamId) => {
@@ -368,7 +389,7 @@ export default function Home() {
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-black text-blue-600 dark:text-blue-400">{player.total}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} PPG</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} {player.averageLabel}</p>
                           </div>
                         </div>
                       ))}
@@ -412,7 +433,7 @@ export default function Home() {
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-black text-green-600 dark:text-green-400">{player.total}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} RPG</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} {player.averageLabel}</p>
                           </div>
                         </div>
                       ))}
@@ -456,7 +477,7 @@ export default function Home() {
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-black text-red-600 dark:text-red-400">{player.total}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} BPG</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} {player.averageLabel}</p>
                           </div>
                         </div>
                       ))}
@@ -500,7 +521,7 @@ export default function Home() {
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-black text-yellow-600 dark:text-yellow-400">{player.total}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} 3PG</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} {player.averageLabel}</p>
                           </div>
                         </div>
                       ))}
@@ -681,7 +702,7 @@ export default function Home() {
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-black text-blue-600 dark:text-blue-400">{player.total}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} PPG</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} {player.averageLabel}</p>
                           </div>
                         </div>
                       ))}
@@ -725,7 +746,7 @@ export default function Home() {
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-black text-orange-600 dark:text-orange-400">{player.total}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} APG</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} {player.averageLabel}</p>
                           </div>
                         </div>
                       ))}
@@ -769,7 +790,7 @@ export default function Home() {
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-black text-red-600 dark:text-red-400">{player.total}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} BPG</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} {player.averageLabel}</p>
                           </div>
                         </div>
                       ))}
@@ -813,7 +834,7 @@ export default function Home() {
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-black text-yellow-600 dark:text-yellow-400">{player.total}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} ACE/G</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} {player.averageLabel}</p>
                           </div>
                         </div>
                       ))}
@@ -862,29 +883,58 @@ export default function Home() {
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="space-y-3">
-                      {completedVolleyballGames.map(game => (
-                        <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
-                          <div className="flex justify-between items-center mb-3">
-                            <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
-                              {new Date(game.game_date).toLocaleDateString()}
-                            </span>
-                            <Badge className="bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 text-xs font-bold">
-                              FINAL
-                            </Badge>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.home_team_id)}</div>
-                              <div className="text-3xl font-black text-gray-900 dark:text-white mt-1">{game.home_score}</div>
+                      {completedVolleyballGames.map(game => {
+                        // Count sets won for display
+                        const homeSetsWon = (game.quarter_scores || []).filter(s => s.home > s.away).length;
+                        const awaySetsWon = (game.quarter_scores || []).filter(s => s.away > s.home).length;
+                        
+                        return (
+                          <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+                            <div className="flex justify-between items-center mb-3">
+                              <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                                {new Date(game.game_date).toLocaleDateString()}
+                              </span>
+                              <Badge className="bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 text-xs font-bold">
+                                FINAL
+                              </Badge>
                             </div>
-                            <div className="text-gray-300 dark:text-gray-600 text-2xl font-black">-</div>
-                            <div className="text-right">
-                              <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.away_team_id)}</div>
-                              <div className="text-3xl font-black text-gray-900 dark:text-white mt-1">{game.away_score}</div>
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <div className="flex-1">
+                                  <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.home_team_id)}</div>
+                                </div>
+                                <div className="text-2xl font-black text-gray-900 dark:text-white">{homeSetsWon}</div>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <div className="flex-1">
+                                  <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.away_team_id)}</div>
+                                </div>
+                                <div className="text-2xl font-black text-gray-900 dark:text-white">{awaySetsWon}</div>
+                              </div>
+                              {game.quarter_scores && game.quarter_scores.length > 0 && (
+                                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-1">Set Scores:</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {game.quarter_scores.map((set, idx) => (
+                                      <Badge 
+                                        key={idx} 
+                                        variant="outline" 
+                                        className={`text-xs font-bold ${
+                                          set.home > set.away 
+                                            ? 'border-blue-400 dark:border-blue-600 text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30' 
+                                            : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'
+                                        }`}
+                                      >
+                                        {set.home}-{set.away}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>
