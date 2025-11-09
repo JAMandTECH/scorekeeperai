@@ -16,7 +16,6 @@ import LiveScoringVolleyball from './pages/LiveScoringVolleyball';
 import Divisions from './pages/Divisions';
 import Scorekeepers from './pages/Scorekeepers';
 import PublicLanding from './pages/PublicLanding';
-import Scores from './pages/Scores';
 import Layout from './Layout.jsx';
 
 
@@ -39,7 +38,6 @@ export const PAGES = {
     "Divisions": Divisions,
     "Scorekeepers": Scorekeepers,
     "PublicLanding": PublicLanding,
-    "Scores": Scores,
 }
 
 export const pagesConfig = {
