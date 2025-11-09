@@ -139,13 +139,6 @@ export default function LiveScoring() {
     return totalFouls;
   };
 
-  // Calculate total team points from all players
-  const calculateTeamPointsFromPlayers = (teamPlayers) => {
-    return teamPlayers.reduce((total, player) => {
-      return total + getPlayerStat(player.id, 'points');
-    }, 0);
-  };
-
   // Update multiple stats at once to avoid race conditions and simplify logic
   const updatePlayerStats = async (playerId, teamId, statUpdates) => {
     const key = getPlayerStatKey(playerId);
@@ -154,7 +147,7 @@ export default function LiveScoring() {
     setPlayerStats(prev => {
       const existingStat = prev[key] || {};
       const newStatData = {
-        ...existingStat, // Start with all existing properties to preserve un-updated ones
+        ...existingStat,
         game_id: game.id,
         player_id: playerId,
         team_id: teamId,
@@ -166,7 +159,7 @@ export default function LiveScoring() {
         newStatData[statType] = Math.max(0, (newStatData[statType] || 0) + value);
       });
       
-      statToPersist = newStatData; // Capture this for the async DB operation
+      statToPersist = newStatData;
 
       return {
         ...prev,
@@ -174,16 +167,15 @@ export default function LiveScoring() {
       };
     });
 
-    // Now persist statToPersist (which now holds the ID if existing)
+    // Now persist statToPersist
     try {
       if (statToPersist.id) {
         await base44.entities.PlayerGameStats.update(statToPersist.id, statToPersist);
       } else {
         const created = await base44.entities.PlayerGameStats.create(statToPersist);
-        // If it was a new creation, update the local state with the assigned ID
         setPlayerStats(prev => ({
           ...prev,
-          [key]: { ...prev[key], id: created.id }, // Update the specific stat object with its new ID
+          [key]: { ...prev[key], id: created.id },
         }));
       }
     } catch (error) {
@@ -205,7 +197,6 @@ export default function LiveScoring() {
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
     
-    // Prepare all stat updates at once
     const statUpdates = [
       { statType: 'points', value: points }
     ];
@@ -228,7 +219,6 @@ export default function LiveScoring() {
       );
     }
 
-    // Update all stats at once
     await updatePlayerStats(selectedPlayer.id, teamId, statUpdates);
 
     await base44.entities.Game.update(game.id, {
@@ -244,7 +234,7 @@ export default function LiveScoring() {
       quarter: currentQuarter,
       oldHomeScore: oldHomeScore,
       oldAwayScore: oldAwayScore,
-      statUpdates: statUpdates, // Store the list of updates for undo
+      statUpdates: statUpdates,
     }]);
   };
 
@@ -261,7 +251,7 @@ export default function LiveScoring() {
       teamId: teamId,
       quarter: currentQuarter,
       value: value,
-      statUpdates: statUpdates, // Store the list of updates for undo
+      statUpdates: statUpdates,
     }]);
   };
 
@@ -290,7 +280,7 @@ export default function LiveScoring() {
       quarter: currentQuarter,
       team: selectedTeam,
       oldTeamFouls: oldTeamFouls,
-      statUpdates: statUpdates, // Store the list of updates for undo
+      statUpdates: statUpdates,
     }]);
 
     const totalFouls = getTotalPlayerFouls(selectedPlayer.id) + 1;
@@ -348,7 +338,6 @@ export default function LiveScoring() {
         });
       }
 
-      // Reverse all stat updates by negating their values
       const reverseUpdates = lastAction.statUpdates.map(update => ({
         statType: update.statType,
         value: -update.value
@@ -457,12 +446,6 @@ export default function LiveScoring() {
     return (team === 'home' ? homeTeamFouls : awayTeamFouls) >= game.penalty_limit_per_quarter;
   };
 
-  // Calculate player totals for verification
-  const homePlayerPoints = calculateTeamPointsFromPlayers(homePlayers);
-  const awayPlayerPoints = calculateTeamPointsFromPlayers(awayPlayers);
-  const homePointsDiff = homeScore - homePlayerPoints;
-  const awayPointsDiff = awayScore - awayPlayerPoints;
-
   const PlayerRow = ({ player, team, teamId, onSelect }) => {
     const totalFouls = getTotalPlayerFouls(player.id);
     const points = getPlayerStat(player.id, 'points');
@@ -523,7 +506,6 @@ export default function LiveScoring() {
     setSelectedTeam(team);
   };
 
-  // Force re-render key based on player stats
   const getPlayerRenderKey = (playerId) => {
     const points = getPlayerStat(playerId, 'points');
     const rebounds = getPlayerStat(playerId, 'rebounds');
@@ -566,20 +548,11 @@ export default function LiveScoring() {
                 <div className="text-white text-2xl font-black text-left">{homeTeam.name}</div>
               </div>
               <div className="text-orange-500 text-7xl font-black mb-2">{homeScore}</div>
-              <div className="flex flex-col items-center gap-1">
-                <div className="flex justify-center gap-4 text-xs font-bold">
-                  <span className={`${inPenalty('home') ? 'text-red-400' : 'text-white'}`}>
-                    FOULS: {homeTeamFouls}/{game.penalty_limit_per_quarter}
-                  </span>
-                  <span className="text-white">TO: {homeTimeouts}</span>
-                </div>
-                <div className="text-[10px] text-gray-400 font-semibold">
-                  Player Total: {homePlayerPoints} {homePointsDiff !== 0 && (
-                    <span className={homePointsDiff > 0 ? 'text-yellow-400' : 'text-red-400'}>
-                      ({homePointsDiff > 0 ? '+' : ''}{homePointsDiff})
-                    </span>
-                  )}
-                </div>
+              <div className="flex justify-center gap-4 text-xs font-bold">
+                <span className={`${inPenalty('home') ? 'text-red-400' : 'text-white'}`}>
+                  FOULS: {homeTeamFouls}/{game.penalty_limit_per_quarter}
+                </span>
+                <span className="text-white">TO: {homeTimeouts}</span>
               </div>
             </div>
 
@@ -665,36 +638,14 @@ export default function LiveScoring() {
                 </Avatar>
               </div>
               <div className="text-blue-500 text-7xl font-black mb-2">{awayScore}</div>
-              <div className="flex flex-col items-center gap-1">
-                <div className="flex justify-center gap-4 text-xs font-bold">
-                  <span className={`${inPenalty('away') ? 'text-red-400' : 'text-white'}`}>
-                    FOULS: {awayTeamFouls}/{game.penalty_limit_per_quarter}
-                  </span>
-                  <span className="text-white">TO: {awayTimeouts}</span>
-                </div>
-                <div className="text-[10px] text-gray-400 font-semibold">
-                  Player Total: {awayPlayerPoints} {awayPointsDiff !== 0 && (
-                    <span className={awayPointsDiff > 0 ? 'text-yellow-400' : 'text-red-400'}>
-                      ({awayPointsDiff > 0 ? '+' : ''}{awayPointsDiff})
-                    </span>
-                  )}
-                </div>
+              <div className="flex justify-center gap-4 text-xs font-bold">
+                <span className={`${inPenalty('away') ? 'text-red-400' : 'text-white'}`}>
+                  FOULS: {awayTeamFouls}/{game.penalty_limit_per_quarter}
+                </span>
+                <span className="text-white">TO: {awayTimeouts}</span>
               </div>
             </div>
           </div>
-
-          {/* SYNCHRONIZATION WARNING */}
-          {(Math.abs(homePointsDiff) > 0 || Math.abs(awayPointsDiff) > 0) && (
-            <Alert className="bg-yellow-900/50 border-2 border-yellow-500 mb-4">
-              <AlertTriangle className="h-5 w-5 text-yellow-400" />
-              <AlertDescription className="text-yellow-200 font-bold">
-                ⚠️ Score Verification: 
-                {Math.abs(homePointsDiff) > 0 && ` ${homeTeam.name}: Team ${homeScore} vs Players ${homePlayerPoints}`}
-                {Math.abs(homePointsDiff) > 0 && Math.abs(awayPointsDiff) > 0 && ' | '}
-                {Math.abs(awayPointsDiff) > 0 && ` ${awayTeam.name}: Team ${awayScore} vs Players ${awayPlayerPoints}`}
-              </AlertDescription>
-            </Alert>
-          )}
 
           {/* TIED GAME ALERT */}
           {currentQuarter >= 4 && homeScore === awayScore && (
