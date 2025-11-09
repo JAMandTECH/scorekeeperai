@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlayCircle, ChevronRight, Clock, Target, Shield, Zap, Trophy, RotateCcw, User, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { PlayCircle, ChevronRight, Clock, Target, Shield, Zap, Trophy, RotateCcw, User, Eye, EyeOff, CheckCircle, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -16,6 +16,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Alert,
+  AlertDescription,
+} from "@/components/ui/alert";
+
 
 export default function LiveScoringVolleyball() {
   const [game, setGame] = useState(null);
@@ -123,6 +128,18 @@ export default function LiveScoringVolleyball() {
   const getCurrentSetPlayerStat = (playerId, statType) => {
     const key = `${playerId}_${currentSet}`;
     return playerStats[key]?.[statType] || 0;
+  };
+
+  // Calculate total team points from all players (volleyball doesn't track points the same way)
+  const calculateTeamPointsFromPlayers = (teamPlayers, setNumber) => {
+    return teamPlayers.reduce((total, player) => {
+      const key = `${player.id}_${setNumber}`;
+      const stat = playerStats[key];
+      const attacks = stat?.field_goals_made || 0;
+      const blocks = stat?.blocks || 0;
+      const aces = stat?.three_pointers || 0;
+      return total + attacks + blocks + aces;
+    }, 0);
   };
 
   const updatePlayerStat = async (playerId, teamId, statType, value) => {
@@ -351,6 +368,13 @@ export default function LiveScoringVolleyball() {
   const setLabel = `Set ${currentSet}`;
   const currentSetStats = selectedPlayer ? (playerStats[`${selectedPlayer.id}_${currentSet}`] || {}) : {};
 
+  // Calculate player totals for verification (current set only for volleyball)
+  const homePlayerPoints = calculateTeamPointsFromPlayers(homePlayers, currentSet);
+  const awayPlayerPoints = calculateTeamPointsFromPlayers(awayPlayers, currentSet);
+  
+  const homePointsDiff = homeScore - homePlayerPoints;
+  const awayPointsDiff = awayScore - awayPlayerPoints;
+
   const PlayerRow = ({ player, team, teamId, onSelect }) => {
     const attacks = getPlayerStat(player.id, 'field_goals_made');
     const blocks = getPlayerStat(player.id, 'blocks');
@@ -430,8 +454,17 @@ export default function LiveScoringVolleyball() {
                 <div className="text-white text-2xl font-black text-left">{homeTeam.name}</div>
               </div>
               <div className="text-blue-500 text-7xl font-black mb-2">{homeScore}</div>
-              <div className="text-white text-xs font-bold">
-                Sets Won: {setScores.filter(s => s.home > s.away).length}
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-white text-xs font-bold">
+                  Sets Won: {setScores.filter(s => s.home > s.away).length}
+                </div>
+                <div className="text-[10px] text-gray-400 font-semibold">
+                  Player Total: {homePlayerPoints} {homePointsDiff !== 0 && (
+                    <span className={homePointsDiff > 0 ? 'text-yellow-400' : 'text-red-400'}>
+                      ({homePointsDiff > 0 ? '+' : ''}{homePointsDiff})
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -497,11 +530,33 @@ export default function LiveScoringVolleyball() {
                 </Avatar>
               </div>
               <div className="text-cyan-500 text-7xl font-black mb-2">{awayScore}</div>
-              <div className="text-white text-xs font-bold">
-                Sets Won: {setScores.filter(s => s.away > s.home).length}
+              <div className="flex flex-col items-center gap-1">
+                <div className="text-white text-xs font-bold">
+                  Sets Won: {setScores.filter(s => s.away > s.home).length}
+                </div>
+                <div className="text-[10px] text-gray-400 font-semibold">
+                  Player Total: {awayPlayerPoints} {awayPointsDiff !== 0 && (
+                    <span className={awayPointsDiff > 0 ? 'text-yellow-400' : 'text-red-400'}>
+                      ({awayPointsDiff > 0 ? '+' : ''}{awayPointsDiff})
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
+
+          {/* SYNCHRONIZATION WARNING */}
+          {(Math.abs(homePointsDiff) > 0 || Math.abs(awayPointsDiff) > 0) && (
+            <Alert className="bg-yellow-900/50 border-2 border-yellow-500 mb-4">
+              <AlertTriangle className="h-5 w-5 text-yellow-400" />
+              <AlertDescription className="text-yellow-200 font-bold">
+                ⚠️ Score Verification (Current Set): 
+                {Math.abs(homePointsDiff) > 0 && ` ${homeTeam.name}: Set ${homeScore} vs Players ${homePlayerPoints}`}
+                {Math.abs(homePointsDiff) > 0 && Math.abs(awayPointsDiff) > 0 && ' | '}
+                {Math.abs(awayPointsDiff) > 0 && ` ${awayTeam.name}: Set ${awayScore} vs Players ${awayPlayerPoints}`}
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
       </div>
 

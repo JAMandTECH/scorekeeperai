@@ -139,6 +139,13 @@ export default function LiveScoring() {
     return totalFouls;
   };
 
+  // Calculate total team points from all players
+  const calculateTeamPointsFromPlayers = (teamPlayers) => {
+    return teamPlayers.reduce((total, player) => {
+      return total + getPlayerStat(player.id, 'points');
+    }, 0);
+  };
+
   const updatePlayerStat = async (playerId, teamId, statType, value) => {
     const key = getPlayerStatKey(playerId);
     const existingStat = playerStats[key];
@@ -468,6 +475,12 @@ export default function LiveScoring() {
     return (team === 'home' ? homeTeamFouls : awayTeamFouls) >= game.penalty_limit_per_quarter;
   };
 
+  // Calculate player totals for verification
+  const homePlayerPoints = calculateTeamPointsFromPlayers(homePlayers);
+  const awayPlayerPoints = calculateTeamPointsFromPlayers(awayPlayers);
+  const homePointsDiff = homeScore - homePlayerPoints;
+  const awayPointsDiff = awayScore - awayPlayerPoints;
+
   const PlayerRow = ({ player, team, teamId, onSelect }) => {
     const totalFouls = getTotalPlayerFouls(player.id);
     const points = getPlayerStat(player.id, 'points');
@@ -560,11 +573,20 @@ export default function LiveScoring() {
                 <div className="text-white text-2xl font-black text-left">{homeTeam.name}</div>
               </div>
               <div className="text-orange-500 text-7xl font-black mb-2">{homeScore}</div>
-              <div className="flex justify-center gap-4 text-xs font-bold">
-                <span className={`${inPenalty('home') ? 'text-red-400' : 'text-white'}`}>
-                  FOULS: {homeTeamFouls}/{game.penalty_limit_per_quarter}
-                </span>
-                <span className="text-white">TO: {homeTimeouts}</span>
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex justify-center gap-4 text-xs font-bold">
+                  <span className={`${inPenalty('home') ? 'text-red-400' : 'text-white'}`}>
+                    FOULS: {homeTeamFouls}/{game.penalty_limit_per_quarter}
+                  </span>
+                  <span className="text-white">TO: {homeTimeouts}</span>
+                </div>
+                <div className="text-[10px] text-gray-400 font-semibold">
+                  Player Total: {homePlayerPoints} {homePointsDiff !== 0 && (
+                    <span className={homePointsDiff > 0 ? 'text-yellow-400' : 'text-red-400'}>
+                      ({homePointsDiff > 0 ? '+' : ''}{homePointsDiff})
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -650,14 +672,36 @@ export default function LiveScoring() {
                 </Avatar>
               </div>
               <div className="text-blue-500 text-7xl font-black mb-2">{awayScore}</div>
-              <div className="flex justify-center gap-4 text-xs font-bold">
-                <span className={`${inPenalty('away') ? 'text-red-400' : 'text-white'}`}>
-                  FOULS: {awayTeamFouls}/{game.penalty_limit_per_quarter}
-                </span>
-                <span className="text-white">TO: {awayTimeouts}</span>
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex justify-center gap-4 text-xs font-bold">
+                  <span className={`${inPenalty('away') ? 'text-red-400' : 'text-white'}`}>
+                    FOULS: {awayTeamFouls}/{game.penalty_limit_per_quarter}
+                  </span>
+                  <span className="text-white">TO: {awayTimeouts}</span>
+                </div>
+                <div className="text-[10px] text-gray-400 font-semibold">
+                  Player Total: {awayPlayerPoints} {awayPointsDiff !== 0 && (
+                    <span className={awayPointsDiff > 0 ? 'text-yellow-400' : 'text-red-400'}>
+                      ({awayPointsDiff > 0 ? '+' : ''}{awayPointsDiff})
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
+
+          {/* SYNCHRONIZATION WARNING */}
+          {(Math.abs(homePointsDiff) > 0 || Math.abs(awayPointsDiff) > 0) && (
+            <Alert className="bg-yellow-900/50 border-2 border-yellow-500 mb-4">
+              <AlertTriangle className="h-5 w-5 text-yellow-400" />
+              <AlertDescription className="text-yellow-200 font-bold">
+                ⚠️ Score Verification: 
+                {Math.abs(homePointsDiff) > 0 && ` ${homeTeam.name}: Team ${homeScore} vs Players ${homePlayerPoints}`}
+                {Math.abs(homePointsDiff) > 0 && Math.abs(awayPointsDiff) > 0 && ' | '}
+                {Math.abs(awayPointsDiff) > 0 && ` ${awayTeam.name}: Team ${awayScore} vs Players ${awayPlayerPoints}`}
+              </AlertDescription>
+            </Alert>
+          )}
 
           {/* TIED GAME ALERT */}
           {currentQuarter >= 4 && homeScore === awayScore && (
