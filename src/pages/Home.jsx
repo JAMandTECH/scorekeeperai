@@ -14,51 +14,65 @@ import AIInsights from "@/components/AIInsights";
 import AIGameSummary from "@/components/AIGameSummary";
 
 export default function Home() {
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [user, setUser] = useState(null);
   const [organization, setOrganization] = useState(null);
   const [viewMode, setViewMode] = useState('all'); // 'all' or 'my-org'
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    checkAuth();
-    loadUser();
+    initializePage();
+  }, []);
+
+  const initializePage = async () => {
     // Load dark mode preference
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
     setDarkMode(savedDarkMode);
     if (savedDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
-      document.documentElement.classList.remove('dark'); // Ensure it's removed if not dark
+      document.documentElement.classList.remove('dark');
     }
-  }, []);
 
-  const checkAuth = async () => {
-    const authenticated = await base44.auth.isAuthenticated();
-    setIsAuthenticated(authenticated);
-    
-    // NO REDIRECT HERE - Let unauthenticated users see the public page
-  };
-
-  const loadUser = async () => {
+    // Check authentication and load user
     try {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
+      const authenticated = await base44.auth.isAuthenticated();
+      setIsAuthenticated(authenticated);
       
-      // Load organization if user has organization_id
-      if (currentUser?.organization_id) {
-        const orgs = await base44.entities.Organization.list(); // Assuming Organization entity exists
-        const userOrg = orgs.find(o => o.id === currentUser.organization_id);
-        setOrganization(userOrg);
-        setViewMode('my-org'); // Default to showing their org data
+      if (authenticated) {
+        try {
+          const currentUser = await base44.auth.me();
+          setUser(currentUser);
+          
+          // Load organization if user has organization_id
+          if (currentUser?.organization_id) {
+            const orgs = await base44.entities.Organization.list();
+            const userOrg = orgs.find(o => o.id === currentUser.organization_id);
+            setOrganization(userOrg);
+            setViewMode('my-org');
+          }
+        } catch (error) {
+          console.log("Error loading user data after authentication:", error);
+          setUser(null); 
+          setOrganization(null);
+          setViewMode('all'); 
+        }
+      } else {
+        // If not authenticated, ensure user and organization are null
+        setUser(null);
+        setOrganization(null);
+        setViewMode('all');
       }
     } catch (error) {
-      // User not logged in - this is fine, they can see public content
-      console.log("User not authenticated, showing public content:", error);
-      setUser(null); // Ensure user is null if error
+      console.log("Error during authentication check:", error);
+      setIsAuthenticated(false);
+      setUser(null);
       setOrganization(null);
-      setViewMode('all'); // Default to 'all' if no user/org
+      setViewMode('all');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -83,7 +97,7 @@ export default function Home() {
   const { data: allTeams = [] } = useQuery({
     queryKey: ['all-teams-home'],
     queryFn: () => base44.entities.Team.list(),
-    enabled: isAuthenticated === true, // Only fetch if authenticated
+    enabled: isAuthenticated === true,
   });
 
   const { data: allPlayers = [] } = useQuery({
@@ -116,7 +130,7 @@ export default function Home() {
   const teamIds = teams.map(t => t.id);
   const players = allPlayers.filter(p => teamIds.includes(p.team_id));
   const playerStats = allPlayerStats.filter(s => {
-    const player = players.find(p => p.id === s.player_id); // Use filtered players here
+    const player = players.find(p => p.id === s.player_id);
     return player && teamIds.includes(player.team_id);
   });
 
@@ -294,8 +308,8 @@ export default function Home() {
     return team?.name || 'Unknown';
   };
 
-  // Show loading while checking authentication
-  if (isAuthenticated === null) {
+  // Show loading while initializing
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
