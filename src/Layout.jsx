@@ -45,9 +45,15 @@ export default function Layout({ children, currentPageName }) {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
+      // CHECK IF USER NEEDS ONBOARDING
+      if (currentUser && !currentUser.onboarding_completed && currentUser.role !== 'admin') {
+        // Redirect to role selection if not completed onboarding
+        window.location.href = createPageUrl("RoleSelection");
+        return;
+      }
+      
       // Check if user is an admin without organization but has an approved code waiting
       if (currentUser?.role === 'admin' && !currentUser?.organization_id) {
-        // Check for approved but unused admin request
         const requests = await base44.entities.AdminRequest.filter({
           user_email: currentUser.email,
           status: 'approved',
@@ -55,7 +61,6 @@ export default function Layout({ children, currentPageName }) {
         });
         
         if (requests.length > 0) {
-          // Redirect to verify code page
           window.location.href = createPageUrl("VerifyAdminCode");
           return;
         }
@@ -109,9 +114,10 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
+  // Pages that don't need layout
   if (currentPageName === "Home" || currentPageName === "SuperAdminSetup" || 
       currentPageName === "RequestAdminAccess" || currentPageName === "VerifyAdminCode" ||
-      currentPageName === "PublicLanding") {
+      currentPageName === "PublicLanding" || currentPageName === "RoleSelection") {
     return <div>{children}</div>;
   }
 
