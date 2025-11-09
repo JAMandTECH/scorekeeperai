@@ -30,15 +30,24 @@ export default function RoleSelection() {
         return;
       }
       
-      // If user is already admin, redirect to Dashboard
-      if (currentUser?.role === 'admin') {
-        console.log("RoleSelection: User is admin, redirecting to Dashboard");
+      // If user is a SUPER ADMIN (already fully set up), redirect to Dashboard
+      if (currentUser?.role === 'admin' && currentUser?.is_super_admin === true) {
+        console.log("RoleSelection: User is super admin, redirecting to Dashboard");
+        setLoading(false);
+        navigate(createPageUrl("Dashboard"));
+        return;
+      }
+      
+      // If user is an admin with organization (already set up), redirect to Dashboard
+      if (currentUser?.role === 'admin' && currentUser?.organization_id) {
+        console.log("RoleSelection: User is admin with organization, redirecting to Dashboard");
         setLoading(false);
         navigate(createPageUrl("Dashboard"));
         return;
       }
       
       // User needs to select role - show the form
+      // This includes: new regular users, new admins without org, admins without onboarding_completed
       console.log("RoleSelection: Showing role selection form");
       setUser(currentUser);
       setLoading(false);
