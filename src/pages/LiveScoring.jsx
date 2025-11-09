@@ -541,6 +541,17 @@ export default function LiveScoring() {
     setSelectedTeam(team);
   };
 
+  // Force re-render key based on player stats
+  const getPlayerRenderKey = (playerId) => {
+    const points = getPlayerStat(playerId, 'points');
+    const rebounds = getPlayerStat(playerId, 'rebounds');
+    const assists = getPlayerStat(playerId, 'assists');
+    const steals = getPlayerStat(playerId, 'steals');
+    const blocks = getPlayerStat(playerId, 'blocks');
+    const fouls = getTotalPlayerFouls(playerId);
+    return `${playerId}_${points}_${rebounds}_${assists}_${steals}_${blocks}_${fouls}_${currentQuarter}`;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900">
       {/* Main Scoreboard - Sticky at top WITH TEAM LOGOS */}
@@ -915,7 +926,7 @@ export default function LiveScoring() {
             {/* SCROLLABLE PLAYERS */}
             <div className="flex-1 overflow-y-auto p-3">
               {homePlayers.map(player => (
-                <PlayerRow key={player.id} player={player} team="home" teamId={game.home_team_id} onSelect={handlePlayerSelect} />
+                <PlayerRow key={getPlayerRenderKey(player.id)} player={player} team="home" teamId={game.home_team_id} onSelect={handlePlayerSelect} />
               ))}
             </div>
           </div>
@@ -941,7 +952,7 @@ export default function LiveScoring() {
             {/* SCROLLABLE PLAYERS */}
             <div className="flex-1 overflow-y-auto p-3">
               {awayPlayers.map(player => (
-                <PlayerRow key={player.id} player={player} team="away" teamId={game.away_team_id} onSelect={handlePlayerSelect} />
+                <PlayerRow key={getPlayerRenderKey(player.id)} player={player} team="away" teamId={game.away_team_id} onSelect={handlePlayerSelect} />
               ))}
             </div>
           </div>
