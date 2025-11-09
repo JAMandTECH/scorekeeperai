@@ -43,20 +43,26 @@ export default function Layout({ children, currentPageName }) {
   const loadUser = async () => {
     try {
       const currentUser = await base44.auth.me();
+      console.log("Layout: Current user loaded", currentUser);
       setUser(currentUser);
       
       // IMPORTANT: Don't redirect if we're already on these pages (prevent infinite loops)
       const excludedPages = ["RoleSelection", "RequestAdminAccess", "VerifyAdminCode", "SuperAdminSetup", "Home", "PublicLanding"];
       
-      // CHECK IF USER NEEDS ONBOARDING - but only if not on excluded pages
-      if (!excludedPages.includes(currentPageName) && currentUser && !currentUser.onboarding_completed && currentUser.role !== 'admin') {
-        // Redirect to role selection if not completed onboarding
-        window.location.href = createPageUrl("RoleSelection");
-        return;
+      // CHECK IF USER NEEDS ONBOARDING - NEW USERS WITHOUT onboarding_completed
+      // This applies to all new users EXCEPT super admins who are already set up
+      if (!excludedPages.includes(currentPageName) && currentUser) {
+        // If user doesn't have onboarding_completed flag AND is not a super admin
+        if (currentUser.onboarding_completed !== true && !(currentUser.role === 'admin' && currentUser.is_super_admin === true)) {
+          console.log("Layout: User needs onboarding, redirecting to RoleSelection");
+          window.location.href = createPageUrl("RoleSelection");
+          return;
+        }
       }
       
-      // Check if user is an admin without organization but has an approved code waiting
-      if (!excludedPages.includes(currentPageName) && currentUser?.role === 'admin' && !currentUser?.organization_id) {
+      // Check if admin user (not super admin) needs to verify their access code
+      if (!excludedPages.includes(currentPageName) && currentUser?.role === 'admin' && !currentUser?.organization_id && !currentUser?.is_super_admin) {
+        console.log("Layout: Admin without organization, checking for approved code");
         const requests = await base44.entities.AdminRequest.filter({
           user_email: currentUser.email,
           status: 'approved',
@@ -64,6 +70,7 @@ export default function Layout({ children, currentPageName }) {
         });
         
         if (requests.length > 0) {
+          console.log("Layout: Found approved code, redirecting to VerifyAdminCode");
           window.location.href = createPageUrl("VerifyAdminCode");
           return;
         }
@@ -76,7 +83,7 @@ export default function Layout({ children, currentPageName }) {
         setOrganization(userOrg);
       }
     } catch (error) {
-      console.error("Error loading user:", error);
+      console.error("Layout: Error loading user:", error);
     }
     setLoading(false);
   };
