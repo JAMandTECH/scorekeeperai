@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -112,6 +113,10 @@ export default function RequestAdminAccess() {
     },
     onSuccess: () => {
       setShowSuccess(true);
+      // Redirect to PublicLanding after 4 seconds
+      setTimeout(() => {
+        navigate(createPageUrl("PublicLanding"));
+      }, 4000);
     },
   });
 
@@ -252,45 +257,54 @@ export default function RequestAdminAccess() {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-green-950/20 flex items-center justify-center p-4">
-        <Card className="max-w-lg w-full border-2 border-green-300 dark:border-green-700 shadow-2xl">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-green-950/20 dark:to-purple-950/20 flex items-center justify-center p-4">
+        <Card className="max-w-lg w-full border-2 border-green-300 dark:border-green-700 shadow-2xl animate-in fade-in zoom-in duration-500">
           <CardHeader className="text-center">
             <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl animate-bounce">
               <CheckCircle className="w-10 h-10 text-white" />
             </div>
             <CardTitle className="text-3xl font-black text-gray-900 dark:text-white mb-2">
-              Request Submitted Successfully! 🎉
+              Request Sent Successfully! 🎉
             </CardTitle>
+            <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+              Your admin access request has been submitted
+            </p>
           </CardHeader>
           <CardContent className="space-y-6">
             <Alert className="bg-green-100 dark:bg-green-950/50 border-2 border-green-300 dark:border-green-700">
               <Info className="h-5 w-5 text-green-700 dark:text-green-400" />
               <AlertDescription className="text-green-900 dark:text-green-300 font-medium">
-                <strong>What happens next:</strong>
+                <strong>✅ Your request is now pending review</strong>
                 <ul className="mt-2 ml-4 space-y-1 list-disc text-sm">
-                  <li>A Super Admin will review your request</li>
-                  <li>You'll receive an email notification with the decision</li>
+                  <li>A Super Admin will review your request shortly</li>
+                  <li>You'll receive an email notification with their decision</li>
                   <li>If approved, you'll get an access code to activate your admin account</li>
-                  <li>Your organization will be automatically created in the system</li>
+                  <li>Your organization will be automatically created upon approval</li>
                 </ul>
               </AlertDescription>
             </Alert>
 
-            <div className="bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-4 text-center">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-5 text-center">
+              <Mail className="w-12 h-12 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
               <p className="text-sm text-blue-900 dark:text-blue-300 font-bold mb-2">
                 📧 Check your email for updates
               </p>
               <p className="text-xs text-blue-700 dark:text-blue-400">
-                We'll notify you at <strong>{user?.email}</strong>
+                We'll notify you at: <strong>{user?.email}</strong>
               </p>
             </div>
 
-            <Button 
-              onClick={() => navigate(createPageUrl("Home"))}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-bold shadow-lg"
-            >
-              Continue to Home
-            </Button>
+            <div className="text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Redirecting you to the home page in a moment...
+              </p>
+              <Button 
+                onClick={() => navigate(createPageUrl("PublicLanding"))}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-bold shadow-lg"
+              >
+                Continue to Home Page
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
