@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Minus, CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User, Eye, EyeOff } from "lucide-react";
+import { CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -146,48 +146,48 @@ export default function LiveScoring() {
     }, 0);
   };
 
-  const updatePlayerStat = async (playerId, teamId, statType, value) => {
+  // Update multiple stats at once to avoid race conditions and simplify logic
+  const updatePlayerStats = async (playerId, teamId, statUpdates) => {
     const key = getPlayerStatKey(playerId);
-    const existingStat = playerStats[key];
-    const newStatValue = (existingStat?.[statType] || 0) + value;
-    
-    const updatedStat = {
-      ...existingStat,
-      game_id: game.id,
-      player_id: playerId,
-      team_id: teamId,
-      quarter: currentQuarter,
-      [statType]: Math.max(0, newStatValue),
-    };
+    let statToPersist = null; 
 
-    setPlayerStats(prev => ({
-      ...prev,
-      [key]: updatedStat,
-    }));
+    setPlayerStats(prev => {
+      const existingStat = prev[key] || {};
+      const newStatData = {
+        ...existingStat, // Start with all existing properties to preserve un-updated ones
+        game_id: game.id,
+        player_id: playerId,
+        team_id: teamId,
+        quarter: currentQuarter,
+      };
 
+      // Apply all stat updates
+      statUpdates.forEach(({ statType, value }) => {
+        newStatData[statType] = Math.max(0, (newStatData[statType] || 0) + value);
+      });
+      
+      statToPersist = newStatData; // Capture this for the async DB operation
+
+      return {
+        ...prev,
+        [key]: newStatData,
+      };
+    });
+
+    // Now persist statToPersist (which now holds the ID if existing)
     try {
-      if (existingStat?.id) {
-        await base44.entities.PlayerGameStats.update(existingStat.id, updatedStat);
+      if (statToPersist.id) {
+        await base44.entities.PlayerGameStats.update(statToPersist.id, statToPersist);
       } else {
-        const created = await base44.entities.PlayerGameStats.create(updatedStat);
-        updatedStat.id = created.id;
+        const created = await base44.entities.PlayerGameStats.create(statToPersist);
+        // If it was a new creation, update the local state with the assigned ID
         setPlayerStats(prev => ({
           ...prev,
-          [key]: { ...updatedStat, id: created.id },
+          [key]: { ...prev[key], id: created.id }, // Update the specific stat object with its new ID
         }));
       }
-      
-      return {
-        statObjectId: updatedStat.id || existingStat?.id,
-        playerId: playerId,
-        teamId: teamId,
-        quarter: currentQuarter,
-        statType: statType,
-        value: value
-      };
     } catch (error) {
-      console.error("Error saving player stat:", error);
-      return null;
+      console.error("Error saving player stats:", error);
     }
   };
 
@@ -205,6 +205,7 @@ export default function LiveScoring() {
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
     
+    // Prepare all stat updates at once
     const statUpdates = [
       { statType: 'points', value: points }
     ];
@@ -213,7 +214,6 @@ export default function LiveScoring() {
       statUpdates.push(
         { statType: 'three_pointers', value: 1 },
         { statType: 'field_goals_made', value: 1 },
-        { statType: 'three_pointers_attempted', value: 1 },
         { statType: 'field_goals_attempted', value: 1 }
       );
     } else if (points === 2) {
@@ -228,16 +228,13 @@ export default function LiveScoring() {
       );
     }
 
+    // Update all stats at once
+    await updatePlayerStats(selectedPlayer.id, teamId, statUpdates);
+
     await base44.entities.Game.update(game.id, {
       home_score: newHomeScore,
       away_score: newAwayScore,
     });
-
-    const statUpdatesForUndo = [];
-    for (const statUpdate of statUpdates) {
-      const result = await updatePlayerStat(selectedPlayer.id, teamId, statUpdate.statType, statUpdate.value);
-      if (result) statUpdatesForUndo.push(result);
-    }
 
     setActionHistory(prev => [...prev, {
       type: 'score',
@@ -247,7 +244,7 @@ export default function LiveScoring() {
       quarter: currentQuarter,
       oldHomeScore: oldHomeScore,
       oldAwayScore: oldAwayScore,
-      statChanges: statUpdatesForUndo,
+      statUpdates: statUpdates, // Store the list of updates for undo
     }]);
   };
 
@@ -255,18 +252,17 @@ export default function LiveScoring() {
     if (!selectedPlayer || !selectedTeam) return;
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
-    const statUpdateForUndo = await updatePlayerStat(selectedPlayer.id, teamId, statType, value);
+    const statUpdates = [{ statType, value }];
+    await updatePlayerStats(selectedPlayer.id, teamId, statUpdates);
     
-    if (statUpdateForUndo) {
-      setActionHistory(prev => [...prev, {
-        type: statType,
-        playerId: selectedPlayer.id,
-        teamId: teamId,
-        quarter: currentQuarter,
-        value: value,
-        statChanges: [statUpdateForUndo],
-      }]);
-    }
+    setActionHistory(prev => [...prev, {
+      type: statType,
+      playerId: selectedPlayer.id,
+      teamId: teamId,
+      quarter: currentQuarter,
+      value: value,
+      statUpdates: statUpdates, // Store the list of updates for undo
+    }]);
   };
 
   const handleFoul = async () => {
@@ -275,7 +271,8 @@ export default function LiveScoring() {
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
     const oldTeamFouls = selectedTeam === 'home' ? homeTeamFouls : awayTeamFouls;
     
-    const statUpdateForUndo = await updatePlayerStat(selectedPlayer.id, teamId, 'fouls', 1);
+    const statUpdates = [{ statType: 'fouls', value: 1 }];
+    await updatePlayerStats(selectedPlayer.id, teamId, statUpdates);
     
     const newTeamFouls = oldTeamFouls + 1;
     if (selectedTeam === 'home') {
@@ -286,17 +283,15 @@ export default function LiveScoring() {
       await base44.entities.Game.update(game.id, { away_team_fouls: newTeamFouls });
     }
 
-    if (statUpdateForUndo) {
-      setActionHistory(prev => [...prev, {
-        type: 'foul',
-        playerId: selectedPlayer.id,
-        teamId: teamId,
-        quarter: currentQuarter,
-        team: selectedTeam,
-        oldTeamFouls: oldTeamFouls,
-        statChanges: [statUpdateForUndo],
-      }]);
-    }
+    setActionHistory(prev => [...prev, {
+      type: 'foul',
+      playerId: selectedPlayer.id,
+      teamId: teamId,
+      quarter: currentQuarter,
+      team: selectedTeam,
+      oldTeamFouls: oldTeamFouls,
+      statUpdates: statUpdates, // Store the list of updates for undo
+    }]);
 
     const totalFouls = getTotalPlayerFouls(selectedPlayer.id) + 1;
     if (totalFouls >= game.player_foul_limit) {
@@ -353,26 +348,13 @@ export default function LiveScoring() {
         });
       }
 
-      for (const actionChange of lastAction.statChanges) {
-        const { playerId, quarter, statType, value, statObjectId } = actionChange;
-        const key = `${playerId}_${quarter}`;
-        
-        setPlayerStats(prev => {
-          const existingStat = prev[key];
-          if (existingStat && statObjectId) {
-            const newStatValue = Math.max(0, (existingStat?.[statType] || 0) - value);
-            const updatedStat = { ...existingStat, [statType]: newStatValue };
-            
-            base44.entities.PlayerGameStats.update(statObjectId, updatedStat);
-            
-            return {
-              ...prev,
-              [key]: updatedStat,
-            };
-          }
-          return prev;
-        });
-      }
+      // Reverse all stat updates by negating their values
+      const reverseUpdates = lastAction.statUpdates.map(update => ({
+        statType: update.statType,
+        value: -update.value
+      }));
+      
+      await updatePlayerStats(lastAction.playerId, lastAction.teamId, reverseUpdates);
 
       if (lastAction.type === 'foul') {
         if (lastAction.team === 'home') {

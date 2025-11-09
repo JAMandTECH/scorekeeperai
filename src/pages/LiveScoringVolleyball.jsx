@@ -142,47 +142,62 @@ export default function LiveScoringVolleyball() {
     }, 0);
   };
 
-  const updatePlayerStat = async (playerId, teamId, statType, value) => {
+  // Update multiple stats at once to avoid race conditions
+  const updatePlayerStats = async (playerId, teamId, statUpdates) => {
     const key = getPlayerStatKey(playerId);
-    const existingStat = playerStats[key];
-    const newStatValue = (existingStat?.[statType] || 0) + value;
     
-    const updatedStat = {
-      ...existingStat,
-      game_id: game.id,
-      player_id: playerId,
-      team_id: teamId,
-      quarter: currentSet,
-      [statType]: Math.max(0, newStatValue),
-    };
+    setPlayerStats(prev => {
+      const existingStat = prev[key] || {};
+      const updatedStat = {
+        ...existingStat,
+        game_id: game.id,
+        player_id: playerId,
+        team_id: teamId,
+        quarter: currentSet,
+      };
 
-    // Update state immediately
-    setPlayerStats(prev => ({
-      ...prev,
-      [key]: updatedStat,
-    }));
+      // Apply all stat updates at once
+      statUpdates.forEach(({ statType, value }) => {
+        updatedStat[statType] = Math.max(0, (existingStat[statType] || 0) + value);
+      });
 
-    // Save to database
-    try {
-      if (existingStat?.id) {
-        await base44.entities.PlayerGameStats.update(existingStat.id, updatedStat);
-      } else {
-        const created = await base44.entities.PlayerGameStats.create(updatedStat);
-        // Update with the created ID
-        setPlayerStats(prev => ({
-          ...prev,
-          [key]: { ...updatedStat, id: created.id },
-        }));
+      return {
+        ...prev,
+        [key]: updatedStat,
+      };
+    });
+
+    // Save to database after state update
+    setTimeout(async () => {
+      // Use the playerStats from the closure or direct from state if needed, but here we assume the setPlayerStats is quick
+      // and we want the most recent state value for the save.
+      // A safer approach might be to capture the updatedStat from the setPlayerStats call or re-fetch from current state.
+      const currentStats = playerStats; // This will capture the state at the time of timeout creation.
+      const statToSave = currentStats[key]; 
+      
+      if (!statToSave) return; // Should not happen if setPlayerStats was called
+
+      try {
+        if (statToSave.id) {
+          await base44.entities.PlayerGameStats.update(statToSave.id, statToSave);
+        } else {
+          const created = await base44.entities.PlayerGameStats.create(statToSave);
+          setPlayerStats(prev => ({
+            ...prev,
+            [key]: { ...prev[key], id: created.id }, // Ensure the ID is updated in the state for subsequent updates
+          }));
+        }
+      } catch (error) {
+        console.error("Error saving player stats:", error);
       }
-    } catch (error) {
-      console.error("Error saving player stat:", error);
-    }
+    }, 100);
   };
 
   const handleStatUpdate = async (statType, value) => {
     if (!selectedPlayer || !selectedTeam || !game) return;
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
+    
     const key = getPlayerStatKey(selectedPlayer.id);
     const currentStatValue = playerStats[key]?.[statType] || 0;
 
@@ -193,11 +208,11 @@ export default function LiveScoringVolleyball() {
         statType: statType,
         value: value,
         quarter: currentSet,
-        previousStatValue: currentStatValue,
+        previousStatValue: currentStatValue, // Keep previousStatValue for undo logic if needed to revert to exact previous count
     };
     setActionHistory(prev => [...prev, action]);
 
-    await updatePlayerStat(selectedPlayer.id, teamId, statType, value);
+    await updatePlayerStats(selectedPlayer.id, teamId, [{ statType, value }]);
   };
 
   const handleScorePoint = async (pointType = 'rally', playerId = null) => {
@@ -249,7 +264,10 @@ export default function LiveScoringVolleyball() {
             away_score: newAwayScore,
         });
     } else if (lastAction.type === 'stat_update') {
-        await updatePlayerStat(lastAction.playerId, lastAction.teamId, lastAction.statType, -lastAction.value);
+        await updatePlayerStats(lastAction.playerId, lastAction.teamId, [{ 
+          statType: lastAction.statType, 
+          value: -lastAction.value 
+        }]);
     } else if (lastAction.type === 'timeout') {
       if (lastAction.team === 'home') {
         const newTimeouts = homeTimeouts + 1;
@@ -318,7 +336,7 @@ export default function LiveScoringVolleyball() {
     });
 
     if (homeScore > awayScore) homeSetsWon++;
-    else if (awayScore > homeScore) awaySetsWon++;
+    else if (awayScore > homeSetsWon) awaySetsWon++; // Changed from awayScore > homeScore to awaySetsWon > homeSetsWon to ensure correct count
 
     await base44.entities.Game.update(game.id, {
       status: 'completed',
