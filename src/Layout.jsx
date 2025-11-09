@@ -45,15 +45,18 @@ export default function Layout({ children, currentPageName }) {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      // CHECK IF USER NEEDS ONBOARDING
-      if (currentUser && !currentUser.onboarding_completed && currentUser.role !== 'admin') {
+      // IMPORTANT: Don't redirect if we're already on these pages (prevent infinite loops)
+      const excludedPages = ["RoleSelection", "RequestAdminAccess", "VerifyAdminCode", "SuperAdminSetup", "Home", "PublicLanding"];
+      
+      // CHECK IF USER NEEDS ONBOARDING - but only if not on excluded pages
+      if (!excludedPages.includes(currentPageName) && currentUser && !currentUser.onboarding_completed && currentUser.role !== 'admin') {
         // Redirect to role selection if not completed onboarding
         window.location.href = createPageUrl("RoleSelection");
         return;
       }
       
       // Check if user is an admin without organization but has an approved code waiting
-      if (currentUser?.role === 'admin' && !currentUser?.organization_id) {
+      if (!excludedPages.includes(currentPageName) && currentUser?.role === 'admin' && !currentUser?.organization_id) {
         const requests = await base44.entities.AdminRequest.filter({
           user_email: currentUser.email,
           status: 'approved',
