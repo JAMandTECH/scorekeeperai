@@ -41,7 +41,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "PublicLanding",
+    mainPage: "Home",
     Pages: PAGES,
     Layout: Layout,
 };
