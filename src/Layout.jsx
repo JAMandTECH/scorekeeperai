@@ -77,20 +77,20 @@ export default function Layout({ children, currentPageName }) {
         return;
       }
       
-      // Check if admin without organization needs to verify code
-      if (currentUser.role === 'admin' && !currentUser.organization_id && !isSuperAdmin) {
-        console.log("Layout: Admin without organization, checking for approved code");
-        const requests = await base44.entities.AdminRequest.filter({
-          user_email: currentUser.email,
-          status: 'approved',
-          code_used: false,
-        });
-        
-        if (requests.length > 0) {
-          console.log("Layout: Found approved code, redirecting to VerifyAdminCode");
-          window.location.href = createPageUrl("VerifyAdminCode");
-          return;
-        }
+      // CRITICAL: Check if user has an APPROVED admin request that hasn't been used yet
+      // This applies to ALL users (not just those with role='admin')
+      // Because when a request is approved, the user is still a regular user until they enter the code
+      console.log("Layout: Checking for approved admin requests...");
+      const approvedRequests = await base44.entities.AdminRequest.filter({
+        user_email: currentUser.email,
+        status: 'approved',
+        code_used: false,
+      });
+      
+      if (approvedRequests.length > 0) {
+        console.log("Layout: Found approved request that needs code verification, redirecting to VerifyAdminCode");
+        window.location.href = createPageUrl("VerifyAdminCode");
+        return;
       }
       
       // Load organization if user has organization_id
