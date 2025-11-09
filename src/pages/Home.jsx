@@ -73,7 +73,7 @@ export default function Home() {
 
   // Logout function
   const handleLogout = () => {
-    base44.auth.logout(createPageUrl("Home"));
+    base44.auth.logout(createPageUrl("PublicLanding"));
   };
 
   // Fetch all data
@@ -1464,3 +1464,4 @@ export default function Home() {
     </div>
   );
 }
+
