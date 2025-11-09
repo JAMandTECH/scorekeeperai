@@ -13,6 +13,7 @@ import AIInsights from "@/components/AIInsights";
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [organization, setOrganization] = useState(null);
 
   useEffect(() => {
     loadUser();
@@ -23,6 +24,13 @@ export default function Dashboard() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsSuperAdmin(currentUser?.role === 'admin' && currentUser?.is_super_admin === true);
+      
+      // Load organization if user has organization_id
+      if (currentUser?.organization_id) {
+        const orgs = await base44.entities.Organization.list();
+        const userOrg = orgs.find(o => o.id === currentUser.organization_id);
+        setOrganization(userOrg);
+      }
     } catch (error) {
       base44.auth.redirectToLogin(createPageUrl("Dashboard"));
     }
@@ -81,6 +89,98 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/20 dark:to-gray-900">
       <div className="p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
+          {/* Getting Started Guide - For new admins with no data */}
+          {isAdmin && !isSuperAdmin && teams.length === 0 && (
+            <Card className="relative overflow-hidden bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 border-2 border-orange-200 dark:border-orange-800 shadow-xl">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-400/20 to-transparent rounded-full blur-3xl"></div>
+              <CardHeader className="relative z-10">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Trophy className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                      Welcome to {organization?.name || 'Your Organization'}!
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                      Let's get your sports league set up
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="relative z-10">
+                <p className="text-gray-700 dark:text-gray-300 mb-6 font-medium">
+                  You're all set as an organization admin! Here's what you can do next:
+                </p>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Link to={createPageUrl("Divisions")}>
+                    <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg transition-all cursor-pointer">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                            <Trophy className="w-5 h-5 text-white" />
+                          </div>
+                          <h3 className="font-black text-gray-900 dark:text-white">Create Divisions</h3>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Organize your league into divisions (optional)
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+
+                  <Link to={createPageUrl("Teams")}>
+                    <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-700 hover:border-green-400 dark:hover:border-green-600 hover:shadow-lg transition-all cursor-pointer">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                            <Users className="w-5 h-5 text-white" />
+                          </div>
+                          <h3 className="font-black text-gray-900 dark:text-white">Add Teams</h3>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Create your first team to get started
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+
+                  <Link to={createPageUrl("Players")}>
+                    <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-600 hover:shadow-lg transition-all cursor-pointer">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <Users className="w-5 h-5 text-white" />
+                          </div>
+                          <h3 className="font-black text-gray-900 dark:text-white">Manage Players</h3>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Add players to your teams
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+
+                  <Link to={createPageUrl("Games")}>
+                    <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-700 hover:border-orange-400 dark:hover:border-orange-600 hover:shadow-lg transition-all cursor-pointer">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+                            <Calendar className="w-5 h-5 text-white" />
+                          </div>
+                          <h3 className="font-black text-gray-900 dark:text-white">Schedule Games</h3>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Set up your game schedule
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Super Admin Banner */}
           {isAdmin && !isSuperAdmin && (
             <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-700 dark:via-indigo-700 dark:to-purple-700 border-2 border-blue-400 dark:border-blue-500 rounded-2xl p-6 shadow-xl">

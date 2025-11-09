@@ -10,10 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Shield, CheckCircle, Clock, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function RequestAdminAccess() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -68,7 +70,10 @@ export default function RequestAdminAccess() {
       return request;
     },
     onSuccess: () => {
-      window.location.reload();
+      setShowSuccess(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
     },
   });
 
@@ -205,37 +210,52 @@ export default function RequestAdminAccess() {
             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
               <Shield className="w-5 h-5 text-blue-600" />
             </div>
-            <CardTitle>Request Admin Access</CardTitle>
+            <CardTitle>Request Organization Admin Access</CardTitle>
           </div>
-          <p className="text-sm text-gray-600">
-            Submit a request to become an administrator for your organization
+          <p className="text-sm text-gray-600 leading-relaxed">
+            This form allows you to request administrator access for your organization. 
+            Once approved by a Super Admin, you'll be able to manage teams, players, games, 
+            and all other aspects of your organization's sports league.
           </p>
         </CardHeader>
         <CardContent>
+          {showSuccess && (
+            <Alert className="mb-6 bg-green-50 border-green-200">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <AlertDescription className="text-green-800 font-medium">
+                ✅ Request submitted successfully! You'll receive an email notification once 
+                a Super Admin reviews your request. This page will refresh shortly.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="bg-gray-50 rounded-lg p-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Name</span>
+                <span className="text-gray-600">Your Name</span>
                 <span className="font-medium">{user?.full_name}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Email</span>
+                <span className="text-gray-600">Your Email</span>
                 <span className="font-medium">{user?.email}</span>
               </div>
             </div>
 
             <div>
-              <Label htmlFor="organization_name">Organization Name</Label>
+              <Label htmlFor="organization_name">Organization Name *</Label>
               <Input
                 id="organization_name"
                 name="organization_name"
-                placeholder="e.g., City Sports League"
+                placeholder="e.g., City Sports League, Regional Basketball Association"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter the full name of your organization
+              </p>
             </div>
 
             <div>
-              <Label htmlFor="phone_number">Phone Number</Label>
+              <Label htmlFor="phone_number">Contact Phone Number *</Label>
               <Input
                 id="phone_number"
                 name="phone_number"
@@ -246,27 +266,32 @@ export default function RequestAdminAccess() {
             </div>
 
             <div>
-              <Label htmlFor="reason">Reason for Request</Label>
+              <Label htmlFor="reason">Reason for Request *</Label>
               <Textarea
                 id="reason"
                 name="reason"
-                placeholder="Please explain why you need admin access..."
+                placeholder="Please explain why you need admin access for this organization..."
                 rows={4}
                 required
               />
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-gray-700">
-              <strong>Note:</strong> Your request will be reviewed by a Super Admin. 
-              You'll receive an email notification once your request is processed.
+              <strong>What happens next?</strong>
+              <ul className="mt-2 space-y-1 list-disc list-inside text-xs">
+                <li>Your request will be reviewed by a Super Admin</li>
+                <li>You'll receive an email notification with the decision</li>
+                <li>If approved, you'll get an access code to activate your admin account</li>
+                <li>Your organization will be automatically created in the system</li>
+              </ul>
             </div>
 
             <Button 
               type="submit" 
               className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={createRequestMutation.isLoading}
+              disabled={createRequestMutation.isLoading || showSuccess}
             >
-              {createRequestMutation.isLoading ? 'Submitting...' : 'Submit Request'}
+              {createRequestMutation.isLoading ? 'Submitting Request...' : 'Submit Admin Access Request'}
             </Button>
           </form>
         </CardContent>

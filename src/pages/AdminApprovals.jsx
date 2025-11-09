@@ -7,15 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Shield, CheckCircle, XCircle, Clock, Mail, Phone, Building2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export default function AdminApprovals() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [selectedOrgId, setSelectedOrgId] = useState('');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -43,37 +40,38 @@ export default function AdminApprovals() {
     enabled: !!user,
   });
 
-  const { data: organizations = [] } = useQuery({
-    queryKey: ['organizations'],
-    queryFn: () => base44.entities.Organization.list(),
-    enabled: !!user,
-  });
-
   const generateCode = () => {
     return Math.random().toString(36).substring(2, 10).toUpperCase();
   };
 
   const approveMutation = useMutation({
-    mutationFn: async ({ requestId, orgId }) => {
+    mutationFn: async (requestId) => {
+      const request = requests.find(r => r.id === requestId);
       const code = generateCode();
       
-      // Update request with code and approval
+      // Step 1: Create the Organization automatically from request details
+      const newOrg = await base44.entities.Organization.create({
+        name: request.organization_name,
+        contact_email: request.user_email,
+        contact_phone: request.phone_number,
+        status: 'active',
+      });
+
+      // Step 2: Update request with code, approval, and organization_id
       await base44.entities.AdminRequest.update(requestId, {
         status: 'approved',
         access_code: code,
-        organization_id: orgId,
+        organization_id: newOrg.id,
       });
 
-      const request = requests.find(r => r.id === requestId);
-
-      // Send email with code to requester
+      // Step 3: Send email with code to requester
       await base44.integrations.Core.SendEmail({
         to: request.user_email,
         subject: "Admin Access Approved - Access Code Inside",
         body: `
           <h2>Your Admin Access Request Has Been Approved!</h2>
           <p>Hello ${request.user_name},</p>
-          <p>Your request for admin access has been approved.</p>
+          <p>Great news! Your request for admin access has been approved.</p>
           
           <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3>Your Access Code:</h3>
@@ -83,19 +81,29 @@ export default function AdminApprovals() {
           </div>
 
           <p><strong>Organization:</strong> ${request.organization_name}</p>
+          <p><strong>What's Next?</strong></p>
+          <ol>
+            <li>Log in to the ALAB Sports system</li>
+            <li>You'll be redirected to enter your access code</li>
+            <li>Enter the code above to activate your admin access</li>
+            <li>Start managing your organization!</li>
+          </ol>
           
-          <p>Please log in to the system and go to the "Verify Admin Code" page to enter this code and activate your admin access.</p>
+          <p><strong>Important:</strong> This code is valid for one-time use only.</p>
           
-          <p>This code is valid for one-time use only.</p>
+          <p>Your organization has been automatically created in the system. Once you activate 
+          your access, you'll be able to create teams, add players, schedule games, and manage 
+          all aspects of your sports league.</p>
           
           <p>Best regards,<br>ALAB Sports Management Team</p>
         `
       });
+
+      return newOrg;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['adminRequests']);
       setSelectedRequest(null);
-      setSelectedOrgId('');
     },
   });
 
@@ -114,8 +122,8 @@ export default function AdminApprovals() {
           <h2>Admin Access Request Update</h2>
           <p>Hello ${request.user_name},</p>
           <p>Thank you for your interest in becoming an administrator.</p>
-          <p>After reviewing your request, we are unable to approve admin access at this time.</p>
-          <p>If you have questions, please contact support.</p>
+          <p>After reviewing your request for "${request.organization_name}", we are unable to approve admin access at this time.</p>
+          <p>If you have questions or believe this was an error, please contact support.</p>
           <p>Best regards,<br>ALAB Sports Management Team</p>
         `
       });
@@ -124,17 +132,6 @@ export default function AdminApprovals() {
       queryClient.invalidateQueries(['adminRequests']);
     },
   });
-
-  const handleApprove = () => {
-    if (!selectedOrgId) {
-      alert('Please select an organization');
-      return;
-    }
-    approveMutation.mutate({ 
-      requestId: selectedRequest.id, 
-      orgId: selectedOrgId 
-    });
-  };
 
   if (loading) {
     return (
@@ -227,7 +224,7 @@ export default function AdminApprovals() {
             </div>
             <h1 className="text-3xl font-bold text-gray-900">Admin Approvals</h1>
           </div>
-          <p className="text-gray-600">Review and approve admin access requests</p>
+          <p className="text-gray-600">Review and approve admin access requests. Organizations will be created automatically upon approval.</p>
         </div>
 
         {/* Summary Cards */}
@@ -312,51 +309,54 @@ export default function AdminApprovals() {
           </div>
         )}
 
-        {/* Approval Dialog */}
+        {/* Approval Confirmation Dialog */}
         <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Approve Admin Access</DialogTitle>
+              <DialogDescription>
+                Review the details and confirm approval. The organization will be created automatically.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                <p className="text-sm"><strong>Name:</strong> {selectedRequest?.user_name}</p>
-                <p className="text-sm"><strong>Email:</strong> {selectedRequest?.user_email}</p>
-                <p className="text-sm"><strong>Organization:</strong> {selectedRequest?.organization_name}</p>
-              </div>
-
-              <div>
-                <Label htmlFor="org_select">Assign to Organization</Label>
-                <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select organization" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organizations.map(org => (
-                      <SelectItem key={org.id} value={org.id}>
-                        {org.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-start gap-2">
+                  <Building2 className="w-4 h-4 text-gray-600 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-gray-600">Organization to be created:</p>
+                    <p className="text-sm font-bold text-gray-900">{selectedRequest?.organization_name}</p>
+                  </div>
+                </div>
+                <div className="border-t pt-2 mt-2">
+                  <p className="text-sm"><strong>Admin:</strong> {selectedRequest?.user_name}</p>
+                  <p className="text-sm"><strong>Email:</strong> {selectedRequest?.user_email}</p>
+                  <p className="text-sm"><strong>Phone:</strong> {selectedRequest?.phone_number}</p>
+                </div>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-gray-700">
-                A unique access code will be generated and emailed to the requester.
+                <strong>What will happen:</strong>
+                <ul className="mt-2 space-y-1 list-disc list-inside text-xs">
+                  <li>A new organization will be created automatically</li>
+                  <li>A unique access code will be generated</li>
+                  <li>The requester will receive an email with the code</li>
+                  <li>They can use the code to activate their admin account</li>
+                </ul>
               </div>
 
               <div className="flex gap-3">
                 <Button
-                  onClick={handleApprove}
+                  onClick={() => approveMutation.mutate(selectedRequest.id)}
                   className="flex-1 bg-green-600 hover:bg-green-700"
-                  disabled={approveMutation.isLoading || !selectedOrgId}
+                  disabled={approveMutation.isLoading}
                 >
-                  {approveMutation.isLoading ? 'Approving...' : 'Generate Code & Approve'}
+                  {approveMutation.isLoading ? 'Processing...' : 'Approve & Create Organization'}
                 </Button>
                 <Button
                   onClick={() => setSelectedRequest(null)}
                   variant="outline"
                   className="flex-1"
+                  disabled={approveMutation.isLoading}
                 >
                   Cancel
                 </Button>

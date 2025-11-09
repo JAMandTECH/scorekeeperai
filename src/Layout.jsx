@@ -45,6 +45,22 @@ export default function Layout({ children, currentPageName }) {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
+      // Check if user is an admin without organization but has an approved code waiting
+      if (currentUser?.role === 'admin' && !currentUser?.organization_id) {
+        // Check for approved but unused admin request
+        const requests = await base44.entities.AdminRequest.filter({
+          user_email: currentUser.email,
+          status: 'approved',
+          code_used: false,
+        });
+        
+        if (requests.length > 0) {
+          // Redirect to verify code page
+          window.location.href = createPageUrl("VerifyAdminCode");
+          return;
+        }
+      }
+      
       // Load organization if user has organization_id
       if (currentUser?.organization_id) {
         const orgs = await base44.entities.Organization.list();
