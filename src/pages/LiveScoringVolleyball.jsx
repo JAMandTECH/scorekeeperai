@@ -336,7 +336,7 @@ export default function LiveScoringVolleyball() {
     });
 
     if (homeScore > awayScore) homeSetsWon++;
-    else if (awayScore > homeSetsWon) awaySetsWon++; // Changed from awayScore > homeScore to awaySetsWon > homeSetsWon to ensure correct count
+    else if (awayScore > homeScore) awaySetsWon++;
 
     await base44.entities.Game.update(game.id, {
       status: 'completed',
@@ -472,17 +472,8 @@ export default function LiveScoringVolleyball() {
                 <div className="text-white text-2xl font-black text-left">{homeTeam.name}</div>
               </div>
               <div className="text-blue-500 text-7xl font-black mb-2">{homeScore}</div>
-              <div className="flex flex-col items-center gap-1">
-                <div className="text-white text-xs font-bold">
-                  Sets Won: {setScores.filter(s => s.home > s.away).length}
-                </div>
-                <div className="text-[10px] text-gray-400 font-semibold">
-                  Player Total: {homePlayerPoints} {homePointsDiff !== 0 && (
-                    <span className={homePointsDiff > 0 ? 'text-yellow-400' : 'text-red-400'}>
-                      ({homePointsDiff > 0 ? '+' : ''}{homePointsDiff})
-                    </span>
-                  )}
-                </div>
+              <div className="text-white text-xs font-bold">
+                Sets Won: {setScores.filter(s => s.home > s.away).length}
               </div>
             </div>
 
@@ -548,33 +539,11 @@ export default function LiveScoringVolleyball() {
                 </Avatar>
               </div>
               <div className="text-cyan-500 text-7xl font-black mb-2">{awayScore}</div>
-              <div className="flex flex-col items-center gap-1">
-                <div className="text-white text-xs font-bold">
-                  Sets Won: {setScores.filter(s => s.away > s.home).length}
-                </div>
-                <div className="text-[10px] text-gray-400 font-semibold">
-                  Player Total: {awayPlayerPoints} {awayPointsDiff !== 0 && (
-                    <span className={awayPointsDiff > 0 ? 'text-yellow-400' : 'text-red-400'}>
-                      ({awayPointsDiff > 0 ? '+' : ''}{awayPointsDiff})
-                    </span>
-                  )}
-                </div>
+              <div className="text-white text-xs font-bold">
+                Sets Won: {setScores.filter(s => s.away > s.home).length}
               </div>
             </div>
           </div>
-
-          {/* SYNCHRONIZATION WARNING */}
-          {(Math.abs(homePointsDiff) > 0 || Math.abs(awayPointsDiff) > 0) && (
-            <Alert className="bg-yellow-900/50 border-2 border-yellow-500 mb-4">
-              <AlertTriangle className="h-5 w-5 text-yellow-400" />
-              <AlertDescription className="text-yellow-200 font-bold">
-                ⚠️ Score Verification (Current Set): 
-                {Math.abs(homePointsDiff) > 0 && ` ${homeTeam.name}: Set ${homeScore} vs Players ${homePlayerPoints}`}
-                {Math.abs(homePointsDiff) > 0 && Math.abs(awayPointsDiff) > 0 && ' | '}
-                {Math.abs(awayPointsDiff) > 0 && ` ${awayTeam.name}: Set ${awayScore} vs Players ${awayPlayerPoints}`}
-              </AlertDescription>
-            </Alert>
-          )}
         </div>
       </div>
 
