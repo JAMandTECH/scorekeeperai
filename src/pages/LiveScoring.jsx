@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Minus, CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -114,32 +114,32 @@ export default function LiveScoring() {
     enabled: !!game?.away_team_id,
   });
 
-  const getPlayerStatKey = useCallback((playerId) => `${playerId}_${currentQuarter}`, [currentQuarter]);
+  const getPlayerStatKey = (playerId) => `${playerId}_${currentQuarter}`;
 
-  const getPlayerStat = useCallback((playerId, statType) => {
+  const getPlayerStat = (playerId, statType) => {
     let total = 0;
     for (let q = 1; q <= currentQuarter; q++) {
       const key = `${playerId}_${q}`;
       total += playerStats[key]?.[statType] || 0;
     }
     return total;
-  }, [currentQuarter, playerStats]);
+  };
 
-  const getCurrentQuarterPlayerStat = useCallback((playerId, statType) => {
+  const getCurrentQuarterPlayerStat = (playerId, statType) => {
     const key = `${playerId}_${currentQuarter}`;
     return playerStats[key]?.[statType] || 0;
-  }, [currentQuarter, playerStats]);
+  };
 
-  const getTotalPlayerFouls = useCallback((playerId) => {
+  const getTotalPlayerFouls = (playerId) => {
     let totalFouls = 0;
     for (let q = 1; q <= currentQuarter; q++) {
       const key = `${playerId}_${q}`;
       totalFouls += playerStats[key]?.fouls || 0;
     }
     return totalFouls;
-  }, [currentQuarter, playerStats]);
+  };
 
-  const updatePlayerStat = useCallback(async (playerId, teamId, statType, value) => {
+  const updatePlayerStat = async (playerId, teamId, statType, value) => {
     const key = getPlayerStatKey(playerId);
     const existingStat = playerStats[key];
     const newStatValue = (existingStat?.[statType] || 0) + value;
@@ -182,9 +182,9 @@ export default function LiveScoring() {
       console.error("Error saving player stat:", error);
       return null;
     }
-  }, [game, currentQuarter, playerStats, getPlayerStatKey]);
+  };
 
-  const addPoints = useCallback(async (points) => {
+  const addPoints = async (points) => {
     if (!selectedPlayer || !selectedTeam) return;
 
     const oldHomeScore = homeScore;
@@ -242,9 +242,9 @@ export default function LiveScoring() {
       oldAwayScore: oldAwayScore,
       statChanges: statUpdatesForUndo,
     }]);
-  }, [selectedPlayer, selectedTeam, homeScore, awayScore, game, currentQuarter, updatePlayerStat]);
+  };
 
-  const addPlayerStat = useCallback(async (statType, value) => {
+  const addPlayerStat = async (statType, value) => {
     if (!selectedPlayer || !selectedTeam) return;
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
@@ -260,9 +260,9 @@ export default function LiveScoring() {
         statChanges: [statUpdateForUndo],
       }]);
     }
-  }, [selectedPlayer, selectedTeam, game, currentQuarter, updatePlayerStat]);
+  };
 
-  const handleFoul = useCallback(async () => {
+  const handleFoul = async () => {
     if (!selectedPlayer || !selectedTeam) return;
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
@@ -299,9 +299,9 @@ export default function LiveScoring() {
     } else if (totalFouls === game.player_foul_limit - 1) {
       alert(`⚠️ Warning: Player has ${totalFouls} fouls! One more foul and they will be disqualified.`);
     }
-  }, [selectedPlayer, selectedTeam, game, currentQuarter, homeTeamFouls, awayTeamFouls, updatePlayerStat, getTotalPlayerFouls]);
+  };
 
-  const useTimeout = useCallback(async (team) => {
+  const useTimeout = async (team) => {
     const oldHomeTimeouts = homeTimeouts;
     const oldAwayTimeouts = awayTimeouts;
 
@@ -326,9 +326,9 @@ export default function LiveScoring() {
         oldTimeouts: oldAwayTimeouts,
       }]);
     }
-  }, [game, currentQuarter, homeTimeouts, awayTimeouts]);
+  };
 
-  const handleUndo = useCallback(async () => {
+  const handleUndo = async () => {
     if (actionHistory.length === 0) return;
 
     const lastAction = actionHistory[actionHistory.length - 1];
@@ -386,9 +386,9 @@ export default function LiveScoring() {
         await base44.entities.Game.update(game.id, { away_timeouts: lastAction.oldTimeouts });
       }
     }
-  }, [actionHistory, game]);
+  };
 
-  const endQuarter = useCallback(async () => {
+  const endQuarter = async () => {
     const quarterScore = {
       quarter: currentQuarter,
       home: homeScore,
@@ -414,9 +414,9 @@ export default function LiveScoring() {
     setCurrentQuarter(nextQuarter);
     setShowQuarterEnd(false);
     setActionHistory([]);
-  }, [currentQuarter, homeScore, awayScore, quarterScores, game]);
+  };
 
-  const endGame = useCallback(async () => {
+  const endGame = async () => {
     if (homeScore === awayScore && currentQuarter >= 4) {
       alert("Game is tied! Please play overtime period.");
       return;
@@ -453,7 +453,7 @@ export default function LiveScoring() {
     }
 
     navigate(createPageUrl("Games"));
-  }, [game, homeScore, awayScore, currentQuarter, navigate]);
+  };
 
   if (!game || !homeTeam || !awayTeam) {
     return (
@@ -468,7 +468,7 @@ export default function LiveScoring() {
     return (team === 'home' ? homeTeamFouls : awayTeamFouls) >= game.penalty_limit_per_quarter;
   };
 
-  const PlayerRow = React.memo(({ player, team, teamId, onSelect }) => {
+  const PlayerRow = ({ player, team, teamId, onSelect }) => {
     const totalFouls = getTotalPlayerFouls(player.id);
     const points = getPlayerStat(player.id, 'points');
     const rebounds = getPlayerStat(player.id, 'rebounds');
@@ -521,12 +521,12 @@ export default function LiveScoring() {
         </div>
       </button>
     );
-  });
+  };
 
-  const handlePlayerSelect = useCallback((player, team) => {
+  const handlePlayerSelect = (player, team) => {
     setSelectedPlayer(player);
     setSelectedTeam(team);
-  }, []);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900">

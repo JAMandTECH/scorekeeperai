@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -109,23 +109,23 @@ export default function LiveScoringVolleyball() {
     enabled: !!game?.away_team_id,
   });
 
-  const getPlayerStatKey = useCallback((playerId) => `${playerId}_${currentSet}`, [currentSet]);
+  const getPlayerStatKey = (playerId) => `${playerId}_${currentSet}`;
 
-  const getPlayerStat = useCallback((playerId, statType) => {
+  const getPlayerStat = (playerId, statType) => {
     let total = 0;
     for (let s = 1; s <= currentSet; s++) {
       const key = `${playerId}_${s}`;
       total += playerStats[key]?.[statType] || 0;
     }
     return total;
-  }, [currentSet, playerStats]);
+  };
 
-  const getCurrentSetPlayerStat = useCallback((playerId, statType) => {
+  const getCurrentSetPlayerStat = (playerId, statType) => {
     const key = `${playerId}_${currentSet}`;
     return playerStats[key]?.[statType] || 0;
-  }, [currentSet, playerStats]);
+  };
 
-  const updatePlayerStat = useCallback(async (playerId, teamId, statType, value) => {
+  const updatePlayerStat = async (playerId, teamId, statType, value) => {
     const key = getPlayerStatKey(playerId);
     const existingStat = playerStats[key];
     const newStatValue = (existingStat?.[statType] || 0) + value;
@@ -160,9 +160,9 @@ export default function LiveScoringVolleyball() {
     } catch (error) {
       console.error("Error saving player stat:", error);
     }
-  }, [game, currentSet, playerStats, getPlayerStatKey]);
+  };
 
-  const handleStatUpdate = useCallback(async (statType, value) => {
+  const handleStatUpdate = async (statType, value) => {
     if (!selectedPlayer || !selectedTeam || !game) return;
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
@@ -181,9 +181,9 @@ export default function LiveScoringVolleyball() {
     setActionHistory(prev => [...prev, action]);
 
     await updatePlayerStat(selectedPlayer.id, teamId, statType, value);
-  }, [selectedPlayer, selectedTeam, game, currentSet, playerStats, getPlayerStatKey, updatePlayerStat]);
+  };
 
-  const handleScorePoint = useCallback(async (pointType = 'rally', playerId = null) => {
+  const handleScorePoint = async (pointType = 'rally', playerId = null) => {
     if (!selectedTeam || !game) return;
 
     const newHomeScore = selectedTeam === 'home' ? homeScore + 1 : homeScore;
@@ -209,9 +209,9 @@ export default function LiveScoringVolleyball() {
         home_score: newHomeScore,
         away_score: newAwayScore,
     });
-  }, [selectedTeam, game, homeScore, awayScore, currentSet]);
+  };
 
-  const handleUndo = useCallback(async () => {
+  const handleUndo = async () => {
     if (actionHistory.length === 0) return;
 
     const lastAction = actionHistory[actionHistory.length - 1];
@@ -244,9 +244,9 @@ export default function LiveScoringVolleyball() {
         await base44.entities.Game.update(game.id, { away_timeouts: newTimeouts });
       }
     }
-  }, [actionHistory, currentSet, game, homeTimeouts, awayTimeouts, updatePlayerStat]);
+  };
 
-  const useTimeout = useCallback(async (team) => {
+  const useTimeout = async (team) => {
     if (game) {
       const action = {
         type: 'timeout',
@@ -265,9 +265,9 @@ export default function LiveScoringVolleyball() {
         await base44.entities.Game.update(game.id, { away_timeouts: newTimeouts });
       }
     }
-  }, [game, currentSet, homeTimeouts, awayTimeouts]);
+  };
 
-  const endSet = useCallback(async () => {
+  const endSet = async () => {
     const setScore = {
       quarter: currentSet,
       home: homeScore,
@@ -289,9 +289,9 @@ export default function LiveScoringVolleyball() {
     setAwayScore(0);
     setActionHistory([]);
     setShowSetEnd(false);
-  }, [currentSet, homeScore, awayScore, setScores, game]);
+  };
 
-  const endGame = useCallback(async () => {
+  const endGame = async () => {
     let homeSetsWon = 0;
     let awaySetsWon = 0;
     
@@ -338,7 +338,7 @@ export default function LiveScoringVolleyball() {
     }
 
     navigate(createPageUrl("Games"));
-  }, [game, homeScore, awayScore, setScores, navigate]);
+  };
 
   if (!game || !homeTeam || !awayTeam) {
     return (
@@ -351,7 +351,7 @@ export default function LiveScoringVolleyball() {
   const setLabel = `Set ${currentSet}`;
   const currentSetStats = selectedPlayer ? (playerStats[`${selectedPlayer.id}_${currentSet}`] || {}) : {};
 
-  const PlayerRow = React.memo(({ player, team, teamId, onSelect }) => {
+  const PlayerRow = ({ player, team, teamId, onSelect }) => {
     const attacks = getPlayerStat(player.id, 'field_goals_made');
     const blocks = getPlayerStat(player.id, 'blocks');
     const aces = getPlayerStat(player.id, 'three_pointers');
@@ -391,12 +391,12 @@ export default function LiveScoringVolleyball() {
         </div>
       </button>
     );
-  });
+  };
 
-  const handlePlayerSelect = useCallback((player, team) => {
+  const handlePlayerSelect = (player, team) => {
     setSelectedPlayer(player);
     setSelectedTeam(team);
-  }, []);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900">
