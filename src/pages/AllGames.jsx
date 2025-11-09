@@ -6,14 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Calendar, Filter, Trophy, ChevronDown, ChevronUp } from "lucide-react";
+import { Calendar, Filter, Trophy, ChevronDown, ChevronUp, LayoutGrid, Table } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import AIGameSummary from "@/components/AIGameSummary";
 
 export default function AllGames() {
@@ -22,6 +16,7 @@ export default function AllGames() {
   const [selectedDivision, setSelectedDivision] = useState('all');
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [expandedGame, setExpandedGame] = useState(null);
+  const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
 
   useEffect(() => {
     loadUser();
@@ -75,10 +70,8 @@ export default function AllGames() {
 
   // Filter games based on selected filters
   const filteredGames = allGames.filter(game => {
-    // Filter by sport
     if (selectedSport !== 'all' && game.sport !== selectedSport) return false;
     
-    // Filter by division
     if (selectedDivision !== 'all') {
       const homeTeam = allTeams.find(t => t.id === game.home_team_id);
       const awayTeam = allTeams.find(t => t.id === game.away_team_id);
@@ -87,7 +80,6 @@ export default function AllGames() {
       if (homeDivision !== selectedDivision && awayDivision !== selectedDivision) return false;
     }
     
-    // Filter by team
     if (selectedTeam !== 'all') {
       if (game.home_team_id !== selectedTeam && game.away_team_id !== selectedTeam) return false;
     }
@@ -105,7 +97,6 @@ export default function AllGames() {
     return team?.logo_url || null;
   };
 
-  // Get best player from a specific team for a game
   const getBestPlayerForTeam = (gameId, teamId, sport) => {
     const gameStats = allPlayerStats.filter(s => s.game_id === gameId && s.team_id === teamId);
     
@@ -113,14 +104,12 @@ export default function AllGames() {
 
     let bestPlayerStat;
     if (sport === 'basketball') {
-      // For basketball, highest points
       bestPlayerStat = gameStats.reduce((best, current) => {
         const currentPoints = current.points || 0;
         const bestPoints = best?.points || 0;
         return currentPoints > bestPoints ? current : best;
       }, null);
     } else {
-      // For volleyball, sum of attacks + blocks + aces
       bestPlayerStat = gameStats.reduce((best, current) => {
         const currentScore = (current.field_goals_made || 0) + (current.blocks || 0) + (current.three_pointers || 0);
         const bestScore = best ? ((best.field_goals_made || 0) + (best.blocks || 0) + (best.three_pointers || 0)) : 0;
@@ -134,7 +123,6 @@ export default function AllGames() {
     return { player, stats: bestPlayerStat };
   };
 
-  // Get all player stats for a game grouped by team
   const getGamePlayerStats = (gameId, homeTeamId, awayTeamId) => {
     const gameStats = allPlayerStats.filter(s => s.game_id === gameId);
     
@@ -179,7 +167,6 @@ export default function AllGames() {
     const isExpanded = expandedGame === game.id;
     const { homeStats, awayStats } = isExpanded ? getGamePlayerStats(game.id, game.home_team_id, game.away_team_id) : { homeStats: [], awayStats: [] };
 
-    // Prepare top players for AI summary
     const topPlayersForAI = [];
     if (homeBestPlayer) {
       topPlayersForAI.push({
@@ -361,7 +348,7 @@ export default function AllGames() {
           {game.status === 'completed' && (
             <Button
               variant="outline"
-              className="w-full font-bold"
+              className="w-full font-bold border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               onClick={() => setExpandedGame(isExpanded ? null : game.id)}
             >
               {isExpanded ? (
@@ -388,7 +375,7 @@ export default function AllGames() {
                 </p>
                 <div className="space-y-2">
                   {homeStats.map((stat) => (
-                    <div key={stat.id} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 rounded-lg p-2 text-xs">
+                    <div key={stat.id} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 rounded-lg p-2 text-xs border border-gray-200 dark:border-gray-700">
                       <Avatar className="w-8 h-8 border border-gray-300 dark:border-gray-600">
                         <AvatarImage src={stat.player?.photo_url} />
                         <AvatarFallback className="bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-[10px] font-bold">
@@ -418,7 +405,7 @@ export default function AllGames() {
                 </p>
                 <div className="space-y-2">
                   {awayStats.map((stat) => (
-                    <div key={stat.id} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 rounded-lg p-2 text-xs">
+                    <div key={stat.id} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 rounded-lg p-2 text-xs border border-gray-200 dark:border-gray-700">
                       <Avatar className="w-8 h-8 border border-gray-300 dark:border-gray-600">
                         <AvatarImage src={stat.player?.photo_url} />
                         <AvatarFallback className="bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-[10px] font-bold">
@@ -459,16 +446,140 @@ export default function AllGames() {
     );
   };
 
+  const GamesTable = () => (
+    <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
+                <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">DATE</th>
+                <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">MATCH</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">SPORT</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">SCORE</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">STATUS</th>
+                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">DETAILS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredGames.map((game) => {
+                const sportColor = game.sport === 'basketball' ? 'orange' : 'blue';
+                const homeTeam = allTeams.find(t => t.id === game.home_team_id);
+                const awayTeam = allTeams.find(t => t.id === game.away_team_id);
+                
+                return (
+                  <tr key={game.id} className={`border-b border-gray-100 dark:border-gray-700 hover:bg-${sportColor}-50/50 dark:hover:bg-${sportColor}-950/20 transition-colors`}>
+                    <td className="py-4 px-4 text-gray-700 dark:text-gray-300 font-semibold text-sm">
+                      {new Date(game.game_date).toLocaleDateString()}
+                      <br />
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {new Date(game.game_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="w-8 h-8 border-2 border-white dark:border-gray-700">
+                            <AvatarImage src={homeTeam?.logo_url} />
+                            <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white text-xs font-bold`}>
+                              {homeTeam?.name?.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-bold text-gray-900 dark:text-white text-sm">{getTeamName(game.home_team_id)}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="w-8 h-8 border-2 border-white dark:border-gray-700">
+                            <AvatarImage src={awayTeam?.logo_url} />
+                            <AvatarFallback className="bg-gradient-to-br from-gray-500 to-gray-600 text-white text-xs font-bold">
+                              {awayTeam?.name?.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-bold text-gray-900 dark:text-white text-sm">{getTeamName(game.away_team_id)}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <Badge variant="outline" className={`text-${sportColor}-600 dark:text-${sportColor}-400 border-${sportColor}-600 dark:border-${sportColor}-400 font-bold`}>
+                        {game.sport === 'basketball' ? '🏀' : '🏐'} {game.sport}
+                      </Badge>
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      {game.status === 'completed' ? (
+                        <div className="font-black text-2xl text-gray-900 dark:text-white">
+                          {game.sport === 'volleyball' 
+                            ? `${(game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0)} - ${(game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0)}`
+                            : `${game.home_score} - ${game.away_score}`
+                          }
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 dark:text-gray-600 text-sm">-</span>
+                      )}
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <Badge className={`${
+                        game.status === 'completed' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800' :
+                        game.status === 'in_progress' ? 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800' :
+                        'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
+                      } font-bold`}>
+                        {game.status?.replace('_', ' ').toUpperCase() || 'SCHEDULED'}
+                      </Badge>
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      {game.status === 'completed' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="font-bold border-2"
+                          onClick={() => setExpandedGame(expandedGame === game.id ? null : game.id)}
+                        >
+                          {expandedGame === game.id ? 'Hide' : 'View'}
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-50 dark:from-gray-900 dark:via-purple-950/10 dark:to-gray-900">
       <div className="p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
-          {/* Header */}
-          <div>
-            <h1 className="text-4xl font-black text-gray-900 dark:text-white">Games History</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">
-              Complete game history with detailed statistics
-            </p>
+          {/* Header with View Toggle */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-4xl font-black text-gray-900 dark:text-white">Games History</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">
+                Complete game history with detailed statistics
+              </p>
+            </div>
+
+            {/* View Toggle */}
+            <div className="flex bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-1 shadow-sm">
+              <Button
+                variant={viewMode === 'card' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('card')}
+                className={`font-bold ${viewMode === 'card' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+              >
+                <LayoutGrid className="w-4 h-4 mr-2" />
+                Cards
+              </Button>
+              <Button
+                variant={viewMode === 'table' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('table')}
+                className={`font-bold ${viewMode === 'table' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+              >
+                <Table className="w-4 h-4 mr-2" />
+                Table
+              </Button>
+            </div>
           </div>
 
           {/* Filters */}
@@ -591,13 +702,17 @@ export default function AllGames() {
             </CardContent>
           </Card>
 
-          {/* Games Grid */}
+          {/* Games Display */}
           {filteredGames.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredGames.map(game => (
-                <GameCard key={game.id} game={game} />
-              ))}
-            </div>
+            viewMode === 'card' ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredGames.map(game => (
+                  <GameCard key={game.id} game={game} />
+                ))}
+              </div>
+            ) : (
+              <GamesTable />
+            )
           ) : (
             <div className="text-center py-20">
               <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center mx-auto mb-6">
