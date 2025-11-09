@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
@@ -39,6 +40,12 @@ export default function PublicLanding() {
     } else {
       document.documentElement.classList.remove('dark');
     }
+  };
+
+  const handleGetStarted = async () => {
+    // Redirect to RoleSelection instead of Dashboard
+    // This ensures new users go through onboarding
+    base44.auth.redirectToLogin(createPageUrl("RoleSelection"));
   };
 
   const features = [
@@ -178,7 +185,7 @@ export default function PublicLanding() {
             {!isAuthenticated ? (
               <>
                 <Button 
-                  onClick={() => base44.auth.redirectToLogin(createPageUrl("Dashboard"))}
+                  onClick={handleGetStarted}
                   className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-12 py-8 font-bold shadow-2xl transform hover:scale-105 transition-all"
                 >
                   Get Started Free
@@ -371,7 +378,7 @@ export default function PublicLanding() {
 
       {/* CTA Section */}
       <section className="py-24 px-4 bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvZz48L3N2Zz4=')] opacity-20"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvZz48L3N2Zz4=')] opacity-20"></div>
         
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-5xl md:text-6xl font-black mb-6">
@@ -385,7 +392,7 @@ export default function PublicLanding() {
             {!isAuthenticated ? (
               <>
                 <Button 
-                  onClick={() => base44.auth.redirectToLogin(createPageUrl("Dashboard"))}
+                  onClick={handleGetStarted}
                   className="bg-white text-blue-900 hover:bg-gray-100 text-xl px-12 py-8 font-bold shadow-2xl transform hover:scale-105 transition-all"
                 >
                   Start Free Today

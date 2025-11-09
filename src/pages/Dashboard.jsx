@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 import { createPageUrl } from "@/utils";
 import { Trophy, Users, Calendar, Building2, Shield, ArrowRight, TrendingUp, Flame } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [organization, setOrganization] = useState(null);
+  const navigate = useNavigate(); // Initialized useNavigate
 
   useEffect(() => {
     loadUser();
@@ -22,6 +23,15 @@ export default function Dashboard() {
   const loadUser = async () => {
     try {
       const currentUser = await base44.auth.me();
+      console.log("Dashboard: Loaded user", currentUser); // Added console.log
+      
+      // CRITICAL CHECK: If user hasn't completed onboarding, redirect them
+      if (currentUser.onboarding_completed !== true && !(currentUser.role === 'admin' && currentUser.is_super_admin === true)) {
+        console.log("Dashboard: User needs onboarding, redirecting to RoleSelection");
+        window.location.href = createPageUrl("RoleSelection"); // Using window.location.href for full page reload for critical redirects
+        return;
+      }
+      
       setUser(currentUser);
       setIsSuperAdmin(currentUser?.role === 'admin' && currentUser?.is_super_admin === true);
       
@@ -32,6 +42,7 @@ export default function Dashboard() {
         setOrganization(userOrg);
       }
     } catch (error) {
+      console.error("Dashboard: Error loading user", error); // Added console.error
       base44.auth.redirectToLogin(createPageUrl("Dashboard"));
     }
   };
