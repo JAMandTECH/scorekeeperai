@@ -23,7 +23,21 @@ export default function Dashboard() {
   const loadUser = async () => {
     try {
       const currentUser = await base44.auth.me();
-      console.log("Dashboard: Loaded user", currentUser); // Added console.log
+      console.log("Dashboard: Loaded user", currentUser);
+      
+      // FIRST PRIORITY: Check for approved admin requests that need code verification
+      console.log("Dashboard: Checking for approved admin requests...");
+      const approvedRequests = await base44.entities.AdminRequest.filter({
+        user_email: currentUser.email,
+        status: 'approved',
+        code_used: false,
+      });
+      
+      if (approvedRequests.length > 0) {
+        console.log("Dashboard: Found approved request, redirecting to VerifyAdminCode");
+        window.location.href = createPageUrl("VerifyAdminCode");
+        return;
+      }
       
       // CRITICAL CHECK: If user hasn't completed onboarding, redirect them
       if (currentUser.onboarding_completed !== true && !(currentUser.role === 'admin' && currentUser.is_super_admin === true)) {

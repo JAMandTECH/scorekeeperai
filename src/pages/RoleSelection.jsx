@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +22,21 @@ export default function RoleSelection() {
       console.log("RoleSelection: Checking user...");
       const currentUser = await base44.auth.me();
       console.log("RoleSelection: User loaded", currentUser);
+      
+      // FIRST PRIORITY: Check for approved admin requests that need code verification
+      console.log("RoleSelection: Checking for approved admin requests...");
+      const approvedRequests = await base44.entities.AdminRequest.filter({
+        user_email: currentUser.email,
+        status: 'approved',
+        code_used: false,
+      });
+      
+      if (approvedRequests.length > 0) {
+        console.log("RoleSelection: Found approved request, redirecting to VerifyAdminCode");
+        setLoading(false);
+        navigate(createPageUrl("VerifyAdminCode"));
+        return;
+      }
       
       // If user already completed onboarding, redirect to Home
       if (currentUser?.onboarding_completed === true) {
