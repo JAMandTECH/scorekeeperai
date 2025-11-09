@@ -9,6 +9,7 @@ import { Shield, User, ArrowRight } from "lucide-react";
 export default function RoleSelection() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,77 +18,121 @@ export default function RoleSelection() {
 
   const checkUser = async () => {
     try {
+      console.log("RoleSelection: Checking user...");
       const currentUser = await base44.auth.me();
-      setUser(currentUser);
+      console.log("RoleSelection: User loaded", currentUser);
       
-      // If user already has completed onboarding or is an admin, redirect
+      // If user already completed onboarding, redirect to Home
       if (currentUser?.onboarding_completed === true) {
+        console.log("RoleSelection: User already completed onboarding, redirecting to Home");
+        setLoading(false);
         navigate(createPageUrl("Home"));
         return;
       }
       
+      // If user is already admin, redirect to Dashboard
       if (currentUser?.role === 'admin') {
+        console.log("RoleSelection: User is admin, redirecting to Dashboard");
+        setLoading(false);
         navigate(createPageUrl("Dashboard"));
         return;
       }
-    } catch (error) {
-      console.error("Error loading user:", error);
-      // Not logged in - redirect to login
-      base44.auth.redirectToLogin(createPageUrl("RoleSelection"));
-      return;
-    } finally {
-      // Always set loading to false
+      
+      // User needs to select role - show the form
+      console.log("RoleSelection: Showing role selection form");
+      setUser(currentUser);
       setLoading(false);
+      
+    } catch (error) {
+      console.error("RoleSelection: Error loading user", error);
+      setError(error.message);
+      setLoading(false);
+      
+      // Not logged in - redirect to login after a brief moment
+      setTimeout(() => {
+        base44.auth.redirectToLogin(createPageUrl("RoleSelection"));
+      }, 500);
     }
   };
 
   const handleRegularUser = async () => {
     try {
-      // Mark onboarding as completed and redirect to Home
+      console.log("RoleSelection: User selected Regular User");
+      setLoading(true);
+      
       await base44.auth.updateMe({
         onboarding_completed: true,
       });
+      
+      console.log("RoleSelection: Updated user, redirecting to Home");
       navigate(createPageUrl("Home"));
     } catch (error) {
       console.error("Error updating user:", error);
+      setLoading(false);
       alert("There was an error. Please try again.");
     }
   };
 
   const handleAdminRequest = async () => {
     try {
-      // Mark onboarding as completed and redirect to admin request
+      console.log("RoleSelection: User selected Admin Access");
+      setLoading(true);
+      
       await base44.auth.updateMe({
         onboarding_completed: true,
       });
+      
+      console.log("RoleSelection: Updated user, redirecting to RequestAdminAccess");
       navigate(createPageUrl("RequestAdminAccess"));
     } catch (error) {
       console.error("Error updating user:", error);
+      setLoading(false);
       alert("There was an error. Please try again.");
     }
   };
 
+  // Show loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/20 dark:to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400 font-medium">Loading...</p>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">Loading your profile...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Please wait</p>
         </div>
       </div>
     );
   }
 
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/20 dark:to-gray-900 flex items-center justify-center p-4">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="text-red-600">Error</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-500">Redirecting to login...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show "no user" state
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/20 dark:to-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-400 font-medium">Redirecting...</p>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">Redirecting to login...</p>
         </div>
       </div>
     );
   }
 
+  // Show role selection form
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/20 dark:to-gray-900 flex items-center justify-center p-4">
       <div className="max-w-4xl w-full">
@@ -103,7 +148,7 @@ export default function RoleSelection() {
             Welcome to ALAB Sports! 👋
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 font-medium max-w-2xl mx-auto">
-            Hi <strong>{user?.full_name}</strong>! Let's get you set up. How would you like to use ALAB Sports?
+            Hi <strong>{user?.full_name || 'there'}</strong>! Let's get you set up. How would you like to use ALAB Sports?
           </p>
         </div>
 
