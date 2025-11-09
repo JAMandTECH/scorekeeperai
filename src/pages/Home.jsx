@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,7 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [organization, setOrganization] = useState(null);
   const [viewMode, setViewMode] = useState('all'); // 'all' or 'my-org'
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     checkAuth();
@@ -36,6 +37,11 @@ export default function Home() {
   const checkAuth = async () => {
     const authenticated = await base44.auth.isAuthenticated();
     setIsAuthenticated(authenticated);
+    
+    // REDIRECT TO PUBLIC LANDING IF NOT AUTHENTICATED
+    if (!authenticated) {
+      navigate(createPageUrl("PublicLanding"));
+    }
   };
 
   const loadUser = async () => {
@@ -286,6 +292,15 @@ export default function Home() {
     const team = allTeams.find(t => t.id === teamId);
     return team?.name || 'Unknown';
   };
+
+  // Show loading while checking authentication
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
