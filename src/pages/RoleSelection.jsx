@@ -20,38 +20,70 @@ export default function RoleSelection() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      // If user already has a role assigned or has completed onboarding, redirect
-      if (currentUser?.role === 'admin' || currentUser?.onboarding_completed === true) {
+      // If user already has completed onboarding or is an admin, redirect
+      if (currentUser?.onboarding_completed === true) {
+        navigate(createPageUrl("Home"));
+        return;
+      }
+      
+      if (currentUser?.role === 'admin') {
         navigate(createPageUrl("Dashboard"));
         return;
       }
     } catch (error) {
-      // Not logged in
+      console.error("Error loading user:", error);
+      // Not logged in - redirect to login
       base44.auth.redirectToLogin(createPageUrl("RoleSelection"));
+      return;
+    } finally {
+      // Always set loading to false
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleRegularUser = async () => {
-    // Mark onboarding as completed and redirect to Home
-    await base44.auth.updateMe({
-      onboarding_completed: true,
-    });
-    navigate(createPageUrl("Home"));
+    try {
+      // Mark onboarding as completed and redirect to Home
+      await base44.auth.updateMe({
+        onboarding_completed: true,
+      });
+      navigate(createPageUrl("Home"));
+    } catch (error) {
+      console.error("Error updating user:", error);
+      alert("There was an error. Please try again.");
+    }
   };
 
   const handleAdminRequest = async () => {
-    // Mark onboarding as completed and redirect to admin request
-    await base44.auth.updateMe({
-      onboarding_completed: true,
-    });
-    navigate(createPageUrl("RequestAdminAccess"));
+    try {
+      // Mark onboarding as completed and redirect to admin request
+      await base44.auth.updateMe({
+        onboarding_completed: true,
+      });
+      navigate(createPageUrl("RequestAdminAccess"));
+    } catch (error) {
+      console.error("Error updating user:", error);
+      alert("There was an error. Please try again.");
+    }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400 font-medium">Redirecting...</p>
+        </div>
       </div>
     );
   }
