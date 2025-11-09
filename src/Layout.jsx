@@ -43,25 +43,42 @@ export default function Layout({ children, currentPageName }) {
   const loadUser = async () => {
     try {
       const currentUser = await base44.auth.me();
-      console.log("Layout: Current user loaded", currentUser);
+      console.log("=== Layout: User loaded ===", currentUser);
+      console.log("Layout: onboarding_completed value:", currentUser.onboarding_completed);
+      console.log("Layout: role:", currentUser.role);
+      console.log("Layout: is_super_admin:", currentUser.is_super_admin);
+      console.log("Layout: organization_id:", currentUser.organization_id);
+      console.log("Layout: currentPageName:", currentPageName);
+      
       setUser(currentUser);
       
-      // IMPORTANT: Don't redirect if we're already on these pages (prevent infinite loops)
+      // Pages that should never trigger redirects
       const excludedPages = ["RoleSelection", "RequestAdminAccess", "VerifyAdminCode", "SuperAdminSetup", "Home", "PublicLanding"];
       
-      // CHECK IF USER NEEDS ONBOARDING - NEW USERS WITHOUT onboarding_completed
-      // This applies to all new users EXCEPT super admins who are already set up
-      if (!excludedPages.includes(currentPageName) && currentUser) {
-        // If user doesn't have onboarding_completed flag AND is not a super admin
-        if (currentUser.onboarding_completed !== true && !(currentUser.role === 'admin' && currentUser.is_super_admin === true)) {
-          console.log("Layout: User needs onboarding, redirecting to RoleSelection");
-          window.location.href = createPageUrl("RoleSelection");
-          return;
-        }
+      if (excludedPages.includes(currentPageName)) {
+        console.log("Layout: On excluded page, no redirects");
+        setLoading(false);
+        return;
       }
       
-      // Check if admin user (not super admin) needs to verify their access code
-      if (!excludedPages.includes(currentPageName) && currentUser?.role === 'admin' && !currentUser?.organization_id && !currentUser?.is_super_admin) {
+      // Check if user needs onboarding
+      // A user needs onboarding if onboarding_completed is explicitly NOT true (includes undefined, null, false)
+      const needsOnboarding = currentUser.onboarding_completed !== true;
+      const isSuperAdmin = currentUser.role === 'admin' && currentUser.is_super_admin === true;
+      
+      console.log("Layout: needsOnboarding:", needsOnboarding);
+      console.log("Layout: isSuperAdmin:", isSuperAdmin);
+      
+      // NEW USERS (no onboarding completed) should go to RoleSelection
+      // EXCEPT super admins who are already fully configured
+      if (needsOnboarding && !isSuperAdmin) {
+        console.log("Layout: User needs onboarding, redirecting to RoleSelection");
+        window.location.href = createPageUrl("RoleSelection");
+        return;
+      }
+      
+      // Check if admin without organization needs to verify code
+      if (currentUser.role === 'admin' && !currentUser.organization_id && !isSuperAdmin) {
         console.log("Layout: Admin without organization, checking for approved code");
         const requests = await base44.entities.AdminRequest.filter({
           user_email: currentUser.email,
@@ -77,11 +94,13 @@ export default function Layout({ children, currentPageName }) {
       }
       
       // Load organization if user has organization_id
-      if (currentUser?.organization_id) {
+      if (currentUser.organization_id) {
         const orgs = await base44.entities.Organization.list();
         const userOrg = orgs.find(o => o.id === currentUser.organization_id);
         setOrganization(userOrg);
       }
+      
+      console.log("Layout: No redirects needed, loading complete");
     } catch (error) {
       console.error("Layout: Error loading user:", error);
     }
