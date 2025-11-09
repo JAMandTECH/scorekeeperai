@@ -74,7 +74,7 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const handleLogout = () => {
-    base44.auth.logout(createPageUrl("Home"));
+    base44.auth.logout(createPageUrl("PublicLanding"));
   };
 
   const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
@@ -110,7 +110,8 @@ export default function Layout({ children, currentPageName }) {
   }
 
   if (currentPageName === "Home" || currentPageName === "SuperAdminSetup" || 
-      currentPageName === "RequestAdminAccess" || currentPageName === "VerifyAdminCode") {
+      currentPageName === "RequestAdminAccess" || currentPageName === "VerifyAdminCode" ||
+      currentPageName === "PublicLanding") {
     return <div>{children}</div>;
   }
 
