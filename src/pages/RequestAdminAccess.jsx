@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -50,84 +51,10 @@ export default function RequestAdminAccess() {
       const request = await base44.entities.AdminRequest.create(data);
       console.log("Admin request created:", request);
       
-      // Step 2: Fetch super admin emails
-      console.log("Fetching super admins...");
-      const allUsers = await base44.entities.User.list();
-      const superAdmins = allUsers.filter(u => u.role === 'admin' && u.is_super_admin === true);
-      console.log("Found super admins:", superAdmins.length);
-
-      if (superAdmins.length === 0) {
-        console.warn("No super admins found to send email notification");
-        return request; // Still return the request as created
-      }
-
-      // Step 3: Send email to each super admin
-      const superAdminEmails = superAdmins.map(u => u.email);
-      console.log("Sending emails to:", superAdminEmails);
+      // NOTE: We don't send emails to super admins from the frontend anymore
+      // because regular users don't have permission to list all users.
+      // Super admins will see the request in their Admin Approvals dashboard.
       
-      for (const email of superAdminEmails) {
-        try {
-          await base44.integrations.Core.SendEmail({
-            to: email,
-            subject: "🔔 New Admin Access Request - Action Required",
-            body: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #2563eb; border-bottom: 3px solid #2563eb; padding-bottom: 10px;">
-                  New Admin Access Request
-                </h2>
-                
-                <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h3 style="margin-top: 0; color: #1f2937;">👤 Requester Information</h3>
-                  <p><strong>Name:</strong> ${data.user_name}</p>
-                  <p><strong>Email:</strong> ${data.user_email}</p>
-                  <p><strong>Phone:</strong> ${data.phone_number}</p>
-                </div>
-
-                <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h3 style="margin-top: 0; color: #92400e;">🏢 Organization Details</h3>
-                  <p><strong>Organization Name:</strong> ${data.organization_name}</p>
-                </div>
-
-                <div style="background: #e0e7ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h3 style="margin-top: 0; color: #3730a3;">📝 Reason for Request</h3>
-                  <p style="white-space: pre-wrap;">${data.reason}</p>
-                </div>
-
-                <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
-                  <h3 style="margin-top: 0; color: #1e40af;">✅ What Happens When You Approve:</h3>
-                  <ul style="color: #1e3a8a;">
-                    <li>A new organization "${data.organization_name}" will be <strong>automatically created</strong></li>
-                    <li>The requester will be granted admin role and assigned to this organization</li>
-                    <li>A unique access code will be generated</li>
-                    <li>The requester will receive an email with the code to confirm their access</li>
-                  </ul>
-                </div>
-
-                <div style="text-align: center; margin: 30px 0;">
-                  <p style="color: #6b7280; font-size: 14px; margin-bottom: 10px;">
-                    Review this request in the Admin Approvals section
-                  </p>
-                  <a href="${window.location.origin}${createPageUrl('AdminApprovals')}" 
-                     style="display: inline-block; background: #2563eb; color: white; padding: 12px 30px; 
-                            text-decoration: none; border-radius: 8px; font-weight: bold;">
-                    Go to Admin Approvals →
-                  </a>
-                </div>
-
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 12px;">
-                  <p><strong>Note:</strong> The organization will be created automatically when you approve this request. 
-                     The requester's user account will be upgraded to admin with the new organization assigned.</p>
-                </div>
-              </div>
-            `
-          });
-          console.log("Email sent successfully to:", email);
-        } catch (emailError) {
-          console.error("Failed to send email to:", email, emailError);
-          // Continue to next email even if one fails
-        }
-      }
-
       return request;
     },
     onSuccess: () => {
