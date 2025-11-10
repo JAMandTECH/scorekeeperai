@@ -27,10 +27,20 @@ export default function VerifyAdminCode() {
       console.log("VerifyAdminCode: User loaded", currentUser);
       setUser(currentUser);
       
-      // If user is already an admin with organization, they don't need this page
+      // IMPORTANT: Check if user is already admin with organization AND has used their code
+      // If code_used is true for all their approved requests, they've already verified
       if (currentUser.role === 'admin' && currentUser.organization_id) {
-        console.log("VerifyAdminCode: User already admin with org, redirecting to Dashboard");
-        navigate(createPageUrl("Dashboard"));
+        const approvedRequests = await base44.entities.AdminRequest.filter({ 
+          user_email: currentUser.email,
+          status: 'approved',
+        });
+        
+        // If all approved requests have been used, redirect to dashboard
+        const hasUnusedCode = approvedRequests.some(req => !req.code_used);
+        if (!hasUnusedCode) {
+          console.log("VerifyAdminCode: User already admin with org and code used, redirecting to Dashboard");
+          navigate(createPageUrl("Dashboard"));
+        }
       }
     } catch (error) {
       console.error("VerifyAdminCode: Error loading user", error);
@@ -62,23 +72,16 @@ export default function VerifyAdminCode() {
         throw new Error('Invalid access code');
       }
 
-      console.log("VerifyAdminCode: Code is valid, upgrading user to admin");
+      console.log("VerifyAdminCode: Code is valid, marking as used");
 
-      // Step 1: Mark code as used
+      // Mark code as used
+      // NOTE: The user's role and organization_id were already updated by the Super Admin
+      // during the approval process. We're just confirming they received the code.
       await base44.entities.AdminRequest.update(approvedRequest.id, {
         code_used: true,
       });
-      console.log("VerifyAdminCode: Code marked as used");
 
-      // Step 2: NOW upgrade the user to admin with the organization
-      // This is when the actual role change happens - after code verification!
-      console.log("VerifyAdminCode: Updating user role to admin with org:", approvedRequest.organization_id);
-      await base44.auth.updateMe({
-        role: 'admin',
-        organization_id: approvedRequest.organization_id,
-        onboarding_completed: true,
-      });
-      console.log("VerifyAdminCode: User successfully upgraded to admin!");
+      console.log("VerifyAdminCode: Code marked as used, user already has admin access");
 
       return true;
     },
