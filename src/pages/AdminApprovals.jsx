@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -41,6 +42,12 @@ export default function AdminApprovals() {
     enabled: !!user,
   });
 
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['all-users'],
+    queryFn: () => base44.entities.User.list(),
+    enabled: !!user,
+  });
+
   const generateCode = () => {
     return Math.random().toString(36).substring(2, 10).toUpperCase();
   };
@@ -50,58 +57,140 @@ export default function AdminApprovals() {
       const request = requests.find(r => r.id === requestId);
       const code = generateCode();
       
+      console.log("Approving request for:", request.user_email);
+      
+      // Step 1: Create the organization
+      console.log("Creating organization:", request.organization_name);
       const newOrg = await base44.entities.Organization.create({
         name: request.organization_name,
         contact_email: request.user_email,
         contact_phone: request.phone_number,
         status: 'active',
       });
+      console.log("Organization created:", newOrg.id);
 
+      // Step 2: Update the AdminRequest record
+      console.log("Updating admin request...");
       await base44.entities.AdminRequest.update(requestId, {
         status: 'approved',
         access_code: code,
         organization_id: newOrg.id,
       });
+      console.log("Admin request updated");
 
+      // Step 3: CRITICAL - Update the requesting user's role and organization
+      // Find the user in the allUsers list
+      const requestingUser = allUsers.find(u => u.email === request.user_email);
+      if (!requestingUser) {
+        throw new Error(`User not found: ${request.user_email}`);
+      }
+      
+      console.log("Updating user role and organization for user:", requestingUser.id);
+      
+      // Update the user record directly in the User entity
+      // Since we're a super admin, we have permission to update other users
+      await base44.entities.User.update(requestingUser.id, {
+        role: 'admin',
+        organization_id: newOrg.id,
+        onboarding_completed: true,
+      });
+      console.log("User updated successfully - now admin of organization:", newOrg.id);
+
+      // Step 4: Send confirmation email with access code
+      console.log("Sending confirmation email...");
       await base44.integrations.Core.SendEmail({
         to: request.user_email,
-        subject: "Admin Access Approved - Access Code Inside",
+        subject: "🎉 Admin Access Approved - You're All Set!",
         body: `
-          <h2>Your Admin Access Request Has Been Approved!</h2>
-          <p>Hello ${request.user_name},</p>
-          <p>Great news! Your request for admin access has been approved.</p>
-          
-          <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3>Your Access Code:</h3>
-            <p style="font-size: 24px; font-weight: bold; color: #2563eb; letter-spacing: 3px;">
-              ${code}
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px;">
+              Your Admin Access Has Been Approved! 🎉
+            </h2>
+            
+            <p style="font-size: 16px; color: #1f2937;">Hello ${request.user_name},</p>
+            
+            <p style="font-size: 16px; color: #1f2937;">
+              Great news! Your request for admin access has been approved, and your account has been upgraded.
             </p>
-          </div>
 
-          <p><strong>Organization:</strong> ${request.organization_name}</p>
-          <p><strong>What's Next?</strong></p>
-          <ol>
-            <li>Log in to the ALAB Sports system</li>
-            <li>You'll be redirected to enter your access code</li>
-            <li>Enter the code above to activate your admin access</li>
-            <li>Start managing your organization!</li>
-          </ol>
-          
-          <p><strong>Important:</strong> This code is valid for one-time use only.</p>
-          
-          <p>Your organization has been automatically created in the system. Once you activate 
-          your access, you'll be able to create teams, add players, schedule games, and manage 
-          all aspects of your sports league.</p>
-          
-          <p>Best regards,<br>ALAB Sports Management Team</p>
+            <div style="background: #dcfce7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a;">
+              <h3 style="margin-top: 0; color: #15803d;">✅ Your Account is Ready!</h3>
+              <p style="color: #166534;"><strong>Organization:</strong> ${request.organization_name}</p>
+              <p style="color: #166534;"><strong>Role:</strong> Organization Administrator</p>
+              <p style="color: #166534; margin-top: 10px;">
+                Your organization has been automatically created and you've been assigned as its administrator.
+              </p>
+            </div>
+
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #1f2937;">🔑 Your Confirmation Code:</h3>
+              <p style="font-size: 32px; font-weight: bold; color: #2563eb; letter-spacing: 5px; text-align: center; margin: 15px 0; font-family: monospace;">
+                ${code}
+              </p>
+              <p style="color: #6b7280; font-size: 14px; text-align: center;">
+                Use this code to confirm your account when you log in
+              </p>
+            </div>
+
+            <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #1e40af;">📋 What's Next?</h3>
+              <ol style="color: #1e3a8a; margin: 0; padding-left: 20px;">
+                <li style="margin-bottom: 8px;">Log in to the ALAB Sports system</li>
+                <li style="margin-bottom: 8px;">You'll be asked to enter your confirmation code</li>
+                <li style="margin-bottom: 8px;">Enter the code above (${code})</li>
+                <li style="margin-bottom: 8px;">Access your admin dashboard and start managing your organization!</li>
+              </ol>
+            </div>
+
+            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+              <p style="margin: 0; color: #92400e; font-size: 14px;">
+                <strong>⚠️ Important:</strong> This code is valid for one-time use only. Keep it secure!
+              </p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${window.location.origin}${createPageUrl('VerifyAdminCode')}" 
+                 style="display: inline-block; background: #16a34a; color: white; padding: 14px 35px; 
+                        text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                Enter Code & Get Started →
+              </a>
+            </div>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <p style="color: #1f2937; font-size: 16px;">
+                As an organization administrator, you can now:
+              </p>
+              <ul style="color: #4b5563;">
+                <li>Create and manage teams</li>
+                <li>Add players to your rosters</li>
+                <li>Schedule and manage games</li>
+                <li>Track live scores and statistics</li>
+                <li>Manage divisions and leagues</li>
+              </ul>
+            </div>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
+              <p>If you have any questions or need help getting started, don't hesitate to reach out to support.</p>
+              <p style="margin-top: 10px;">
+                Best regards,<br>
+                <strong>ALAB Sports Management Team</strong>
+              </p>
+            </div>
+          </div>
         `
       });
+      console.log("Email sent successfully");
 
       return newOrg;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['adminRequests']);
+      queryClient.invalidateQueries(['all-users']);
       setSelectedRequest(null);
+    },
+    onError: (error) => {
+      console.error("Error approving request:", error);
+      alert(`Failed to approve request: ${error.message}`);
     },
   });
 
@@ -454,8 +543,9 @@ export default function AdminApprovals() {
                 <ul className="mt-2 space-y-1 list-disc list-inside text-xs">
                   <li>A new organization will be created automatically</li>
                   <li>A unique access code will be generated</li>
+                  <li>The requester's user role will be updated to 'admin' for this organization</li>
                   <li>The requester will receive an email with the code</li>
-                  <li>They can use the code to activate their admin account</li>
+                  <li>They can use the code to confirm their admin account</li>
                 </ul>
               </div>
 

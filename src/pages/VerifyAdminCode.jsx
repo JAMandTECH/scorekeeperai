@@ -23,12 +23,16 @@ export default function VerifyAdminCode() {
   const loadUser = async () => {
     try {
       const currentUser = await base44.auth.me();
+      console.log("VerifyAdminCode: User loaded", currentUser);
       setUser(currentUser);
       
-      if (currentUser.role === 'admin') {
+      // If user is already an admin with organization, they don't need this page
+      if (currentUser.role === 'admin' && currentUser.organization_id) {
+        console.log("VerifyAdminCode: User already admin with org, redirecting to Dashboard");
         navigate(createPageUrl("Dashboard"));
       }
     } catch (error) {
+      console.error("VerifyAdminCode: Error loading user", error);
       base44.auth.redirectToLogin(createPageUrl("VerifyAdminCode"));
     }
     setLoading(false);
@@ -57,23 +61,27 @@ export default function VerifyAdminCode() {
         throw new Error('Invalid access code');
       }
 
+      console.log("VerifyAdminCode: Code is valid, marking as used");
+
       // Mark code as used
       await base44.entities.AdminRequest.update(approvedRequest.id, {
         code_used: true,
       });
 
-      // Update user to admin with organization
-      await base44.auth.updateMe({
-        role: 'admin',
-        organization_id: approvedRequest.organization_id,
-      });
+      console.log("VerifyAdminCode: Code marked as used, user should now have admin access");
+
+      // NOTE: The user's role and organization_id were already updated by the Super Admin
+      // during the approval process. We're just marking the code as used here.
+      // No need to call base44.auth.updateMe() - that would fail with permission error.
 
       return true;
     },
     onSuccess: () => {
+      console.log("VerifyAdminCode: Success, redirecting to Dashboard");
       window.location.href = createPageUrl("Dashboard");
     },
     onError: (error) => {
+      console.error("VerifyAdminCode: Error", error);
       setError(error.message || 'Verification failed');
     },
   });
@@ -92,7 +100,7 @@ export default function VerifyAdminCode() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
       </div>
     );
@@ -100,18 +108,18 @@ export default function VerifyAdminCode() {
 
   if (!approvedRequest) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-5 h-5 text-red-600" />
+              <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
-              <CardTitle>No Approved Request</CardTitle>
+              <CardTitle className="text-gray-900 dark:text-white">No Approved Request</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               You don't have any approved admin access requests. Please request admin access first.
             </p>
             <div className="flex gap-3">
@@ -136,63 +144,66 @@ export default function VerifyAdminCode() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <Card className="max-w-md w-full">
-        <CardHeader>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-green-50/30 to-gray-50 dark:from-gray-900 dark:via-green-950/10 dark:to-gray-900 flex items-center justify-center p-4">
+      <Card className="max-w-md w-full border-2 border-green-200 dark:border-green-800 shadow-2xl">
+        <CardHeader className="border-b-2 border-green-100 dark:border-green-900 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-              <Shield className="w-5 h-5 text-green-600" />
+            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Shield className="w-6 h-6 text-white" />
             </div>
-            <CardTitle>Verify Admin Access Code</CardTitle>
+            <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">Verify Admin Access Code</CardTitle>
           </div>
-          <p className="text-sm text-gray-600">
-            Enter the access code sent to your email to activate admin access
+          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+            Enter the access code sent to your email to confirm your admin access
           </p>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-sm text-green-900 font-medium mb-1">✓ Request Approved!</p>
-              <p className="text-sm text-green-700">
+        <CardContent className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-2 border-green-200 dark:border-green-800 rounded-xl p-5">
+              <p className="text-sm text-green-900 dark:text-green-300 font-bold mb-2">✓ Request Approved!</p>
+              <p className="text-sm text-green-800 dark:text-green-400 font-medium">
                 Organization: <strong>{approvedRequest.organization_name}</strong>
+              </p>
+              <p className="text-xs text-green-700 dark:text-green-500 mt-2">
+                Your admin role has been activated. Enter the code to confirm.
               </p>
             </div>
 
             <div>
-              <Label htmlFor="code">Access Code</Label>
+              <Label htmlFor="code" className="text-base font-bold text-gray-700 dark:text-gray-300 mb-2">Access Code</Label>
               <Input
                 id="code"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 placeholder="Enter your access code"
-                className="text-center text-lg font-mono tracking-wider"
+                className="text-center text-2xl font-mono tracking-wider border-2 border-gray-300 dark:border-gray-600 focus:border-green-500 dark:focus:border-green-400 font-bold"
                 maxLength={20}
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Check your email for the access code
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">
+                📧 Check your email for the access code
               </p>
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+              <div className="bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-800 rounded-xl p-4 text-sm text-red-700 dark:text-red-400 font-medium">
                 {error}
               </div>
             )}
 
             <Button 
               type="submit" 
-              className="w-full bg-green-600 hover:bg-green-700"
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-lg py-6 font-black shadow-xl"
               disabled={verifyMutation.isLoading}
             >
               {verifyMutation.isLoading ? (
                 <span className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
                   Verifying...
                 </span>
               ) : (
                 <>
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Verify & Activate Admin Access
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  Verify & Access Dashboard
                 </>
               )}
             </Button>
@@ -201,7 +212,7 @@ export default function VerifyAdminCode() {
               type="button"
               onClick={() => navigate(createPageUrl("Home"))}
               variant="outline"
-              className="w-full"
+              className="w-full border-2 border-gray-300 dark:border-gray-600 font-bold"
             >
               Cancel
             </Button>
