@@ -25,25 +25,28 @@ export default function Dashboard() {
       const currentUser = await base44.auth.me();
       console.log("Dashboard: Loaded user", currentUser);
       
-      // FIRST PRIORITY: Check for approved admin requests that need code verification
-      console.log("Dashboard: Checking for approved admin requests...");
-      const approvedRequests = await base44.entities.AdminRequest.filter({
-        user_email: currentUser.email,
-        status: 'approved',
-        code_used: false,
-      });
-      
-      if (approvedRequests.length > 0) {
-        console.log("Dashboard: Found approved request, redirecting to VerifyAdminCode");
-        window.location.href = createPageUrl("VerifyAdminCode");
-        return;
-      }
-      
       // CRITICAL CHECK: If user hasn't completed onboarding, redirect them
       if (currentUser.onboarding_completed !== true && !(currentUser.role === 'admin' && currentUser.is_super_admin === true)) {
         console.log("Dashboard: User needs onboarding, redirecting to RoleSelection");
         window.location.href = createPageUrl("RoleSelection"); // Using window.location.href for full page reload for critical redirects
         return;
+      }
+
+      // IMPORTANT: Only check for approved admin requests if user is NOT already an admin
+      // This prevents a redirect loop for users who have already been upgraded
+      if (currentUser.role !== 'admin') {
+        console.log("Dashboard: User is not admin, checking for approved admin requests...");
+        const approvedRequests = await base44.entities.AdminRequest.filter({
+          user_email: currentUser.email,
+          status: 'approved',
+          code_used: false,
+        });
+        
+        if (approvedRequests.length > 0) {
+          console.log("Dashboard: Found approved request, redirecting to VerifyAdminCode");
+          window.location.href = createPageUrl("VerifyAdminCode");
+          return;
+        }
       }
       
       setUser(currentUser);
