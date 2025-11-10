@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -63,7 +62,6 @@ export default function RoleSelection() {
       }
       
       // User needs to select role - show the form
-      // This includes: new regular users, new admins without org, admins without onboarding_completed
       console.log("RoleSelection: Showing role selection form");
       setUser(currentUser);
       setLoading(false);
@@ -100,17 +98,14 @@ export default function RoleSelection() {
 
   const handleAdminRequest = async () => {
     try {
-      console.log("RoleSelection: User selected Admin Access");
+      console.log("RoleSelection: User selected Admin Access - redirecting to RequestAdminAccess");
       setLoading(true);
       
-      await base44.auth.updateMe({
-        onboarding_completed: true,
-      });
-      
-      console.log("RoleSelection: Updated user, redirecting to RequestAdminAccess");
+      // DO NOT set onboarding_completed here - it will be set after the Super Admin approves
+      // Just redirect to the request form
       navigate(createPageUrl("RequestAdminAccess"));
     } catch (error) {
-      console.error("Error updating user:", error);
+      console.error("Error navigating to admin request:", error);
       setLoading(false);
       alert("There was an error. Please try again.");
     }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -9,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Shield, CheckCircle, Clock, XCircle, Info, Building2, Mail, Phone, MessageSquare } from "lucide-react";
+import { Shield, CheckCircle, Clock, XCircle, Info, Building2, Mail, Phone, MessageSquare, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -17,6 +16,7 @@ export default function RequestAdminAccess() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,84 +44,110 @@ export default function RequestAdminAccess() {
 
   const createRequestMutation = useMutation({
     mutationFn: async (data) => {
-      const request = await base44.entities.AdminRequest.create(data);
+      console.log("Creating admin request with data:", data);
       
-      // Send email notification to super admin
-      const superAdmins = await base44.entities.User.list();
-      const superAdminEmails = superAdmins
-        .filter(u => u.role === 'admin' && u.is_super_admin === true)
-        .map(u => u.email);
+      // Step 1: Create the admin request
+      const request = await base44.entities.AdminRequest.create(data);
+      console.log("Admin request created:", request);
+      
+      // Step 2: Fetch super admin emails
+      console.log("Fetching super admins...");
+      const allUsers = await base44.entities.User.list();
+      const superAdmins = allUsers.filter(u => u.role === 'admin' && u.is_super_admin === true);
+      console.log("Found super admins:", superAdmins.length);
 
+      if (superAdmins.length === 0) {
+        console.warn("No super admins found to send email notification");
+        return request; // Still return the request as created
+      }
+
+      // Step 3: Send email to each super admin
+      const superAdminEmails = superAdmins.map(u => u.email);
+      console.log("Sending emails to:", superAdminEmails);
+      
       for (const email of superAdminEmails) {
-        await base44.integrations.Core.SendEmail({
-          to: email,
-          subject: "🔔 New Admin Access Request - Action Required",
-          body: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2563eb; border-bottom: 3px solid #2563eb; padding-bottom: 10px;">
-                New Admin Access Request
-              </h2>
-              
-              <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0; color: #1f2937;">👤 Requester Information</h3>
-                <p><strong>Name:</strong> ${data.user_name}</p>
-                <p><strong>Email:</strong> ${data.user_email}</p>
-                <p><strong>Phone:</strong> ${data.phone_number}</p>
-              </div>
+        try {
+          await base44.integrations.Core.SendEmail({
+            to: email,
+            subject: "🔔 New Admin Access Request - Action Required",
+            body: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2563eb; border-bottom: 3px solid #2563eb; padding-bottom: 10px;">
+                  New Admin Access Request
+                </h2>
+                
+                <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <h3 style="margin-top: 0; color: #1f2937;">👤 Requester Information</h3>
+                  <p><strong>Name:</strong> ${data.user_name}</p>
+                  <p><strong>Email:</strong> ${data.user_email}</p>
+                  <p><strong>Phone:</strong> ${data.phone_number}</p>
+                </div>
 
-              <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0; color: #92400e;">🏢 Organization Details</h3>
-                <p><strong>Organization Name:</strong> ${data.organization_name}</p>
-              </div>
+                <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <h3 style="margin-top: 0; color: #92400e;">🏢 Organization Details</h3>
+                  <p><strong>Organization Name:</strong> ${data.organization_name}</p>
+                </div>
 
-              <div style="background: #e0e7ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0; color: #3730a3;">📝 Reason for Request</h3>
-                <p style="white-space: pre-wrap;">${data.reason}</p>
-              </div>
+                <div style="background: #e0e7ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <h3 style="margin-top: 0; color: #3730a3;">📝 Reason for Request</h3>
+                  <p style="white-space: pre-wrap;">${data.reason}</p>
+                </div>
 
-              <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
-                <h3 style="margin-top: 0; color: #1e40af;">✅ What Happens When You Approve:</h3>
-                <ul style="color: #1e3a8a;">
-                  <li>A new organization "${data.organization_name}" will be <strong>automatically created</strong></li>
-                  <li>A unique access code will be generated</li>
-                  <li>The requester will receive an email with the code</li>
-                  <li>They can activate their admin account using the code</li>
-                </ul>
-              </div>
+                <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
+                  <h3 style="margin-top: 0; color: #1e40af;">✅ What Happens When You Approve:</h3>
+                  <ul style="color: #1e3a8a;">
+                    <li>A new organization "${data.organization_name}" will be <strong>automatically created</strong></li>
+                    <li>The requester will be granted admin role and assigned to this organization</li>
+                    <li>A unique access code will be generated</li>
+                    <li>The requester will receive an email with the code to confirm their access</li>
+                  </ul>
+                </div>
 
-              <div style="text-align: center; margin: 30px 0;">
-                <p style="color: #6b7280; font-size: 14px; margin-bottom: 10px;">
-                  Review this request in the Admin Approvals section
-                </p>
-                <a href="${window.location.origin}/adminapprovals" 
-                   style="display: inline-block; background: #2563eb; color: white; padding: 12px 30px; 
-                          text-decoration: none; border-radius: 8px; font-weight: bold;">
-                  Go to Admin Approvals →
-                </a>
-              </div>
+                <div style="text-align: center; margin: 30px 0;">
+                  <p style="color: #6b7280; font-size: 14px; margin-bottom: 10px;">
+                    Review this request in the Admin Approvals section
+                  </p>
+                  <a href="${window.location.origin}${createPageUrl('AdminApprovals')}" 
+                     style="display: inline-block; background: #2563eb; color: white; padding: 12px 30px; 
+                            text-decoration: none; border-radius: 8px; font-weight: bold;">
+                    Go to Admin Approvals →
+                  </a>
+                </div>
 
-              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 12px;">
-                <p><strong>Note:</strong> You don't need to manually create the organization. 
-                   It will be created automatically when you approve this request.</p>
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 12px;">
+                  <p><strong>Note:</strong> The organization will be created automatically when you approve this request. 
+                     The requester's user account will be upgraded to admin with the new organization assigned.</p>
+                </div>
               </div>
-            </div>
-          `
-        });
+            `
+          });
+          console.log("Email sent successfully to:", email);
+        } catch (emailError) {
+          console.error("Failed to send email to:", email, emailError);
+          // Continue to next email even if one fails
+        }
       }
 
       return request;
     },
     onSuccess: () => {
+      console.log("Request creation successful, showing success message");
       setShowSuccess(true);
+      setErrorMessage('');
       // Redirect to PublicLanding after 4 seconds
       setTimeout(() => {
         navigate(createPageUrl("PublicLanding"));
       }, 4000);
     },
+    onError: (error) => {
+      console.error("Request creation failed:", error);
+      setErrorMessage(error.message || 'Failed to submit request. Please try again.');
+    },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setErrorMessage(''); // Clear any previous errors
     const formData = new FormData(e.target);
     
     createRequestMutation.mutate({
@@ -340,6 +366,16 @@ export default function RequestAdminAccess() {
         </CardHeader>
         
         <CardContent className="p-8">
+          {errorMessage && (
+            <Alert className="mb-6 bg-red-50 dark:bg-red-950/30 border-2 border-red-300 dark:border-red-800">
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              <AlertDescription className="text-red-800 dark:text-red-300 font-medium">
+                <strong>Error submitting request:</strong>
+                <p className="mt-1">{errorMessage}</p>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Current User Info */}
             <div className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-950/30 rounded-xl p-5 border-2 border-gray-200 dark:border-gray-700">
