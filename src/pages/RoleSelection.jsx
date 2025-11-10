@@ -80,17 +80,14 @@ export default function RoleSelection() {
 
   const handleRegularUser = async () => {
     try {
-      console.log("RoleSelection: User selected Regular User");
+      console.log("RoleSelection: User selected Regular User - redirecting to AssociateOrganization");
       setLoading(true);
       
-      await base44.auth.updateMe({
-        onboarding_completed: true,
-      });
-      
-      console.log("RoleSelection: Updated user, redirecting to Home");
-      navigate(createPageUrl("Home"));
+      // DO NOT set onboarding_completed here - it will be set after organization association
+      // Just redirect to AssociateOrganization page
+      navigate(createPageUrl("AssociateOrganization"));
     } catch (error) {
-      console.error("Error updating user:", error);
+      console.error("Error navigating to organization association:", error);
       setLoading(false);
       alert("There was an error. Please try again.");
     }
@@ -186,7 +183,7 @@ export default function RoleSelection() {
             </CardHeader>
             <CardContent className="relative z-10 space-y-4">
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                Browse league information, view team standings, check player statistics, and follow games.
+                Browse league information, view team standings, check player statistics, and follow games from multiple organizations.
               </p>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li className="flex items-center gap-2">
@@ -195,7 +192,7 @@ export default function RoleSelection() {
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                  Follow your favorite teams
+                  Follow multiple organizations
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>

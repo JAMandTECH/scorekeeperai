@@ -17,6 +17,8 @@ import Divisions from './pages/Divisions';
 import Scorekeepers from './pages/Scorekeepers';
 import PublicLanding from './pages/PublicLanding';
 import RoleSelection from './pages/RoleSelection';
+import AssociateOrganization from './pages/AssociateOrganization';
+import OrganizationSelector from './pages/OrganizationSelector';
 import Layout from './Layout.jsx';
 
 
@@ -40,6 +42,8 @@ export const PAGES = {
     "Scorekeepers": Scorekeepers,
     "PublicLanding": PublicLanding,
     "RoleSelection": RoleSelection,
+    "AssociateOrganization": AssociateOrganization,
+    "OrganizationSelector": OrganizationSelector,
 }
 
 export const pagesConfig = {
