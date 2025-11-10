@@ -3,8 +3,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { 
-  Trophy, Building2, Users, Calendar, BarChart3, 
+import {
+  Trophy, Building2, Users, Calendar, BarChart3,
   PlayCircle, LogOut, Shield, Menu, X, KeyRound, Moon, Sun
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -48,27 +48,37 @@ export default function Layout({ children, currentPageName }) {
       console.log("Layout: role:", currentUser.role);
       console.log("Layout: is_super_admin:", currentUser.is_super_admin);
       console.log("Layout: organization_id:", currentUser.organization_id);
+      console.log("Layout: active_organization_id:", currentUser.active_organization_id);
       console.log("Layout: currentPageName:", currentPageName);
-      
+
       setUser(currentUser);
-      
+
       // Pages that should never trigger redirects
-      const excludedPages = ["RoleSelection", "RequestAdminAccess", "VerifyAdminCode", "SuperAdminSetup", "Home", "PublicLanding"];
-      
+      const excludedPages = [
+        "RoleSelection",
+        "RequestAdminAccess",
+        "VerifyAdminCode",
+        "SuperAdminSetup",
+        "Home",
+        "PublicLanding",
+        "AssociateOrganization",
+        "OrganizationSelector"
+      ];
+
       if (excludedPages.includes(currentPageName)) {
         console.log("Layout: On excluded page, no redirects");
         setLoading(false);
         return;
       }
-      
+
       // Check if user needs onboarding
       // A user needs onboarding if onboarding_completed is explicitly NOT true (includes undefined, null, false)
       const needsOnboarding = currentUser.onboarding_completed !== true;
       const isSuperAdmin = currentUser.role === 'admin' && currentUser.is_super_admin === true;
-      
+
       console.log("Layout: needsOnboarding:", needsOnboarding);
       console.log("Layout: isSuperAdmin:", isSuperAdmin);
-      
+
       // NEW USERS (no onboarding completed) should go to RoleSelection
       // EXCEPT super admins who are already fully configured
       if (needsOnboarding && !isSuperAdmin) {
@@ -76,7 +86,7 @@ export default function Layout({ children, currentPageName }) {
         window.location.href = createPageUrl("RoleSelection");
         return;
       }
-      
+
       // CRITICAL: Check if user has an APPROVED admin request that hasn't been used yet
       // This applies to ALL users (not just those with role='admin')
       // Because when a request is approved, the user is still a regular user until they enter the code
@@ -86,20 +96,43 @@ export default function Layout({ children, currentPageName }) {
         status: 'approved',
         code_used: false,
       });
-      
+
       if (approvedRequests.length > 0) {
         console.log("Layout: Found approved request that needs code verification, redirecting to VerifyAdminCode");
         window.location.href = createPageUrl("VerifyAdminCode");
         return;
       }
-      
-      // Load organization if user has organization_id
-      if (currentUser.organization_id) {
+
+      // FOR REGULAR USERS: Check if they need to select an active organization
+      // Only applies to regular users (not admins), who have completed onboarding
+      // but don't have an active_organization_id set
+      if (currentUser.role !== 'admin' && currentUser.onboarding_completed === true) {
+        console.log("Layout: Regular user, checking for active_organization_id");
+
+        // Check if user has any organization associations
+        const userOrgs = await base44.entities.UserOrganization.filter({
+          user_id: currentUser.id,
+          status: 'active',
+        });
+
+        console.log("Layout: User has", userOrgs.length, "organization associations");
+
+        // If user has organizations but no active one selected, redirect to selector
+        if (userOrgs.length > 0 && !currentUser.active_organization_id) {
+          console.log("Layout: No active organization selected, redirecting to OrganizationSelector");
+          window.location.href = createPageUrl("OrganizationSelector");
+          return;
+        }
+      }
+
+      // Load organization if user has organization_id (for admins) or active_organization_id (for regular users)
+      const orgId = currentUser.organization_id || currentUser.active_organization_id;
+      if (orgId) {
         const orgs = await base44.entities.Organization.list();
-        const userOrg = orgs.find(o => o.id === currentUser.organization_id);
+        const userOrg = orgs.find(o => o.id === orgId);
         setOrganization(userOrg);
       }
-      
+
       console.log("Layout: No redirects needed, loading complete");
     } catch (error) {
       console.error("Layout: Error loading user:", error);
@@ -144,9 +177,10 @@ export default function Layout({ children, currentPageName }) {
   }
 
   // Pages that don't need layout
-  if (currentPageName === "Home" || currentPageName === "SuperAdminSetup" || 
+  if (currentPageName === "Home" || currentPageName === "SuperAdminSetup" ||
       currentPageName === "RequestAdminAccess" || currentPageName === "VerifyAdminCode" ||
-      currentPageName === "PublicLanding" || currentPageName === "RoleSelection") {
+      currentPageName === "PublicLanding" || currentPageName === "RoleSelection" ||
+      currentPageName === "AssociateOrganization" || currentPageName === "OrganizationSelector") {
     return <div>{children}</div>;
   }
 
@@ -327,7 +361,7 @@ export default function Layout({ children, currentPageName }) {
           {children}
         </main>
       </div>
-      
+
       {/* AI Assistant - Available on all pages */}
       <AIAssistant />
     </div>
