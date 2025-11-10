@@ -69,38 +69,24 @@ export default function AdminApprovals() {
       });
       console.log("Organization created:", newOrg.id);
 
-      // Step 2: Update the AdminRequest record
+      // Step 2: Update the AdminRequest record with approval
       console.log("Updating admin request...");
       await base44.entities.AdminRequest.update(requestId, {
         status: 'approved',
         access_code: code,
         organization_id: newOrg.id,
       });
-      console.log("Admin request updated");
+      console.log("Admin request updated with code:", code);
 
-      // Step 3: CRITICAL - Update the requesting user's role and organization
-      // Find the user in the allUsers list
-      const requestingUser = allUsers.find(u => u.email === request.user_email);
-      if (!requestingUser) {
-        throw new Error(`User not found: ${request.user_email}`);
-      }
-      
-      console.log("Updating user role and organization for user:", requestingUser.id);
-      
-      // Update the user record directly in the User entity
-      // Since we're a super admin, we have permission to update other users
-      await base44.entities.User.update(requestingUser.id, {
-        role: 'admin',
-        organization_id: newOrg.id,
-        onboarding_completed: true,
-      });
-      console.log("User updated successfully - now admin of organization:", newOrg.id);
+      // IMPORTANT: DO NOT update the user's role here!
+      // The role will be updated in VerifyAdminCode AFTER they enter the code.
+      // This ensures the code verification step is not skipped.
 
-      // Step 4: Send confirmation email with access code
+      // Step 3: Send confirmation email with access code
       console.log("Sending confirmation email...");
       await base44.integrations.Core.SendEmail({
         to: request.user_email,
-        subject: "🎉 Admin Access Approved - You're All Set!",
+        subject: "🎉 Admin Access Approved - Enter Your Code!",
         body: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px;">
@@ -110,15 +96,14 @@ export default function AdminApprovals() {
             <p style="font-size: 16px; color: #1f2937;">Hello ${request.user_name},</p>
             
             <p style="font-size: 16px; color: #1f2937;">
-              Great news! Your request for admin access has been approved, and your account has been upgraded.
+              Great news! Your request for admin access has been approved.
             </p>
 
             <div style="background: #dcfce7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a;">
-              <h3 style="margin-top: 0; color: #15803d;">✅ Your Account is Ready!</h3>
+              <h3 style="margin-top: 0; color: #15803d;">✅ Your Request is Approved!</h3>
               <p style="color: #166534;"><strong>Organization:</strong> ${request.organization_name}</p>
-              <p style="color: #166534;"><strong>Role:</strong> Organization Administrator</p>
               <p style="color: #166534; margin-top: 10px;">
-                Your organization has been automatically created and you've been assigned as its administrator.
+                Your organization has been created and is ready for setup.
               </p>
             </div>
 
@@ -128,7 +113,7 @@ export default function AdminApprovals() {
                 ${code}
               </p>
               <p style="color: #6b7280; font-size: 14px; text-align: center;">
-                Use this code to confirm your account when you log in
+                Enter this code to activate your admin account
               </p>
             </div>
 
@@ -136,9 +121,10 @@ export default function AdminApprovals() {
               <h3 style="margin-top: 0; color: #1e40af;">📋 What's Next?</h3>
               <ol style="color: #1e3a8a; margin: 0; padding-left: 20px;">
                 <li style="margin-bottom: 8px;">Log in to the ALAB Sports system</li>
-                <li style="margin-bottom: 8px;">You'll be asked to enter your confirmation code</li>
-                <li style="margin-bottom: 8px;">Enter the code above (${code})</li>
-                <li style="margin-bottom: 8px;">Access your admin dashboard and start managing your organization!</li>
+                <li style="margin-bottom: 8px;">You'll be prompted to enter your confirmation code</li>
+                <li style="margin-bottom: 8px;">Enter the code above: <strong>${code}</strong></li>
+                <li style="margin-bottom: 8px;">Your admin account will be activated automatically!</li>
+                <li style="margin-bottom: 8px;">Start managing your organization right away</li>
               </ol>
             </div>
 
@@ -158,7 +144,7 @@ export default function AdminApprovals() {
 
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
               <p style="color: #1f2937; font-size: 16px;">
-                As an organization administrator, you can now:
+                As an organization administrator, you'll be able to:
               </p>
               <ul style="color: #4b5563;">
                 <li>Create and manage teams</li>

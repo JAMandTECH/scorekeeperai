@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -61,18 +62,23 @@ export default function VerifyAdminCode() {
         throw new Error('Invalid access code');
       }
 
-      console.log("VerifyAdminCode: Code is valid, marking as used");
+      console.log("VerifyAdminCode: Code is valid, upgrading user to admin");
 
-      // Mark code as used
+      // Step 1: Mark code as used
       await base44.entities.AdminRequest.update(approvedRequest.id, {
         code_used: true,
       });
+      console.log("VerifyAdminCode: Code marked as used");
 
-      console.log("VerifyAdminCode: Code marked as used, user should now have admin access");
-
-      // NOTE: The user's role and organization_id were already updated by the Super Admin
-      // during the approval process. We're just marking the code as used here.
-      // No need to call base44.auth.updateMe() - that would fail with permission error.
+      // Step 2: NOW upgrade the user to admin with the organization
+      // This is when the actual role change happens - after code verification!
+      console.log("VerifyAdminCode: Updating user role to admin with org:", approvedRequest.organization_id);
+      await base44.auth.updateMe({
+        role: 'admin',
+        organization_id: approvedRequest.organization_id,
+        onboarding_completed: true,
+      });
+      console.log("VerifyAdminCode: User successfully upgraded to admin!");
 
       return true;
     },
