@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -70,38 +69,46 @@ export default function Layout({ children, currentPageName }) {
         return;
       }
 
-      // Check if user needs onboarding
-      const needsOnboarding = currentUser.onboarding_completed !== true;
+      // CRITICAL: Check if user is a Super Admin FIRST
+      // Super Admins should NEVER be redirected for onboarding or code verification
       const isSuperAdmin = currentUser.role === 'admin' && currentUser.is_super_admin === true;
+      
+      if (isSuperAdmin) {
+        console.log("Layout: User is SUPER ADMIN - skipping ALL onboarding/code checks");
+        // Load organization and continue - no redirects for super admins
+        if (currentUser.organization_id) {
+          const orgs = await base44.entities.Organization.list();
+          const userOrg = orgs.find(o => o.id === currentUser.organization_id);
+          setOrganization(userOrg);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Check if user needs onboarding (ONLY FOR NON-SUPER-ADMINS)
+      const needsOnboarding = currentUser.onboarding_completed !== true;
 
       console.log("Layout: needsOnboarding:", needsOnboarding);
-      console.log("Layout: isSuperAdmin:", isSuperAdmin);
 
       // NEW USERS (no onboarding completed) should go to RoleSelection
-      // EXCEPT super admins who are already fully configured
-      if (needsOnboarding && !isSuperAdmin) {
+      if (needsOnboarding) {
         console.log("Layout: User needs onboarding, redirecting to RoleSelection");
         window.location.href = createPageUrl("RoleSelection");
         return;
       }
 
-      // CRITICAL: Check for unused access codes
-      // BUT SKIP THIS CHECK FOR SUPER ADMINS - they don't need to verify codes
-      if (!isSuperAdmin) {
-        console.log("Layout: Checking for approved admin requests with unused codes...");
-        const approvedRequests = await base44.entities.AdminRequest.filter({
-          user_email: currentUser.email,
-          status: 'approved',
-          code_used: false,
-        });
+      // Check for unused access codes (ONLY FOR NON-SUPER-ADMINS)
+      console.log("Layout: Checking for approved admin requests with unused codes...");
+      const approvedRequests = await base44.entities.AdminRequest.filter({
+        user_email: currentUser.email,
+        status: 'approved',
+        code_used: false,
+      });
 
-        if (approvedRequests.length > 0) {
-          console.log("Layout: Found unused access code, redirecting to VerifyAdminCode");
-          window.location.href = createPageUrl("VerifyAdminCode");
-          return;
-        }
-      } else {
-        console.log("Layout: User is super admin, skipping code verification check");
+      if (approvedRequests.length > 0) {
+        console.log("Layout: Found unused access code, redirecting to VerifyAdminCode");
+        window.location.href = createPageUrl("VerifyAdminCode");
+        return;
       }
 
       // FOR REGULAR USERS: Check if they need to select an active organization
