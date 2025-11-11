@@ -22,7 +22,17 @@ export default function RoleSelection() {
       const currentUser = await base44.auth.me();
       console.log("RoleSelection: User loaded", currentUser);
       
-      // FIRST PRIORITY: Check for approved admin requests that need code verification
+      // Check if user is a SUPER ADMIN - they should NEVER be on this page
+      const isSuperAdmin = currentUser.role === 'admin' && currentUser.is_super_admin === true;
+      if (isSuperAdmin) {
+        console.log("RoleSelection: User is super admin, redirecting to Dashboard");
+        setLoading(false);
+        navigate(createPageUrl("Dashboard"));
+        return;
+      }
+      
+      // SECOND PRIORITY: Check for approved admin requests that need code verification
+      // But skip this check for super admins (already handled above)
       console.log("RoleSelection: Checking for approved admin requests...");
       const approvedRequests = await base44.entities.AdminRequest.filter({
         user_email: currentUser.email,
@@ -42,14 +52,6 @@ export default function RoleSelection() {
         console.log("RoleSelection: User already completed onboarding, redirecting to Home");
         setLoading(false);
         navigate(createPageUrl("Home"));
-        return;
-      }
-      
-      // If user is a SUPER ADMIN (already fully set up), redirect to Dashboard
-      if (currentUser?.role === 'admin' && currentUser?.is_super_admin === true) {
-        console.log("RoleSelection: User is super admin, redirecting to Dashboard");
-        setLoading(false);
-        navigate(createPageUrl("Dashboard"));
         return;
       }
       
