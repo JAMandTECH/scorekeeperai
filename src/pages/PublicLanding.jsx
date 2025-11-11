@@ -27,38 +27,8 @@ export default function PublicLanding() {
   }, []);
 
   const checkAuth = async () => {
-    try {
-      const authenticated = await base44.auth.isAuthenticated();
-      setIsAuthenticated(authenticated);
-      
-      // If authenticated, check for unused access codes and redirect if needed
-      if (authenticated) {
-        const currentUser = await base44.auth.me();
-        
-        // Skip code verification check for super admins
-        const isSuperAdmin = currentUser.role === 'admin' && currentUser.is_super_admin === true;
-        
-        if (!isSuperAdmin) {
-          // Check for unused access codes
-          const approvedRequests = await base44.entities.AdminRequest.filter({
-            user_email: currentUser.email,
-            status: 'approved',
-            code_used: false,
-          });
-          
-          if (approvedRequests.length > 0) {
-            console.log("PublicLanding: Found unused access code, redirecting to VerifyAdminCode");
-            window.location.href = createPageUrl("VerifyAdminCode");
-            return;
-          }
-        } else {
-          console.log("PublicLanding: User is super admin, skipping code verification check");
-        }
-      }
-    } catch (error) {
-      console.log("PublicLanding: Error during authentication check:", error);
-      setIsAuthenticated(false);
-    }
+    const authenticated = await base44.auth.isAuthenticated();
+    setIsAuthenticated(authenticated);
   };
 
   const toggleDarkMode = () => {

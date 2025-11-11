@@ -21,20 +21,8 @@ export default function RoleSelection() {
       console.log("RoleSelection: Checking user...");
       const currentUser = await base44.auth.me();
       console.log("RoleSelection: User loaded", currentUser);
-      console.log("RoleSelection: role:", currentUser.role);
-      console.log("RoleSelection: is_super_admin:", currentUser.is_super_admin);
-      console.log("RoleSelection: onboarding_completed:", currentUser.onboarding_completed);
       
-      // Check if user is a SUPER ADMIN - they should NEVER be on this page
-      const isSuperAdmin = currentUser.role === 'admin' && currentUser.is_super_admin === true;
-      if (isSuperAdmin) {
-        console.log("RoleSelection: User is super admin, redirecting to Dashboard with window.location");
-        window.location.href = createPageUrl("Dashboard");
-        return; // Don't set loading to false, we're redirecting
-      }
-      
-      // SECOND PRIORITY: Check for approved admin requests that need code verification
-      // But skip this check for super admins (already handled above)
+      // FIRST PRIORITY: Check for approved admin requests that need code verification
       console.log("RoleSelection: Checking for approved admin requests...");
       const approvedRequests = await base44.entities.AdminRequest.filter({
         user_email: currentUser.email,
@@ -44,22 +32,33 @@ export default function RoleSelection() {
       
       if (approvedRequests.length > 0) {
         console.log("RoleSelection: Found approved request, redirecting to VerifyAdminCode");
-        window.location.href = createPageUrl("VerifyAdminCode");
-        return; // Don't set loading to false, we're redirecting
+        setLoading(false);
+        navigate(createPageUrl("VerifyAdminCode"));
+        return;
       }
       
       // If user already completed onboarding, redirect to Home
       if (currentUser?.onboarding_completed === true) {
         console.log("RoleSelection: User already completed onboarding, redirecting to Home");
-        window.location.href = createPageUrl("Home");
-        return; // Don't set loading to false, we're redirecting
+        setLoading(false);
+        navigate(createPageUrl("Home"));
+        return;
+      }
+      
+      // If user is a SUPER ADMIN (already fully set up), redirect to Dashboard
+      if (currentUser?.role === 'admin' && currentUser?.is_super_admin === true) {
+        console.log("RoleSelection: User is super admin, redirecting to Dashboard");
+        setLoading(false);
+        navigate(createPageUrl("Dashboard"));
+        return;
       }
       
       // If user is an admin with organization (already set up), redirect to Dashboard
       if (currentUser?.role === 'admin' && currentUser?.organization_id) {
         console.log("RoleSelection: User is admin with organization, redirecting to Dashboard");
-        window.location.href = createPageUrl("Dashboard");
-        return; // Don't set loading to false, we're redirecting
+        setLoading(false);
+        navigate(createPageUrl("Dashboard"));
+        return;
       }
       
       // User needs to select role - show the form

@@ -74,7 +74,6 @@ export default function AdminApprovals() {
       await base44.entities.AdminRequest.update(requestId, {
         status: 'approved',
         access_code: code,
-        code_used: false,  // EXPLICITLY set to false
         organization_id: newOrg.id,
       });
       console.log("Admin request updated with code:", code);
@@ -136,8 +135,7 @@ export default function AdminApprovals() {
             <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <h3 style="margin-top: 0; color: #1e40af;">📋 What's Next?</h3>
               <ol style="color: #1e3a8a; margin: 0; padding-left: 20px;">
-                <li style="margin-bottom: 8px;">Log out if you're currently logged in</li>
-                <li style="margin-bottom: 8px;">Log back in with your account: <strong>${request.user_email}</strong></li>
+                <li style="margin-bottom: 8px;">Log in to the ALAB Sports system</li>
                 <li style="margin-bottom: 8px;">You'll be prompted to enter your confirmation code</li>
                 <li style="margin-bottom: 8px;">Enter the code above: <strong>${code}</strong></li>
                 <li style="margin-bottom: 8px;">Access your admin dashboard and start managing your organization!</li>

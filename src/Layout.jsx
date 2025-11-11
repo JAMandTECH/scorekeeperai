@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -59,6 +60,7 @@ export default function Layout({ children, currentPageName }) {
         "VerifyAdminCode",
         "SuperAdminSetup",
         "Home",
+        "PublicLanding",
         "AssociateOrganization",
         "OrganizationSelector"
       ];
@@ -69,36 +71,26 @@ export default function Layout({ children, currentPageName }) {
         return;
       }
 
-      // CRITICAL: Check if user is a Super Admin FIRST
-      // Super Admins should NEVER be redirected for onboarding or code verification
-      const isSuperAdmin = currentUser.role === 'admin' && currentUser.is_super_admin === true;
-      
-      if (isSuperAdmin) {
-        console.log("Layout: User is SUPER ADMIN - skipping ALL onboarding/code checks");
-        // Load organization and continue - no redirects for super admins
-        if (currentUser.organization_id) {
-          const orgs = await base44.entities.Organization.list();
-          const userOrg = orgs.find(o => o.id === currentUser.organization_id);
-          setOrganization(userOrg);
-        }
-        setLoading(false);
-        return;
-      }
-
-      // Check if user needs onboarding (ONLY FOR NON-SUPER-ADMINS)
+      // Check if user needs onboarding
+      // A user needs onboarding if onboarding_completed is explicitly NOT true (includes undefined, null, false)
       const needsOnboarding = currentUser.onboarding_completed !== true;
+      const isSuperAdmin = currentUser.role === 'admin' && currentUser.is_super_admin === true;
 
       console.log("Layout: needsOnboarding:", needsOnboarding);
+      console.log("Layout: isSuperAdmin:", isSuperAdmin);
 
       // NEW USERS (no onboarding completed) should go to RoleSelection
-      if (needsOnboarding) {
+      // EXCEPT super admins who are already fully configured
+      if (needsOnboarding && !isSuperAdmin) {
         console.log("Layout: User needs onboarding, redirecting to RoleSelection");
         window.location.href = createPageUrl("RoleSelection");
         return;
       }
 
-      // Check for unused access codes (ONLY FOR NON-SUPER-ADMINS)
-      console.log("Layout: Checking for approved admin requests with unused codes...");
+      // CRITICAL: Check if user has an APPROVED admin request that hasn't been used yet
+      // This applies to ALL users (not just those with role='admin')
+      // Because when a request is approved, the user is still a regular user until they enter the code
+      console.log("Layout: Checking for approved admin requests...");
       const approvedRequests = await base44.entities.AdminRequest.filter({
         user_email: currentUser.email,
         status: 'approved',
@@ -106,15 +98,18 @@ export default function Layout({ children, currentPageName }) {
       });
 
       if (approvedRequests.length > 0) {
-        console.log("Layout: Found unused access code, redirecting to VerifyAdminCode");
+        console.log("Layout: Found approved request that needs code verification, redirecting to VerifyAdminCode");
         window.location.href = createPageUrl("VerifyAdminCode");
         return;
       }
 
       // FOR REGULAR USERS: Check if they need to select an active organization
+      // Only applies to regular users (not admins), who have completed onboarding
+      // but don't have an active_organization_id set
       if (currentUser.role !== 'admin' && currentUser.onboarding_completed === true) {
         console.log("Layout: Regular user, checking for active_organization_id");
 
+        // Check if user has any organization associations
         const userOrgs = await base44.entities.UserOrganization.filter({
           user_id: currentUser.id,
           status: 'active',
@@ -122,6 +117,7 @@ export default function Layout({ children, currentPageName }) {
 
         console.log("Layout: User has", userOrgs.length, "organization associations");
 
+        // If user has organizations but no active one selected, redirect to selector
         if (userOrgs.length > 0 && !currentUser.active_organization_id) {
           console.log("Layout: No active organization selected, redirecting to OrganizationSelector");
           window.location.href = createPageUrl("OrganizationSelector");

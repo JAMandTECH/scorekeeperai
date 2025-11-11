@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 import { createPageUrl } from "@/utils";
 import { Trophy, Users, Calendar, Building2, Shield, ArrowRight, TrendingUp, Flame } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +14,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [organization, setOrganization] = useState(null);
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Initialized useNavigate
 
   useEffect(() => {
     loadUser();
@@ -25,19 +25,17 @@ export default function Dashboard() {
       const currentUser = await base44.auth.me();
       console.log("Dashboard: Loaded user", currentUser);
       
-      const isSuperAdminUser = currentUser.role === 'admin' && currentUser.is_super_admin === true;
-      
       // CRITICAL CHECK: If user hasn't completed onboarding, redirect them
-      if (currentUser.onboarding_completed !== true && !isSuperAdminUser) {
+      if (currentUser.onboarding_completed !== true && !(currentUser.role === 'admin' && currentUser.is_super_admin === true)) {
         console.log("Dashboard: User needs onboarding, redirecting to RoleSelection");
-        window.location.href = createPageUrl("RoleSelection");
+        window.location.href = createPageUrl("RoleSelection"); // Using window.location.href for full page reload for critical redirects
         return;
       }
-      
-      // CRITICAL: Check for unused access codes
-      // BUT SKIP THIS CHECK FOR SUPER ADMINS - they don't need to verify codes
-      if (!isSuperAdminUser) {
-        console.log("Dashboard: Checking for approved admin requests with unused codes...");
+
+      // IMPORTANT: Only check for approved admin requests if user is NOT already an admin
+      // This prevents a redirect loop for users who have already been upgraded
+      if (currentUser.role !== 'admin') {
+        console.log("Dashboard: User is not admin, checking for approved admin requests...");
         const approvedRequests = await base44.entities.AdminRequest.filter({
           user_email: currentUser.email,
           status: 'approved',
@@ -45,16 +43,14 @@ export default function Dashboard() {
         });
         
         if (approvedRequests.length > 0) {
-          console.log("Dashboard: Found unused access code, redirecting to VerifyAdminCode");
+          console.log("Dashboard: Found approved request, redirecting to VerifyAdminCode");
           window.location.href = createPageUrl("VerifyAdminCode");
           return;
         }
-      } else {
-        console.log("Dashboard: User is super admin, skipping code verification check");
       }
       
       setUser(currentUser);
-      setIsSuperAdmin(isSuperAdminUser);
+      setIsSuperAdmin(currentUser?.role === 'admin' && currentUser?.is_super_admin === true);
       
       // Load organization if user has organization_id
       if (currentUser?.organization_id) {
@@ -63,7 +59,7 @@ export default function Dashboard() {
         setOrganization(userOrg);
       }
     } catch (error) {
-      console.error("Dashboard: Error loading user", error);
+      console.error("Dashboard: Error loading user", error); // Added console.error
       base44.auth.redirectToLogin(createPageUrl("Dashboard"));
     }
   };
