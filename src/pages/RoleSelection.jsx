@@ -21,14 +21,16 @@ export default function RoleSelection() {
       console.log("RoleSelection: Checking user...");
       const currentUser = await base44.auth.me();
       console.log("RoleSelection: User loaded", currentUser);
+      console.log("RoleSelection: role:", currentUser.role);
+      console.log("RoleSelection: is_super_admin:", currentUser.is_super_admin);
+      console.log("RoleSelection: onboarding_completed:", currentUser.onboarding_completed);
       
       // Check if user is a SUPER ADMIN - they should NEVER be on this page
       const isSuperAdmin = currentUser.role === 'admin' && currentUser.is_super_admin === true;
       if (isSuperAdmin) {
-        console.log("RoleSelection: User is super admin, redirecting to Dashboard");
-        setLoading(false);
-        navigate(createPageUrl("Dashboard"));
-        return;
+        console.log("RoleSelection: User is super admin, redirecting to Dashboard with window.location");
+        window.location.href = createPageUrl("Dashboard");
+        return; // Don't set loading to false, we're redirecting
       }
       
       // SECOND PRIORITY: Check for approved admin requests that need code verification
@@ -42,25 +44,22 @@ export default function RoleSelection() {
       
       if (approvedRequests.length > 0) {
         console.log("RoleSelection: Found approved request, redirecting to VerifyAdminCode");
-        setLoading(false);
-        navigate(createPageUrl("VerifyAdminCode"));
-        return;
+        window.location.href = createPageUrl("VerifyAdminCode");
+        return; // Don't set loading to false, we're redirecting
       }
       
       // If user already completed onboarding, redirect to Home
       if (currentUser?.onboarding_completed === true) {
         console.log("RoleSelection: User already completed onboarding, redirecting to Home");
-        setLoading(false);
-        navigate(createPageUrl("Home"));
-        return;
+        window.location.href = createPageUrl("Home");
+        return; // Don't set loading to false, we're redirecting
       }
       
       // If user is an admin with organization (already set up), redirect to Dashboard
       if (currentUser?.role === 'admin' && currentUser?.organization_id) {
         console.log("RoleSelection: User is admin with organization, redirecting to Dashboard");
-        setLoading(false);
-        navigate(createPageUrl("Dashboard"));
-        return;
+        window.location.href = createPageUrl("Dashboard");
+        return; // Don't set loading to false, we're redirecting
       }
       
       // User needs to select role - show the form
