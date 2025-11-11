@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Trophy, Users, Calendar, Building2, Shield, ArrowRight, TrendingUp, Flame } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +14,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [organization, setOrganization] = useState(null);
-  const navigate = useNavigate(); // Initialized useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadUser();
@@ -28,25 +28,23 @@ export default function Dashboard() {
       // CRITICAL CHECK: If user hasn't completed onboarding, redirect them
       if (currentUser.onboarding_completed !== true && !(currentUser.role === 'admin' && currentUser.is_super_admin === true)) {
         console.log("Dashboard: User needs onboarding, redirecting to RoleSelection");
-        window.location.href = createPageUrl("RoleSelection"); // Using window.location.href for full page reload for critical redirects
+        window.location.href = createPageUrl("RoleSelection");
         return;
       }
-
-      // IMPORTANT: Only check for approved admin requests if user is NOT already an admin
-      // This prevents a redirect loop for users who have already been upgraded
-      if (currentUser.role !== 'admin') {
-        console.log("Dashboard: User is not admin, checking for approved admin requests...");
-        const approvedRequests = await base44.entities.AdminRequest.filter({
-          user_email: currentUser.email,
-          status: 'approved',
-          code_used: false,
-        });
-        
-        if (approvedRequests.length > 0) {
-          console.log("Dashboard: Found approved request, redirecting to VerifyAdminCode");
-          window.location.href = createPageUrl("VerifyAdminCode");
-          return;
-        }
+      
+      // CRITICAL: Always check for unused access codes
+      // Even if user is already an admin, they need to verify the code to confirm receipt
+      console.log("Dashboard: Checking for approved admin requests with unused codes...");
+      const approvedRequests = await base44.entities.AdminRequest.filter({
+        user_email: currentUser.email,
+        status: 'approved',
+        code_used: false,
+      });
+      
+      if (approvedRequests.length > 0) {
+        console.log("Dashboard: Found unused access code, redirecting to VerifyAdminCode");
+        window.location.href = createPageUrl("VerifyAdminCode");
+        return;
       }
       
       setUser(currentUser);
@@ -59,7 +57,7 @@ export default function Dashboard() {
         setOrganization(userOrg);
       }
     } catch (error) {
-      console.error("Dashboard: Error loading user", error); // Added console.error
+      console.error("Dashboard: Error loading user", error);
       base44.auth.redirectToLogin(createPageUrl("Dashboard"));
     }
   };
