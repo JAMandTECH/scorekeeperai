@@ -25,30 +25,36 @@ export default function Dashboard() {
       const currentUser = await base44.auth.me();
       console.log("Dashboard: Loaded user", currentUser);
       
+      const isSuperAdminUser = currentUser.role === 'admin' && currentUser.is_super_admin === true;
+      
       // CRITICAL CHECK: If user hasn't completed onboarding, redirect them
-      if (currentUser.onboarding_completed !== true && !(currentUser.role === 'admin' && currentUser.is_super_admin === true)) {
+      if (currentUser.onboarding_completed !== true && !isSuperAdminUser) {
         console.log("Dashboard: User needs onboarding, redirecting to RoleSelection");
         window.location.href = createPageUrl("RoleSelection");
         return;
       }
       
-      // CRITICAL: Always check for unused access codes
-      // Even if user is already an admin, they need to verify the code to confirm receipt
-      console.log("Dashboard: Checking for approved admin requests with unused codes...");
-      const approvedRequests = await base44.entities.AdminRequest.filter({
-        user_email: currentUser.email,
-        status: 'approved',
-        code_used: false,
-      });
-      
-      if (approvedRequests.length > 0) {
-        console.log("Dashboard: Found unused access code, redirecting to VerifyAdminCode");
-        window.location.href = createPageUrl("VerifyAdminCode");
-        return;
+      // CRITICAL: Check for unused access codes
+      // BUT SKIP THIS CHECK FOR SUPER ADMINS - they don't need to verify codes
+      if (!isSuperAdminUser) {
+        console.log("Dashboard: Checking for approved admin requests with unused codes...");
+        const approvedRequests = await base44.entities.AdminRequest.filter({
+          user_email: currentUser.email,
+          status: 'approved',
+          code_used: false,
+        });
+        
+        if (approvedRequests.length > 0) {
+          console.log("Dashboard: Found unused access code, redirecting to VerifyAdminCode");
+          window.location.href = createPageUrl("VerifyAdminCode");
+          return;
+        }
+      } else {
+        console.log("Dashboard: User is super admin, skipping code verification check");
       }
       
       setUser(currentUser);
-      setIsSuperAdmin(currentUser?.role === 'admin' && currentUser?.is_super_admin === true);
+      setIsSuperAdmin(isSuperAdminUser);
       
       // Load organization if user has organization_id
       if (currentUser?.organization_id) {

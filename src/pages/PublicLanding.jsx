@@ -35,17 +35,24 @@ export default function PublicLanding() {
       if (authenticated) {
         const currentUser = await base44.auth.me();
         
-        // Check for unused access codes
-        const approvedRequests = await base44.entities.AdminRequest.filter({
-          user_email: currentUser.email,
-          status: 'approved',
-          code_used: false,
-        });
+        // Skip code verification check for super admins
+        const isSuperAdmin = currentUser.role === 'admin' && currentUser.is_super_admin === true;
         
-        if (approvedRequests.length > 0) {
-          console.log("PublicLanding: Found unused access code, redirecting to VerifyAdminCode");
-          window.location.href = createPageUrl("VerifyAdminCode");
-          return;
+        if (!isSuperAdmin) {
+          // Check for unused access codes
+          const approvedRequests = await base44.entities.AdminRequest.filter({
+            user_email: currentUser.email,
+            status: 'approved',
+            code_used: false,
+          });
+          
+          if (approvedRequests.length > 0) {
+            console.log("PublicLanding: Found unused access code, redirecting to VerifyAdminCode");
+            window.location.href = createPageUrl("VerifyAdminCode");
+            return;
+          }
+        } else {
+          console.log("PublicLanding: User is super admin, skipping code verification check");
         }
       }
     } catch (error) {

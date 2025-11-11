@@ -86,18 +86,22 @@ export default function Layout({ children, currentPageName }) {
       }
 
       // CRITICAL: Check for unused access codes
-      // This check applies to ALL users who have approved requests with unused codes
-      console.log("Layout: Checking for approved admin requests with unused codes...");
-      const approvedRequests = await base44.entities.AdminRequest.filter({
-        user_email: currentUser.email,
-        status: 'approved',
-        code_used: false,
-      });
+      // BUT SKIP THIS CHECK FOR SUPER ADMINS - they don't need to verify codes
+      if (!isSuperAdmin) {
+        console.log("Layout: Checking for approved admin requests with unused codes...");
+        const approvedRequests = await base44.entities.AdminRequest.filter({
+          user_email: currentUser.email,
+          status: 'approved',
+          code_used: false,
+        });
 
-      if (approvedRequests.length > 0) {
-        console.log("Layout: Found unused access code, redirecting to VerifyAdminCode");
-        window.location.href = createPageUrl("VerifyAdminCode");
-        return;
+        if (approvedRequests.length > 0) {
+          console.log("Layout: Found unused access code, redirecting to VerifyAdminCode");
+          window.location.href = createPageUrl("VerifyAdminCode");
+          return;
+        }
+      } else {
+        console.log("Layout: User is super admin, skipping code verification check");
       }
 
       // FOR REGULAR USERS: Check if they need to select an active organization
