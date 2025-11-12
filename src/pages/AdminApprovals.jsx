@@ -87,15 +87,14 @@ export default function AdminApprovals() {
       
       console.log("Updating user role and organization for user:", requestingUser.id);
       
-      // CRITICAL: Set onboarding_completed to true for admins
-      // This prevents redirect loops
+      // CRITICAL: DO NOT set onboarding_completed here!
+      // User must verify their code first before onboarding is complete
       // IMPORTANT: Update the user record directly in the User entity
       // Since we're a super admin, we have permission to update other users
-      // The user will still need to enter the code to "confirm" their access
       await base44.entities.User.update(requestingUser.id, {
         role: 'admin',
         organization_id: newOrg.id,
-        onboarding_completed: true,
+        // onboarding_completed will be set to true in VerifyAdminCode after they enter the code
       });
       console.log("User updated successfully - now admin of organization:", newOrg.id);
 

@@ -30,7 +30,7 @@ export default function Dashboard() {
       console.log("Dashboard: is_super_admin:", currentUser.is_super_admin);
       
       // PRIORITY CHECK #1: Check for unused access codes FIRST
-      // This must happen before onboarding check!
+      // This happens BEFORE any other checks!
       console.log("Dashboard: Checking for unused access codes...");
       const approvedRequests = await base44.entities.AdminRequest.filter({
         user_email: currentUser.email,
@@ -44,26 +44,22 @@ export default function Dashboard() {
         return;
       }
       
-      // CRITICAL: Admins with organization_id are fully set up (regardless of onboarding_completed flag)
-      // Super admins are also fully set up
-      const isFullySetupAdmin = (
-        currentUser.role === 'admin' && 
-        (currentUser.is_super_admin === true || currentUser.organization_id)
-      );
+      // Super admins are fully set up and don't need onboarding
+      const isSuperAdminCheck = currentUser.role === 'admin' && currentUser.is_super_admin === true;
       
-      console.log("Dashboard: isFullySetupAdmin:", isFullySetupAdmin);
-      
-      // Only redirect to onboarding if user is NOT a fully setup admin
-      if (currentUser.onboarding_completed !== true && !isFullySetupAdmin) {
+      // Regular admins and users MUST have onboarding_completed: true
+      // This is set in VerifyAdminCode for admins (after they enter their code)
+      // Or in AssociateOrganization for regular users (after they select orgs)
+      if (!currentUser.onboarding_completed && !isSuperAdminCheck) {
         console.log("Dashboard: User needs onboarding, redirecting to RoleSelection");
-        window.location.href = createPageUrl("RoleSelection"); // Using window.location.href for full page reload for critical redirects
+        window.location.href = createPageUrl("RoleSelection");
         return;
       }
       
       console.log("Dashboard: All checks passed, loading dashboard data");
       
       setUser(currentUser);
-      setIsSuperAdmin(currentUser?.role === 'admin' && currentUser?.is_super_admin === true);
+      setIsSuperAdmin(isSuperAdminCheck);
       
       // Load organization if user has organization_id
       if (currentUser?.organization_id) {

@@ -37,9 +37,13 @@ export default function VerifyAdminCode() {
         
         // If all approved requests have been used, redirect to dashboard
         const hasUnusedCode = approvedRequests.some(req => !req.code_used);
-        if (!hasUnusedCode) {
-          console.log("VerifyAdminCode: User already admin with org and code used, redirecting to Dashboard");
+        if (!hasUnusedCode && currentUser.onboarding_completed) { // Also check onboarding_completed
+          console.log("VerifyAdminCode: User already admin with org and code used, and onboarding complete. Redirecting to Dashboard");
           navigate(createPageUrl("Dashboard"));
+        } else if (!currentUser.onboarding_completed && !hasUnusedCode) {
+           // If user is admin, code used, but onboarding not completed, means they are on the last step of onboarding
+           // We allow them to proceed here to complete onboarding.
+           console.log("VerifyAdminCode: User is admin, code used, but onboarding not complete. Allowing to proceed to complete onboarding.");
         }
       }
     } catch (error) {
@@ -75,13 +79,20 @@ export default function VerifyAdminCode() {
       console.log("VerifyAdminCode: Code is valid, marking as used");
 
       // Mark code as used
-      // NOTE: The user's role and organization_id were already updated by the Super Admin
-      // during the approval process. We're just confirming they received the code.
       await base44.entities.AdminRequest.update(approvedRequest.id, {
         code_used: true,
       });
 
-      console.log("VerifyAdminCode: Code marked as used, user already has admin access");
+      console.log("VerifyAdminCode: Code marked as used");
+
+      // CRITICAL: Now mark onboarding as completed
+      // This allows the user to access the Dashboard
+      console.log("VerifyAdminCode: Setting onboarding_completed to true");
+      await base44.auth.updateMe({
+        onboarding_completed: true,
+      });
+      
+      console.log("VerifyAdminCode: User fully verified and onboarding complete");
 
       return true;
     },

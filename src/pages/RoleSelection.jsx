@@ -32,21 +32,13 @@ export default function RoleSelection() {
       });
       
       if (approvedRequests.length > 0) {
-        console.log("RoleSelection: Found approved request, redirecting to VerifyAdminCode");
+        console.log("RoleSelection: Found approved request with unused code, redirecting to VerifyAdminCode");
         setLoading(false);
         navigate(createPageUrl("VerifyAdminCode"));
         return;
       }
       
-      // CRITICAL: Admins with organization_id are fully set up (regardless of onboarding_completed flag)
-      if (currentUser?.role === 'admin' && currentUser?.organization_id) {
-        console.log("RoleSelection: User is admin with organization, redirecting to Dashboard");
-        setLoading(false);
-        navigate(createPageUrl("Dashboard"));
-        return;
-      }
-      
-      // If user is a SUPER ADMIN (already fully set up), redirect to Dashboard
+      // Super admins are fully set up
       if (currentUser?.role === 'admin' && currentUser?.is_super_admin === true) {
         console.log("RoleSelection: User is super admin, redirecting to Dashboard");
         setLoading(false);
@@ -54,11 +46,17 @@ export default function RoleSelection() {
         return;
       }
       
-      // Regular users: If they already completed onboarding, redirect to Home
+      // Users with onboarding_completed can proceed
+      // Regular users → Home, Admins → Dashboard
       if (currentUser?.onboarding_completed === true) {
-        console.log("RoleSelection: User already completed onboarding, redirecting to Home");
+        if (currentUser?.role === 'admin') {
+          console.log("RoleSelection: Admin with completed onboarding, redirecting to Dashboard");
+          navigate(createPageUrl("Dashboard"));
+        } else {
+          console.log("RoleSelection: User with completed onboarding, redirecting to Home");
+          navigate(createPageUrl("Home"));
+        }
         setLoading(false);
-        navigate(createPageUrl("Home"));
         return;
       }
       
