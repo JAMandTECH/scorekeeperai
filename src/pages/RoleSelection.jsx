@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -37,11 +38,11 @@ export default function RoleSelection() {
         return;
       }
       
-      // If user already completed onboarding, redirect to Home
-      if (currentUser?.onboarding_completed === true) {
-        console.log("RoleSelection: User already completed onboarding, redirecting to Home");
+      // CRITICAL: Admins with organization_id are fully set up (regardless of onboarding_completed flag)
+      if (currentUser?.role === 'admin' && currentUser?.organization_id) {
+        console.log("RoleSelection: User is admin with organization, redirecting to Dashboard");
         setLoading(false);
-        navigate(createPageUrl("Home"));
+        navigate(createPageUrl("Dashboard"));
         return;
       }
       
@@ -53,11 +54,11 @@ export default function RoleSelection() {
         return;
       }
       
-      // If user is an admin with organization (already set up), redirect to Dashboard
-      if (currentUser?.role === 'admin' && currentUser?.organization_id) {
-        console.log("RoleSelection: User is admin with organization, redirecting to Dashboard");
+      // Regular users: If they already completed onboarding, redirect to Home
+      if (currentUser?.onboarding_completed === true) {
+        console.log("RoleSelection: User already completed onboarding, redirecting to Home");
         setLoading(false);
-        navigate(createPageUrl("Dashboard"));
+        navigate(createPageUrl("Home"));
         return;
       }
       

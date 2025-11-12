@@ -24,7 +24,7 @@ export default function Dashboard() {
     try {
       const currentUser = await base44.auth.me();
       console.log("Dashboard: Loaded user", currentUser);
-
+      
       // PRIORITY CHECK #1: Check for unused access codes FIRST
       // This must happen before onboarding check!
       console.log("Dashboard: Checking for unused access codes...");
@@ -33,23 +33,30 @@ export default function Dashboard() {
         status: 'approved',
         code_used: false,
       });
-
+      
       if (approvedRequests.length > 0) {
         console.log("Dashboard: Found unused access code, redirecting to VerifyAdminCode");
         window.location.href = createPageUrl("VerifyAdminCode");
         return;
       }
-
-      // CRITICAL CHECK: If user hasn't completed onboarding, redirect them
-      if (currentUser.onboarding_completed !== true && !(currentUser.role === 'admin' && currentUser.is_super_admin === true)) {
+      
+      // CRITICAL: Admins with organization_id are fully set up (regardless of onboarding_completed flag)
+      // Super admins are also fully set up
+      const isFullySetupAdmin = (
+        currentUser.role === 'admin' && 
+        (currentUser.is_super_admin === true || currentUser.organization_id)
+      );
+      
+      // Only redirect to onboarding if user is NOT a fully setup admin
+      if (currentUser.onboarding_completed !== true && !isFullySetupAdmin) {
         console.log("Dashboard: User needs onboarding, redirecting to RoleSelection");
         window.location.href = createPageUrl("RoleSelection"); // Using window.location.href for full page reload for critical redirects
         return;
       }
-
+      
       setUser(currentUser);
       setIsSuperAdmin(currentUser?.role === 'admin' && currentUser?.is_super_admin === true);
-
+      
       // Load organization if user has organization_id
       if (currentUser?.organization_id) {
         const orgs = await base44.entities.Organization.list();

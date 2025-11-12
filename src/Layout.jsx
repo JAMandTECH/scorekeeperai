@@ -71,9 +71,7 @@ export default function Layout({ children, currentPageName }) {
         return;
       }
 
-      // PRIORITY #1: Check if user has an APPROVED admin request that hasn't been used yet
-      // THIS MUST BE CHECKED FIRST - even before onboarding checks
-      // Because a user might be upgraded to admin role but still needs to confirm with code
+      // PRIORITY #1: Check for unused access codes FIRST
       console.log("Layout: Checking for approved admin requests...");
       const approvedRequests = await base44.entities.AdminRequest.filter({
         user_email: currentUser.email,
@@ -87,17 +85,20 @@ export default function Layout({ children, currentPageName }) {
         return;
       }
 
-      // Check if user needs onboarding
-      // A user needs onboarding if onboarding_completed is explicitly NOT true (includes undefined, null, false)
-      const needsOnboarding = currentUser.onboarding_completed !== true;
-      const isSuperAdmin = currentUser.role === 'admin' && currentUser.is_super_admin === true;
-
-      console.log("Layout: needsOnboarding:", needsOnboarding);
-      console.log("Layout: isSuperAdmin:", isSuperAdmin);
+      // CRITICAL: Admins with organization_id are fully set up (regardless of onboarding_completed flag)
+      // Super admins are also fully set up
+      const isFullySetupAdmin = (
+        currentUser.role === 'admin' && 
+        (currentUser.is_super_admin === true || currentUser.organization_id)
+      );
+      
+      console.log("Layout: isFullySetupAdmin:", isFullySetupAdmin);
 
       // NEW USERS (no onboarding completed) should go to RoleSelection
-      // EXCEPT super admins who are already fully configured
-      if (needsOnboarding && !isSuperAdmin) {
+      // EXCEPT admins who are already fully configured
+      const needsOnboarding = currentUser.onboarding_completed !== true;
+      
+      if (needsOnboarding && !isFullySetupAdmin) {
         console.log("Layout: User needs onboarding, redirecting to RoleSelection");
         window.location.href = createPageUrl("RoleSelection");
         return;
