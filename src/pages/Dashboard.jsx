@@ -24,6 +24,10 @@ export default function Dashboard() {
     try {
       const currentUser = await base44.auth.me();
       console.log("Dashboard: Loaded user", currentUser);
+      console.log("Dashboard: onboarding_completed:", currentUser.onboarding_completed);
+      console.log("Dashboard: role:", currentUser.role);
+      console.log("Dashboard: organization_id:", currentUser.organization_id);
+      console.log("Dashboard: is_super_admin:", currentUser.is_super_admin);
       
       // PRIORITY CHECK #1: Check for unused access codes FIRST
       // This must happen before onboarding check!
@@ -47,12 +51,16 @@ export default function Dashboard() {
         (currentUser.is_super_admin === true || currentUser.organization_id)
       );
       
+      console.log("Dashboard: isFullySetupAdmin:", isFullySetupAdmin);
+      
       // Only redirect to onboarding if user is NOT a fully setup admin
       if (currentUser.onboarding_completed !== true && !isFullySetupAdmin) {
         console.log("Dashboard: User needs onboarding, redirecting to RoleSelection");
         window.location.href = createPageUrl("RoleSelection"); // Using window.location.href for full page reload for critical redirects
         return;
       }
+      
+      console.log("Dashboard: All checks passed, loading dashboard data");
       
       setUser(currentUser);
       setIsSuperAdmin(currentUser?.role === 'admin' && currentUser?.is_super_admin === true);

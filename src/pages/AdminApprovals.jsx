@@ -87,6 +87,8 @@ export default function AdminApprovals() {
       
       console.log("Updating user role and organization for user:", requestingUser.id);
       
+      // CRITICAL: Set onboarding_completed to true for admins
+      // This prevents redirect loops
       // IMPORTANT: Update the user record directly in the User entity
       // Since we're a super admin, we have permission to update other users
       // The user will still need to enter the code to "confirm" their access
