@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut } from "lucide-react";
+import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, LayoutGrid } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -91,6 +91,11 @@ export default function Home() {
   // Logout function
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("Home"));
+  };
+
+  // Navigate to Dashboard
+  const goToDashboard = () => {
+    navigate(createPageUrl("Dashboard"));
   };
 
   // Fetch all data - but conditionally based on auth
@@ -321,9 +326,9 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-900 dark:to-indigo-950 text-white py-24 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZ3pCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9IkM2IDM2YzMuMzE0IDAgNiAyLjY4NiA2IDZzLTIuNjg2IDYtNiA2LTYtMi42ODYtNi02IDIuNjg2LTYgNi02eiIgc3Ryb2tlPSIjMWYyZDNkIiBzdHJva2Utd2lkdGg9IjIiLz48L2c+PC9zdmc+')] opacity-10"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZ3dCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9IkM2IDM2YzMuMzE0IDAgNiAyLjY4NiA2IDZzLTIuNjg2IDYtNiA2LTYtMi42ODYtNi02IDIuNjg2LTYgNi02eiIgc3Ryb2tlPSIjMWYyZDNkIiBzdHJva2Utd2lkdGg9IjIiLz48L2c+PC9zdmc+')] opacity-10"></div>
         
-        {/* Top Right Controls - Dark Mode + Login/Logout */}
+        {/* Top Right Controls - Dark Mode + Login/Logout + Dashboard */}
         <div className="absolute top-6 right-6 flex items-center gap-3 z-50">
           <button
             onClick={toggleDarkMode}
@@ -331,6 +336,17 @@ export default function Home() {
           >
             {darkMode ? <Sun className="w-6 h-6 text-white" /> : <Moon className="w-6 h-6 text-white" />}
           </button>
+          
+          {/* Show Dashboard button for admin users */}
+          {user && user.role === 'admin' && (
+            <button
+              onClick={goToDashboard}
+              className="flex items-center gap-2 px-4 py-3 bg-blue-600/90 hover:bg-blue-700 backdrop-blur-md rounded-xl transition-all font-bold text-white shadow-lg"
+            >
+              <LayoutGrid className="w-5 h-5" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </button>
+          )}
           
           {/* Show Login or Logout based on auth status */}
           {user ? (
