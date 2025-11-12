@@ -71,6 +71,22 @@ export default function Layout({ children, currentPageName }) {
         return;
       }
 
+      // PRIORITY #1: Check if user has an APPROVED admin request that hasn't been used yet
+      // THIS MUST BE CHECKED FIRST - even before onboarding checks
+      // Because a user might be upgraded to admin role but still needs to confirm with code
+      console.log("Layout: Checking for approved admin requests...");
+      const approvedRequests = await base44.entities.AdminRequest.filter({
+        user_email: currentUser.email,
+        status: 'approved',
+        code_used: false,
+      });
+
+      if (approvedRequests.length > 0) {
+        console.log("Layout: Found approved request with unused code, redirecting to VerifyAdminCode");
+        window.location.href = createPageUrl("VerifyAdminCode");
+        return;
+      }
+
       // Check if user needs onboarding
       // A user needs onboarding if onboarding_completed is explicitly NOT true (includes undefined, null, false)
       const needsOnboarding = currentUser.onboarding_completed !== true;
@@ -84,22 +100,6 @@ export default function Layout({ children, currentPageName }) {
       if (needsOnboarding && !isSuperAdmin) {
         console.log("Layout: User needs onboarding, redirecting to RoleSelection");
         window.location.href = createPageUrl("RoleSelection");
-        return;
-      }
-
-      // CRITICAL: Check if user has an APPROVED admin request that hasn't been used yet
-      // This applies to ALL users (not just those with role='admin')
-      // Because when a request is approved, the user is still a regular user until they enter the code
-      console.log("Layout: Checking for approved admin requests...");
-      const approvedRequests = await base44.entities.AdminRequest.filter({
-        user_email: currentUser.email,
-        status: 'approved',
-        code_used: false,
-      });
-
-      if (approvedRequests.length > 0) {
-        console.log("Layout: Found approved request that needs code verification, redirecting to VerifyAdminCode");
-        window.location.href = createPageUrl("VerifyAdminCode");
         return;
       }
 
