@@ -218,34 +218,6 @@ export default function Dashboard() {
             </Card>
           )}
 
-          {/* Super Admin Banner */}
-          {isAdmin && !isSuperAdmin && (
-            <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-700 dark:via-indigo-700 dark:to-purple-700 border-2 border-blue-400 dark:border-blue-500 rounded-2xl p-6 shadow-xl">
-              <div className="absolute inset-0 bg-white/5"></div>
-              <div className="relative flex items-start justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <Shield className="w-8 h-8 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-black text-white mb-2">
-                      Upgrade to Super Admin
-                    </h3>
-                    <p className="text-blue-100 text-sm max-w-2xl">
-                      Get full access to manage all organizations, teams, and system-wide operations.
-                    </p>
-                  </div>
-                </div>
-                <Link to={createPageUrl("SuperAdminSetup")}>
-                  <Button className="bg-white text-blue-600 hover:bg-blue-50 font-bold shadow-lg flex-shrink-0">
-                    Setup Now
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
-
           {/* Header */}
           <div>
             <div className="flex items-center gap-3 mb-2">
