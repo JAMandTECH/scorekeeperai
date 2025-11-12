@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Trophy, Users, Calendar, Building2, Shield, ArrowRight, TrendingUp, Flame } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +14,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [organization, setOrganization] = useState(null);
-  const navigate = useNavigate(); // Initialized useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadUser();
@@ -24,7 +24,22 @@ export default function Dashboard() {
     try {
       const currentUser = await base44.auth.me();
       console.log("Dashboard: Loaded user", currentUser);
-      
+
+      // PRIORITY CHECK #1: Check for unused access codes FIRST
+      // This must happen before onboarding check!
+      console.log("Dashboard: Checking for unused access codes...");
+      const approvedRequests = await base44.entities.AdminRequest.filter({
+        user_email: currentUser.email,
+        status: 'approved',
+        code_used: false,
+      });
+
+      if (approvedRequests.length > 0) {
+        console.log("Dashboard: Found unused access code, redirecting to VerifyAdminCode");
+        window.location.href = createPageUrl("VerifyAdminCode");
+        return;
+      }
+
       // CRITICAL CHECK: If user hasn't completed onboarding, redirect them
       if (currentUser.onboarding_completed !== true && !(currentUser.role === 'admin' && currentUser.is_super_admin === true)) {
         console.log("Dashboard: User needs onboarding, redirecting to RoleSelection");
@@ -32,26 +47,9 @@ export default function Dashboard() {
         return;
       }
 
-      // IMPORTANT: Only check for approved admin requests if user is NOT already an admin
-      // This prevents a redirect loop for users who have already been upgraded
-      if (currentUser.role !== 'admin') {
-        console.log("Dashboard: User is not admin, checking for approved admin requests...");
-        const approvedRequests = await base44.entities.AdminRequest.filter({
-          user_email: currentUser.email,
-          status: 'approved',
-          code_used: false,
-        });
-        
-        if (approvedRequests.length > 0) {
-          console.log("Dashboard: Found approved request, redirecting to VerifyAdminCode");
-          window.location.href = createPageUrl("VerifyAdminCode");
-          return;
-        }
-      }
-      
       setUser(currentUser);
       setIsSuperAdmin(currentUser?.role === 'admin' && currentUser?.is_super_admin === true);
-      
+
       // Load organization if user has organization_id
       if (currentUser?.organization_id) {
         const orgs = await base44.entities.Organization.list();
@@ -59,7 +57,7 @@ export default function Dashboard() {
         setOrganization(userOrg);
       }
     } catch (error) {
-      console.error("Dashboard: Error loading user", error); // Added console.error
+      console.error("Dashboard: Error loading user", error);
       base44.auth.redirectToLogin(createPageUrl("Dashboard"));
     }
   };
@@ -72,8 +70,8 @@ export default function Dashboard() {
 
   const { data: teams = [] } = useQuery({
     queryKey: ['teams', user?.organization_id],
-    queryFn: () => isSuperAdmin 
-      ? base44.entities.Team.list() 
+    queryFn: () => isSuperAdmin
+      ? base44.entities.Team.list()
       : base44.entities.Team.filter({ organization_id: user?.organization_id }),
     enabled: !!user,
   });
@@ -95,8 +93,8 @@ export default function Dashboard() {
 
   const { data: games = [] } = useQuery({
     queryKey: ['games', user?.organization_id],
-    queryFn: () => isSuperAdmin 
-      ? base44.entities.Game.list('-game_date') 
+    queryFn: () => isSuperAdmin
+      ? base44.entities.Game.list('-game_date')
       : base44.entities.Game.filter({ organization_id: user?.organization_id }, '-game_date'),
     enabled: !!user,
   });
@@ -269,7 +267,7 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             )}
-            
+
             <Card className="relative overflow-hidden border-2 border-blue-100 dark:border-blue-900 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-950/30 shadow-lg hover:shadow-xl transition-all group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-transparent rounded-full blur-2xl"></div>
               <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
@@ -285,7 +283,7 @@ export default function Dashboard() {
                 </p>
               </CardContent>
             </Card>
-            
+
             <Card className="relative overflow-hidden border-2 border-orange-100 dark:border-orange-900 bg-gradient-to-br from-white to-orange-50 dark:from-gray-800 dark:to-orange-950/30 shadow-lg hover:shadow-xl transition-all group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full blur-2xl"></div>
               <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
@@ -299,7 +297,7 @@ export default function Dashboard() {
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Total registered</p>
               </CardContent>
             </Card>
-            
+
             <Card className="relative overflow-hidden border-2 border-green-100 dark:border-green-900 bg-gradient-to-br from-white to-green-50 dark:from-gray-800 dark:to-green-950/30 shadow-lg hover:shadow-xl transition-all group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/20 to-transparent rounded-full blur-2xl"></div>
               <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
@@ -358,8 +356,8 @@ export default function Dashboard() {
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{new Date(game.game_date).toLocaleDateString()}</span>
                           <Badge className={`font-bold ${
-                            game.sport === 'basketball' 
-                              ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800' 
+                            game.sport === 'basketball'
+                              ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800'
                               : 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
                           }`}>
                             {game.sport}
