@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, 
-  PlayCircle, Users, BarChart3, Trophy, CheckCircle, Eye, Globe
+  PlayCircle, Users, BarChart3, Trophy, CheckCircle, Eye, Globe, LogOut, LayoutGrid
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 export default function PublicLanding() {
   const [darkMode, setDarkMode] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     checkAuth();
@@ -27,8 +29,18 @@ export default function PublicLanding() {
   }, []);
 
   const checkAuth = async () => {
-    const authenticated = await base44.auth.isAuthenticated();
-    setIsAuthenticated(authenticated);
+    try {
+      const authenticated = await base44.auth.isAuthenticated();
+      setIsAuthenticated(authenticated);
+      if (authenticated) {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      }
+    } catch (error) {
+      console.error("Failed to check authentication or fetch user:", error);
+      setIsAuthenticated(false);
+      setUser(null);
+    }
   };
 
   const toggleDarkMode = () => {
@@ -40,6 +52,14 @@ export default function PublicLanding() {
     } else {
       document.documentElement.classList.remove('dark');
     }
+  };
+
+  const handleLogout = () => {
+    base44.auth.logout(createPageUrl("PublicLanding"));
+  };
+
+  const goToDashboard = () => {
+    navigate(createPageUrl("Dashboard"));
   };
 
   const handleGetStarted = async () => {
@@ -159,12 +179,37 @@ export default function PublicLanding() {
       <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-900 dark:to-indigo-950 text-white py-32 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iIzFmMmQzZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
         
-        <button
-          onClick={toggleDarkMode}
-          className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-all z-50"
-        >
-          {darkMode ? <Sun className="w-6 h-6 text-white" /> : <Moon className="w-6 h-6 text-white" />}
-        </button>
+        {/* Top Right Controls - Dark Mode + Dashboard + Logout */}
+        <div className="absolute top-6 right-6 flex items-center gap-3 z-50">
+          <button
+            onClick={toggleDarkMode}
+            className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-all"
+          >
+            {darkMode ? <Sun className="w-6 h-6 text-white" /> : <Moon className="w-6 h-6 text-white" />}
+          </button>
+          
+          {/* Show Dashboard button for admin users */}
+          {user && user.role === 'admin' && (
+            <button
+              onClick={goToDashboard}
+              className="flex items-center gap-2 px-4 py-3 bg-blue-600/90 hover:bg-blue-700 backdrop-blur-md rounded-xl transition-all font-bold text-white shadow-lg"
+            >
+              <LayoutGrid className="w-5 h-5" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </button>
+          )}
+          
+          {/* Show Logout button if authenticated */}
+          {isAuthenticated && (
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-3 bg-red-600/90 hover:bg-red-700 backdrop-blur-md rounded-xl transition-all font-bold text-white shadow-lg"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          )}
+        </div>
 
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <Badge className="mb-8 bg-orange-500/20 text-orange-300 border border-orange-400/30 text-sm font-bold px-4 py-2 backdrop-blur-sm">
@@ -378,7 +423,7 @@ export default function PublicLanding() {
 
       {/* CTA Section */}
       <section className="py-24 px-4 bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvZz48L3N2Zz4=')] opacity-20"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvZz48L3N2Zz4=')] opacity-20"></div>
         
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-5xl md:text-6xl font-black mb-6">
