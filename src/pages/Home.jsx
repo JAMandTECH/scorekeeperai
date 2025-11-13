@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, LayoutGrid } from "lucide-react";
+import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, LayoutGrid, Menu, PlayCircle, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ export default function Home() {
   const [organization, setOrganization] = useState(null);
   const [viewMode, setViewMode] = useState('all'); // 'all' or 'my-org'
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -104,6 +105,30 @@ export default function Home() {
   const goToDashboard = () => {
     navigate(createPageUrl("Dashboard"));
   };
+
+  // Navigation items for admin users
+  const superAdminNav = [
+    { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
+    { title: "Organizations", url: createPageUrl("Organizations"), icon: Building2 },
+    { title: "All Teams", url: createPageUrl("AllTeams"), icon: Users },
+    { title: "All Games", url: createPageUrl("AllGames"), icon: Calendar },
+    { title: "Admin Approvals", url: createPageUrl("AdminApprovals"), icon: Shield },
+  ];
+
+  const adminNav = [
+    { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
+    { title: "Divisions", url: createPageUrl("Divisions"), icon: Trophy },
+    { title: "Teams", url: createPageUrl("Teams"), icon: Users },
+    { title: "Players", url: createPageUrl("Players"), icon: Trophy },
+    { title: "Games", url: createPageUrl("Games"), icon: Calendar },
+    { title: "Scorekeepers", url: createPageUrl("Scorekeepers"), icon: Shield },
+    { title: "Live Scoring", url: createPageUrl("LiveScoring"), icon: PlayCircle },
+    { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 },
+  ];
+
+  const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
+  const isAdmin = user?.role === 'admin';
+  const navigationItems = isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : []);
 
   // Fetch all data - but conditionally based on auth
   const { data: allTeams = [] } = useQuery({
@@ -331,48 +356,187 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      {/* ADMIN HEADER WITH NAVIGATION - ONLY FOR AUTHENTICATED ADMIN USERS */}
+      {user && isAdmin && (
+        <>
+          <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50 shadow-sm">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden"
+              >
+                <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              </button>
+              <div className="flex items-center gap-3">
+                {organization?.logo_url ? (
+                  <Avatar className="w-10 h-10 border-2 border-orange-500 shadow-lg">
+                    <AvatarImage src={organization.logo_url} />
+                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black">
+                      {organization.name?.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                    </svg>
+                  </div>
+                )}
+                <div>
+                  <span className="font-bold text-xl text-gray-900 dark:text-white tracking-tight">
+                    {organization?.name || 'ALAB'}
+                  </span>
+                  <p className="text-[10px] text-gray-500 dark:text-gray-400 -mt-1 font-medium tracking-wide">
+                    {organization ? 'ORGANIZATION' : 'SPORTS LEAGUE'}
+                  </p>
+                </div>
+                {isSuperAdmin && (
+                  <span className="ml-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1 rounded-full font-semibold shadow-sm">
+                    SUPER ADMIN
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={toggleDarkMode}
+                variant="ghost"
+                size="icon"
+                className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </Button>
+
+              <div className="hidden md:flex items-center gap-3 text-sm">
+                <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
+                  <span className="text-sm font-bold text-white">
+                    {user?.full_name?.[0] || 'U'}
+                  </span>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-white text-sm">{user?.full_name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Administrator</p>
+                </div>
+              </div>
+              <Button
+                onClick={handleLogout}
+                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold shadow-md"
+                size="sm"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
+          </header>
+
+          {/* SIDEBAR FOR ADMIN */}
+          <div className="flex">
+            <aside className={`
+              fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
+              transform transition-transform duration-200 ease-in-out mt-16 lg:mt-0 shadow-lg lg:shadow-none
+              ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+            `}>
+              <div className="h-full flex flex-col pt-6">
+                {organization && (
+                  <div className="px-4 mb-6">
+                    <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 rounded-xl border-2 border-orange-200 dark:border-orange-800">
+                      <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-lg">
+                        <AvatarImage src={organization.logo_url} />
+                        <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-sm">
+                          {organization.name?.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-black text-gray-900 dark:text-white truncate">{organization.name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Your Organization</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
+                  {navigationItems.map((item) => {
+                    const isActive = window.location.pathname === item.url;
+                    return (
+                      <Link
+                        key={item.title}
+                        to={item.url}
+                        onClick={() => setSidebarOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                          isActive
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <item.icon className="w-5 h-5" />
+                        {item.title}
+                      </Link>
+                    );
+                  })}
+                </nav>
+
+                <div className="p-4 border-t border-gray-200 dark:border-gray-700 mt-auto bg-gray-50 dark:bg-gray-900">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
+                      <span className="text-sm font-bold text-white">
+                        {user?.full_name?.[0] || 'U'}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{user?.full_name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-700 dark:hover:text-red-300 hover:border-red-300 dark:hover:border-red-700 font-semibold"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </Button>
+                </div>
+              </div>
+            </aside>
+
+            {sidebarOpen && (
+              <div
+                className="fixed inset-0 bg-gray-900/50 dark:bg-black/70 z-30 lg:hidden backdrop-blur-sm"
+                onClick={() => setSidebarOpen(false)}
+              ></div>
+            )}
+          </div>
+        </>
+      )}
+
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-900 dark:to-indigo-950 text-white py-24 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZ3dCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9IkM2IDM2YzMuMzE0IDAgNiAyLjY4NiA2IDZzLTIuNjg2IDYtNiA2LTYtMi42ODYtNi02IDIuNjg2LTYgNi02eiIgc3Ryb2tlPSIjMWYyZDNkIiBzdHJva2Utd2lkdGg9IjIiLz48L2c+PC9zdmc+')] opacity-10"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9IkM2IDM2YzMuMzE0IDAgNiAyLjY4NiA2IDZzLTIuNjg2IDYtNiA2LTYtMi42ODYtNi02IDIuNjg2LTYgNi02eiIgc3Ryb2tlPSIjMWYyZDNkIiBzdHJva2Utd2lkdGg9IjIiLz48L2c+PC9zdmc+')] opacity-10"></div>
         
-        {/* Top Right Controls - Dark Mode + Login/Logout + Dashboard */}
-        <div className="absolute top-6 right-6 flex items-center gap-3 z-50">
-          <button
-            onClick={toggleDarkMode}
-            className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-all"
-          >
-            {darkMode ? <Sun className="w-6 h-6 text-white" /> : <Moon className="w-6 h-6 text-white" />}
-          </button>
-          
-          {/* Show Dashboard button for admin users */}
-          {user && user.role === 'admin' && (
+        {/* Top Right Controls - ONLY IF NOT ADMIN (admins have header) */}
+        {!isAdmin && (
+          <div className="absolute top-6 right-6 flex items-center gap-3 z-50">
             <button
-              onClick={goToDashboard}
-              className="flex items-center gap-2 px-4 py-3 bg-blue-600/90 hover:bg-blue-700 backdrop-blur-md rounded-xl transition-all font-bold text-white shadow-lg"
+              onClick={toggleDarkMode}
+              className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-all"
             >
-              <LayoutGrid className="w-5 h-5" />
-              <span className="hidden sm:inline">Dashboard</span>
+              {darkMode ? <Sun className="w-6 h-6 text-white" /> : <Moon className="w-6 h-6 text-white" />}
             </button>
-          )}
-          
-          {/* Show Login or Logout based on auth status */}
-          {user ? (
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-3 bg-red-600/90 hover:bg-red-700 backdrop-blur-md rounded-xl transition-all font-bold text-white shadow-lg"
-            >
-              <LogOut className="w-5 h-5" />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => base44.auth.redirectToLogin(createPageUrl("Dashboard"))}
-              className="flex items-center gap-2 px-4 py-3 bg-blue-600/90 hover:bg-blue-700 backdrop-blur-md rounded-xl transition-all font-bold text-white shadow-lg"
-            >
-              <span>Login</span>
-            </button>
-          )}
-        </div>
+            
+            {/* Show Logout if authenticated (non-admin) */}
+            {isAuthenticated && (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-3 bg-red-600/90 hover:bg-red-700 backdrop-blur-md rounded-xl transition-all font-bold text-white shadow-lg"
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="max-w-7xl mx-auto text-center relative z-10">
           {/* Organization-specific Hero - ONLY FOR AUTHENTICATED USERS WITH AN ORGANIZATION */}
