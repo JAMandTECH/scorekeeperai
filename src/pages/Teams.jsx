@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -128,7 +127,6 @@ export default function Teams() {
         coach_contact: formData.get('coach_contact'),
       };
 
-      // Upload logo if a new file was selected
       if (logoFile) {
         const { file_url } = await base44.integrations.Core.UploadFile({ file: logoFile });
         data.logo_url = file_url;
@@ -536,7 +534,6 @@ export default function Teams() {
                     <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">{editingTeam ? 'Edit Team' : 'Add New Team'}</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Team Logo Upload */}
                     <div>
                       <Label className="font-bold text-gray-700 dark:text-gray-300">Team Logo</Label>
                       <div className="mt-2 flex items-center gap-4">
