@@ -47,13 +47,6 @@ export default function Home() {
           const currentUser = await base44.auth.me();
           setUser(currentUser);
           
-          // AUTO-REDIRECT: If user is an organization admin, redirect them to Dashboard
-          if (currentUser?.role === 'admin' && currentUser?.organization_id) {
-            console.log("Home: Organization admin detected, redirecting to Dashboard");
-            navigate(createPageUrl("Dashboard"));
-            return;
-          }
-          
           // Load organization if user has organization_id
           if (currentUser?.organization_id) {
             const orgs = await base44.entities.Organization.list();
