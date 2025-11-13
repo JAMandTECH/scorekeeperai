@@ -23,6 +23,7 @@ export default function Teams() {
   const [viewMode, setViewMode] = useState('card');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [loading, setLoading] = useState(true);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -46,13 +47,19 @@ export default function Teams() {
   };
 
   const loadUser = async () => {
-    const currentUser = await base44.auth.me();
-    setUser(currentUser);
-    
-    if (currentUser?.organization_id) {
-      const orgs = await base44.entities.Organization.list();
-      const userOrg = orgs.find(o => o.id === currentUser.organization_id);
-      setOrganization(userOrg);
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      
+      if (currentUser?.organization_id) {
+        const orgs = await base44.entities.Organization.list();
+        const userOrg = orgs.find(o => o.id === currentUser.organization_id);
+        setOrganization(userOrg);
+      }
+    } catch (error) {
+      console.error("Error loading user:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -86,7 +93,7 @@ export default function Teams() {
 
   const navigationItems = isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : []);
 
-  const { data: teams = [], isLoading } = useQuery({
+  const { data: teams = [], isLoading: teamsLoading } = useQuery({
     queryKey: ['teams', user?.organization_id],
     queryFn: () => base44.entities.Team.filter({ organization_id: user?.organization_id }, '-created_date'),
     enabled: !!user?.organization_id,
@@ -149,6 +156,15 @@ export default function Teams() {
     setLogoFile(null);
     setShowForm(true);
   };
+
+  // Show loading spinner while user data loads
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   const basketballTeams = teams.filter(t => t.sport === 'basketball');
   const volleyballTeams = teams.filter(t => t.sport === 'volleyball');
@@ -274,9 +290,21 @@ export default function Teams() {
     </Card>
   );
 
+  // Show loading while initializing
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  const basketballTeams = teams.filter(t => t.sport === 'basketball');
+  const volleyballTeams = teams.filter(t => t.sport === 'volleyball');
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/30 to-gray-50 dark:from-gray-900 dark:via-orange-950/10 dark:to-gray-900">
-      {/* HEADER WITH HAMBURGER MENU */}
+      {/* HEADER WITH HAMBURGER MENU - ALWAYS VISIBLE */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-4">
           <button
@@ -354,7 +382,7 @@ export default function Teams() {
       </header>
 
       <div className="flex">
-        {/* SIDEBAR */}
+        {/* SIDEBAR - ALWAYS AVAILABLE */}
         <aside className={`
           fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
           transform transition-transform duration-200 ease-in-out mt-16 shadow-2xl
