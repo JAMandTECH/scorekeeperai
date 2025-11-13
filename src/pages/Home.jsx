@@ -47,7 +47,7 @@ export default function Home() {
           const currentUser = await base44.auth.me();
           setUser(currentUser);
           
-          // Load organization if user has organization_id
+          // Load organization if user has organization_id - NO REDIRECT
           if (currentUser?.organization_id) {
             const orgs = await base44.entities.Organization.list();
             const userOrg = orgs.find(o => o.id === currentUser.organization_id);
@@ -200,7 +200,7 @@ export default function Home() {
               if (homeSetsWon > awaySetsWon) {
                 if (isHome) wins++;
                 else losses++;
-              } else if (awaySetsWon > homeSetsWon) { // Fixed: added else if to handle away win
+              } else if (awaySetsWon > homeSetsWon) {
                 if (isHome) losses++;
                 else wins++;
               }
@@ -265,7 +265,7 @@ export default function Home() {
           averageLabel = "PPG";
         } else { // volleyball - total 'points' in this context means sum of attacks, blocks, aces
           total = playerStatsList.reduce((sum, s) => 
-            sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0); // three_pointers used for aces
+            sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0);
           averageLabel = "Score/G";
         }
       } else if (statType === 'rebounds') {
@@ -278,7 +278,7 @@ export default function Home() {
         total = playerStatsList.reduce((sum, s) => sum + (s.three_pointers || 0), 0);
         averageLabel = sport === 'basketball' ? "3PG" : "ACE/G";
       } else if (statType === 'attacks') {
-        total = playerStatsList.reduce((sum, s) => sum + (s.field_goals_made || 0), 0); // field_goals_made used for attacks in volleyball
+        total = playerStatsList.reduce((sum, s) => sum + (s.field_goals_made || 0), 0);
         averageLabel = "APG";
       }
 
