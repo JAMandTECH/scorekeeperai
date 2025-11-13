@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -139,9 +140,14 @@ export default function Dashboard() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="Toggle Navigation Menu"
           >
-            <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            {sidebarOpen ? (
+              <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            ) : (
+              <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            )}
           </button>
           <div className="flex items-center gap-3">
             {organization?.logo_url ? (
@@ -158,7 +164,7 @@ export default function Dashboard() {
                 </svg>
               </div>
             )}
-            <div>
+            <div className="hidden sm:block">
               <span className="font-bold text-xl text-gray-900 dark:text-white tracking-tight">
                 {organization?.name || 'ALAB'}
               </span>
@@ -167,14 +173,14 @@ export default function Dashboard() {
               </p>
             </div>
             {isSuperAdmin && (
-              <span className="ml-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1 rounded-full font-semibold shadow-sm">
+              <span className="hidden lg:inline-block ml-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1 rounded-full font-semibold shadow-sm">
                 SUPER ADMIN
               </span>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Button
             onClick={toggleDarkMode}
             variant="ghost"
@@ -184,7 +190,7 @@ export default function Dashboard() {
             {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </Button>
 
-          <div className="hidden md:flex items-center gap-3 text-sm">
+          <div className="hidden lg:flex items-center gap-3 text-sm">
             <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
               <span className="text-sm font-bold text-white">
                 {user?.full_name?.[0] || 'U'}
@@ -200,20 +206,20 @@ export default function Dashboard() {
             className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold shadow-md"
             size="sm"
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
+            <LogOut className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Logout</span>
           </Button>
         </div>
       </header>
 
       <div className="flex">
-        {/* SIDEBAR */}
+        {/* SIDEBAR - Now pop-out on all screens */}
         <aside className={`
-          fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
-          transform transition-transform duration-200 ease-in-out mt-16 lg:mt-0 shadow-lg lg:shadow-none
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
+          transform transition-transform duration-200 ease-in-out mt-16 shadow-2xl
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}>
-          <div className="h-full flex flex-col pt-6">
+          <div className="h-full flex flex-col pt-6 pb-6">
             {organization && (
               <div className="px-4 mb-6">
                 <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 rounded-xl border-2 border-orange-200 dark:border-orange-800">
@@ -252,7 +258,7 @@ export default function Dashboard() {
               })}
             </nav>
 
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 mt-auto bg-gray-50 dark:bg-gray-900">
+            <div className="px-4 pt-4 border-t border-gray-200 dark:border-gray-700 mt-auto bg-gray-50 dark:bg-gray-900">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
                   <span className="text-sm font-bold text-white">
@@ -279,13 +285,13 @@ export default function Dashboard() {
 
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-gray-900/50 dark:bg-black/70 z-30 lg:hidden backdrop-blur-sm"
+            className="fixed inset-0 bg-gray-900/50 dark:bg-black/70 z-30 backdrop-blur-sm mt-16"
             onClick={() => setSidebarOpen(false)}
           ></div>
         )}
 
         {/* MAIN CONTENT */}
-        <main className="flex-1 min-w-0 lg:mt-0">
+        <main className="flex-1 min-w-0">
           <div className="p-6 lg:p-8">
             <div className="max-w-7xl mx-auto space-y-8">
               {/* Getting Started Guide */}
@@ -445,12 +451,12 @@ export default function Dashboard() {
 
                 <Card className="relative overflow-hidden border-2 border-green-100 dark:border-green-900 bg-gradient-to-br from-white to-green-50 dark:from-gray-800 dark:to-green-950/30 shadow-lg hover:shadow-xl transition-all group">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/20 to-transparent rounded-full blur-2xl"></div>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
-                    <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Games</CardTitle>
-                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                      <Calendar className="w-5 h-5 text-white" />
-                    </div>
-                  </CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
+                      <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Games</CardTitle>
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <Calendar className="w-5 h-5 text-white" />
+                      </div>
+                    </CardHeader>
                   <CardContent className="relative z-10">
                     <div className="text-4xl font-black text-gray-900 dark:text-white mb-1">{games.length}</div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
