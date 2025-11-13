@@ -193,11 +193,17 @@ export default function Layout({ children, currentPageName }) {
       {/* ALWAYS VISIBLE TOP HEADER WITH LOGOUT */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-4">
+          {/* HAMBURGER MENU - ALWAYS VISIBLE NOW */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="Toggle Navigation Menu"
           >
-            <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            {sidebarOpen ? (
+              <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            ) : (
+              <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            )}
           </button>
           
           {/* Clickable Logo/Brand that goes to Dashboard */}
@@ -216,7 +222,7 @@ export default function Layout({ children, currentPageName }) {
                 </svg>
               </div>
             )}
-            <div>
+            <div className="hidden sm:block">
               <span className="font-bold text-xl text-gray-900 dark:text-white tracking-tight">
                 {organization?.name || 'ALAB'}
               </span>
@@ -227,20 +233,20 @@ export default function Layout({ children, currentPageName }) {
           </Link>
           
           {isSuperAdmin && (
-            <span className="ml-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1 rounded-full font-semibold shadow-sm">
+            <span className="hidden lg:inline-block ml-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1 rounded-full font-semibold shadow-sm">
               SUPER ADMIN
             </span>
           )}
         </div>
 
         {/* ALWAYS VISIBLE CONTROLS */}
-        <div className="flex items-center gap-3">
-          {/* Dashboard Home Button - Always visible */}
-          <Link to={createPageUrl("Dashboard")}>
+        <div className="flex items-center gap-2">
+          {/* Dashboard Home Button - Hidden on small screens */}
+          <Link to={createPageUrl("Dashboard")} className="hidden md:block">
             <Button
               variant="outline"
               size="sm"
-              className="border-2 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 font-bold hidden sm:flex"
+              className="border-2 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 font-bold"
             >
               <Home className="w-4 h-4 mr-2" />
               Dashboard
@@ -257,7 +263,8 @@ export default function Layout({ children, currentPageName }) {
             {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </Button>
 
-          <div className="hidden md:flex items-center gap-3 text-sm">
+          {/* User Info - Hidden on small screens */}
+          <div className="hidden lg:flex items-center gap-3 text-sm">
             <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
               <span className="text-sm font-bold text-white">
                 {user?.full_name?.[0] || 'U'}
@@ -268,25 +275,27 @@ export default function Layout({ children, currentPageName }) {
               <p className="text-xs text-gray-500 dark:text-gray-400">{user?.role === 'admin' ? 'Administrator' : 'User'}</p>
             </div>
           </div>
+          
+          {/* Logout Button */}
           <Button
             onClick={handleLogout}
             className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold shadow-md"
             size="sm"
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
+            <LogOut className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Logout</span>
           </Button>
         </div>
       </header>
 
       <div className="flex">
-        {/* Sidebar - Desktop Always Visible */}
+        {/* Sidebar - Now ALWAYS toggleable via hamburger menu */}
         <aside className={`
-          fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
-          transform transition-transform duration-200 ease-in-out mt-16 lg:mt-0 shadow-lg lg:shadow-none
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
+          transform transition-transform duration-200 ease-in-out mt-16 shadow-2xl
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}>
-          <div className="h-full flex flex-col pt-6">
+          <div className="h-full flex flex-col pt-6 pb-6">
             {/* Organization Info in Sidebar */}
             {organization && (
               <div className="px-4 mb-6">
@@ -327,7 +336,7 @@ export default function Layout({ children, currentPageName }) {
             </nav>
 
             {/* Sidebar Footer with User Info and Logout */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 mt-auto bg-gray-50 dark:bg-gray-900">
+            <div className="px-4 pt-4 border-t border-gray-200 dark:border-gray-700 mt-auto bg-gray-50 dark:bg-gray-900">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
                   <span className="text-sm font-bold text-white">
@@ -352,16 +361,16 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </aside>
 
-        {/* Mobile overlay */}
+        {/* Mobile/Desktop overlay - darkens background when sidebar is open */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-gray-900/50 dark:bg-black/70 z-30 lg:hidden backdrop-blur-sm"
+            className="fixed inset-0 bg-gray-900/50 dark:bg-black/70 z-30 backdrop-blur-sm mt-16"
             onClick={() => setSidebarOpen(false)}
           ></div>
         )}
 
         {/* Main Content */}
-        <main className="flex-1 min-w-0 lg:mt-0">
+        <main className="flex-1 min-w-0">
           {children}
         </main>
       </div>
