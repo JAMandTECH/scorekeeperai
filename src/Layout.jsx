@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import {
   Trophy, Building2, Users, Calendar, BarChart3,
-  PlayCircle, LogOut, Shield, Menu, X, KeyRound, Moon, Sun
+  PlayCircle, LogOut, Shield, Menu, X, KeyRound, Moon, Sun, Home
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -200,7 +199,9 @@ export default function Layout({ children, currentPageName }) {
           >
             <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
           </button>
-          <div className="flex items-center gap-3">
+          
+          {/* Clickable Logo/Brand that goes to Dashboard */}
+          <Link to={createPageUrl("Dashboard")} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             {organization?.logo_url ? (
               <Avatar className="w-10 h-10 border-2 border-orange-500 shadow-lg">
                 <AvatarImage src={organization.logo_url} />
@@ -223,16 +224,29 @@ export default function Layout({ children, currentPageName }) {
                 {organization ? 'ORGANIZATION' : 'SPORTS LEAGUE'}
               </p>
             </div>
-            {isSuperAdmin && (
-              <span className="ml-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1 rounded-full font-semibold shadow-sm">
-                SUPER ADMIN
-              </span>
-            )}
-          </div>
+          </Link>
+          
+          {isSuperAdmin && (
+            <span className="ml-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1 rounded-full font-semibold shadow-sm">
+              SUPER ADMIN
+            </span>
+          )}
         </div>
 
         {/* ALWAYS VISIBLE CONTROLS */}
         <div className="flex items-center gap-3">
+          {/* Dashboard Home Button - Always visible */}
+          <Link to={createPageUrl("Dashboard")}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-2 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 font-bold hidden sm:flex"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Dashboard
+            </Button>
+          </Link>
+          
           {/* Dark Mode Toggle */}
           <Button
             onClick={toggleDarkMode}
