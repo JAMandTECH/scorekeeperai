@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, LayoutGrid, Menu, PlayCircle, BarChart3 } from "lucide-react";
+import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, LayoutGrid, Menu, PlayCircle, BarChart3, Home as HomeIcon, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -108,6 +108,7 @@ export default function Home() {
 
   // Navigation items for admin users
   const superAdminNav = [
+    { title: "Home", url: createPageUrl("Home"), icon: HomeIcon },
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
     { title: "Organizations", url: createPageUrl("Organizations"), icon: Building2 },
     { title: "All Teams", url: createPageUrl("AllTeams"), icon: Users },
@@ -116,6 +117,7 @@ export default function Home() {
   ];
 
   const adminNav = [
+    { title: "Home", url: createPageUrl("Home"), icon: HomeIcon },
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
     { title: "Divisions", url: createPageUrl("Divisions"), icon: Trophy },
     { title: "Teams", url: createPageUrl("Teams"), icon: Users },
@@ -363,9 +365,14 @@ export default function Home() {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title="Toggle Navigation Menu"
               >
-                <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                {sidebarOpen ? (
+                  <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                ) : (
+                  <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                )}
               </button>
               <div className="flex items-center gap-3">
                 {organization?.logo_url ? (
@@ -382,7 +389,7 @@ export default function Home() {
                     </svg>
                   </div>
                 )}
-                <div>
+                <div className="hidden sm:block">
                   <span className="font-bold text-xl text-gray-900 dark:text-white tracking-tight">
                     {organization?.name || 'ALAB'}
                   </span>
@@ -391,14 +398,14 @@ export default function Home() {
                   </p>
                 </div>
                 {isSuperAdmin && (
-                  <span className="ml-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1 rounded-full font-semibold shadow-sm">
+                  <span className="hidden lg:inline-block ml-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1 rounded-full font-semibold shadow-sm">
                     SUPER ADMIN
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <Button
                 onClick={toggleDarkMode}
                 variant="ghost"
@@ -408,7 +415,7 @@ export default function Home() {
                 {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </Button>
 
-              <div className="hidden md:flex items-center gap-3 text-sm">
+              <div className="hidden lg:flex items-center gap-3 text-sm">
                 <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
                   <span className="text-sm font-bold text-white">
                     {user?.full_name?.[0] || 'U'}
@@ -424,20 +431,20 @@ export default function Home() {
                 className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold shadow-md"
                 size="sm"
               >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
+                <LogOut className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Logout</span>
               </Button>
             </div>
           </header>
 
-          {/* SIDEBAR FOR ADMIN */}
+          {/* SIDEBAR FOR ADMIN - NOW POP-OUT */}
           <div className="flex">
             <aside className={`
-              fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
-              transform transition-transform duration-200 ease-in-out mt-16 lg:mt-0 shadow-lg lg:shadow-none
-              ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+              fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
+              transform transition-transform duration-200 ease-in-out mt-16 shadow-2xl
+              ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
-              <div className="h-full flex flex-col pt-6">
+              <div className="h-full flex flex-col pt-6 pb-6">
                 {organization && (
                   <div className="px-4 mb-6">
                     <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 rounded-xl border-2 border-orange-200 dark:border-orange-800">
@@ -476,7 +483,7 @@ export default function Home() {
                   })}
                 </nav>
 
-                <div className="p-4 border-t border-gray-200 dark:border-gray-700 mt-auto bg-gray-50 dark:bg-gray-900">
+                <div className="px-4 pt-4 border-t border-gray-200 dark:border-gray-700 mt-auto bg-gray-50 dark:bg-gray-900">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
                       <span className="text-sm font-bold text-white">
@@ -503,7 +510,7 @@ export default function Home() {
 
             {sidebarOpen && (
               <div
-                className="fixed inset-0 bg-gray-900/50 dark:bg-black/70 z-30 lg:hidden backdrop-blur-sm"
+                className="fixed inset-0 bg-gray-900/50 dark:bg-black/70 z-30 backdrop-blur-sm mt-16"
                 onClick={() => setSidebarOpen(false)}
               ></div>
             )}

@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Trophy, Users, Calendar, Building2, ArrowRight, LogOut, Menu, X, BarChart3, PlayCircle, Shield, Sun, Moon } from "lucide-react";
+import { Trophy, Users, Calendar, Building2, ArrowRight, LogOut, Menu, X, BarChart3, PlayCircle, Shield, Sun, Moon, Home } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -101,6 +101,7 @@ export default function Dashboard() {
   });
 
   const superAdminNav = [
+    { title: "Home", url: createPageUrl("Home"), icon: Home },
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
     { title: "Organizations", url: createPageUrl("Organizations"), icon: Building2 },
     { title: "All Teams", url: createPageUrl("AllTeams"), icon: Users },
@@ -109,6 +110,7 @@ export default function Dashboard() {
   ];
 
   const adminNav = [
+    { title: "Home", url: createPageUrl("Home"), icon: Home },
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
     { title: "Divisions", url: createPageUrl("Divisions"), icon: Trophy },
     { title: "Teams", url: createPageUrl("Teams"), icon: Users },

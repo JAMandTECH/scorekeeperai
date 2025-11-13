@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -148,6 +149,7 @@ export default function Layout({ children, currentPageName }) {
   const isAdmin = user?.role === 'admin';
 
   const superAdminNav = [
+    { title: "Home", url: createPageUrl("Home"), icon: Home },
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
     { title: "Organizations", url: createPageUrl("Organizations"), icon: Building2 },
     { title: "All Teams", url: createPageUrl("AllTeams"), icon: Users },
@@ -156,6 +158,7 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   const adminNav = [
+    { title: "Home", url: createPageUrl("Home"), icon: Home },
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
     { title: "Divisions", url: createPageUrl("Divisions"), icon: Trophy },
     { title: "Teams", url: createPageUrl("Teams"), icon: Users },
