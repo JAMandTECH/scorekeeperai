@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -179,11 +178,18 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  // Pages that don't need layout
+  // Pages that don't need layout - ALL ADMIN PAGES NOW HANDLE THEIR OWN NAVIGATION
   if (currentPageName === "Home" || currentPageName === "SuperAdminSetup" ||
       currentPageName === "RequestAdminAccess" || currentPageName === "VerifyAdminCode" ||
       currentPageName === "PublicLanding" || currentPageName === "RoleSelection" ||
-      currentPageName === "AssociateOrganization" || currentPageName === "OrganizationSelector") {
+      currentPageName === "AssociateOrganization" || currentPageName === "OrganizationSelector" ||
+      currentPageName === "Dashboard" || currentPageName === "Divisions" ||
+      currentPageName === "Teams" || currentPageName === "Players" ||
+      currentPageName === "Games" || currentPageName === "Statistics" ||
+      currentPageName === "Scorekeepers" || currentPageName === "LiveScoring" ||
+      currentPageName === "LiveScoringVolleyball" || currentPageName === "Organizations" ||
+      currentPageName === "AllTeams" || currentPageName === "AllGames" ||
+      currentPageName === "AdminApprovals") {
     return <div>{children}</div>;
   }
 
