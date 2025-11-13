@@ -157,7 +157,7 @@ export default function Teams() {
     setShowForm(true);
   };
 
-  // Show loading spinner while user data loads
+  // Show loading while initializing
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -289,18 +289,6 @@ export default function Teams() {
       </CardContent>
     </Card>
   );
-
-  // Show loading while initializing
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
-      </div>
-    );
-  }
-
-  const basketballTeams = teams.filter(t => t.sport === 'basketball');
-  const volleyballTeams = teams.filter(t => t.sport === 'volleyball');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/30 to-gray-50 dark:from-gray-900 dark:via-orange-950/10 dark:to-gray-900">
