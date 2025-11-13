@@ -6,21 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, User, Edit, TrendingUp, Target, Award, LayoutGrid, Table } from "lucide-react";
+import { Plus, User, Edit, LayoutGrid, Table, Menu, X, LogOut, Sun, Moon, Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 export default function Players() {
   const [showForm, setShowForm] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [user, setUser] = useState(null);
+  const [organization, setOrganization] = useState(null);
   const [selectedDivision, setSelectedDivision] = useState('all');
   const [selectedSport, setSelectedSport] = useState('all');
   const [selectedTeam, setSelectedTeam] = useState('all');
-  const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
+  const [viewMode, setViewMode] = useState('card');
   const [photoFile, setPhotoFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -28,12 +33,65 @@ export default function Players() {
     const urlParams = new URLSearchParams(window.location.search);
     const teamId = urlParams.get('team_id');
     if (teamId) setSelectedTeam(teamId);
+    
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
   }, []);
+
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
   const loadUser = async () => {
     const currentUser = await base44.auth.me();
     setUser(currentUser);
+    
+    if (currentUser?.organization_id) {
+      const orgs = await base44.entities.Organization.list();
+      const userOrg = orgs.find(o => o.id === currentUser.organization_id);
+      setOrganization(userOrg);
+    }
   };
+
+  const handleLogout = () => {
+    base44.auth.logout(createPageUrl("PublicLanding"));
+  };
+
+  const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
+  const isAdmin = user?.role === 'admin';
+
+  const superAdminNav = [
+    { title: "Home", url: createPageUrl("Home"), icon: Home },
+    { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
+    { title: "Organizations", url: createPageUrl("Organizations"), icon: Building2 },
+    { title: "All Teams", url: createPageUrl("AllTeams"), icon: Users },
+    { title: "All Games", url: createPageUrl("AllGames"), icon: Calendar },
+    { title: "Admin Approvals", url: createPageUrl("AdminApprovals"), icon: Shield },
+  ];
+
+  const adminNav = [
+    { title: "Home", url: createPageUrl("Home"), icon: Home },
+    { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
+    { title: "Divisions", url: createPageUrl("Divisions"), icon: Trophy },
+    { title: "Teams", url: createPageUrl("Teams"), icon: Users },
+    { title: "Players", url: createPageUrl("Players"), icon: Trophy },
+    { title: "Games", url: createPageUrl("Games"), icon: Calendar },
+    { title: "Scorekeepers", url: createPageUrl("Scorekeepers"), icon: Shield },
+    { title: "Live Scoring", url: createPageUrl("LiveScoring"), icon: PlayCircle },
+    { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 },
+  ];
+
+  const navigationItems = isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : []);
 
   const { data: teams = [] } = useQuery({
     queryKey: ['teams', user?.organization_id],
@@ -356,330 +414,489 @@ export default function Players() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-50 dark:from-gray-900 dark:via-purple-950/10 dark:to-gray-900">
-      <div className="p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h1 className="text-4xl font-black text-gray-900 dark:text-white">Players</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Manage player rosters</p>
-            </div>
-            <Button 
-              onClick={() => {
-                setEditingPlayer(null);
-                setShowForm(true);
-              }}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Add Player
-            </Button>
-          </div>
-
-          {/* Filters Row */}
-          <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex flex-col gap-4">
-                {/* Filter Header */}
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-black text-gray-900 dark:text-white">Filter Players</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                      {players.length} player{players.length !== 1 ? 's' : ''} found
-                    </p>
-                  </div>
-                </div>
-
-                {/* Filter Controls */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {/* Sport Filter */}
-                  <div>
-                    <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">SPORT</Label>
-                    <select
-                      value={selectedSport}
-                      onChange={(e) => handleSportChange(e.target.value)}
-                      className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2.5 font-bold shadow-sm hover:border-purple-400 dark:hover:border-purple-600 transition-colors"
-                    >
-                      {sports.map(sport => (
-                        <option key={sport} value={sport}>
-                          {sport === 'all' ? '🏀🏐 All Sports' : sport === 'basketball' ? '🏀 Basketball' : '🏐 Volleyball'}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Division Filter */}
-                  <div>
-                    <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">DIVISION</Label>
-                    <select
-                      value={selectedDivision}
-                      onChange={(e) => handleDivisionChange(e.target.value)}
-                      className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2.5 font-bold shadow-sm hover:border-purple-400 dark:hover:border-purple-600 transition-colors"
-                    >
-                      {divisions.map(div => (
-                        <option key={div} value={div}>
-                          {div === 'all' ? '📁 All Divisions' : div}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Team Filter */}
-                  <div>
-                    <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">TEAM</Label>
-                    <select
-                      value={selectedTeam}
-                      onChange={(e) => setSelectedTeam(e.target.value)}
-                      className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2.5 font-bold shadow-sm hover:border-purple-400 dark:hover:border-purple-600 transition-colors"
-                    >
-                      <option value="all">👥 All Teams</option>
-                      {filteredTeams.map(team => (
-                        <option key={team.id} value={team.id}>
-                          {team.sport === 'basketball' ? '🏀' : '🏐'} {team.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* View Toggle */}
-                  <div>
-                    <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">VIEW</Label>
-                    <div className="flex bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 rounded-xl p-1 shadow-sm">
-                      <Button
-                        variant={viewMode === 'card' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('card')}
-                        className={`flex-1 font-bold ${viewMode === 'card' ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white' : 'text-gray-600 dark:text-gray-400'}`}
-                      >
-                        <LayoutGrid className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant={viewMode === 'table' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('table')}
-                        className={`flex-1 font-bold ${viewMode === 'table' ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white' : 'text-gray-600 dark:text-gray-400'}`}
-                      >
-                        <Table className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Active Filters */}
-                {(selectedSport !== 'all' || selectedDivision !== 'all' || selectedTeam !== 'all') && (
-                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Active Filters:</span>
-                    {selectedSport !== 'all' && (
-                      <Badge className="bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 font-bold">
-                        {selectedSport === 'basketball' ? '🏀 Basketball' : '🏐 Volleyball'}
-                        <button
-                          onClick={() => handleSportChange('all')}
-                          className="ml-2 hover:text-orange-900 dark:hover:text-orange-100"
-                        >
-                          ✕
-                        </button>
-                      </Badge>
-                    )}
-                    {selectedDivision !== 'all' && (
-                      <Badge className="bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold">
-                        📁 {selectedDivision}
-                        <button
-                          onClick={() => handleDivisionChange('all')}
-                          className="ml-2 hover:text-blue-900 dark:hover:text-blue-100"
-                        >
-                          ✕
-                        </button>
-                      </Badge>
-                    )}
-                    {selectedTeam !== 'all' && (
-                      <Badge className="bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800 font-bold">
-                        👥 {getTeamName(selectedTeam)}
-                        <button
-                          onClick={() => setSelectedTeam('all')}
-                          className="ml-2 hover:text-purple-900 dark:hover:text-purple-100"
-                        >
-                          ✕
-                        </button>
-                      </Badge>
-                    )}
-                    <button
-                      onClick={() => {
-                        setSelectedSport('all');
-                        setSelectedDivision('all');
-                        setSelectedTeam('all');
-                      }}
-                      className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-bold underline ml-2"
-                    >
-                      Clear All
-                    </button>
-                  </div>
-                )}
+      {/* HEADER WITH HAMBURGER MENU */}
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50 shadow-sm">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="Toggle Navigation Menu"
+          >
+            {sidebarOpen ? (
+              <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            ) : (
+              <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            )}
+          </button>
+          <div className="flex items-center gap-3">
+            {organization?.logo_url ? (
+              <Avatar className="w-10 h-10 border-2 border-orange-500 shadow-lg">
+                <AvatarImage src={organization.logo_url} />
+                <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black">
+                  {organization.name?.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                  <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                </svg>
               </div>
-            </CardContent>
-          </Card>
+            )}
+            <div className="hidden sm:block">
+              <span className="font-bold text-xl text-gray-900 dark:text-white tracking-tight">
+                {organization?.name || 'ALAB'}
+              </span>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 -mt-1 font-medium tracking-wide">
+                {organization ? 'ORGANIZATION' : 'SPORTS LEAGUE'}
+              </p>
+            </div>
+            {isSuperAdmin && (
+              <span className="hidden lg:inline-block ml-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1 rounded-full font-semibold shadow-sm">
+                SUPER ADMIN
+              </span>
+            )}
+          </div>
+        </div>
 
-          {/* Players Grid or Table */}
-          {viewMode === 'card' ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {players.map((player) => {
-                const sport = getTeamSport(player.team_id);
-                const sportColor = sport === 'basketball' ? 'orange' : 'blue';
-                const teamLogo = getTeamLogo(player.team_id);
-                
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={toggleDarkMode}
+            variant="ghost"
+            size="icon"
+            className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </Button>
+
+          <div className="hidden lg:flex items-center gap-3 text-sm">
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
+              <span className="text-sm font-bold text-white">
+                {user?.full_name?.[0] || 'U'}
+              </span>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900 dark:text-white text-sm">{user?.full_name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Administrator</p>
+            </div>
+          </div>
+          <Button
+            onClick={handleLogout}
+            className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold shadow-md"
+            size="sm"
+          >
+            <LogOut className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Logout</span>
+          </Button>
+        </div>
+      </header>
+
+      <div className="flex">
+        {/* SIDEBAR */}
+        <aside className={`
+          fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
+          transform transition-transform duration-200 ease-in-out mt-16 shadow-2xl
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}>
+          <div className="h-full flex flex-col pt-6 pb-6">
+            {organization && (
+              <div className="px-4 mb-6">
+                <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 rounded-xl border-2 border-orange-200 dark:border-orange-800">
+                  <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-lg">
+                    <AvatarImage src={organization.logo_url} />
+                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-sm">
+                      {organization.name?.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-black text-gray-900 dark:text-white truncate">{organization.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Your Organization</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
+              {navigationItems.map((item) => {
+                const isActive = window.location.pathname === item.url;
                 return (
-                  <PlayerCard 
-                    key={player.id} 
-                    player={player} 
-                    sport={sport} 
-                    sportColor={sportColor} 
-                    teamLogo={teamLogo} 
-                  />
+                  <Link
+                    key={item.title}
+                    to={item.url}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    {item.title}
+                  </Link>
                 );
               })}
-            </div>
-          ) : (
-            <PlayerTable players={players} />
-          )}
+            </nav>
 
-          {players.length === 0 && (
-            <div className="text-center py-20">
-              <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-                <User className="w-12 h-12 text-gray-400 dark:text-gray-500" />
+            <div className="px-4 pt-4 border-t border-gray-200 dark:border-gray-700 mt-auto bg-gray-50 dark:bg-gray-900">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
+                  <span className="text-sm font-bold text-white">
+                    {user?.full_name?.[0] || 'U'}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{user?.full_name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                </div>
               </div>
-              <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No players found</p>
-              <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Add your first player to get started</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-700 dark:hover:text-red-300 hover:border-red-300 dark:hover:border-red-700 font-semibold"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
             </div>
-          )}
+          </div>
+        </aside>
 
-          {/* Dialog */}
-          <Dialog open={showForm} onOpenChange={setShowForm}>
-            <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-md">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">
-                  {editingPlayer ? 'Edit Player' : 'Add New Player'}
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Player Photo Upload */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-gray-900/50 dark:bg-black/70 z-30 backdrop-blur-sm mt-16"
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+        )}
+
+        {/* MAIN CONTENT */}
+        <main className={`flex-1 min-w-0 transition-all duration-200 ease-in-out ${sidebarOpen ? 'lg:ml-64' : 'ml-0'}`}>
+          <div className="p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto space-y-8">
+              {/* Header */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                  <Label className="font-bold text-gray-700 dark:text-gray-300">Player Photo</Label>
-                  <div className="mt-2 flex items-center gap-4">
-                    <Avatar className="w-20 h-20 border-4 border-gray-200 dark:border-gray-600">
-                      <AvatarImage src={photoFile ? URL.createObjectURL(photoFile) : editingPlayer?.photo_url} />
-                      <AvatarFallback className="bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700">
-                        <User className="w-8 h-8 text-gray-500 dark:text-gray-400" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
+                  <h1 className="text-4xl font-black text-gray-900 dark:text-white">Players</h1>
+                  <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Manage player rosters</p>
+                </div>
+                <Button 
+                  onClick={() => {
+                    setEditingPlayer(null);
+                    setShowForm(true);
+                  }}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Add Player
+                </Button>
+              </div>
+
+              {/* Filters Row */}
+              <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex flex-col gap-4">
+                    {/* Filter Header */}
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black text-gray-900 dark:text-white">Filter Players</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                          {players.length} player{players.length !== 1 ? 's' : ''} found
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Filter Controls */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      {/* Sport Filter */}
+                      <div>
+                        <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">SPORT</Label>
+                        <select
+                          value={selectedSport}
+                          onChange={(e) => handleSportChange(e.target.value)}
+                          className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2.5 font-bold shadow-sm hover:border-purple-400 dark:hover:border-purple-600 transition-colors"
+                        >
+                          {sports.map(sport => (
+                            <option key={sport} value={sport}>
+                              {sport === 'all' ? '🏀🏐 All Sports' : sport === 'basketball' ? '🏀 Basketball' : '🏐 Volleyball'}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Division Filter */}
+                      <div>
+                        <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">DIVISION</Label>
+                        <select
+                          value={selectedDivision}
+                          onChange={(e) => handleDivisionChange(e.target.value)}
+                          className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2.5 font-bold shadow-sm hover:border-purple-400 dark:hover:border-purple-600 transition-colors"
+                        >
+                          {divisions.map(div => (
+                            <option key={div} value={div}>
+                              {div === 'all' ? '📁 All Divisions' : div}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Team Filter */}
+                      <div>
+                        <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">TEAM</Label>
+                        <select
+                          value={selectedTeam}
+                          onChange={(e) => setSelectedTeam(e.target.value)}
+                          className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2.5 font-bold shadow-sm hover:border-purple-400 dark:hover:border-purple-600 transition-colors"
+                        >
+                          <option value="all">👥 All Teams</option>
+                          {filteredTeams.map(team => (
+                            <option key={team.id} value={team.id}>
+                              {team.sport === 'basketball' ? '🏀' : '🏐'} {team.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* View Toggle */}
+                      <div>
+                        <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">VIEW</Label>
+                        <div className="flex bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 rounded-xl p-1 shadow-sm">
+                          <Button
+                            variant={viewMode === 'card' ? 'default' : 'ghost'}
+                            size="sm"
+                            onClick={() => setViewMode('card')}
+                            className={`flex-1 font-bold ${viewMode === 'card' ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                          >
+                            <LayoutGrid className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant={viewMode === 'table' ? 'default' : 'ghost'}
+                            size="sm"
+                            onClick={() => setViewMode('table')}
+                            className={`flex-1 font-bold ${viewMode === 'table' ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                          >
+                            <Table className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Active Filters */}
+                    {(selectedSport !== 'all' || selectedDivision !== 'all' || selectedTeam !== 'all') && (
+                      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Active Filters:</span>
+                        {selectedSport !== 'all' && (
+                          <Badge className="bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 font-bold">
+                            {selectedSport === 'basketball' ? '🏀 Basketball' : '🏐 Volleyball'}
+                            <button
+                              onClick={() => handleSportChange('all')}
+                              className="ml-2 hover:text-orange-900 dark:hover:text-orange-100"
+                            >
+                              ✕
+                            </button>
+                          </Badge>
+                        )}
+                        {selectedDivision !== 'all' && (
+                          <Badge className="bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold">
+                            📁 {selectedDivision}
+                            <button
+                              onClick={() => handleDivisionChange('all')}
+                              className="ml-2 hover:text-blue-900 dark:hover:text-blue-100"
+                            >
+                              ✕
+                            </button>
+                          </Badge>
+                        )}
+                        {selectedTeam !== 'all' && (
+                          <Badge className="bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800 font-bold">
+                            👥 {getTeamName(selectedTeam)}
+                            <button
+                              onClick={() => setSelectedTeam('all')}
+                              className="ml-2 hover:text-purple-900 dark:hover:text-purple-100"
+                            >
+                              ✕
+                            </button>
+                          </Badge>
+                        )}
+                        <button
+                          onClick={() => {
+                            setSelectedSport('all');
+                            setSelectedDivision('all');
+                            setSelectedTeam('all');
+                          }}
+                          className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-bold underline ml-2"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Players Grid or Table */}
+              {players.length > 0 ? (
+                viewMode === 'card' ? (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {players.map((player) => {
+                      const sport = getTeamSport(player.team_id);
+                      const sportColor = sport === 'basketball' ? 'orange' : 'blue';
+                      const teamLogo = getTeamLogo(player.team_id);
+                      
+                      return (
+                        <PlayerCard 
+                          key={player.id} 
+                          player={player} 
+                          sport={sport} 
+                          sportColor={sportColor} 
+                          teamLogo={teamLogo} 
+                        />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <PlayerTable players={players} />
+                )
+              ) : (
+                <div className="text-center py-20">
+                  <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                    <User className="w-12 h-12 text-gray-400 dark:text-gray-500" />
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No players found</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Add your first player to get started</p>
+                </div>
+              )}
+
+              {/* Dialog */}
+              <Dialog open={showForm} onOpenChange={setShowForm}>
+                <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                      {editingPlayer ? 'Edit Player' : 'Add New Player'}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Player Photo Upload */}
+                    <div>
+                      <Label className="font-bold text-gray-700 dark:text-gray-300">Player Photo</Label>
+                      <div className="mt-2 flex items-center gap-4">
+                        <Avatar className="w-20 h-20 border-4 border-gray-200 dark:border-gray-600">
+                          <AvatarImage src={photoFile ? URL.createObjectURL(photoFile) : editingPlayer?.photo_url} />
+                          <AvatarFallback className="bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700">
+                            <User className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setPhotoFile(e.target.files[0])}
+                            className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                          />
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">PNG, JPG, or GIF (Max 5MB)</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="team_id" className="font-bold text-gray-700 dark:text-gray-300">Team</Label>
+                      <select
+                        id="team_id"
+                        name="team_id"
+                        defaultValue={editingPlayer?.team_id}
+                        required
+                        className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                      >
+                        <option value="">Select a team</option>
+                        {teams.map(team => (
+                          <option key={team.id} value={team.id}>{team.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="first_name" className="font-bold text-gray-700 dark:text-gray-300">First Name</Label>
+                        <Input
+                          id="first_name"
+                          name="first_name"
+                          defaultValue={editingPlayer?.first_name}
+                          required
+                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="last_name" className="font-bold text-gray-700 dark:text-gray-300">Last Name</Label>
+                        <Input
+                          id="last_name"
+                          name="last_name"
+                          defaultValue={editingPlayer?.last_name}
+                          required
+                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="jersey_number" className="font-bold text-gray-700 dark:text-gray-300">Jersey #</Label>
+                        <Input
+                          id="jersey_number"
+                          name="jersey_number"
+                          defaultValue={editingPlayer?.jersey_number}
+                          required
+                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="position" className="font-bold text-gray-700 dark:text-gray-300">Position</Label>
+                        <Input
+                          id="position"
+                          name="position"
+                          defaultValue={editingPlayer?.position}
+                          placeholder="e.g., Guard, Forward"
+                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="height" className="font-bold text-gray-700 dark:text-gray-300">Height</Label>
                       <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setPhotoFile(e.target.files[0])}
+                        id="height"
+                        name="height"
+                        defaultValue={editingPlayer?.height}
+                        placeholder="e.g., 6'2&quot;"
                         className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
                       />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">PNG, JPG, or GIF (Max 5MB)</p>
                     </div>
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="team_id" className="font-bold text-gray-700 dark:text-gray-300">Team</Label>
-                  <select
-                    id="team_id"
-                    name="team_id"
-                    defaultValue={editingPlayer?.team_id}
-                    required
-                    className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
-                  >
-                    <option value="">Select a team</option>
-                    {teams.map(team => (
-                      <option key={team.id} value={team.id}>{team.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="first_name" className="font-bold text-gray-700 dark:text-gray-300">First Name</Label>
-                    <Input
-                      id="first_name"
-                      name="first_name"
-                      defaultValue={editingPlayer?.first_name}
-                      required
-                      className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="last_name" className="font-bold text-gray-700 dark:text-gray-300">Last Name</Label>
-                    <Input
-                      id="last_name"
-                      name="last_name"
-                      defaultValue={editingPlayer?.last_name}
-                      required
-                      className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="jersey_number" className="font-bold text-gray-700 dark:text-gray-300">Jersey #</Label>
-                    <Input
-                      id="jersey_number"
-                      name="jersey_number"
-                      defaultValue={editingPlayer?.jersey_number}
-                      required
-                      className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="position" className="font-bold text-gray-700 dark:text-gray-300">Position</Label>
-                    <Input
-                      id="position"
-                      name="position"
-                      defaultValue={editingPlayer?.position}
-                      placeholder="e.g., Guard, Forward"
-                      className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="height" className="font-bold text-gray-700 dark:text-gray-300">Height</Label>
-                  <Input
-                    id="height"
-                    name="height"
-                    defaultValue={editingPlayer?.height}
-                    placeholder="e.g., 6'2&quot;"
-                    className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
-                  />
-                </div>
-                <div className="flex justify-end gap-3 pt-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => {
-                      setShowForm(false);
-                      setPhotoFile(null);
-                    }} 
-                    className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={uploading}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
-                  >
-                    {uploading ? 'Uploading...' : editingPlayer ? 'Update' : 'Create'}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => {
+                          setShowForm(false);
+                          setPhotoFile(null);
+                        }} 
+                        className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={uploading}
+                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                      >
+                        {uploading ? 'Uploading...' : editingPlayer ? 'Update' : 'Create'}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );
