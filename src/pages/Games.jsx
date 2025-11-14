@@ -14,6 +14,7 @@ import { createPageUrl } from "@/utils";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import GameHistory from "@/components/GameHistory";
 
 export default function Games() {
   const [showForm, setShowForm] = useState(false);
@@ -21,6 +22,9 @@ export default function Games() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [conflicts, setConflicts] = useState([]);
+  const [selectedSport, setSelectedSport] = useState('all');
+  const [selectedDivision, setSelectedDivision] = useState('all');
+  const [selectedTeam, setSelectedTeam] = useState('all');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -70,6 +74,24 @@ export default function Games() {
   const { data: games = [] } = useQuery({
     queryKey: ['games', user?.organization_id],
     queryFn: () => base44.entities.Game.filter({ organization_id: user?.organization_id }, '-game_date'),
+    enabled: !!user?.organization_id,
+  });
+
+  const { data: allPlayers = [] } = useQuery({
+    queryKey: ['all-players', user?.organization_id],
+    queryFn: async () => {
+      const orgTeams = await base44.entities.Team.filter({ organization_id: user?.organization_id });
+      const teamIds = orgTeams.map(t => t.id);
+      if (teamIds.length === 0) return [];
+      const players = await base44.entities.Player.list();
+      return players.filter(p => teamIds.includes(p.team_id));
+    },
+    enabled: !!user?.organization_id,
+  });
+
+  const { data: allPlayerStats = [] } = useQuery({
+    queryKey: ['all-player-stats', user?.organization_id],
+    queryFn: () => base44.entities.PlayerGameStats.list(),
     enabled: !!user?.organization_id,
   });
 
@@ -143,6 +165,17 @@ export default function Games() {
   const scheduledGames = games.filter(g => g.status === 'scheduled');
   const inProgressGames = games.filter(g => g.status === 'in_progress');
   const completedGames = games.filter(g => g.status === 'completed');
+
+  const handleDivisionChange = (division) => {
+    setSelectedDivision(division);
+    setSelectedTeam('all');
+  };
+
+  const handleSportChange = (sport) => {
+    setSelectedSport(sport);
+    setSelectedDivision('all');
+    setSelectedTeam('all');
+  };
 
   const GameCard = ({ game }) => {
     const sportColor = game.sport === 'basketball' ? 'orange' : 'blue';
@@ -277,6 +310,9 @@ export default function Games() {
                   <TabsTrigger value="completed" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
                     Completed ({completedGames.length})
                   </TabsTrigger>
+                  <TabsTrigger value="history" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                    Game History
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="scheduled" className="space-y-4">
@@ -319,6 +355,21 @@ export default function Games() {
                       <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No completed games</p>
                     </div>
                   )}
+                </TabsContent>
+
+                <TabsContent value="history" className="space-y-4">
+                  <GameHistory
+                    completedGames={completedGames}
+                    teams={teams}
+                    allPlayers={allPlayers}
+                    allPlayerStats={allPlayerStats}
+                    selectedSport={selectedSport}
+                    selectedDivision={selectedDivision}
+                    selectedTeam={selectedTeam}
+                    onSportChange={handleSportChange}
+                    onDivisionChange={handleDivisionChange}
+                    onTeamChange={setSelectedTeam}
+                  />
                 </TabsContent>
               </Tabs>
 
