@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -482,7 +481,7 @@ export default function LiveScoring() {
           if (isFouledOut) return;
           onSelect(player, team);
         }}
-        className={`w-full text-left border-2 rounded-lg p-2 mb-2 transition-all ${
+        className={`w-full text-left border-2 rounded-lg p-3 mb-2 transition-all ${
           isFouledOut 
             ? 'bg-red-50 dark:bg-red-950/30 opacity-50 cursor-not-allowed border-red-300 dark:border-red-800' 
             : isSelected
@@ -491,31 +490,35 @@ export default function LiveScoring() {
         }`}
         disabled={isFouledOut}
       >
-        <div className="flex items-center gap-2">
-          <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
-            <AvatarImage src={player.photo_url} />
-            <AvatarFallback className={`text-sm font-black ${isSelected ? 'bg-white text-orange-600' : 'bg-gradient-to-br from-orange-600 to-orange-700 text-white'}`}>
-              {player.jersey_number}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className={`text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
-              #{player.jersey_number} {player.first_name} {player.last_name}
-            </p>
-            <div className={`flex gap-2 text-[10px] mt-0.5 font-semibold ${isSelected ? 'text-orange-100' : 'text-gray-600 dark:text-gray-400'}`}>
-              <span>PTS: {points}</span>
-              <span>REB: {rebounds}</span>
-              <span>AST: {assists}</span>
-              <span>STL: {steals}</span>
-              <span>BLK: {blocks}</span>
-              <span className={totalFouls >= game.player_foul_limit - 1 ? 'text-red-600 dark:text-red-400' : ''}>
-                FL: {totalFouls}/{game.player_foul_limit}
-              </span>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+              <AvatarImage src={player.photo_url} />
+              <AvatarFallback className={`text-sm font-black ${isSelected ? 'bg-white text-orange-600' : 'bg-gradient-to-br from-orange-600 to-orange-700 text-white'}`}>
+                {player.jersey_number}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <p className={`text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+                #{player.jersey_number} {player.first_name} {player.last_name}
+              </p>
             </div>
           </div>
-          {isFouledOut && (
-            <Badge className="bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5">FOULED OUT</Badge>
-          )}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <div className={`flex gap-3 text-xl font-black ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+              <span>{points}</span>
+              <span>{rebounds}</span>
+              <span>{assists}</span>
+              <span>{steals}</span>
+              <span>{blocks}</span>
+              <span className={totalFouls >= game.player_foul_limit - 1 ? 'text-red-600 dark:text-red-400' : ''}>
+                {totalFouls}
+              </span>
+            </div>
+            {isFouledOut && (
+              <Badge className="bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5">FOULED OUT</Badge>
+            )}
+          </div>
         </div>
       </button>
     );

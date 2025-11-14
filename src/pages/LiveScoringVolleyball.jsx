@@ -432,30 +432,32 @@ export default function LiveScoringVolleyball() {
     return (
       <button
         onClick={() => onSelect(player, team)}
-        className={`w-full text-left border-2 rounded-lg p-2 mb-2 transition-all ${
+        className={`w-full text-left border-2 rounded-lg p-3 mb-2 transition-all ${
           isSelected
             ? 'bg-gradient-to-r from-blue-500 to-blue-600 border-blue-400 ring-2 ring-blue-300 shadow-lg scale-105'
             : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md'
         }`}
       >
-        <div className="flex items-center gap-2">
-          <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
-            <AvatarImage src={player.photo_url} />
-            <AvatarFallback className={`text-sm font-black ${isSelected ? 'bg-white text-blue-600' : 'bg-gradient-to-br from-blue-600 to-blue-700 text-white'}`}>
-              {player.jersey_number}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className={`text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
-              #{player.jersey_number} {player.first_name} {player.last_name}
-            </p>
-            <div className={`flex gap-2 text-[10px] mt-0.5 font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-600 dark:text-gray-400'}`}>
-              <span>PTS: {points}</span>
-              <span>ATK: {attacks}</span>
-              <span>BLK: {blocks}</span>
-              <span>ACE: {aces}</span>
-              <span>AST: {assists}</span>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+              <AvatarImage src={player.photo_url} />
+              <AvatarFallback className={`text-sm font-black ${isSelected ? 'bg-white text-blue-600' : 'bg-gradient-to-br from-blue-600 to-blue-700 text-white'}`}>
+                {player.jersey_number}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <p className={`text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+                #{player.jersey_number} {player.first_name} {player.last_name}
+              </p>
             </div>
+          </div>
+          <div className={`flex gap-3 text-xl font-black flex-shrink-0 ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+            <span>{points}</span>
+            <span>{attacks}</span>
+            <span>{blocks}</span>
+            <span>{aces}</span>
+            <span>{assists}</span>
           </div>
         </div>
       </button>
