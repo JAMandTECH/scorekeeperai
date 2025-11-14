@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -9,17 +8,26 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Shield, CheckCircle, XCircle, Clock, Mail, Phone, Building2, LayoutGrid, Table } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import AdminHeader from "@/components/AdminHeader";
+import AdminSidebar from "@/components/AdminSidebar";
 
 export default function AdminApprovals() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
+  const [viewMode, setViewMode] = useState('card');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   useEffect(() => {
     checkAccess();
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
   }, []);
 
   const checkAccess = async () => {
@@ -34,6 +42,21 @@ export default function AdminApprovals() {
       base44.auth.redirectToLogin(createPageUrl("AdminApprovals"));
     }
     setLoading(false);
+  };
+
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
+  const handleLogout = () => {
+    base44.auth.logout(createPageUrl("PublicLanding"));
   };
 
   const { data: requests = [] } = useQuery({
@@ -57,49 +80,29 @@ export default function AdminApprovals() {
       const request = requests.find(r => r.id === requestId);
       const code = generateCode();
       
-      console.log("Approving request for:", request.user_email);
-      
-      // Step 1: Create the organization
-      console.log("Creating organization:", request.organization_name);
       const newOrg = await base44.entities.Organization.create({
         name: request.organization_name,
         contact_email: request.user_email,
         contact_phone: request.phone_number,
         status: 'active',
       });
-      console.log("Organization created:", newOrg.id);
 
-      // Step 2: Update the AdminRequest record with approval
-      console.log("Updating admin request...");
       await base44.entities.AdminRequest.update(requestId, {
         status: 'approved',
         access_code: code,
         organization_id: newOrg.id,
       });
-      console.log("Admin request updated with code:", code);
 
-      // Step 3: Update the requesting user's role and organization
-      // Find the user in the allUsers list
       const requestingUser = allUsers.find(u => u.email === request.user_email);
       if (!requestingUser) {
         throw new Error(`User not found: ${request.user_email}`);
       }
       
-      console.log("Updating user role and organization for user:", requestingUser.id);
-      
-      // CRITICAL: DO NOT set onboarding_completed here!
-      // User must verify their code first before onboarding is complete
-      // IMPORTANT: Update the user record directly in the User entity
-      // Since we're a super admin, we have permission to update other users
       await base44.entities.User.update(requestingUser.id, {
         role: 'admin',
         organization_id: newOrg.id,
-        // onboarding_completed will be set to true in VerifyAdminCode after they enter the code
       });
-      console.log("User updated successfully - now admin of organization:", newOrg.id);
 
-      // Step 4: Send confirmation email with access code
-      console.log("Sending confirmation email...");
       await base44.integrations.Core.SendEmail({
         to: request.user_email,
         subject: "🎉 Admin Access Approved - Enter Your Code!",
@@ -180,7 +183,6 @@ export default function AdminApprovals() {
           </div>
         `
       });
-      console.log("Email sent successfully");
 
       return newOrg;
     },
@@ -375,201 +377,217 @@ export default function AdminApprovals() {
   );
 
   return (
-    <div className="p-4 md:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-              <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Approvals</h1>
-              <p className="text-gray-600 dark:text-gray-400">Review and approve admin access requests</p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900">
+      <AdminHeader 
+        user={user}
+        organization={null}
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
+        handleLogout={handleLogout}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
 
-          {/* View Toggle */}
-          <div className="flex bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-1 shadow-sm">
-            <Button
-              variant={viewMode === 'card' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('card')}
-              className={`font-bold ${viewMode === 'card' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
-            >
-              <LayoutGrid className="w-4 h-4 mr-2" />
-              Cards
-            </Button>
-            <Button
-              variant={viewMode === 'table' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('table')}
-              className={`font-bold ${viewMode === 'table' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
-            >
-              <Table className="w-4 h-4 mr-2" />
-              Table
-            </Button>
-          </div>
-        </div>
+      <div className="flex">
+        <AdminSidebar 
+          user={user}
+          organization={null}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          handleLogout={handleLogout}
+        />
 
-        {/* Summary Cards */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
-          <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/30 shadow-lg">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-yellow-700 dark:text-yellow-400 font-medium">Pending</p>
-                  <p className="text-3xl font-bold text-yellow-900 dark:text-yellow-300">{pendingRequests.length}</p>
-                </div>
-                <Clock className="w-8 h-8 text-yellow-600 dark:text-yellow-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 shadow-lg">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-green-700 dark:text-green-400 font-medium">Approved</p>
-                  <p className="text-3xl font-bold text-green-900 dark:text-green-300">{approvedRequests.length}</p>
-                </div>
-                <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 shadow-lg">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-red-700 dark:text-red-400 font-medium">Rejected</p>
-                  <p className="text-3xl font-bold text-red-900 dark:text-red-300">{rejectedRequests.length}</p>
-                </div>
-                <XCircle className="w-8 h-8 text-red-600 dark:text-red-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {viewMode === 'card' ? (
-          <>
-            {/* Pending Requests - Cards */}
-            {pendingRequests.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Pending Requests</h2>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {pendingRequests.map(request => (
-                    <RequestCard key={request.id} request={request} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Approved Requests - Cards */}
-            {approvedRequests.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Approved Requests</h2>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {approvedRequests.map(request => (
-                    <RequestCard key={request.id} request={request} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Rejected Requests - Cards */}
-            {rejectedRequests.length > 0 && (
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Rejected Requests</h2>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {rejectedRequests.map(request => (
-                    <RequestCard key={request.id} request={request} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="space-y-6">
-            {/* Pending Requests - Table */}
-            {pendingRequests.length > 0 && (
-              <RequestTable requests={pendingRequests} title="Pending Requests" />
-            )}
-
-            {/* Approved Requests - Table */}
-            {approvedRequests.length > 0 && (
-              <RequestTable requests={approvedRequests} title="Approved Requests" />
-            )}
-
-            {/* Rejected Requests - Table */}
-            {rejectedRequests.length > 0 && (
-              <RequestTable requests={rejectedRequests} title="Rejected Requests" />
-            )}
-          </div>
-        )}
-
-        {requests.length === 0 && (
-          <div className="text-center py-16">
-            <Shield className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-gray-400 text-lg">No admin requests yet</p>
-          </div>
-        )}
-
-        {/* Approval Confirmation Dialog */}
-        <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
-          <DialogContent className="max-w-md bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
-            <DialogHeader>
-              <DialogTitle className="text-gray-900 dark:text-white">Approve Admin Access</DialogTitle>
-              <DialogDescription className="text-gray-600 dark:text-gray-400">
-                Review the details and confirm approval. The organization will be created automatically.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 space-y-2 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-start gap-2">
-                  <Building2 className="w-4 h-4 text-gray-600 dark:text-gray-400 mt-0.5" />
+        <main className="flex-1 min-w-0">
+          <div className="p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto space-y-8">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  </div>
                   <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">Organization to be created:</p>
-                    <p className="text-sm font-bold text-gray-900 dark:text-white">{selectedRequest?.organization_name}</p>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Approvals</h1>
+                    <p className="text-gray-600 dark:text-gray-400">Review and approve admin access requests</p>
                   </div>
                 </div>
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-                  <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Admin:</strong> {selectedRequest?.user_name}</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Email:</strong> {selectedRequest?.user_email}</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Phone:</strong> {selectedRequest?.phone_number}</p>
+
+                {/* View Toggle */}
+                <div className="flex bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-1 shadow-sm">
+                  <Button
+                    variant={viewMode === 'card' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('card')}
+                    className={`font-bold ${viewMode === 'card' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                  >
+                    <LayoutGrid className="w-4 h-4 mr-2" />
+                    Cards
+                  </Button>
+                  <Button
+                    variant={viewMode === 'table' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('table')}
+                    className={`font-bold ${viewMode === 'table' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                  >
+                    <Table className="w-4 h-4 mr-2" />
+                    Table
+                  </Button>
                 </div>
               </div>
 
-              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm text-gray-700 dark:text-gray-300">
-                <strong>What will happen:</strong>
-                <ul className="mt-2 space-y-1 list-disc list-inside text-xs">
-                  <li>A new organization will be created automatically</li>
-                  <li>A unique access code will be generated</li>
-                  <li>The requester's user role will be updated to 'admin' for this organization</li>
-                  <li>The requester will receive an email with the code</li>
-                  <li>They can use the code to confirm their admin account</li>
-                </ul>
+              {/* Summary Cards */}
+              <div className="grid md:grid-cols-3 gap-4">
+                <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/30 shadow-lg">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-yellow-700 dark:text-yellow-400 font-medium">Pending</p>
+                        <p className="text-3xl font-bold text-yellow-900 dark:text-yellow-300">{pendingRequests.length}</p>
+                      </div>
+                      <Clock className="w-8 h-8 text-yellow-600 dark:text-yellow-500" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 shadow-lg">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-green-700 dark:text-green-400 font-medium">Approved</p>
+                        <p className="text-3xl font-bold text-green-900 dark:text-green-300">{approvedRequests.length}</p>
+                      </div>
+                      <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-500" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 shadow-lg">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-red-700 dark:text-red-400 font-medium">Rejected</p>
+                        <p className="text-3xl font-bold text-red-900 dark:text-red-300">{rejectedRequests.length}</p>
+                      </div>
+                      <XCircle className="w-8 h-8 text-red-600 dark:text-red-500" />
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => approveMutation.mutate(selectedRequest.id)}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold"
-                  disabled={approveMutation.isLoading}
-                >
-                  {approveMutation.isLoading ? 'Processing...' : 'Approve & Create Organization'}
-                </Button>
-                <Button
-                  onClick={() => setSelectedRequest(null)}
-                  variant="outline"
-                  className="flex-1 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
-                  disabled={approveMutation.isLoading}
-                >
-                  Cancel
-                </Button>
-              </div>
+              {viewMode === 'card' ? (
+                <>
+                  {pendingRequests.length > 0 && (
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Pending Requests</h2>
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {pendingRequests.map(request => (
+                          <RequestCard key={request.id} request={request} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {approvedRequests.length > 0 && (
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Approved Requests</h2>
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {approvedRequests.map(request => (
+                          <RequestCard key={request.id} request={request} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {rejectedRequests.length > 0 && (
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Rejected Requests</h2>
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {rejectedRequests.map(request => (
+                          <RequestCard key={request.id} request={request} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="space-y-6">
+                  {pendingRequests.length > 0 && (
+                    <RequestTable requests={pendingRequests} title="Pending Requests" />
+                  )}
+                  {approvedRequests.length > 0 && (
+                    <RequestTable requests={approvedRequests} title="Approved Requests" />
+                  )}
+                  {rejectedRequests.length > 0 && (
+                    <RequestTable requests={rejectedRequests} title="Rejected Requests" />
+                  )}
+                </div>
+              )}
+
+              {requests.length === 0 && (
+                <div className="text-center py-16">
+                  <Shield className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400 text-lg">No admin requests yet</p>
+                </div>
+              )}
+
+              {/* Approval Confirmation Dialog */}
+              <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
+                <DialogContent className="max-w-md bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                  <DialogHeader>
+                    <DialogTitle className="text-gray-900 dark:text-white">Approve Admin Access</DialogTitle>
+                    <DialogDescription className="text-gray-600 dark:text-gray-400">
+                      Review the details and confirm approval. The organization will be created automatically.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 space-y-2 border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-start gap-2">
+                        <Building2 className="w-4 h-4 text-gray-600 dark:text-gray-400 mt-0.5" />
+                        <div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">Organization to be created:</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-white">{selectedRequest?.organization_name}</p>
+                        </div>
+                      </div>
+                      <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                        <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Admin:</strong> {selectedRequest?.user_name}</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Email:</strong> {selectedRequest?.user_email}</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Phone:</strong> {selectedRequest?.phone_number}</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm text-gray-700 dark:text-gray-300">
+                      <strong>What will happen:</strong>
+                      <ul className="mt-2 space-y-1 list-disc list-inside text-xs">
+                        <li>A new organization will be created automatically</li>
+                        <li>A unique access code will be generated</li>
+                        <li>The requester's user role will be updated to 'admin' for this organization</li>
+                        <li>The requester will receive an email with the code</li>
+                        <li>They can use the code to confirm their admin account</li>
+                      </ul>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={() => approveMutation.mutate(selectedRequest.id)}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold"
+                        disabled={approveMutation.isLoading}
+                      >
+                        {approveMutation.isLoading ? 'Processing...' : 'Approve & Create Organization'}
+                      </Button>
+                      <Button
+                        onClick={() => setSelectedRequest(null)}
+                        variant="outline"
+                        className="flex-1 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
+                        disabled={approveMutation.isLoading}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
-          </DialogContent>
-        </Dialog>
+          </div>
+        </main>
       </div>
     </div>
   );
