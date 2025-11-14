@@ -177,7 +177,7 @@ export default function PublicLanding() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-900 dark:to-indigo-950 text-white py-32 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iIzFmMmQzZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iIzFmMmQzZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
         
         {/* Top Right Controls - Dark Mode + Dashboard + Logout */}
         <div className="absolute top-6 right-6 flex items-center gap-3 z-50">
@@ -285,6 +285,176 @@ export default function PublicLanding() {
         </div>
         
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent"></div>
+      </section>
+
+      {/* Video/Visual Showcase Section - NEW */}
+      <section className="py-24 px-4 bg-white dark:bg-gray-800">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 text-sm font-bold px-4 py-2">
+              🎬 SEE IT IN ACTION
+            </Badge>
+            <h2 className="text-5xl font-black text-gray-900 dark:text-white mb-4">
+              Experience ALAB Sports Live
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Watch how our platform transforms sports league management with real-time features and intuitive design.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8 mb-12">
+            {/* Live Scoring Preview */}
+            <Card className="relative overflow-hidden border-2 border-gray-200 dark:border-gray-700 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 shadow-2xl group hover:shadow-3xl transition-all">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+              <CardContent className="p-8 relative z-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <PlayCircle className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-gray-900 dark:text-white">Live Scoring</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Real-time game tracking</p>
+                  </div>
+                </div>
+                
+                {/* Mock Live Score Display */}
+                <div className="bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 rounded-2xl p-6 shadow-2xl mb-4">
+                  <div className="text-center mb-4">
+                    <Badge className="bg-red-500 text-white font-black px-4 py-1">
+                      <PlayCircle className="w-4 h-4 mr-1 inline animate-pulse" />
+                      LIVE Q3
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 items-center text-white">
+                    <div className="text-center">
+                      <div className="text-sm font-bold mb-2 text-blue-300">EAGLES</div>
+                      <div className="text-6xl font-black">78</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-black text-gray-400">VS</div>
+                      <div className="text-xs text-gray-400 mt-2">12:34</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm font-bold mb-2 text-orange-300">LIONS</div>
+                      <div className="text-6xl font-black">72</div>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-4 gap-2 text-center text-xs text-gray-400">
+                    <div><span className="font-bold text-white">Q1:</span> 22-18</div>
+                    <div><span className="font-bold text-white">Q2:</span> 24-21</div>
+                    <div><span className="font-bold text-white">Q3:</span> 32-33</div>
+                    <div><span className="font-bold text-gray-500">Q4:</span> -</div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span className="font-medium">Track scores in real-time</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span className="font-medium">Record player statistics live</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span className="font-medium">Instant updates for fans</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Statistics Dashboard Preview */}
+            <Card className="relative overflow-hidden border-2 border-gray-200 dark:border-gray-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-gray-900 dark:to-gray-800 shadow-2xl group hover:shadow-3xl transition-all">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-green-400/20 to-emerald-400/20 rounded-full blur-3xl"></div>
+              <CardContent className="p-8 relative z-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <BarChart3 className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-gray-900 dark:text-white">Analytics</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Comprehensive insights</p>
+                  </div>
+                </div>
+                
+                {/* Mock Player Stats */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-lg mb-4 border-2 border-gray-100 dark:border-gray-700">
+                  <h4 className="text-sm font-black text-gray-900 dark:text-white mb-3">TOP SCORERS</h4>
+                  <div className="space-y-2">
+                    {[
+                      { name: "John Smith", team: "Eagles", pts: 28.5, color: "from-yellow-400 to-orange-500" },
+                      { name: "Mike Johnson", team: "Lions", pts: 24.3, color: "from-gray-300 to-gray-400" },
+                      { name: "Chris Lee", team: "Tigers", pts: 22.8, color: "from-orange-600 to-red-600" }
+                    ].map((player, i) => (
+                      <div key={i} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
+                        <div className={`w-8 h-8 bg-gradient-to-br ${player.color} rounded-lg flex items-center justify-center text-xs font-black text-white shadow-md`}>
+                          {i + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{player.name}</p>
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400">{player.team}</p>
+                        </div>
+                        <div className="text-xl font-black text-blue-600 dark:text-blue-400">{player.pts}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span className="font-medium">Detailed player rankings</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span className="font-medium">Team standings & records</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span className="font-medium">Historical data tracking</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Platform Screenshots Grid */}
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all overflow-hidden group">
+              <div className="bg-gradient-to-br from-purple-500 to-indigo-600 p-8 h-48 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjIiLz48L2c+PC9zdmc+')] opacity-20"></div>
+                <Users className="w-24 h-24 text-white relative z-10 transform group-hover:scale-110 transition-transform" />
+              </div>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-black text-gray-900 dark:text-white mb-2">Team Management</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Organize teams, players, and rosters with ease</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all overflow-hidden group">
+              <div className="bg-gradient-to-br from-orange-500 to-red-600 p-8 h-48 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjIiLz48L2c+PC9zdmc+')] opacity-20"></div>
+                <Calendar className="w-24 h-24 text-white relative z-10 transform group-hover:scale-110 transition-transform" />
+              </div>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-black text-gray-900 dark:text-white mb-2">Schedule Games</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Manage fixtures, playoffs, and tournaments seamlessly</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all overflow-hidden group">
+              <div className="bg-gradient-to-br from-blue-500 to-cyan-600 p-8 h-48 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjIiLz48L2c+PC9zdmc+')] opacity-20"></div>
+                <Globe className="w-24 h-24 text-white relative z-10 transform group-hover:scale-110 transition-transform" />
+              </div>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-black text-gray-900 dark:text-white mb-2">Public Access</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Share live scores and stats with fans worldwide</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </section>
 
       {/* Features Section */}
