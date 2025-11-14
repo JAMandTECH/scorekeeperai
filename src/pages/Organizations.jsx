@@ -182,63 +182,67 @@ export default function Organizations() {
                 {organizations.map((org) => (
                   <Card key={org.id} className="relative overflow-hidden border-2 border-purple-100 dark:border-purple-900 bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-purple-950/30 shadow-lg hover:shadow-2xl transition-all group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/20 to-transparent rounded-full blur-3xl"></div>
-                    <CardHeader className="relative z-10">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-3 flex-1">
-                          <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
-                            <AvatarImage src={org.logo_url} />
-                            <AvatarFallback className="bg-gradient-to-br from-purple-500 to-purple-600 text-white font-black text-lg">
-                              {org.name?.substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{org.name}</CardTitle>
-                            <Badge 
-                              variant={org.status === 'active' ? 'default' : 'secondary'} 
-                              className={`mt-1 font-bold ${
-                                org.status === 'active' 
-                                  ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800' 
-                                  : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
-                              }`}
-                            >
-                              {org.status}
-                            </Badge>
-                          </div>
+                    <CardHeader className="relative z-10 pb-3">
+                      <div className="flex items-start gap-3">
+                        <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl flex-shrink-0">
+                          <AvatarImage src={org.logo_url} />
+                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-purple-600 text-white font-black text-lg">
+                            {org.name?.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate pr-8">{org.name}</CardTitle>
+                          <Badge 
+                            variant={org.status === 'active' ? 'default' : 'secondary'} 
+                            className={`mt-1 font-bold ${
+                              org.status === 'active' 
+                                ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800' 
+                                : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+                            }`}
+                          >
+                            {org.status}
+                          </Badge>
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button 
                               variant="ghost" 
                               size="icon"
-                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              className="flex-shrink-0 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                             >
-                              <MoreVertical className="w-4 h-4" />
+                              <MoreVertical className="w-5 h-5" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={() => handleEdit(org)}>
+                          <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                            <DropdownMenuItem 
+                              onClick={() => handleEdit(org)}
+                              className="cursor-pointer font-semibold"
+                            >
                               <Edit className="w-4 h-4 mr-2" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleStatus(org)}>
+                            <DropdownMenuItem 
+                              onClick={() => handleToggleStatus(org)}
+                              className="cursor-pointer font-semibold"
+                            >
                               {org.status === 'active' ? (
                                 <>
                                   <Pause className="w-4 h-4 mr-2" />
-                                  Pause
+                                  Pause Organization
                                 </>
                               ) : (
                                 <>
                                   <Play className="w-4 h-4 mr-2" />
-                                  Activate
+                                  Activate Organization
                                 </>
                               )}
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => setDeleteDialog(org)}
-                              className="text-red-600 dark:text-red-400"
+                              className="cursor-pointer text-red-600 dark:text-red-400 font-semibold"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
-                              Delete
+                              Delete Organization
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
