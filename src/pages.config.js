@@ -20,6 +20,7 @@ import RoleSelection from './pages/RoleSelection';
 import AssociateOrganization from './pages/AssociateOrganization';
 import OrganizationSelector from './pages/OrganizationSelector';
 import OrganizationSettings from './pages/OrganizationSettings';
+import DataBackup from './pages/DataBackup';
 
 
 export const PAGES = {
@@ -45,6 +46,7 @@ export const PAGES = {
     "AssociateOrganization": AssociateOrganization,
     "OrganizationSelector": OrganizationSelector,
     "OrganizationSettings": OrganizationSettings,
+    "DataBackup": DataBackup,
 }
 
 export const pagesConfig = {
