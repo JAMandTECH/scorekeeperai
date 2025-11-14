@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Building2, Mail, Phone, MapPin, Edit, Upload, Image } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Plus, Building2, Mail, Phone, MapPin, Edit, Upload, Image, Pause, Play, Trash2, MoreVertical } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import { createPageUrl } from "@/utils";
@@ -21,6 +23,7 @@ export default function Organizations() {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -77,6 +80,14 @@ export default function Organizations() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Organization.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['organizations']);
+      setDeleteDialog(null);
+    },
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUploading(true);
@@ -112,6 +123,15 @@ export default function Organizations() {
     setEditingOrg(org);
     setLogoFile(null);
     setShowForm(true);
+  };
+
+  const handleToggleStatus = async (org) => {
+    const newStatus = org.status === 'active' ? 'inactive' : 'active';
+    await updateMutation.mutateAsync({ id: org.id, data: { status: newStatus } });
+  };
+
+  const handleDelete = async (orgId) => {
+    await deleteMutation.mutateAsync(orgId);
   };
 
   return (
@@ -185,14 +205,43 @@ export default function Organizations() {
                             </Badge>
                           </div>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => handleEdit(org)}
-                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => handleEdit(org)}>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleToggleStatus(org)}>
+                              {org.status === 'active' ? (
+                                <>
+                                  <Pause className="w-4 h-4 mr-2" />
+                                  Pause
+                                </>
+                              ) : (
+                                <>
+                                  <Play className="w-4 h-4 mr-2" />
+                                  Activate
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => setDeleteDialog(org)}
+                              className="text-red-600 dark:text-red-400"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-3 relative z-10">
@@ -227,7 +276,7 @@ export default function Organizations() {
                 </div>
               )}
 
-              {/* Dialog */}
+              {/* Add/Edit Dialog */}
               <Dialog open={showForm} onOpenChange={setShowForm}>
                 <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-md">
                   <DialogHeader>
@@ -310,6 +359,40 @@ export default function Organizations() {
                       </Button>
                     </div>
                   </form>
+                </DialogContent>
+              </Dialog>
+
+              {/* Delete Confirmation Dialog */}
+              <Dialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
+                <DialogContent className="bg-white dark:bg-gray-800 border-2 border-red-500 max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl font-black text-red-600 dark:text-red-400">Delete Organization</DialogTitle>
+                    <DialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
+                      Are you sure you want to delete "{deleteDialog?.name}"? This action cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Alert className="bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-800">
+                    <AlertDescription className="text-red-800 dark:text-red-300 font-bold text-sm">
+                      ⚠️ All teams, players, games, and data associated with this organization will remain in the system but will no longer be accessible through this organization.
+                    </AlertDescription>
+                  </Alert>
+                  <div className="flex justify-end gap-3 pt-4">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setDeleteDialog(null)}
+                      className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={() => handleDelete(deleteDialog.id)}
+                      className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Organization
+                    </Button>
+                  </div>
                 </DialogContent>
               </Dialog>
             </div>
