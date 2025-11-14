@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User, Eye, EyeOff } from "lucide-react";
+import { CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User, Eye, EyeOff, Flag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -33,6 +33,7 @@ export default function LiveScoring() {
   const [showQuarterEnd, setShowQuarterEnd] = useState(false);
   const [actionHistory, setActionHistory] = useState([]);
   const [showQuarterStats, setShowQuarterStats] = useState(true);
+  const [showDefaultDialog, setShowDefaultDialog] = useState(false);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
@@ -158,7 +159,6 @@ export default function LiveScoring() {
     return totalFouls;
   };
 
-  // Update multiple stats at once to avoid race conditions and simplify logic
   const updatePlayerStats = async (playerId, teamId, statUpdates) => {
     const key = getPlayerStatKey(playerId);
     let statToPersist = null; 
@@ -173,7 +173,6 @@ export default function LiveScoring() {
         quarter: currentQuarter,
       };
 
-      // Apply all stat updates
       statUpdates.forEach(({ statType, value }) => {
         newStatData[statType] = Math.max(0, (newStatData[statType] || 0) + value);
       });
@@ -186,7 +185,6 @@ export default function LiveScoring() {
       };
     });
 
-    // Now persist statToPersist
     try {
       if (statToPersist.id) {
         await base44.entities.PlayerGameStats.update(statToPersist.id, statToPersist);
@@ -452,6 +450,63 @@ export default function LiveScoring() {
     navigate(createPageUrl("Games"));
   };
 
+  const handleDeclareDefault = async (defaultedTeamId) => {
+    const winningTeamId = defaultedTeamId === game.home_team_id ? game.away_team_id : game.home_team_id;
+    const newHomeScore = defaultedTeamId === game.home_team_id ? 0 : 20;
+    const newAwayScore = defaultedTeamId === game.away_team_id ? 0 : 20;
+
+    await base44.entities.Game.update(game.id, {
+      status: 'completed',
+      home_score: newHomeScore,
+      away_score: newAwayScore,
+      is_default: true,
+      defaulted_team_id: defaultedTeamId,
+      winning_team_id: winningTeamId,
+    });
+
+    const allTeams = await base44.entities.Team.list();
+    const winningTeam = allTeams.find(t => t.id === winningTeamId);
+    const defaultedTeam = allTeams.find(t => t.id === defaultedTeamId);
+
+    await base44.entities.Team.update(winningTeamId, {
+      wins: (winningTeam.wins || 0) + 1
+    });
+
+    await base44.entities.Team.update(defaultedTeamId, {
+      losses: (defaultedTeam.losses || 0) + 1
+    });
+
+    setShowDefaultDialog(false);
+    navigate(createPageUrl("Games"));
+  };
+
+  const handleUndoDefault = async () => {
+    if (!game.is_default) return;
+
+    const allTeams = await base44.entities.Team.list();
+    const winningTeam = allTeams.find(t => t.id === game.winning_team_id);
+    const defaultedTeam = allTeams.find(t => t.id === game.defaulted_team_id);
+
+    await base44.entities.Team.update(game.winning_team_id, {
+      wins: Math.max(0, (winningTeam.wins || 0) - 1)
+    });
+
+    await base44.entities.Team.update(game.defaulted_team_id, {
+      losses: Math.max(0, (defaultedTeam.losses || 0) - 1)
+    });
+
+    await base44.entities.Game.update(game.id, {
+      status: 'in_progress',
+      home_score: 0,
+      away_score: 0,
+      is_default: false,
+      defaulted_team_id: null,
+      winning_team_id: null,
+    });
+
+    await loadGame();
+  };
+
   if (!game || !homeTeam || !awayTeam) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
@@ -557,7 +612,7 @@ export default function LiveScoring() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900">
-      {/* TOP NAVIGATION BAR WITH ORG LOGO AND BACK BUTTON */}
+      {/* TOP NAVIGATION BAR */}
       <div className="sticky top-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -586,8 +641,30 @@ export default function LiveScoring() {
         </div>
       </div>
 
-      {/* Main Scoreboard - Sticky BELOW top nav */}
-      <div className="sticky z-40 bg-gradient-to-r from-gray-900 via-orange-900 to-gray-900 border-b-4 border-orange-500 shadow-2xl" style={{ top: '64px' }}>
+      {/* DEFAULT GAME ALERT */}
+      {game.is_default && (
+        <div className="sticky z-40 bg-red-900/95 border-b-4 border-red-500" style={{ top: '64px' }}>
+          <div className="max-w-7xl mx-auto p-4">
+            <Alert className="bg-red-800/50 border-2 border-red-400">
+              <Flag className="h-5 w-5 text-red-300" />
+              <AlertDescription className="text-red-100 font-bold flex items-center justify-between">
+                <span>⚠️ This game ended by DEFAULT. {defaultedTeam?.name === homeTeam?.name ? homeTeam.name : awayTeam.name} defaulted. Final Score: {game.home_score}-{game.away_score}</span>
+                <Button
+                  onClick={handleUndoDefault}
+                  size="sm"
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold ml-4"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Undo Default
+                </Button>
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
+      )}
+
+      {/* Main Scoreboard */}
+      <div className="sticky z-40 bg-gradient-to-r from-gray-900 via-orange-900 to-gray-900 border-b-4 border-orange-500 shadow-2xl" style={{ top: game.is_default ? '164px' : '64px' }}>
         <div className="max-w-7xl mx-auto p-4">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Badge className="bg-red-600 text-white border-2 border-red-400 px-6 py-2 text-base font-black shadow-lg">
@@ -603,7 +680,7 @@ export default function LiveScoring() {
           </div>
 
           <div className="grid grid-cols-3 gap-4 items-center mb-4">
-            {/* HOME TEAM WITH LOGO */}
+            {/* HOME TEAM */}
             <div className="text-center">
               <div className="text-orange-400 text-sm font-black mb-2">HOME</div>
               <div className="flex items-center justify-center gap-3 mb-2">
@@ -624,7 +701,7 @@ export default function LiveScoring() {
               </div>
             </div>
 
-            {/* QUARTER SCORES WITH BUTTONS BELOW */}
+            {/* QUARTER SCORES */}
             <div className="text-center">
               <div className="text-white text-2xl font-black mb-3">{quarterLabel}</div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
@@ -640,8 +717,16 @@ export default function LiveScoring() {
                 </div>
               </div>
               
-              {/* QUARTER END AND CANCEL BUTTONS */}
-              <div className="flex gap-2 justify-center">
+              {/* BUTTONS */}
+              <div className="flex gap-2 justify-center flex-wrap">
+                <Button
+                  onClick={() => setShowDefaultDialog(true)}
+                  size="sm"
+                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-xs px-4 py-2"
+                >
+                  <Flag className="w-4 h-4 mr-1" />
+                  DECLARE DEFAULT
+                </Button>
                 {currentQuarter <= 4 && (
                   <Button
                     onClick={() => setShowQuarterEnd(true)}
@@ -693,7 +778,7 @@ export default function LiveScoring() {
               </div>
             </div>
 
-            {/* AWAY TEAM WITH LOGO */}
+            {/* AWAY TEAM */}
             <div className="text-center">
               <div className="text-blue-400 text-sm font-black mb-2">AWAY</div>
               <div className="flex items-center justify-center gap-3 mb-2">
@@ -715,7 +800,7 @@ export default function LiveScoring() {
             </div>
           </div>
 
-          {/* TIED GAME ALERT */}
+          {/* ALERTS */}
           {currentQuarter >= 4 && homeScore === awayScore && (
             <Alert className="bg-yellow-900/50 border-2 border-yellow-500 mb-4">
               <AlertTriangle className="h-5 w-5 text-yellow-400" />
@@ -738,9 +823,9 @@ export default function LiveScoring() {
         </div>
       </div>
 
-      {/* Control Panel - STICKY BELOW scoreboard */}
+      {/* Control Panel */}
       {selectedPlayer ? (
-        <div className="sticky z-30 bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900" style={{ top: '364px' }}>
+        <div className="sticky z-30 bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900" style={{ top: game.is_default ? '464px' : '364px' }}>
           <div className="mx-4 my-4">
             <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
               <CardContent className="p-6">
@@ -834,7 +919,7 @@ export default function LiveScoring() {
                   </Button>
                 </div>
 
-                {/* QUARTER STATS WITH TOGGLE */}
+                {/* QUARTER STATS */}
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Quarter Stats:</p>
@@ -903,12 +988,11 @@ export default function LiveScoring() {
         </div>
       )}
 
-      {/* Players Section - USING FLEXBOX FOR TRULY FROZEN HEADERS */}
+      {/* Players Section */}
       <div className="max-w-7xl mx-auto p-4 pb-24">
         <div className="grid lg:grid-cols-2 gap-4">
-          {/* Home Team - FLEXBOX STRUCTURE */}
+          {/* Home Team */}
           <div className="flex flex-col h-[700px] bg-gradient-to-br from-orange-900/40 to-orange-950/40 border-4 border-orange-500 backdrop-blur-sm rounded-xl">
-            {/* FROZEN HEADER */}
             <div className="flex-shrink-0 bg-orange-900/95 backdrop-blur-sm border-b-4 border-orange-500 p-3 rounded-t-xl">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-xl font-black text-white">
@@ -924,7 +1008,6 @@ export default function LiveScoring() {
                 </Button>
               </div>
             </div>
-            {/* SCROLLABLE PLAYERS */}
             <div className="flex-1 overflow-y-auto p-3">
               {homePlayers.map(player => (
                 <PlayerRow key={getPlayerRenderKey(player.id)} player={player} team="home" teamId={game.home_team_id} onSelect={handlePlayerSelect} />
@@ -932,9 +1015,8 @@ export default function LiveScoring() {
             </div>
           </div>
 
-          {/* Away Team - FLEXBOX STRUCTURE */}
+          {/* Away Team */}
           <div className="flex flex-col h-[700px] bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm rounded-xl">
-            {/* FROZEN HEADER */}
             <div className="flex-shrink-0 bg-blue-900/95 backdrop-blur-sm border-b-4 border-blue-500 p-3 rounded-t-xl">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-xl font-black text-white">
@@ -950,7 +1032,6 @@ export default function LiveScoring() {
                 </Button>
               </div>
             </div>
-            {/* SCROLLABLE PLAYERS */}
             <div className="flex-1 overflow-y-auto p-3">
               {awayPlayers.map(player => (
                 <PlayerRow key={getPlayerRenderKey(player.id)} player={player} team="away" teamId={game.away_team_id} onSelect={handlePlayerSelect} />
@@ -959,6 +1040,55 @@ export default function LiveScoring() {
           </div>
         </div>
       </div>
+
+      {/* Declare Default Dialog */}
+      <Dialog open={showDefaultDialog} onOpenChange={setShowDefaultDialog}>
+        <DialogContent className="bg-gray-900 border-4 border-red-500 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white text-2xl font-black flex items-center gap-2">
+              <Flag className="w-6 h-6 text-red-400" />
+              Declare Game Default
+            </DialogTitle>
+            <DialogDescription className="text-gray-300 font-bold">
+              Select which team is defaulting. The non-defaulting team will automatically win 20-0.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Alert className="bg-red-900/50 border-2 border-red-500">
+              <AlertTriangle className="h-4 w-4 text-red-400" />
+              <AlertDescription className="text-red-200 font-bold text-sm">
+                ⚠️ This action will end the game immediately. The defaulting team will receive a loss and the other team will receive a win.
+              </AlertDescription>
+            </Alert>
+
+            <div className="space-y-3">
+              <Button
+                onClick={() => handleDeclareDefault(game.home_team_id)}
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black text-lg py-6 border-2 border-orange-400"
+              >
+                {homeTeam.name} DEFAULTS
+                <span className="ml-2 text-sm">(Away team wins 20-0)</span>
+              </Button>
+              
+              <Button
+                onClick={() => handleDeclareDefault(game.away_team_id)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-lg py-6 border-2 border-blue-400"
+              >
+                {awayTeam.name} DEFAULTS
+                <span className="ml-2 text-sm">(Home team wins 20-0)</span>
+              </Button>
+            </div>
+
+            <Button
+              onClick={() => setShowDefaultDialog(false)}
+              variant="outline"
+              className="w-full border-2 border-gray-600 text-white hover:bg-gray-800 font-black"
+            >
+              CANCEL
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* End Quarter Dialog */}
       <Dialog open={showQuarterEnd} onOpenChange={setShowQuarterEnd}>
