@@ -16,8 +16,8 @@ export default function AdminSidebar({
   const isAdmin = user?.role === 'admin';
 
   const superAdminNav = [
-    { title: "Home", url: createPageUrl("Home"), icon: Home },
-    { title: "Super Admin Dashboard", url: createPageUrl("SuperAdminDashboard"), icon: Gauge },
+    { title: "Super Admin Home", url: createPageUrl("SuperAdminHome"), icon: Home },
+    { title: "Analytics Dashboard", url: createPageUrl("SuperAdminDashboard"), icon: Gauge },
     { title: "Organizations", url: createPageUrl("Organizations"), icon: Building2 },
     { title: "All Teams", url: createPageUrl("AllTeams"), icon: Users },
     { title: "All Games", url: createPageUrl("AllGames"), icon: Calendar },
