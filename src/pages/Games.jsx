@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin } from "lucide-react";
+import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,13 +13,14 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Games() {
   const [showForm, setShowForm] = useState(false);
   const [user, setUser] = useState(null);
-  // Organization state is now handled by useQuery
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [conflicts, setConflicts] = useState([]);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -46,14 +46,12 @@ export default function Games() {
   const loadUser = async () => {
     const currentUser = await base44.auth.me();
     setUser(currentUser);
-    // Organization fetching is now handled by useQuery
   };
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("PublicLanding"));
   };
 
-  // Fetch organization using React Query
   const { data: organization } = useQuery({
     queryKey: ['organization', user?.organization_id],
     queryFn: async () => {
@@ -75,13 +73,46 @@ export default function Games() {
     enabled: !!user?.organization_id,
   });
 
+  const checkScheduleConflicts = (gameDate, courtNumber, durationHours = 1.5) => {
+    if (!gameDate || !courtNumber) return [];
+    
+    const startTime = new Date(gameDate);
+    const endTime = new Date(startTime.getTime() + durationHours * 60 * 60 * 1000);
+    
+    const conflictingGames = games.filter(game => {
+      if (game.status === 'completed') return false;
+      if (game.court_number !== courtNumber) return false;
+      
+      const existingStart = new Date(game.game_date);
+      const existingEnd = new Date(existingStart.getTime() + (game.duration_hours || 1.5) * 60 * 60 * 1000);
+      
+      return (startTime < existingEnd && endTime > existingStart);
+    });
+    
+    return conflictingGames;
+  };
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Game.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['games']);
       setShowForm(false);
+      setConflicts([]);
     },
   });
+
+  const handleFormChange = (e) => {
+    const form = e.target.form;
+    const gameDate = form?.game_date?.value;
+    const courtNumber = form?.court_number?.value;
+    
+    if (gameDate && courtNumber) {
+      const foundConflicts = checkScheduleConflicts(gameDate, courtNumber);
+      setConflicts(foundConflicts);
+    } else {
+      setConflicts([]);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -93,6 +124,8 @@ export default function Games() {
       sport: formData.get('sport'),
       game_type: formData.get('game_type'),
       game_date: new Date(formData.get('game_date')).toISOString(),
+      court_number: formData.get('court_number'),
+      duration_hours: 1.5,
       location: formData.get('location'),
       penalty_limit_per_quarter: parseInt(formData.get('penalty_limit_per_quarter')),
       player_foul_limit: parseInt(formData.get('player_foul_limit')),
@@ -132,8 +165,13 @@ export default function Games() {
               </Badge>
               <p className="text-gray-500 dark:text-gray-400 text-sm font-semibold flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
-                {new Date(game.game_date).toLocaleDateString()}
+                {new Date(game.game_date).toLocaleDateString()} at {new Date(game.game_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
               </p>
+              {game.court_number && (
+                <p className="text-gray-600 dark:text-gray-400 text-xs font-bold mt-1">
+                  Court {game.court_number}
+                </p>
+              )}
             </div>
             <Badge variant="outline" className={`text-${sportColor}-600 dark:text-${sportColor}-400 border-${sportColor}-600 dark:border-${sportColor}-400 font-black`}>
               {game.sport}
@@ -285,11 +323,29 @@ export default function Games() {
               </Tabs>
 
               <Dialog open={showForm} onOpenChange={setShowForm}>
-                <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-xl">
+                <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">Schedule New Game</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleSubmit} className="space-y-4">
+                    {conflicts.length > 0 && (
+                      <Alert className="bg-red-50 dark:bg-red-950/30 border-2 border-red-500">
+                        <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                        <AlertDescription className="text-red-800 dark:text-red-300 font-bold">
+                          <p className="font-black mb-2">⚠️ SCHEDULING CONFLICT DETECTED!</p>
+                          <p className="text-sm">The selected court and time overlaps with {conflicts.length} existing game(s):</p>
+                          <ul className="mt-2 space-y-1 text-xs">
+                            {conflicts.map((conflict, idx) => (
+                              <li key={idx}>
+                                • Court {conflict.court_number} - {new Date(conflict.game_date).toLocaleString()} 
+                                ({getTeamName(conflict.home_team_id)} vs {getTeamName(conflict.away_team_id)})
+                              </li>
+                            ))}
+                          </ul>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
                     <div>
                       <Label htmlFor="sport" className="font-bold text-gray-700 dark:text-gray-300">Sport</Label>
                       <select
@@ -317,6 +373,33 @@ export default function Games() {
                         <option value="semi_finals">Semi Finals</option>
                         <option value="finals">Finals</option>
                       </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="game_date" className="font-bold text-gray-700 dark:text-gray-300">Date & Time *</Label>
+                        <Input
+                          id="game_date"
+                          name="game_date"
+                          type="datetime-local"
+                          required
+                          onChange={handleFormChange}
+                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="court_number" className="font-bold text-gray-700 dark:text-gray-300">Court Number *</Label>
+                        <Input
+                          id="court_number"
+                          name="court_number"
+                          type="text"
+                          required
+                          onChange={handleFormChange}
+                          placeholder="e.g., 1, 2, A, B"
+                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Duration: 1.5 hours</p>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -379,26 +462,16 @@ export default function Games() {
                       </select>
                     </div>
                     <div>
-                      <Label htmlFor="game_date" className="font-bold text-gray-700 dark:text-gray-300">Game Date & Time</Label>
-                      <Input
-                        id="game_date"
-                        name="game_date"
-                        type="datetime-local"
-                        required
-                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
-                      />
-                    </div>
-                    <div>
                       <Label htmlFor="location" className="font-bold text-gray-700 dark:text-gray-300">Location</Label>
                       <Input
                         id="location"
                         name="location"
-                        placeholder="e.g., Main Gym, Court 1"
+                        placeholder="e.g., Main Gym, Sports Complex"
                         className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
                       />
                     </div>
                     <div className="flex justify-end gap-3 pt-4">
-                      <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold">
+                      <Button type="button" variant="outline" onClick={() => { setShowForm(false); setConflicts([]); }} className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold">
                         Cancel
                       </Button>
                       <Button type="submit" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
