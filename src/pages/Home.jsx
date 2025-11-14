@@ -661,8 +661,8 @@ export default function Home() {
             </div>
           )}
 
-          {/* AI Insights Section - NEW */}
-          {(teams.length > 0 || games.length > 0) && (
+          {/* AI Insights Section - ONLY FOR ADMINS */}
+          {isAdmin && (teams.length > 0 || games.length > 0) && (
             <div className="mb-12">
               <AIInsights
                 teams={teams}
@@ -1061,8 +1061,8 @@ export default function Home() {
                                 </div>
                               )}
                               
-                              {/* AI Game Summary - NEW */}
-                              {homeTeamData && awayTeamData && topPlayersForAI.length > 0 && (
+                              {/* AI Game Summary - ONLY FOR ADMINS */}
+                              {isAdmin && homeTeamData && awayTeamData && topPlayersForAI.length > 0 && (
                                 <div className="mt-3">
                                   <AIGameSummary
                                     game={game}
@@ -1504,8 +1504,8 @@ export default function Home() {
                                 </div>
                               )}
 
-                              {/* AI Game Summary - NEW */}
-                              {homeTeamData && awayTeamData && topPlayersForAI.length > 0 && (
+                              {/* AI Game Summary - ONLY FOR ADMINS */}
+                              {isAdmin && homeTeamData && awayTeamData && topPlayersForAI.length > 0 && (
                                 <div className="mt-3">
                                   <AIGameSummary
                                     game={game}
