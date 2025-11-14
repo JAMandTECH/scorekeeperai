@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -71,8 +70,6 @@ export default function Players() {
     enabled: !!user?.organization_id,
   });
 
-  // Removed isSuperAdmin, isAdmin, superAdminNav, adminNav, navigationItems as they are now handled in AdminSidebar
-
   const { data: teams = [] } = useQuery({
     queryKey: ['teams', user?.organization_id],
     queryFn: () => base44.entities.Team.filter({ organization_id: user?.organization_id }),
@@ -81,11 +78,11 @@ export default function Players() {
 
   // Get unique divisions and sports from teams
   const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division'))].sort((a, b) => {
-    if (a === 'all') return -1; // 'all' comes first
+    if (a === 'all') return -1;
     if (b === 'all') return 1;
-    if (a === 'No Division') return -1; // 'No Division' comes after 'all'
+    if (a === 'No Division') return -1;
     if (b === 'No Division') return 1;
-    return a.localeCompare(b); // Sort alphabetically otherwise
+    return a.localeCompare(b);
   });
   const sports = ['all', 'basketball', 'volleyball'];
 
@@ -108,72 +105,84 @@ export default function Players() {
     return divisionMatch && sportMatch;
   });
 
+  const getTeamName = (teamId) => {
+    const team = teams.find(t => t.id === teamId);
+    return team?.name || 'Unknown Team';
+  };
+
+  const getTeamLogo = (teamId) => {
+    const team = teams.find(t => t.id === teamId);
+    return team?.logo_url || null;
+  };
+
+  const getTeamSport = (teamId) => {
+    const team = teams.find(t => t.id === teamId);
+    return team?.sport || 'basketball';
+  };
+
   // Filter players based on selected filters
   const players = allPlayers.filter(p => {
-    // Ensure the player's team exists within the fetched 'teams' (which are from the user's organization)
     const playerTeam = teams.find(t => t.id === p.team_id);
     if (!playerTeam) return false;
 
-    // Apply division filter
     if (selectedDivision !== 'all') {
       const teamDivision = playerTeam.division || 'No Division';
       if (teamDivision !== selectedDivision) return false;
     }
 
-    // Apply sport filter
     if (selectedSport !== 'all') {
       if (playerTeam.sport !== selectedSport) return false;
     }
 
-    // Apply team filter
     if (selectedTeam !== 'all') {
       if (p.team_id !== selectedTeam) return false;
     }
 
     return true;
   }).map(player => {
-    // Calculate aggregated stats from PlayerGameStats
     const playerStatsList = allPlayerStats.filter(s => s.player_id === player.id);
     const sport = getTeamSport(player.team_id);
+    const gamesPlayed = [...new Set(playerStatsList.map(s => s.game_id))].length;
     
     if (sport === 'volleyball') {
-      // Volleyball stats: Attacks (field_goals_made), Blocks, Aces (three_pointers)
+      // Volleyball: PTS, ATK (field_goals_made), BLK (blocks), ACE (three_pointers)
+      const points = playerStatsList.reduce((sum, s) => sum + (s.points || 0), 0);
       const attacks = playerStatsList.reduce((sum, s) => sum + (s.field_goals_made || 0), 0);
       const blocks = playerStatsList.reduce((sum, s) => sum + (s.blocks || 0), 0);
       const aces = playerStatsList.reduce((sum, s) => sum + (s.three_pointers || 0), 0);
-      const gamesPlayed = [...new Set(playerStatsList.map(s => s.game_id))].length;
       
       return {
         ...player,
-        stat1: attacks,
-        stat1_label: 'ATK',
-        stat2: blocks,
-        stat2_label: 'BLK',
-        stat3: aces,
-        stat3_label: 'ACE',
+        stats: [
+          { value: points, label: 'PTS' },
+          { value: attacks, label: 'ATK' },
+          { value: blocks, label: 'BLK' },
+          { value: aces, label: 'ACE' },
+        ],
         games_played: gamesPlayed,
       };
     } else {
-      // Basketball stats: Points, Rebounds, Assists
+      // Basketball: PTS, REB, AST, BLK, STL
       const points = playerStatsList.reduce((sum, s) => sum + (s.points || 0), 0);
       const rebounds = playerStatsList.reduce((sum, s) => sum + (s.rebounds || 0), 0);
       const assists = playerStatsList.reduce((sum, s) => sum + (s.assists || 0), 0);
-      const gamesPlayed = [...new Set(playerStatsList.map(s => s.game_id))].length;
+      const blocks = playerStatsList.reduce((sum, s) => sum + (s.blocks || 0), 0);
+      const steals = playerStatsList.reduce((sum, s) => sum + (s.steals || 0), 0);
       
       return {
         ...player,
-        stat1: points,
-        stat1_label: 'PTS',
-        stat2: rebounds,
-        stat2_label: 'REB',
-        stat3: assists,
-        stat3_label: 'AST',
+        stats: [
+          { value: points, label: 'PTS' },
+          { value: rebounds, label: 'REB' },
+          { value: assists, label: 'AST' },
+          { value: blocks, label: 'BLK' },
+          { value: steals, label: 'STL' },
+        ],
         games_played: gamesPlayed,
       };
     }
   });
 
-  // Reset team selection when division or sport changes
   const handleDivisionChange = (division) => {
     setSelectedDivision(division);
     setSelectedTeam('all');
@@ -188,7 +197,6 @@ export default function Players() {
     mutationFn: (data) => base44.entities.Player.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['players']);
-      queryClient.invalidateQueries(['player-stats']); // Invalidate player-stats too in case of new player related stats
       setShowForm(false);
       setEditingPlayer(null);
     },
@@ -198,7 +206,6 @@ export default function Players() {
     mutationFn: ({ id, data }) => base44.entities.Player.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['players']);
-      queryClient.invalidateQueries(['player-stats']); // Invalidate player-stats too in case of updated player related stats
       setShowForm(false);
       setEditingPlayer(null);
     },
@@ -219,7 +226,6 @@ export default function Players() {
         height: formData.get('height'),
       };
 
-      // Upload photo if a new file was selected
       if (photoFile) {
         const { file_url } = await base44.integrations.Core.UploadFile({ file: photoFile });
         data.photo_url = file_url;
@@ -232,30 +238,14 @@ export default function Players() {
       }
     } catch (error) {
       console.error("Error uploading photo:", error);
-      // Optionally show a user-friendly error message
     } finally {
       setUploading(false);
       setPhotoFile(null);
     }
   };
 
-  const getTeamName = (teamId) => {
-    const team = teams.find(t => t.id === teamId);
-    return team?.name || 'Unknown Team';
-  };
-
-  const getTeamLogo = (teamId) => {
-    const team = teams.find(t => t.id === teamId);
-    return team?.logo_url || null;
-  };
-
-  const getTeamSport = (teamId) => {
-    const team = teams.find(t => t.id === teamId);
-    return team?.sport || 'basketball'; // Default to basketball if sport is not defined
-  };
-
   const PlayerCard = ({ player, sport, sportColor, teamLogo }) => (
-    <Card key={player.id} className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 shadow-lg hover:shadow-2xl transition-all group`}>
+    <Card className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 shadow-lg hover:shadow-2xl transition-all group`}>
       <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-${sportColor}-500/20 to-transparent rounded-full blur-3xl`}></div>
       
       <CardHeader className="pb-3 relative z-10">
@@ -309,25 +299,15 @@ export default function Players() {
         </div>
         
         <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-4">
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-              <div className={`text-${sportColor}-600 dark:text-${sportColor}-400 font-black text-2xl`}>
-                {player.stat1 || 0}
+          <div className={`grid ${sport === 'volleyball' ? 'grid-cols-4' : 'grid-cols-5'} gap-2 text-center`}>
+            {player.stats.map((stat, idx) => (
+              <div key={idx} className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
+                <div className={`text-${sportColor}-600 dark:text-${sportColor}-400 font-black text-xl`}>
+                  {stat.value || 0}
+                </div>
+                <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">{stat.label}</div>
               </div>
-              <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">{player.stat1_label}</div>
-            </div>
-            <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-              <div className={`text-${sportColor}-600 dark:text-${sportColor}-400 font-black text-2xl`}>
-                {player.stat2 || 0}
-              </div>
-              <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">{player.stat2_label}</div>
-            </div>
-            <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-              <div className={`text-${sportColor}-600 dark:text-${sportColor}-400 font-black text-2xl`}>
-                {player.stat3 || 0}
-              </div>
-              <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">{player.stat3_label}</div>
-            </div>
+            ))}
           </div>
         </div>
         
@@ -341,9 +321,9 @@ export default function Players() {
   );
 
   const PlayerTable = ({ players }) => {
-    // Determine if we're showing a single sport or mixed
     const allSameSport = players.length > 0 && players.every(p => getTeamSport(p.team_id) === getTeamSport(players[0].team_id));
     const displaySport = allSameSport ? getTeamSport(players[0].team_id) : null;
+    const isVolleyball = displaySport === 'volleyball';
     
     return (
       <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
@@ -356,15 +336,21 @@ export default function Players() {
                   <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">TEAM</th>
                   <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">POS</th>
                   <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">HT</th>
-                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">
-                    {displaySport === 'volleyball' ? 'ATK' : 'PTS'}
-                  </th>
-                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">
-                    {displaySport === 'volleyball' ? 'BLK' : 'REB'}
-                  </th>
-                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">
-                    {displaySport === 'volleyball' ? 'ACE' : 'AST'}
-                  </th>
+                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PTS</th>
+                  {isVolleyball ? (
+                    <>
+                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ATK</th>
+                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">BLK</th>
+                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ACE</th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">REB</th>
+                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">AST</th>
+                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">BLK</th>
+                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">STL</th>
+                    </>
+                  )}
                   <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">GP</th>
                   <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ACTIONS</th>
                 </tr>
@@ -414,15 +400,11 @@ export default function Players() {
                       <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold text-sm">
                         {player.height || '-'}
                       </td>
-                      <td className="py-4 px-4 text-center font-bold text-lg text-blue-600 dark:text-blue-400">
-                        {player.stat1 || 0}
-                      </td>
-                      <td className="py-4 px-4 text-center font-bold text-lg text-green-600 dark:text-green-400">
-                        {player.stat2 || 0}
-                      </td>
-                      <td className="py-4 px-4 text-center font-bold text-lg text-purple-600 dark:text-purple-400">
-                        {player.stat3 || 0}
-                      </td>
+                      {player.stats.map((stat, idx) => (
+                        <td key={idx} className="py-4 px-4 text-center font-bold text-lg text-blue-600 dark:text-blue-400">
+                          {stat.value || 0}
+                        </td>
+                      ))}
                       <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold">
                         {player.games_played || 0}
                       </td>
@@ -465,7 +447,6 @@ export default function Players() {
       />
 
       <div className="flex">
-        {/* SIDEBAR */}
         <AdminSidebar 
           user={user}
           organization={organization}
@@ -474,18 +455,9 @@ export default function Players() {
           handleLogout={handleLogout}
         />
 
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-gray-900/50 dark:bg-black/70 z-30 backdrop-blur-sm mt-16"
-            onClick={() => setSidebarOpen(false)}
-          ></div>
-        )}
-
-        {/* MAIN CONTENT */}
         <main className="flex-1 min-w-0">
           <div className="p-6 lg:p-8">
             <div className="max-w-7xl mx-auto space-y-8">
-              {/* Header */}
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                   <h1 className="text-4xl font-black text-gray-900 dark:text-white">Players</h1>
@@ -503,11 +475,9 @@ export default function Players() {
                 </Button>
               </div>
 
-              {/* Filters Row */}
               <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">
                 <CardContent className="p-6">
                   <div className="flex flex-col gap-4">
-                    {/* Filter Header */}
                     <div className="flex items-center gap-2">
                       <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -522,9 +492,7 @@ export default function Players() {
                       </div>
                     </div>
 
-                    {/* Filter Controls */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      {/* Sport Filter */}
                       <div>
                         <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">SPORT</Label>
                         <select
@@ -540,7 +508,6 @@ export default function Players() {
                         </select>
                       </div>
 
-                      {/* Division Filter */}
                       <div>
                         <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">DIVISION</Label>
                         <select
@@ -556,7 +523,6 @@ export default function Players() {
                         </select>
                       </div>
 
-                      {/* Team Filter */}
                       <div>
                         <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">TEAM</Label>
                         <select
@@ -573,7 +539,6 @@ export default function Players() {
                         </select>
                       </div>
 
-                      {/* View Toggle */}
                       <div>
                         <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">VIEW</Label>
                         <div className="flex bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 rounded-xl p-1 shadow-sm">
@@ -597,7 +562,6 @@ export default function Players() {
                       </div>
                     </div>
 
-                    {/* Active Filters */}
                     {(selectedSport !== 'all' || selectedDivision !== 'all' || selectedTeam !== 'all') && (
                       <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                         <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Active Filters:</span>
@@ -650,7 +614,6 @@ export default function Players() {
                 </CardContent>
               </Card>
 
-              {/* Players Grid or Table */}
               {players.length > 0 ? (
                 viewMode === 'card' ? (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -683,7 +646,6 @@ export default function Players() {
                 </div>
               )}
 
-              {/* Dialog */}
               <Dialog open={showForm} onOpenChange={setShowForm}>
                 <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-md">
                   <DialogHeader>
@@ -692,7 +654,6 @@ export default function Players() {
                     </DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Player Photo Upload */}
                     <div>
                       <Label className="font-bold text-gray-700 dark:text-gray-300">Player Photo</Label>
                       <div className="mt-2 flex items-center gap-4">
