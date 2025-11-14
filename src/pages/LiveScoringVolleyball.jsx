@@ -37,10 +37,21 @@ export default function LiveScoringVolleyball() {
   const [actionHistory, setActionHistory] = useState([]);
   const [showSetStats, setShowSetStats] = useState(true);
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     loadGame();
+    loadUser();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loadUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+    } catch (error) {
+      console.error("Error loading user:", error);
+    }
+  };
 
   const loadGame = async () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -112,6 +123,15 @@ export default function LiveScoringVolleyball() {
       return allPlayers.filter(p => p.team_id === game?.away_team_id);
     },
     enabled: !!game?.away_team_id,
+  });
+
+  const { data: organization } = useQuery({
+    queryKey: ['organization', user?.organization_id],
+    queryFn: async () => {
+      const orgs = await base44.entities.Organization.list();
+      return orgs.find(o => o.id === user?.organization_id);
+    },
+    enabled: !!user?.organization_id,
   });
 
   const getPlayerStatKey = (playerId) => `${playerId}_${currentSet}`;
@@ -388,7 +408,7 @@ export default function LiveScoringVolleyball() {
     navigate(createPageUrl("Games"));
   };
 
-  if (!game || !homeTeam || !awayTeam) {
+  if (!game || !homeTeam || !awayTeam || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
@@ -455,8 +475,37 @@ export default function LiveScoringVolleyball() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900">
-      {/* Main Scoreboard - Sticky at top WITH TEAM LOGOS */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 border-b-4 border-blue-500 shadow-2xl">
+      {/* TOP NAVIGATION BAR WITH ORG LOGO AND BACK BUTTON */}
+      <div className="sticky top-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700 shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {organization?.logo_url && (
+              <Avatar className="w-10 h-10 border-2 border-blue-500 shadow-lg">
+                <AvatarImage src={organization.logo_url} />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white font-black text-sm">
+                  {organization.name?.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            )}
+            <div>
+              <h1 className="text-lg font-black text-white">{organization?.name || 'Live Scoring'}</h1>
+              <p className="text-xs text-gray-400 font-semibold">Volleyball Game Management</p>
+            </div>
+          </div>
+          <Button
+            onClick={() => navigate(createPageUrl("Dashboard"))}
+            variant="outline"
+            size="sm"
+            className="border-2 border-gray-600 text-white hover:bg-gray-800 font-bold"
+          >
+            <ChevronRight className="w-4 h-4 mr-1 rotate-180" />
+            Back to Dashboard
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Scoreboard - Sticky BELOW top nav */}
+      <div className="sticky z-40 bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 border-b-4 border-blue-500 shadow-2xl" style={{ top: '64px' }}>
         <div className="max-w-7xl mx-auto p-4">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Badge className="bg-red-600 text-white border-2 border-red-400 px-6 py-2 text-base font-black shadow-lg">
@@ -560,9 +609,9 @@ export default function LiveScoringVolleyball() {
         </div>
       </div>
 
-      {/* Control Panel - STICKY */}
+      {/* Control Panel - STICKY BELOW scoreboard */}
       {selectedPlayer ? (
-        <div className="sticky z-40 bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900" style={{ top: '300px' }}>
+        <div className="sticky z-30 bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900" style={{ top: '364px' }}>
           <div className="mx-4 my-4">
             <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
               <CardContent className="p-6">
