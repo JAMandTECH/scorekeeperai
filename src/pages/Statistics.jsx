@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, TrendingUp, Target, TrendingDown, Filter, Printer, Sparkles, Loader2 } from "lucide-react";
+import { Trophy, TrendingUp, Target, TrendingDown, Filter, Printer, Sparkles, Loader2, Users } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, PieChart, Pie, Cell } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -110,6 +111,53 @@ export default function Statistics() {
     const playerIsFiltered = filteredPlayers.some(player => player.id === stat.player_id);
     return gameIsCompletedAndFiltered && playerIsFiltered;
   });
+
+  // Get players for selected team with their stats
+  const getTeamPlayerStats = (teamId) => {
+    const teamPlayers = players.filter(p => p.team_id === teamId);
+    
+    return teamPlayers.map(player => {
+      const playerStats = relevantPlayerGameStats.filter(s => s.player_id === player.id);
+      const gamesPlayed = [...new Set(playerStats.map(s => s.game_id))].length;
+      
+      const totalPoints = playerStats.reduce((sum, s) => sum + (s.points || 0), 0);
+      const totalRebounds = playerStats.reduce((sum, s) => sum + (s.rebounds || 0), 0);
+      const totalAssists = playerStats.reduce((sum, s) => sum + (s.assists || 0), 0);
+      const totalBlocks = playerStats.reduce((sum, s) => sum + (s.blocks || 0), 0);
+      const totalSteals = playerStats.reduce((sum, s) => sum + (s.steals || 0), 0);
+      const totalFouls = playerStats.reduce((sum, s) => sum + (s.fouls || 0), 0);
+      const totalThreePointers = playerStats.reduce((sum, s) => sum + (s.three_pointers || 0), 0);
+      const totalFieldGoalsMade = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0), 0);
+      const totalFieldGoalsAttempted = playerStats.reduce((sum, s) => sum + (s.field_goals_attempted || 0), 0);
+      const totalFreeThrowsMade = playerStats.reduce((sum, s) => sum + (s.free_throws_made || 0), 0);
+      const totalFreeThrowsAttempted = playerStats.reduce((sum, s) => sum + (s.free_throws_attempted || 0), 0);
+
+      return {
+        ...player,
+        gamesPlayed,
+        totalPoints,
+        totalRebounds,
+        totalAssists,
+        totalBlocks,
+        totalSteals,
+        totalFouls,
+        totalThreePointers,
+        totalFieldGoalsMade,
+        totalFieldGoalsAttempted,
+        totalFreeThrowsMade,
+        totalFreeThrowsAttempted,
+        avgPoints: gamesPlayed > 0 ? (totalPoints / gamesPlayed).toFixed(1) : 0,
+        avgRebounds: gamesPlayed > 0 ? (totalRebounds / gamesPlayed).toFixed(1) : 0,
+        avgAssists: gamesPlayed > 0 ? (totalAssists / gamesPlayed).toFixed(1) : 0,
+        fgPercentage: totalFieldGoalsAttempted > 0 
+          ? ((totalFieldGoalsMade / totalFieldGoalsAttempted) * 100).toFixed(1)
+          : 0,
+        ftPercentage: totalFreeThrowsAttempted > 0 
+          ? ((totalFreeThrowsMade / totalFreeThrowsAttempted) * 100).toFixed(1)
+          : 0,
+      };
+    }).sort((a, b) => b.totalPoints - a.totalPoints);
+  };
 
   // Comprehensive organization statistics
   const orgStats = {
@@ -602,6 +650,32 @@ Please provide:
 
                 {/* TEAM STATS TAB */}
                 <TabsContent value="teams" className="space-y-6">
+                  {/* Team Selection */}
+                  <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg print:hidden">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-4">
+                        <Users className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                        <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Select Team:</span>
+                        <select
+                          value={selectedTeam?.id || ''}
+                          onChange={(e) => {
+                            const team = filteredTeams.find(t => t.id === e.target.value);
+                            setSelectedTeam(team || null);
+                          }}
+                          className="flex-1 bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-4 py-2 font-bold shadow-sm"
+                        >
+                          <option value="">-- Select a team to view player statistics --</option>
+                          {filteredTeams.map(team => (
+                            <option key={team.id} value={team.id}>
+                              {team.sport === 'basketball' ? '🏀' : '🏐'} {team.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Team Overview Table */}
                   <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg print:shadow-none print:break-inside-avoid">
                     <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
                       <CardTitle className="text-2xl font-black text-gray-900 dark:text-white print:text-xl">
@@ -673,6 +747,93 @@ Please provide:
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* Individual Player Statistics for Selected Team */}
+                  {selectedTeam && (
+                    <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg print:shadow-none print:break-inside-avoid">
+                      <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
+                        <div className="flex items-center gap-4">
+                          <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
+                            <AvatarImage src={selectedTeam.logo_url} />
+                            <AvatarFallback className={`bg-gradient-to-br ${
+                              selectedTeam.sport === 'basketball' ? 'from-orange-500 to-orange-600' : 'from-blue-500 to-blue-600'
+                            } text-white font-black text-lg`}>
+                              {selectedTeam.name?.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <CardTitle className="text-2xl font-black text-gray-900 dark:text-white print:text-xl">
+                              {selectedTeam.name} - Player Statistics
+                            </CardTitle>
+                            <Badge className={`mt-2 ${
+                              selectedTeam.sport === 'basketball'
+                                ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800'
+                                : 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
+                            } font-bold`}>
+                              {selectedTeam.sport === 'basketball' ? '🏀 Basketball' : '🏐 Volleyball'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
+                                <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PLAYER</th>
+                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">GP</th>
+                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PTS</th>
+                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">REB</th>
+                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">AST</th>
+                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">BLK</th>
+                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">STL</th>
+                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">FLS</th>
+                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">3PT</th>
+                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">FG%</th>
+                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">FT%</th>
+                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PPG</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {getTeamPlayerStats(selectedTeam.id).map((player, index) => (
+                                <tr key={player.id} className={`border-b border-gray-100 dark:border-gray-700 ${
+                                  index === 0 ? 'bg-yellow-50/50 dark:bg-yellow-950/10' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                                } transition-colors`}>
+                                  <td className="py-4 px-4">
+                                    <div className="flex items-center gap-3">
+                                      <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+                                        <AvatarImage src={player.photo_url} />
+                                        <AvatarFallback className="bg-gradient-to-br from-gray-400 to-gray-500 text-white text-xs font-bold">
+                                          {player.jersey_number}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div>
+                                        <p className="font-bold text-gray-900 dark:text-white text-sm">
+                                          {player.first_name} {player.last_name}
+                                        </p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">#{player.jersey_number}</p>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="py-4 px-4 text-center font-semibold text-gray-900 dark:text-white">{player.gamesPlayed}</td>
+                                  <td className="py-4 px-4 text-center font-bold text-blue-600 dark:text-blue-400 text-lg">{player.totalPoints}</td>
+                                  <td className="py-4 px-4 text-center font-semibold text-green-600 dark:text-green-400">{player.totalRebounds}</td>
+                                  <td className="py-4 px-4 text-center font-semibold text-purple-600 dark:text-purple-400">{player.totalAssists}</td>
+                                  <td className="py-4 px-4 text-center font-semibold text-orange-600 dark:text-orange-400">{player.totalBlocks}</td>
+                                  <td className="py-4 px-4 text-center font-semibold text-red-600 dark:text-red-400">{player.totalSteals}</td>
+                                  <td className="py-4 px-4 text-center font-semibold text-yellow-600 dark:text-yellow-400">{player.totalFouls}</td>
+                                  <td className="py-4 px-4 text-center font-semibold text-indigo-600 dark:text-indigo-400">{player.totalThreePointers}</td>
+                                  <td className="py-4 px-4 text-center font-semibold text-gray-700 dark:text-gray-300">{player.fgPercentage}%</td>
+                                  <td className="py-4 px-4 text-center font-semibold text-gray-700 dark:text-gray-300">{player.ftPercentage}%</td>
+                                  <td className="py-4 px-4 text-center font-bold text-blue-600 dark:text-blue-400">{player.avgPoints}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                 </TabsContent>
 
                 {/* AI INSIGHTS TAB */}
