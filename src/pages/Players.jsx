@@ -5,17 +5,28 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, User, Edit, LayoutGrid, Table } from "lucide-react";
+import { Plus, User, Edit, LayoutGrid, Table, Trash2, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { createPageUrl } from "@/utils";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Players() {
   const [showForm, setShowForm] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(null);
+  const [deletingPlayer, setDeletingPlayer] = useState(null);
   const [user, setUser] = useState(null);
   const [selectedDivision, setSelectedDivision] = useState('all');
   const [selectedSport, setSelectedSport] = useState('all');
@@ -60,7 +71,6 @@ export default function Players() {
     base44.auth.logout(createPageUrl("PublicLanding"));
   };
 
-  // Fetch organization using React Query  
   const { data: organization } = useQuery({
     queryKey: ['organization', user?.organization_id],
     queryFn: async () => {
@@ -76,7 +86,6 @@ export default function Players() {
     enabled: !!user?.organization_id,
   });
 
-  // Get unique divisions and sports from teams
   const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division'))].sort((a, b) => {
     if (a === 'all') return -1;
     if (b === 'all') return 1;
@@ -98,7 +107,6 @@ export default function Players() {
     enabled: !!user,
   });
 
-  // Filter teams based on division and sport for the team dropdown
   const filteredTeams = teams.filter(team => {
     const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
     const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
@@ -120,7 +128,6 @@ export default function Players() {
     return team?.sport || 'basketball';
   };
 
-  // Filter players based on selected filters
   const players = allPlayers.filter(p => {
     const playerTeam = teams.find(t => t.id === p.team_id);
     if (!playerTeam) return false;
@@ -145,7 +152,6 @@ export default function Players() {
     const gamesPlayed = [...new Set(playerStatsList.map(s => s.game_id))].length;
     
     if (sport === 'volleyball') {
-      // Volleyball: PTS, ATK (field_goals_made), BLK (blocks), ACE (three_pointers)
       const points = playerStatsList.reduce((sum, s) => sum + (s.points || 0), 0);
       const attacks = playerStatsList.reduce((sum, s) => sum + (s.field_goals_made || 0), 0);
       const blocks = playerStatsList.reduce((sum, s) => sum + (s.blocks || 0), 0);
@@ -162,7 +168,6 @@ export default function Players() {
         games_played: gamesPlayed,
       };
     } else {
-      // Basketball: PTS, REB, AST, BLK, STL
       const points = playerStatsList.reduce((sum, s) => sum + (s.points || 0), 0);
       const rebounds = playerStatsList.reduce((sum, s) => sum + (s.rebounds || 0), 0);
       const assists = playerStatsList.reduce((sum, s) => sum + (s.assists || 0), 0);
@@ -211,6 +216,14 @@ export default function Players() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Player.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['players']);
+      setDeletingPlayer(null);
+    },
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUploading(true);
@@ -244,6 +257,11 @@ export default function Players() {
     }
   };
 
+  const handleDeleteClick = (player) => {
+    const playerStats = allPlayerStats.filter(s => s.player_id === player.id);
+    setDeletingPlayer({ ...player, statsCount: playerStats.length });
+  };
+
   const PlayerCard = ({ player, sport, sportColor, teamLogo }) => (
     <Card className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 shadow-lg hover:shadow-2xl transition-all group`}>
       <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-${sportColor}-500/20 to-transparent rounded-full blur-3xl`}></div>
@@ -272,17 +290,27 @@ export default function Players() {
               </div>
             </div>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => {
-              setEditingPlayer(player);
-              setShowForm(true);
-            }}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          >
-            <Edit className="w-4 h-4" />
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => {
+                setEditingPlayer(player);
+                setShowForm(true);
+              }}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => handleDeleteClick(player)}
+              className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
       
@@ -409,7 +437,7 @@ export default function Players() {
                         {player.games_played || 0}
                       </td>
                       <td className="py-4 px-4">
-                        <div className="flex items-center justify-center">
+                        <div className="flex items-center justify-center gap-2">
                           <Button 
                             variant="ghost" 
                             size="icon"
@@ -420,6 +448,14 @@ export default function Players() {
                             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                           >
                             <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => handleDeleteClick(player)}
+                            className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </td>
@@ -767,6 +803,43 @@ export default function Players() {
                   </form>
                 </DialogContent>
               </Dialog>
+
+              <AlertDialog open={!!deletingPlayer} onOpenChange={() => setDeletingPlayer(null)}>
+                <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                  <AlertDialogHeader>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-12 h-12 bg-red-100 dark:bg-red-950/30 rounded-xl flex items-center justify-center">
+                        <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                      </div>
+                      <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+                        Delete Player?
+                      </AlertDialogTitle>
+                    </div>
+                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
+                      Are you sure you want to delete <span className="font-bold text-gray-900 dark:text-white">{deletingPlayer?.first_name} {deletingPlayer?.last_name}</span>?
+                      {deletingPlayer?.statsCount > 0 && (
+                        <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                          <p className="text-sm text-yellow-800 dark:text-yellow-300 font-semibold">
+                            ⚠️ Warning: This player has {deletingPlayer.statsCount} game statistic record(s). All statistics will be permanently deleted.
+                          </p>
+                        </div>
+                      )}
+                      <p className="mt-3 font-semibold text-red-600 dark:text-red-400">This action cannot be undone.</p>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => deleteMutation.mutate(deletingPlayer.id)}
+                      className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold"
+                    >
+                      Delete Player
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </main>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -7,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Users, Edit, Trophy, Upload, Image, LayoutGrid, Table } from "lucide-react";
+import { Plus, Users, Edit, Trophy, Upload, Image, LayoutGrid, Table, Trash2, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
@@ -15,12 +14,22 @@ import { createPageUrl } from "@/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Teams() {
   const [showForm, setShowForm] = useState(false);
   const [editingTeam, setEditingTeam] = useState(null);
+  const [deletingTeam, setDeletingTeam] = useState(null);
   const [user, setUser] = useState(null);
-  // The 'organization' state will now be managed by React Query
   const [logoFile, setLogoFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [viewMode, setViewMode] = useState('card');
@@ -60,14 +69,13 @@ export default function Teams() {
     }
   };
 
-  // Fetch organization using React Query
   const { data: organization } = useQuery({
     queryKey: ['organization', user?.organization_id],
     queryFn: async () => {
       const orgs = await base44.entities.Organization.list();
       return orgs.find(o => o.id === user?.organization_id);
     },
-    enabled: !!user?.organization_id, // Only run this query if user and organization_id are available
+    enabled: !!user?.organization_id,
   });
 
   const handleLogout = () => {
@@ -77,6 +85,12 @@ export default function Teams() {
   const { data: teams = [], isLoading: teamsLoading } = useQuery({
     queryKey: ['teams', user?.organization_id],
     queryFn: () => base44.entities.Team.filter({ organization_id: user?.organization_id }, '-created_date'),
+    enabled: !!user?.organization_id,
+  });
+
+  const { data: allPlayers = [] } = useQuery({
+    queryKey: ['all-players'],
+    queryFn: () => base44.entities.Player.list(),
     enabled: !!user?.organization_id,
   });
 
@@ -97,6 +111,14 @@ export default function Teams() {
       setShowForm(false);
       setEditingTeam(null);
       setLogoFile(null);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Team.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['teams']);
+      setDeletingTeam(null);
     },
   });
 
@@ -138,6 +160,11 @@ export default function Teams() {
     setShowForm(true);
   };
 
+  const handleDeleteClick = (team) => {
+    const playersInTeam = allPlayers.filter(p => p.team_id === team.id);
+    setDeletingTeam({ ...team, playersCount: playersInTeam.length });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -168,14 +195,24 @@ export default function Teams() {
               </Badge>
             </div>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => handleEdit(team)}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <Edit className="w-4 h-4" />
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => handleEdit(team)}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => handleDeleteClick(team)}
+              className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="relative z-10 space-y-4">
@@ -259,6 +296,14 @@ export default function Teams() {
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleDeleteClick(team)}
+                        className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -274,7 +319,7 @@ export default function Teams() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/30 to-gray-50 dark:from-gray-900 dark:via-orange-950/10 dark:to-gray-900">
       <AdminHeader 
         user={user}
-        organization={organization} // 'organization' now comes from useQuery
+        organization={organization}
         darkMode={darkMode}
         toggleDarkMode={toggleDarkMode}
         handleLogout={handleLogout}
@@ -285,7 +330,7 @@ export default function Teams() {
       <div className="flex">
         <AdminSidebar 
           user={user}
-          organization={organization} // 'organization' now comes from useQuery
+          organization={organization}
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           handleLogout={handleLogout}
@@ -478,6 +523,43 @@ export default function Teams() {
                   </form>
                 </DialogContent>
               </Dialog>
+
+              <AlertDialog open={!!deletingTeam} onOpenChange={() => setDeletingTeam(null)}>
+                <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                  <AlertDialogHeader>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-12 h-12 bg-red-100 dark:bg-red-950/30 rounded-xl flex items-center justify-center">
+                        <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                      </div>
+                      <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+                        Delete Team?
+                      </AlertDialogTitle>
+                    </div>
+                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
+                      Are you sure you want to delete <span className="font-bold text-gray-900 dark:text-white">"{deletingTeam?.name}"</span>?
+                      {deletingTeam?.playersCount > 0 && (
+                        <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                          <p className="text-sm text-yellow-800 dark:text-yellow-300 font-semibold">
+                            ⚠️ Warning: This team has {deletingTeam.playersCount} player(s). Deleting this team will also remove all associated players and their statistics.
+                          </p>
+                        </div>
+                      )}
+                      <p className="mt-3 font-semibold text-red-600 dark:text-red-400">This action cannot be undone.</p>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => deleteMutation.mutate(deletingTeam.id)}
+                      className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold"
+                    >
+                      Delete Team
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </main>

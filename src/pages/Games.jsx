@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle } from "lucide-react";
+import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,9 +15,20 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import GameHistory from "@/components/GameHistory";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Games() {
   const [showForm, setShowForm] = useState(false);
+  const [deletingGame, setDeletingGame] = useState(null);
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -123,6 +134,14 @@ export default function Games() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Game.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['games']);
+      setDeletingGame(null);
+    },
+  });
+
   const handleFormChange = (e) => {
     const form = e.target.form;
     const gameDate = form?.game_date?.value;
@@ -157,6 +176,11 @@ export default function Games() {
     createMutation.mutate(data);
   };
 
+  const handleDeleteClick = (game) => {
+    const gameStats = allPlayerStats.filter(s => s.game_id === game.id);
+    setDeletingGame({ ...game, statsCount: gameStats.length });
+  };
+
   const getTeamName = (teamId) => {
     const team = teams.find(t => t.id === teamId);
     return team?.name || 'Unknown';
@@ -177,7 +201,7 @@ export default function Games() {
     setSelectedTeam('all');
   };
 
-  const GameCard = ({ game }) => {
+  const GameCard = ({ game, showDeleteButton = true }) => {
     const sportColor = game.sport === 'basketball' ? 'orange' : 'blue';
     const statusColor = 
       game.status === 'scheduled' ? 'blue' :
@@ -189,7 +213,7 @@ export default function Games() {
         
         <CardHeader className="relative z-10">
           <div className="flex justify-between items-start">
-            <div>
+            <div className="flex-1">
               <Badge className={`bg-${statusColor}-100 text-${statusColor}-700 border-${statusColor}-200 dark:bg-${statusColor}-950 dark:text-${statusColor}-300 dark:border-${statusColor}-800 font-bold mb-2`}>
                 {game.status === 'scheduled' && <Clock className="w-3 h-3 mr-1" />}
                 {game.status === 'in_progress' && <PlayCircle className="w-3 h-3 mr-1" />}
@@ -206,9 +230,21 @@ export default function Games() {
                 </p>
               )}
             </div>
-            <Badge variant="outline" className={`text-${sportColor}-600 dark:text-${sportColor}-400 border-${sportColor}-600 dark:border-${sportColor}-400 font-black`}>
-              {game.sport}
-            </Badge>
+            <div className="flex flex-col items-end gap-2">
+              <Badge variant="outline" className={`text-${sportColor}-600 dark:text-${sportColor}-400 border-${sportColor}-600 dark:border-${sportColor}-400 font-black`}>
+                {game.sport}
+              </Badge>
+              {showDeleteButton && game.status === 'scheduled' && (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => handleDeleteClick(game)}
+                  className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         
@@ -331,7 +367,7 @@ export default function Games() {
 
                 <TabsContent value="in_progress" className="space-y-4">
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {inProgressGames.map(game => <GameCard key={game.id} game={game} />)}
+                    {inProgressGames.map(game => <GameCard key={game.id} game={game} showDeleteButton={false} />)}
                   </div>
                   {inProgressGames.length === 0 && (
                     <div className="text-center py-20">
@@ -345,7 +381,7 @@ export default function Games() {
 
                 <TabsContent value="completed" className="space-y-4">
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {completedGames.map(game => <GameCard key={game.id} game={game} />)}
+                    {completedGames.map(game => <GameCard key={game.id} game={game} showDeleteButton={false} />)}
                   </div>
                   {completedGames.length === 0 && (
                     <div className="text-center py-20">
@@ -532,6 +568,40 @@ export default function Games() {
                   </form>
                 </DialogContent>
               </Dialog>
+
+              <AlertDialog open={!!deletingGame} onOpenChange={() => setDeletingGame(null)}>
+                <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                  <AlertDialogHeader>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-12 h-12 bg-red-100 dark:bg-red-950/30 rounded-xl flex items-center justify-center">
+                        <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                      </div>
+                      <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+                        Delete Scheduled Game?
+                      </AlertDialogTitle>
+                    </div>
+                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
+                      Are you sure you want to delete this scheduled game between <span className="font-bold text-gray-900 dark:text-white">{getTeamName(deletingGame?.home_team_id)}</span> and <span className="font-bold text-gray-900 dark:text-white">{getTeamName(deletingGame?.away_team_id)}</span>?
+                      <br /><br />
+                      <p className="text-sm">
+                        📅 {deletingGame?.game_date && new Date(deletingGame.game_date).toLocaleString()}
+                      </p>
+                      <p className="mt-3 font-semibold text-red-600 dark:text-red-400">This action cannot be undone.</p>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => deleteMutation.mutate(deletingGame.id)}
+                      className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold"
+                    >
+                      Delete Game
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </main>
