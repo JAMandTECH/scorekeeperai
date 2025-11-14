@@ -312,14 +312,22 @@ export default function LiveScoringVolleyball() {
     const newSetScores = [...setScores, setScore];
     setSetScores(newSetScores);
 
+    // Calculate total scores (sum of set scores)
+    const totalHomeScore = newSetScores.reduce((sum, s) => sum + s.home, 0);
+    const totalAwayScore = newSetScores.reduce((sum, s) => sum + s.away, 0);
+
     await base44.entities.Game.update(game.id, {
       quarter_scores: newSetScores,
       current_quarter: currentSet + 1,
+      home_score: totalHomeScore,
+      away_score: totalAwayScore,
     });
 
     if (currentSet < 5) {
       setCurrentSet(currentSet + 1);
     }
+    
+    // Reset ONLY the current set scores for display, but keep cumulative game scores
     setHomeScore(0);
     setAwayScore(0);
     setActionHistory([]);
@@ -338,10 +346,15 @@ export default function LiveScoringVolleyball() {
     if (homeScore > awayScore) homeSetsWon++;
     else if (awayScore > homeScore) awaySetsWon++;
 
+    // Calculate final total scores across all sets
+    const allSets = [...setScores, { home: homeScore, away: awayScore }];
+    const finalHomeScore = allSets.reduce((sum, s) => sum + s.home, 0);
+    const finalAwayScore = allSets.reduce((sum, s) => sum + s.away, 0);
+
     await base44.entities.Game.update(game.id, {
       status: 'completed',
-      home_score: homeSetsWon,
-      away_score: awaySetsWon,
+      home_score: finalHomeScore,
+      away_score: finalAwayScore,
     });
 
     const allTeams = await base44.entities.Team.list();
