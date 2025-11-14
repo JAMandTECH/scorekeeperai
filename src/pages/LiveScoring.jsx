@@ -505,15 +505,31 @@ export default function LiveScoring() {
             </div>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
-            <div className={`flex gap-3 text-xl font-black ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
-              <span>{points}</span>
-              <span>{rebounds}</span>
-              <span>{assists}</span>
-              <span>{steals}</span>
-              <span>{blocks}</span>
-              <span className={totalFouls >= game.player_foul_limit - 1 ? 'text-red-600 dark:text-red-400' : ''}>
-                {totalFouls}
-              </span>
+            <div className={`flex gap-3 ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+              <div className="text-center">
+                <div className="text-xl font-black">{points}</div>
+                <div className={`text-[9px] font-semibold ${isSelected ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'}`}>PTS</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-black">{rebounds}</div>
+                <div className={`text-[9px] font-semibold ${isSelected ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'}`}>REB</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-black">{assists}</div>
+                <div className={`text-[9px] font-semibold ${isSelected ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'}`}>AST</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-black">{steals}</div>
+                <div className={`text-[9px] font-semibold ${isSelected ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'}`}>STL</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-black">{blocks}</div>
+                <div className={`text-[9px] font-semibold ${isSelected ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'}`}>BLK</div>
+              </div>
+              <div className="text-center">
+                <div className={`text-xl font-black ${totalFouls >= game.player_foul_limit - 1 ? 'text-red-600 dark:text-red-400' : ''}`}>{totalFouls}</div>
+                <div className={`text-[9px] font-semibold ${isSelected ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'}`}>FL</div>
+              </div>
             </div>
             {isFouledOut && (
               <Badge className="bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5">FOULED OUT</Badge>

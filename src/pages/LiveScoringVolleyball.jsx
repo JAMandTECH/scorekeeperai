@@ -452,12 +452,27 @@ export default function LiveScoringVolleyball() {
               </p>
             </div>
           </div>
-          <div className={`flex gap-3 text-xl font-black flex-shrink-0 ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
-            <span>{points}</span>
-            <span>{attacks}</span>
-            <span>{blocks}</span>
-            <span>{aces}</span>
-            <span>{assists}</span>
+          <div className={`flex gap-3 flex-shrink-0 ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+            <div className="text-center">
+              <div className="text-xl font-black">{points}</div>
+              <div className={`text-[9px] font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>PTS</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-black">{attacks}</div>
+              <div className={`text-[9px] font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>ATK</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-black">{blocks}</div>
+              <div className={`text-[9px] font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>BLK</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-black">{aces}</div>
+              <div className={`text-[9px] font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>ACE</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-black">{assists}</div>
+              <div className={`text-[9px] font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>AST</div>
+            </div>
           </div>
         </div>
       </button>
