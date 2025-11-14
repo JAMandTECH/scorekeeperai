@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, 
-  PlayCircle, Users, BarChart3, Trophy, CheckCircle, Eye, Globe, LogOut, LayoutGrid
+  PlayCircle, Users, BarChart3, Trophy, CheckCircle, Eye, Globe, LogOut, LayoutGrid, Sparkles, Mic, Brain
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,8 +63,6 @@ export default function PublicLanding() {
   };
 
   const handleGetStarted = async () => {
-    // Redirect to RoleSelection instead of Dashboard
-    // This ensures new users go through onboarding
     base44.auth.redirectToLogin(createPageUrl("RoleSelection"));
   };
 
@@ -179,7 +177,7 @@ export default function PublicLanding() {
       <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-900 dark:to-indigo-950 text-white py-32 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iIzFmMmQzZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
         
-        {/* Top Right Controls - Dark Mode + Dashboard + Logout */}
+        {/* Top Right Controls */}
         <div className="absolute top-6 right-6 flex items-center gap-3 z-50">
           <button
             onClick={toggleDarkMode}
@@ -188,7 +186,6 @@ export default function PublicLanding() {
             {darkMode ? <Sun className="w-6 h-6 text-white" /> : <Moon className="w-6 h-6 text-white" />}
           </button>
           
-          {/* Show Dashboard button for admin users */}
           {user && user.role === 'admin' && (
             <button
               onClick={goToDashboard}
@@ -199,7 +196,6 @@ export default function PublicLanding() {
             </button>
           )}
           
-          {/* Show Logout button if authenticated */}
           {isAuthenticated && (
             <button
               onClick={handleLogout}
@@ -213,17 +209,17 @@ export default function PublicLanding() {
 
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <Badge className="mb-8 bg-orange-500/20 text-orange-300 border border-orange-400/30 text-sm font-bold px-4 py-2 backdrop-blur-sm">
-            🎉 Professional Sports League Management Platform
+            🤖 AI-Powered Sports League Management Platform
           </Badge>
           
           <h1 className="text-6xl md:text-7xl lg:text-8xl font-black mb-6 tracking-tight">
             ALAB <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">SPORTS</span>
           </h1>
           <p className="text-2xl md:text-3xl text-blue-100 mb-4 max-w-4xl mx-auto font-bold">
-            The Complete Solution for Basketball & Volleyball Leagues
+            The Complete AI-Powered Solution for Basketball & Volleyball Leagues
           </p>
           <p className="text-lg text-blue-200 mb-12 max-w-3xl mx-auto">
-            Live scoring, real-time statistics, team management, and public engagement all in one powerful platform.
+            Live scoring, AI insights, voice commands, and real-time statistics all in one powerful platform.
           </p>
           
           <div className="flex gap-4 justify-center flex-wrap mb-16">
@@ -270,9 +266,9 @@ export default function PublicLanding() {
           {/* Stats Bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {[
-              { label: "Live Games", value: "Real-time", icon: PlayCircle },
-              { label: "Statistics", value: "Detailed", icon: BarChart3 },
-              { label: "Public Access", value: "Always", icon: Globe },
+              { label: "AI-Powered", value: "Smart", icon: Brain },
+              { label: "Voice Commands", value: "Hands-free", icon: Mic },
+              { label: "Live Updates", value: "Real-time", icon: PlayCircle },
               { label: "Easy Setup", value: "Minutes", icon: Zap }
             ].map((stat, i) => (
               <div key={i} className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
@@ -284,10 +280,167 @@ export default function PublicLanding() {
           </div>
         </div>
         
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white dark:from-gray-800 to-transparent"></div>
       </section>
 
-      {/* Video/Visual Showcase Section - NEW */}
+      {/* AI Features Highlight Section - NEW */}
+      <section className="py-24 px-4 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-purple-950/20 dark:to-gray-900 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iIzkzMzNlYSIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjEiLz48L2c+PC9zdmc+')] opacity-30"></div>
+        
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 text-sm font-bold px-6 py-2 shadow-lg">
+              <Sparkles className="w-4 h-4 mr-2 inline" />
+              🤖 AI-POWERED INTELLIGENCE
+            </Badge>
+            <h2 className="text-5xl md:text-6xl font-black text-gray-900 dark:text-white mb-4">
+              Built with Cutting-Edge <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">AI Technology</span>
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Experience the future of sports management with AI-driven insights, voice commands, and intelligent analytics.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8 mb-12">
+            {/* Voice Assistant Feature */}
+            <Card className="relative overflow-hidden border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-purple-950/30 shadow-2xl hover:shadow-3xl transition-all group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse"></div>
+              <CardHeader className="relative z-10">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg mb-4 transform group-hover:scale-110 transition-transform">
+                  <Mic className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle className="text-2xl font-black text-gray-900 dark:text-white mb-2">
+                  Voice Assistant Scoring
+                </CardTitle>
+                <p className="text-gray-600 dark:text-gray-400 font-medium">
+                  Hands-free live scoring with intelligent voice commands
+                </p>
+              </CardHeader>
+              <CardContent className="relative z-10">
+                <div className="bg-gradient-to-br from-purple-900 to-pink-900 rounded-xl p-4 mb-4 border-2 border-purple-400">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <span className="text-white text-xs font-bold">LISTENING...</span>
+                  </div>
+                  <p className="text-purple-200 text-sm font-mono mb-2">"Number 23, three pointer"</p>
+                  <div className="flex items-center gap-2 text-green-300 text-xs font-bold">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>+3 points recorded for #23</span>
+                  </div>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <span className="font-medium">Natural language processing</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <span className="font-medium">Multi-language support</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <span className="font-medium">Instant action recognition</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* AI Insights Feature */}
+            <Card className="relative overflow-hidden border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-950/30 shadow-2xl hover:shadow-3xl transition-all group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full blur-3xl"></div>
+              <CardHeader className="relative z-10">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg mb-4 transform group-hover:scale-110 transition-transform">
+                  <Brain className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle className="text-2xl font-black text-gray-900 dark:text-white mb-2">
+                  AI-Powered Insights
+                </CardTitle>
+                <p className="text-gray-600 dark:text-gray-400 font-medium">
+                  Intelligent analysis of team and player performance
+                </p>
+              </CardHeader>
+              <CardContent className="relative z-10">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 mb-4 border-2 border-blue-200 dark:border-blue-800 shadow-inner">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="w-4 h-4 text-blue-500" />
+                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400">AI ANALYSIS</span>
+                  </div>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
+                    "Eagles show strong 4th quarter performance with 18% shooting improvement. Key player #23 averaging 28.5 PPG."
+                  </p>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span className="font-medium">Performance predictions</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span className="font-medium">Trend identification</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span className="font-medium">Strategic recommendations</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* AI Game Summaries Feature */}
+            <Card className="relative overflow-hidden border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-white to-orange-50 dark:from-gray-800 dark:to-orange-950/30 shadow-2xl hover:shadow-3xl transition-all group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-full blur-3xl"></div>
+              <CardHeader className="relative z-10">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg mb-4 transform group-hover:scale-110 transition-transform">
+                  <BarChart3 className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle className="text-2xl font-black text-gray-900 dark:text-white mb-2">
+                  Automated Game Summaries
+                </CardTitle>
+                <p className="text-gray-600 dark:text-gray-400 font-medium">
+                  AI-generated game recaps and highlight insights
+                </p>
+              </CardHeader>
+              <CardContent className="relative z-10">
+                <div className="bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-950/50 dark:to-red-950/50 rounded-xl p-4 mb-4 border-2 border-orange-300 dark:border-orange-700">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Trophy className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                    <span className="text-xs font-bold text-orange-700 dark:text-orange-300">GAME SUMMARY</span>
+                  </div>
+                  <p className="text-sm text-gray-800 dark:text-gray-200 font-medium leading-relaxed">
+                    "Thrilling comeback victory! Lions dominated with 34-point 3rd quarter surge. MVP performance by #15."
+                  </p>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <span className="font-medium">Instant game recaps</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <span className="font-medium">Key moment highlights</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <span className="font-medium">Player performance notes</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="text-center">
+            <div className="inline-flex items-center gap-3 bg-white dark:bg-gray-800 rounded-full px-8 py-4 shadow-xl border-2 border-purple-200 dark:border-purple-800">
+              <Sparkles className="w-6 h-6 text-purple-600 animate-pulse" />
+              <span className="text-lg font-black text-gray-900 dark:text-white">
+                Powered by Advanced AI & Machine Learning
+              </span>
+              <Sparkles className="w-6 h-6 text-purple-600 animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Video/Visual Showcase Section */}
       <section className="py-24 px-4 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -423,7 +576,7 @@ export default function PublicLanding() {
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all overflow-hidden group">
               <div className="bg-gradient-to-br from-purple-500 to-indigo-600 p-8 h-48 flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjIiLz48L2c+PC9zdmc+')] opacity-20"></div>
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjIiLz48L2c+PC9zdmc+')] opacity-20"></div>
                 <Users className="w-24 h-24 text-white relative z-10 transform group-hover:scale-110 transition-transform" />
               </div>
               <CardContent className="p-6">
@@ -434,7 +587,7 @@ export default function PublicLanding() {
 
             <Card className="border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all overflow-hidden group">
               <div className="bg-gradient-to-br from-orange-500 to-red-600 p-8 h-48 flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjIiLz48L2c+PC9zdmc+')] opacity-20"></div>
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjIiLz48L2c+PC9sZz4=')] opacity-20"></div>
                 <Calendar className="w-24 h-24 text-white relative z-10 transform group-hover:scale-110 transition-transform" />
               </div>
               <CardContent className="p-6">
@@ -593,7 +746,7 @@ export default function PublicLanding() {
 
       {/* CTA Section */}
       <section className="py-24 px-4 bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvZz48L3N2Zz4=')] opacity-20"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvZz48L252Zz4=')] opacity-20"></div>
         
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-5xl md:text-6xl font-black mb-6">
@@ -646,7 +799,7 @@ export default function PublicLanding() {
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-xl">
                   <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 0 0 0 2.5 2.5z"/>
                   </svg>
                 </div>
                 <span className="text-2xl font-black">ALAB SPORTS</span>
