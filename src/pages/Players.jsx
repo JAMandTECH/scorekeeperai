@@ -95,6 +95,12 @@ export default function Players() {
     enabled: !!user,
   });
 
+  const { data: allPlayerStats = [] } = useQuery({
+    queryKey: ['player-stats'],
+    queryFn: () => base44.entities.PlayerGameStats.list(),
+    enabled: !!user,
+  });
+
   // Filter teams based on division and sport for the team dropdown
   const filteredTeams = teams.filter(team => {
     const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
@@ -125,6 +131,46 @@ export default function Players() {
     }
 
     return true;
+  }).map(player => {
+    // Calculate aggregated stats from PlayerGameStats
+    const playerStatsList = allPlayerStats.filter(s => s.player_id === player.id);
+    const sport = getTeamSport(player.team_id);
+    
+    if (sport === 'volleyball') {
+      // Volleyball stats: Attacks (field_goals_made), Blocks, Aces (three_pointers)
+      const attacks = playerStatsList.reduce((sum, s) => sum + (s.field_goals_made || 0), 0);
+      const blocks = playerStatsList.reduce((sum, s) => sum + (s.blocks || 0), 0);
+      const aces = playerStatsList.reduce((sum, s) => sum + (s.three_pointers || 0), 0);
+      const gamesPlayed = [...new Set(playerStatsList.map(s => s.game_id))].length;
+      
+      return {
+        ...player,
+        stat1: attacks,
+        stat1_label: 'ATK',
+        stat2: blocks,
+        stat2_label: 'BLK',
+        stat3: aces,
+        stat3_label: 'ACE',
+        games_played: gamesPlayed,
+      };
+    } else {
+      // Basketball stats: Points, Rebounds, Assists
+      const points = playerStatsList.reduce((sum, s) => sum + (s.points || 0), 0);
+      const rebounds = playerStatsList.reduce((sum, s) => sum + (s.rebounds || 0), 0);
+      const assists = playerStatsList.reduce((sum, s) => sum + (s.assists || 0), 0);
+      const gamesPlayed = [...new Set(playerStatsList.map(s => s.game_id))].length;
+      
+      return {
+        ...player,
+        stat1: points,
+        stat1_label: 'PTS',
+        stat2: rebounds,
+        stat2_label: 'REB',
+        stat3: assists,
+        stat3_label: 'AST',
+        games_played: gamesPlayed,
+      };
+    }
   });
 
   // Reset team selection when division or sport changes
@@ -142,6 +188,7 @@ export default function Players() {
     mutationFn: (data) => base44.entities.Player.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['players']);
+      queryClient.invalidateQueries(['player-stats']); // Invalidate player-stats too in case of new player related stats
       setShowForm(false);
       setEditingPlayer(null);
     },
@@ -151,6 +198,7 @@ export default function Players() {
     mutationFn: ({ id, data }) => base44.entities.Player.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['players']);
+      queryClient.invalidateQueries(['player-stats']); // Invalidate player-stats too in case of updated player related stats
       setShowForm(false);
       setEditingPlayer(null);
     },
@@ -264,21 +312,21 @@ export default function Players() {
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
               <div className={`text-${sportColor}-600 dark:text-${sportColor}-400 font-black text-2xl`}>
-                {player.total_points || 0}
+                {player.stat1 || 0}
               </div>
-              <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">PTS</div>
+              <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">{player.stat1_label}</div>
             </div>
             <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
               <div className={`text-${sportColor}-600 dark:text-${sportColor}-400 font-black text-2xl`}>
-                {player.total_rebounds || 0}
+                {player.stat2 || 0}
               </div>
-              <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">REB</div>
+              <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">{player.stat2_label}</div>
             </div>
             <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
               <div className={`text-${sportColor}-600 dark:text-${sportColor}-400 font-black text-2xl`}>
-                {player.total_assists || 0}
+                {player.stat3 || 0}
               </div>
-              <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">AST</div>
+              <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">{player.stat3_label}</div>
             </div>
           </div>
         </div>
@@ -292,105 +340,117 @@ export default function Players() {
     </Card>
   );
 
-  const PlayerTable = ({ players }) => (
-    <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
-                <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PLAYER</th>
-                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">TEAM</th>
-                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">POS</th>
-                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">HT</th>
-                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PTS</th>
-                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">REB</th>
-                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">AST</th>
-                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">GP</th>
-                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {players.map((player) => {
-                const sport = getTeamSport(player.team_id);
-                const sportColor = sport === 'basketball' ? 'orange' : 'blue';
-                const teamLogo = getTeamLogo(player.team_id);
-                
-                return (
-                  <tr key={player.id} className={`border-b border-gray-100 dark:border-gray-700 hover:bg-${sportColor}-50/50 dark:hover:bg-${sportColor}-950/20 transition-colors`}>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
-                          <AvatarImage src={player.photo_url} />
-                          <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white text-xs font-bold`}>
-                            {player.jersey_number}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-bold text-gray-900 dark:text-white">
-                            {player.first_name} {player.last_name}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">#{player.jersey_number}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center justify-center gap-3">
-                        {teamLogo ? (
-                          <Avatar className="w-8 h-8 border-2 border-gray-300 dark:border-gray-600 shadow-md">
-                            <AvatarImage src={teamLogo} />
-                            <AvatarFallback className="text-[10px] bg-gray-200 dark:bg-gray-700 font-bold">T</AvatarFallback>
+  const PlayerTable = ({ players }) => {
+    // Determine if we're showing a single sport or mixed
+    const allSameSport = players.length > 0 && players.every(p => getTeamSport(p.team_id) === getTeamSport(players[0].team_id));
+    const displaySport = allSameSport ? getTeamSport(players[0].team_id) : null;
+    
+    return (
+      <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
+                  <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PLAYER</th>
+                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">TEAM</th>
+                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">POS</th>
+                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">HT</th>
+                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">
+                    {displaySport === 'volleyball' ? 'ATK' : 'PTS'}
+                  </th>
+                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">
+                    {displaySport === 'volleyball' ? 'BLK' : 'REB'}
+                  </th>
+                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">
+                    {displaySport === 'volleyball' ? 'ACE' : 'AST'}
+                  </th>
+                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">GP</th>
+                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {players.map((player) => {
+                  const sport = getTeamSport(player.team_id);
+                  const sportColor = sport === 'basketball' ? 'orange' : 'blue';
+                  const teamLogo = getTeamLogo(player.team_id);
+                  
+                  return (
+                    <tr key={player.id} className={`border-b border-gray-100 dark:border-gray-700 hover:bg-${sportColor}-50/50 dark:hover:bg-${sportColor}-950/20 transition-colors`}>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
+                            <AvatarImage src={player.photo_url} />
+                            <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white text-xs font-bold`}>
+                              {player.jersey_number}
+                            </AvatarFallback>
                           </Avatar>
-                        ) : (
-                          <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-bold">T</span>
+                          <div>
+                            <p className="font-bold text-gray-900 dark:text-white">
+                              {player.first_name} {player.last_name}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">#{player.jersey_number}</p>
                           </div>
-                        )}
-                        <span className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(player.team_id)}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold text-sm">
-                      {player.position || '-'}
-                    </td>
-                    <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold text-sm">
-                      {player.height || '-'}
-                    </td>
-                    <td className="py-4 px-4 text-center font-bold text-lg text-blue-600 dark:text-blue-400">
-                      {player.total_points || 0}
-                    </td>
-                    <td className="py-4 px-4 text-center font-bold text-lg text-green-600 dark:text-green-400">
-                      {player.total_rebounds || 0}
-                    </td>
-                    <td className="py-4 px-4 text-center font-bold text-lg text-purple-600 dark:text-purple-400">
-                      {player.total_assists || 0}
-                    </td>
-                    <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold">
-                      {player.games_played || 0}
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center justify-center">
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => {
-                            setEditingPlayer(player);
-                            setShowForm(true);
-                          }}
-                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
-  );
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center justify-center gap-3">
+                          {teamLogo ? (
+                            <Avatar className="w-8 h-8 border-2 border-gray-300 dark:border-gray-600 shadow-md">
+                              <AvatarImage src={teamLogo} />
+                              <AvatarFallback className="text-[10px] bg-gray-200 dark:bg-gray-700 font-bold">T</AvatarFallback>
+                            </Avatar>
+                          ) : (
+                            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                              <span className="text-[10px] text-gray-500 dark:text-gray-400 font-bold">T</span>
+                            </div>
+                          )}
+                          <span className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(player.team_id)}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold text-sm">
+                        {player.position || '-'}
+                      </td>
+                      <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold text-sm">
+                        {player.height || '-'}
+                      </td>
+                      <td className="py-4 px-4 text-center font-bold text-lg text-blue-600 dark:text-blue-400">
+                        {player.stat1 || 0}
+                      </td>
+                      <td className="py-4 px-4 text-center font-bold text-lg text-green-600 dark:text-green-400">
+                        {player.stat2 || 0}
+                      </td>
+                      <td className="py-4 px-4 text-center font-bold text-lg text-purple-600 dark:text-purple-400">
+                        {player.stat3 || 0}
+                      </td>
+                      <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold">
+                        {player.games_played || 0}
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center justify-center">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => {
+                              setEditingPlayer(player);
+                              setShowForm(true);
+                            }}
+                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-50 dark:from-gray-900 dark:via-purple-950/10 dark:to-gray-900">
