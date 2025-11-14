@@ -458,12 +458,14 @@ export default function Home() {
 
               {/* CTA Buttons */}
               <div className="flex gap-4 justify-center flex-wrap">
-                <Link to={createPageUrl("Dashboard")}>
-                  <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all">
-                    Go to Dashboard
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
+                {isAdmin ? (
+                  <Link to={createPageUrl("Dashboard")}>
+                    <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all">
+                      Go to Dashboard
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  </Link>
+                ) : null}
                 <Button 
                   onClick={() => setViewMode(viewMode === 'my-org' ? 'all' : 'my-org')}
                   variant="outline"
