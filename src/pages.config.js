@@ -19,7 +19,6 @@ import PublicLanding from './pages/PublicLanding';
 import RoleSelection from './pages/RoleSelection';
 import AssociateOrganization from './pages/AssociateOrganization';
 import OrganizationSelector from './pages/OrganizationSelector';
-import Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -49,5 +48,4 @@ export const PAGES = {
 export const pagesConfig = {
     mainPage: "PublicLanding",
     Pages: PAGES,
-    Layout: Layout,
 };
