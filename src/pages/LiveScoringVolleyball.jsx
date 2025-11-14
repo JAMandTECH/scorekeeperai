@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -150,19 +149,6 @@ export default function LiveScoringVolleyball() {
     return playerStats[key]?.[statType] || 0;
   };
 
-  // Calculate total team points from all players (volleyball doesn't track points the same way)
-  const calculateTeamPointsFromPlayers = (teamPlayers, setNumber) => {
-    return teamPlayers.reduce((total, player) => {
-      const key = `${player.id}_${setNumber}`;
-      const stat = playerStats[key];
-      const attacks = stat?.field_goals_made || 0;
-      const blocks = stat?.blocks || 0;
-      const aces = stat?.three_pointers || 0;
-      return total + attacks + blocks + aces;
-    }, 0);
-  };
-
-  // Update multiple stats at once to avoid race conditions
   const updatePlayerStats = async (playerId, teamId, statUpdates) => {
     const key = getPlayerStatKey(playerId);
     
@@ -176,7 +162,6 @@ export default function LiveScoringVolleyball() {
         quarter: currentSet,
       };
 
-      // Apply all stat updates at once
       statUpdates.forEach(({ statType, value }) => {
         updatedStat[statType] = Math.max(0, (existingStat[statType] || 0) + value);
       });
@@ -187,15 +172,11 @@ export default function LiveScoringVolleyball() {
       };
     });
 
-    // Save to database after state update
     setTimeout(async () => {
-      // Use the playerStats from the closure or direct from state if needed, but here we assume the setPlayerStats is quick
-      // and we want the most recent state value for the save.
-      // A safer approach might be to capture the updatedStat from the setPlayerStats call or re-fetch from current state.
-      const currentStats = playerStats; // This will capture the state at the time of timeout creation.
+      const currentStats = playerStats;
       const statToSave = currentStats[key]; 
       
-      if (!statToSave) return; // Should not happen if setPlayerStats was called
+      if (!statToSave) return;
 
       try {
         if (statToSave.id) {
@@ -204,7 +185,7 @@ export default function LiveScoringVolleyball() {
           const created = await base44.entities.PlayerGameStats.create(statToSave);
           setPlayerStats(prev => ({
             ...prev,
-            [key]: { ...prev[key], id: created.id }, // Ensure the ID is updated in the state for subsequent updates
+            [key]: { ...prev[key], id: created.id },
           }));
         }
       } catch (error) {
@@ -213,44 +194,56 @@ export default function LiveScoringVolleyball() {
     }, 100);
   };
 
-  const handleStatUpdate = async (statType, value) => {
+  const handleScoreWithStat = async (statType, pointType) => {
     if (!selectedPlayer || !selectedTeam || !game) return;
 
     const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
-    
     const key = getPlayerStatKey(selectedPlayer.id);
     const currentStatValue = playerStats[key]?.[statType] || 0;
 
+    const newHomeScore = selectedTeam === 'home' ? homeScore + 1 : homeScore;
+    const newAwayScore = selectedTeam === 'away' ? awayScore + 1 : awayScore;
+
+    // Add a COMBINED action to history
     const action = {
-        type: 'stat_update',
-        playerId: selectedPlayer.id,
-        teamId: teamId,
-        statType: statType,
-        value: value,
-        quarter: currentSet,
-        previousStatValue: currentStatValue, // Keep previousStatValue for undo logic if needed to revert to exact previous count
+      type: 'score_with_stat',
+      playerId: selectedPlayer.id,
+      teamId: teamId,
+      statType: statType,
+      value: 1,
+      team: selectedTeam,
+      pointType: pointType,
+      quarter: currentSet,
+      previousHomeScore: homeScore,
+      previousAwayScore: awayScore,
+      previousStatValue: currentStatValue,
     };
     setActionHistory(prev => [...prev, action]);
 
-    await updatePlayerStats(selectedPlayer.id, teamId, [{ statType, value }]);
+    // Update player stat
+    await updatePlayerStats(selectedPlayer.id, teamId, [{ statType, value: 1 }]);
+
+    // Update score
+    setHomeScore(newHomeScore);
+    setAwayScore(newAwayScore);
+    await base44.entities.Game.update(game.id, {
+      home_score: newHomeScore,
+      away_score: newAwayScore,
+    });
   };
 
-  const handleScorePoint = async (pointType = 'rally', playerId = null) => {
+  const handleScoreOnly = async () => {
     if (!selectedTeam || !game) return;
 
     const newHomeScore = selectedTeam === 'home' ? homeScore + 1 : homeScore;
     const newAwayScore = selectedTeam === 'away' ? awayScore + 1 : awayScore;
 
     const action = {
-        type: 'score_point',
-        team: selectedTeam,
-        pointType: pointType,
-        playerId: playerId,
-        set: currentSet,
-        homeScoreChange: selectedTeam === 'home' ? 1 : 0,
-        awayScoreChange: selectedTeam === 'away' ? 1 : 0,
-        previousHomeScore: homeScore,
-        previousAwayScore: awayScore,
+      type: 'score_only',
+      team: selectedTeam,
+      quarter: currentSet,
+      previousHomeScore: homeScore,
+      previousAwayScore: awayScore,
     };
     setActionHistory(prev => [...prev, action]);
 
@@ -258,8 +251,8 @@ export default function LiveScoringVolleyball() {
     setAwayScore(newAwayScore);
 
     await base44.entities.Game.update(game.id, {
-        home_score: newHomeScore,
-        away_score: newAwayScore,
+      home_score: newHomeScore,
+      away_score: newAwayScore,
     });
   };
 
@@ -274,20 +267,31 @@ export default function LiveScoringVolleyball() {
       return; 
     }
 
-    if (lastAction.type === 'score_point') {
-        const newHomeScore = lastAction.previousHomeScore;
-        const newAwayScore = lastAction.previousAwayScore;
-        setHomeScore(newHomeScore);
-        setAwayScore(newAwayScore);
-        await base44.entities.Game.update(game.id, {
-            home_score: newHomeScore,
-            away_score: newAwayScore,
-        });
-    } else if (lastAction.type === 'stat_update') {
-        await updatePlayerStats(lastAction.playerId, lastAction.teamId, [{ 
-          statType: lastAction.statType, 
-          value: -lastAction.value 
-        }]);
+    if (lastAction.type === 'score_with_stat') {
+      // Undo both score AND stat
+      const newHomeScore = lastAction.previousHomeScore;
+      const newAwayScore = lastAction.previousAwayScore;
+      setHomeScore(newHomeScore);
+      setAwayScore(newAwayScore);
+      await base44.entities.Game.update(game.id, {
+        home_score: newHomeScore,
+        away_score: newAwayScore,
+      });
+      
+      await updatePlayerStats(lastAction.playerId, lastAction.teamId, [{ 
+        statType: lastAction.statType, 
+        value: -lastAction.value 
+      }]);
+    } else if (lastAction.type === 'score_only') {
+      // Undo only score
+      const newHomeScore = lastAction.previousHomeScore;
+      const newAwayScore = lastAction.previousAwayScore;
+      setHomeScore(newHomeScore);
+      setAwayScore(newAwayScore);
+      await base44.entities.Game.update(game.id, {
+        home_score: newHomeScore,
+        away_score: newAwayScore,
+      });
     } else if (lastAction.type === 'timeout') {
       if (lastAction.team === 'home') {
         const newTimeouts = homeTimeouts + 1;
@@ -332,7 +336,6 @@ export default function LiveScoringVolleyball() {
     const newSetScores = [...setScores, setScore];
     setSetScores(newSetScores);
 
-    // Calculate total scores (sum of set scores)
     const totalHomeScore = newSetScores.reduce((sum, s) => sum + s.home, 0);
     const totalAwayScore = newSetScores.reduce((sum, s) => sum + s.away, 0);
 
@@ -347,7 +350,6 @@ export default function LiveScoringVolleyball() {
       setCurrentSet(currentSet + 1);
     }
     
-    // Reset ONLY the current set scores for display, but keep cumulative game scores
     setHomeScore(0);
     setAwayScore(0);
     setActionHistory([]);
@@ -366,7 +368,6 @@ export default function LiveScoringVolleyball() {
     if (homeScore > awayScore) homeSetsWon++;
     else if (awayScore > homeScore) awaySetsWon++;
 
-    // Calculate final total scores across all sets
     const allSets = [...setScores, { home: homeScore, away: awayScore }];
     const finalHomeScore = allSets.reduce((sum, s) => sum + s.home, 0);
     const finalAwayScore = allSets.reduce((sum, s) => sum + s.away, 0);
@@ -419,13 +420,6 @@ export default function LiveScoringVolleyball() {
   const setLabel = `Set ${currentSet}`;
   const currentSetStats = selectedPlayer ? (playerStats[`${selectedPlayer.id}_${currentSet}`] || {}) : {};
 
-  // Calculate player totals for verification (current set only for volleyball)
-  const homePlayerPoints = calculateTeamPointsFromPlayers(homePlayers, currentSet);
-  const awayPlayerPoints = calculateTeamPointsFromPlayers(awayPlayers, currentSet);
-  
-  const homePointsDiff = homeScore - homePlayerPoints;
-  const awayPointsDiff = awayScore - awayPlayerPoints;
-
   const PlayerRow = ({ player, team, teamId, onSelect }) => {
     const attacks = getPlayerStat(player.id, 'field_goals_made');
     const blocks = getPlayerStat(player.id, 'blocks');
@@ -475,7 +469,6 @@ export default function LiveScoringVolleyball() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900">
-      {/* TOP NAVIGATION BAR WITH ORG LOGO AND BACK BUTTON */}
       <div className="sticky top-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -504,7 +497,6 @@ export default function LiveScoringVolleyball() {
         </div>
       </div>
 
-      {/* Main Scoreboard - Sticky BELOW top nav */}
       <div className="sticky z-40 bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 border-b-4 border-blue-500 shadow-2xl" style={{ top: '64px' }}>
         <div className="max-w-7xl mx-auto p-4">
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -521,7 +513,6 @@ export default function LiveScoringVolleyball() {
           </div>
 
           <div className="grid grid-cols-3 gap-4 items-center mb-4">
-            {/* HOME TEAM WITH LOGO */}
             <div className="text-center">
               <div className="text-blue-400 text-sm font-black mb-2">HOME</div>
               <div className="flex items-center justify-center gap-3 mb-2">
@@ -539,7 +530,6 @@ export default function LiveScoringVolleyball() {
               </div>
             </div>
 
-            {/* SET SCORES WITH BUTTONS BELOW */}
             <div className="text-center">
               <div className="text-white text-2xl font-black mb-3">{setLabel}</div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
@@ -555,7 +545,6 @@ export default function LiveScoringVolleyball() {
                 </div>
               </div>
 
-              {/* END SET AND CANCEL BUTTONS */}
               <div className="flex gap-2 justify-center">
                 {currentSet <= 5 && (
                   <Button
@@ -588,7 +577,6 @@ export default function LiveScoringVolleyball() {
               </div>
             </div>
 
-            {/* AWAY TEAM WITH LOGO */}
             <div className="text-center">
               <div className="text-cyan-400 text-sm font-black mb-2">AWAY</div>
               <div className="flex items-center justify-center gap-3 mb-2">
@@ -609,7 +597,6 @@ export default function LiveScoringVolleyball() {
         </div>
       </div>
 
-      {/* Control Panel - STICKY BELOW scoreboard */}
       {selectedPlayer ? (
         <div className="sticky z-30 bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900" style={{ top: '364px' }}>
           <div className="mx-4 my-4">
@@ -643,37 +630,28 @@ export default function LiveScoringVolleyball() {
 
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    onClick={async () => {
-                      await handleStatUpdate('field_goals_made', 1);
-                      await handleScorePoint('attack', selectedPlayer.id);
-                    }}
+                    onClick={() => handleScoreWithStat('field_goals_made', 'attack')}
                     className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Target className="w-4 h-4 mr-1" />
                     ATTACK
                   </Button>
                   <Button
-                    onClick={async () => {
-                      await handleStatUpdate('blocks', 1);
-                      await handleScorePoint('block', selectedPlayer.id);
-                    }}
+                    onClick={() => handleScoreWithStat('blocks', 'block')}
                     className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:scale-95 text-white font-black text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Shield className="w-4 h-4 mr-1" />
                     BLOCK
                   </Button>
                   <Button
-                    onClick={async () => {
-                      await handleStatUpdate('three_pointers', 1);
-                      await handleScorePoint('ace', selectedPlayer.id);
-                    }}
+                    onClick={() => handleScoreWithStat('three_pointers', 'ace')}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Zap className="w-4 h-4 mr-1" />
                     ACE
                   </Button>
                   <Button
-                    onClick={() => handleScorePoint('rally', selectedPlayer.id)}
+                    onClick={handleScoreOnly}
                     className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Trophy className="w-4 h-4 mr-1" />
@@ -689,7 +667,6 @@ export default function LiveScoringVolleyball() {
                   </Button>
                 </div>
 
-                {/* SET STATS WITH TOGGLE */}
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Set Stats:</p>
@@ -746,12 +723,9 @@ export default function LiveScoringVolleyball() {
         </div>
       )}
 
-      {/* Players Section - USING FLEXBOX FOR TRULY FROZEN HEADERS */}
       <div className="max-w-7xl mx-auto p-4 pb-24">
         <div className="grid lg:grid-cols-2 gap-4">
-          {/* Home Team - FLEXBOX STRUCTURE */}
           <div className="flex flex-col h-[700px] bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm rounded-xl">
-            {/* FROZEN HEADER */}
             <div className="flex-shrink-0 bg-blue-900/95 backdrop-blur-sm border-b-4 border-blue-500 p-3 rounded-t-xl">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-xl font-black text-white">
@@ -767,7 +741,6 @@ export default function LiveScoringVolleyball() {
                 </Button>
               </div>
             </div>
-            {/* SCROLLABLE PLAYERS */}
             <div className="flex-1 overflow-y-auto p-3">
               {homePlayers.map(player => (
                 <PlayerRow key={player.id} player={player} team="home" teamId={game.home_team_id} onSelect={handlePlayerSelect} />
@@ -775,9 +748,7 @@ export default function LiveScoringVolleyball() {
             </div>
           </div>
 
-          {/* Away Team - FLEXBOX STRUCTURE */}
           <div className="flex flex-col h-[700px] bg-gradient-to-br from-cyan-900/40 to-cyan-950/40 border-4 border-cyan-500 backdrop-blur-sm rounded-xl">
-            {/* FROZEN HEADER */}
             <div className="flex-shrink-0 bg-cyan-900/95 backdrop-blur-sm border-b-4 border-cyan-500 p-3 rounded-t-xl">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-xl font-black text-white">
@@ -793,7 +764,6 @@ export default function LiveScoringVolleyball() {
                 </Button>
               </div>
             </div>
-            {/* SCROLLABLE PLAYERS */}
             <div className="flex-1 overflow-y-auto p-3">
               {awayPlayers.map(player => (
                 <PlayerRow key={player.id} player={player} team="away" teamId={game.away_team_id} onSelect={handlePlayerSelect} />
@@ -803,7 +773,6 @@ export default function LiveScoringVolleyball() {
         </div>
       </div>
 
-      {/* End Set Dialog */}
       <Dialog open={showSetEnd} onOpenChange={setShowSetEnd}>
         <DialogContent className="bg-gray-900 border-4 border-blue-500 max-w-md">
           <DialogHeader>
