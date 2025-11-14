@@ -15,7 +15,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function OrganizationSettings() {
   const [user, setUser] = useState(null);
-  const [organization, setOrganization] = useState(null);
   const [logoFile, setLogoFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -46,25 +45,35 @@ export default function OrganizationSettings() {
   const loadUser = async () => {
     const currentUser = await base44.auth.me();
     setUser(currentUser);
-    
-    if (currentUser?.organization_id) {
-      const orgs = await base44.entities.Organization.list();
-      const userOrg = orgs.find(o => o.id === currentUser.organization_id);
-      setOrganization(userOrg);
-    }
   };
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("PublicLanding"));
   };
 
+  // Fetch organization data with React Query
+  const { data: organization, refetch: refetchOrganization } = useQuery({
+    queryKey: ['organization', user?.organization_id],
+    queryFn: async () => {
+      const orgs = await base44.entities.Organization.list();
+      return orgs.find(o => o.id === user?.organization_id);
+    },
+    enabled: !!user?.organization_id,
+  });
+
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Organization.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['organizations']);
+    onSuccess: async () => {
+      // Invalidate all queries that might have organization data
+      await queryClient.invalidateQueries(['organization']);
+      await queryClient.invalidateQueries(['organizations']);
+      
+      // Refetch the organization data
+      await refetchOrganization();
+      
       setSuccessMessage("Organization updated successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
-      loadUser(); // Reload to get updated organization data
+      setLogoFile(null); // Clear the file input
     },
   });
 
@@ -87,16 +96,15 @@ export default function OrganizationSettings() {
         data.logo_url = file_url;
       }
 
-      updateMutation.mutate({ id: organization.id, data });
+      await updateMutation.mutateAsync({ id: organization.id, data });
     } catch (error) {
-      console.error("Error uploading logo:", error);
+      console.error("Error updating organization:", error);
     } finally {
       setUploading(false);
-      setLogoFile(null);
     }
   };
 
-  if (!organization) {
+  if (!organization || !user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
@@ -166,7 +174,10 @@ export default function OrganizationSettings() {
                       </Label>
                       <div className="flex items-center gap-6 bg-gradient-to-br from-gray-50 to-purple-50/30 dark:from-gray-900 dark:to-purple-950/20 rounded-xl p-6 border-2 border-gray-200 dark:border-gray-700">
                         <Avatar className="w-32 h-32 border-4 border-white dark:border-gray-600 shadow-2xl">
-                          <AvatarImage src={logoFile ? URL.createObjectURL(logoFile) : organization.logo_url} />
+                          <AvatarImage 
+                            src={logoFile ? URL.createObjectURL(logoFile) : organization.logo_url} 
+                            className="object-cover"
+                          />
                           <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-4xl">
                             {organization.name?.substring(0, 2).toUpperCase()}
                           </AvatarFallback>
@@ -183,7 +194,12 @@ export default function OrganizationSettings() {
                           </p>
                           {logoFile && (
                             <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800 font-bold mt-2">
-                              New logo selected
+                              New logo selected: {logoFile.name}
+                            </Badge>
+                          )}
+                          {organization.logo_url && !logoFile && (
+                            <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold mt-2">
+                              Current logo is set
                             </Badge>
                           )}
                         </div>
@@ -286,7 +302,7 @@ export default function OrganizationSettings() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div className="bg-white/60 dark:bg-gray-900/60 rounded-lg p-3">
                       <span className="text-gray-500 dark:text-gray-400 font-semibold block mb-1">Organization ID</span>
-                      <span className="text-gray-900 dark:text-white font-bold font-mono">{organization.id}</span>
+                      <span className="text-gray-900 dark:text-white font-bold font-mono text-xs">{organization.id}</span>
                     </div>
                     <div className="bg-white/60 dark:bg-gray-900/60 rounded-lg p-3">
                       <span className="text-gray-500 dark:text-gray-400 font-semibold block mb-1">Status</span>
