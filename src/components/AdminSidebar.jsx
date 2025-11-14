@@ -18,10 +18,6 @@ export default function AdminSidebar({
   const superAdminNav = [
     { title: "Super Admin Home", url: createPageUrl("SuperAdminHome"), icon: Home },
     { title: "Analytics Dashboard", url: createPageUrl("SuperAdminDashboard"), icon: Gauge },
-    { title: "Organizations", url: createPageUrl("Organizations"), icon: Building2 },
-    { title: "All Teams", url: createPageUrl("AllTeams"), icon: Users },
-    { title: "All Games", url: createPageUrl("AllGames"), icon: Calendar },
-    { title: "Admin Approvals", url: createPageUrl("AdminApprovals"), icon: Shield },
   ];
 
   const adminNav = [
