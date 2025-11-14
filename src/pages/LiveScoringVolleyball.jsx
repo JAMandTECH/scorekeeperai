@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -330,31 +329,31 @@ export default function LiveScoringVolleyball() {
   };
 
   const endSet = async () => {
+    // Calculate the score for THIS SET ONLY by subtracting previous sets' scores
+    const previousHomeTotalScore = setScores.reduce((sum, s) => sum + s.home, 0);
+    const previousAwayTotalScore = setScores.reduce((sum, s) => sum + s.away, 0);
+    
     const setScore = {
       quarter: currentSet,
-      home: homeScore,
-      away: awayScore,
+      home: homeScore - previousHomeTotalScore,
+      away: awayScore - previousAwayTotalScore,
     };
 
     const newSetScores = [...setScores, setScore];
     setSetScores(newSetScores);
 
-    const totalHomeScore = newSetScores.reduce((sum, s) => sum + s.home, 0);
-    const totalAwayScore = newSetScores.reduce((sum, s) => sum + s.away, 0);
-
     await base44.entities.Game.update(game.id, {
       quarter_scores: newSetScores,
       current_quarter: currentSet + 1,
-      home_score: totalHomeScore,
-      away_score: totalAwayScore,
+      home_score: homeScore,
+      away_score: awayScore,
     });
 
     if (currentSet < 5) {
       setCurrentSet(currentSet + 1);
     }
     
-    setHomeScore(0);
-    setAwayScore(0);
+    // DON'T reset scores - they continue accumulating
     setActionHistory([]);
     setShowSetEnd(false);
   };
@@ -368,17 +367,19 @@ export default function LiveScoringVolleyball() {
       else if (set.away > set.home) awaySetsWon++;
     });
 
-    if (homeScore > awayScore) homeSetsWon++;
-    else if (awayScore > homeScore) awaySetsWon++;
+    // Calculate current set winner
+    const previousHomeTotalScore = setScores.reduce((sum, s) => sum + s.home, 0);
+    const previousAwayTotalScore = setScores.reduce((sum, s) => sum + s.away, 0);
+    const currentSetHomeScore = homeScore - previousHomeTotalScore;
+    const currentSetAwayScore = awayScore - previousAwayTotalScore;
 
-    const allSets = [...setScores, { home: homeScore, away: awayScore }];
-    const finalHomeScore = allSets.reduce((sum, s) => sum + s.home, 0);
-    const finalAwayScore = allSets.reduce((sum, s) => sum + s.away, 0);
+    if (currentSetHomeScore > currentSetAwayScore) homeSetsWon++;
+    else if (currentSetAwayScore > currentSetHomeScore) awaySetsWon++;
 
     await base44.entities.Game.update(game.id, {
       status: 'completed',
-      home_score: finalHomeScore,
-      away_score: finalAwayScore,
+      home_score: homeScore,
+      away_score: awayScore,
     });
 
     const allTeams = await base44.entities.Team.list();
@@ -410,36 +411,6 @@ export default function LiveScoringVolleyball() {
     }
 
     navigate(createPageUrl("Games"));
-  };
-
-  const handleVoiceCommand = async ({ team, player, action, value }) => {
-    if (!game) {
-      console.warn("Game not loaded, cannot process voice command.");
-      return;
-    }
-
-    const teamId = team === 'home' ? game.home_team_id : game.away_team_id;
-    
-    // Select the player and team
-    setSelectedPlayer(player);
-    setSelectedTeam(team);
-
-    // Execute the action based on the command
-    if (action === 'point') {
-      await handleScoreOnly();
-    } else if (action === 'kill') {
-      await handleScoreWithStat('field_goals_made', 'attack');
-    } else if (action === 'ace') {
-      await handleScoreWithStat('three_pointers', 'ace');
-    } else if (action === 'block') {
-      await handleScoreWithStat('blocks', 'block');
-    } else if (action === 'assist') {
-      await updatePlayerStats(player.id, teamId, [{ statType: 'assists', value: 1 }]);
-    } else if (action === 'dig') {
-      await updatePlayerStats(player.id, teamId, [{ statType: 'rebounds', value: 1 }]);
-    } else if (action === 'error') {
-      await updatePlayerStats(player.id, teamId, [{ statType: 'steals', value: 1 }]);
-    }
   };
 
   const handleDeclareDefault = async (defaultedTeamId) => {
@@ -499,6 +470,36 @@ export default function LiveScoringVolleyball() {
     await loadGame();
   };
 
+  const handleVoiceCommand = async ({ team, player, action, value }) => {
+    if (!game) {
+      console.warn("Game not loaded, cannot process voice command.");
+      return;
+    }
+
+    const teamId = team === 'home' ? game.home_team_id : game.away_team_id;
+    
+    // Select the player and team
+    setSelectedPlayer(player);
+    setSelectedTeam(team);
+
+    // Execute the action based on the command
+    if (action === 'point') {
+      await handleScoreOnly();
+    } else if (action === 'kill') {
+      await handleScoreWithStat('field_goals_made', 'attack');
+    } else if (action === 'ace') {
+      await handleScoreWithStat('three_pointers', 'ace');
+    } else if (action === 'block') {
+      await handleScoreWithStat('blocks', 'block');
+    } else if (action === 'assist') {
+      await updatePlayerStats(player.id, teamId, [{ statType: 'assists', value: 1 }]);
+    } else if (action === 'dig') {
+      await updatePlayerStats(player.id, teamId, [{ statType: 'rebounds', value: 1 }]);
+    } else if (action === 'error') {
+      await updatePlayerStats(player.id, teamId, [{ statType: 'steals', value: 1 }]);
+    }
+  };
+
   if (!game || !homeTeam || !awayTeam || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
@@ -509,6 +510,12 @@ export default function LiveScoringVolleyball() {
 
   const setLabel = `Set ${currentSet}`;
   const currentSetStats = selectedPlayer ? (playerStats[`${selectedPlayer.id}_${currentSet}`] || {}) : {};
+
+  // Calculate current set score for display
+  const previousHomeTotalScore = setScores.reduce((sum, s) => sum + s.home, 0);
+  const previousAwayTotalScore = setScores.reduce((sum, s) => sum + s.away, 0);
+  const currentSetHomeScore = homeScore - previousHomeTotalScore;
+  const currentSetAwayScore = awayScore - previousAwayTotalScore;
 
   const PlayerRow = ({ player, team, teamId, onSelect }) => {
     const attacks = getPlayerStat(player.id, 'field_goals_made');
@@ -653,9 +660,9 @@ export default function LiveScoringVolleyball() {
                 </Avatar>
                 <div className="text-white text-2xl font-black text-left">{homeTeam.name}</div>
               </div>
-              <div className="text-blue-500 text-7xl font-black mb-2">{homeScore}</div>
+              <div className="text-blue-500 text-7xl font-black mb-2">{currentSetHomeScore}</div>
               <div className="text-white text-xs font-bold">
-                Total: {setScores.reduce((sum, s) => sum + s.home, 0) + homeScore} | Sets Won: {setScores.filter(s => s.home > s.away).length}
+                Total: {homeScore} | Sets Won: {setScores.filter(s => s.home > s.away).length}
               </div>
             </div>
 
@@ -674,7 +681,7 @@ export default function LiveScoringVolleyball() {
                 </div>
               </div>
 
-              <div className="flex gap-2 justify-center">
+              <div className="flex gap-2 justify-center flex-wrap">
                 {!game.is_default && game.status === 'in_progress' && (
                   <Button
                     onClick={() => setShowDefaultDialog(true)}
@@ -727,9 +734,9 @@ export default function LiveScoringVolleyball() {
                   </AvatarFallback>
                 </Avatar>
               </div>
-              <div className="text-cyan-500 text-7xl font-black mb-2">{awayScore}</div>
+              <div className="text-cyan-500 text-7xl font-black mb-2">{currentSetAwayScore}</div>
               <div className="text-white text-xs font-bold">
-                Total: {setScores.reduce((sum, s) => sum + s.away, 0) + awayScore} | Sets Won: {setScores.filter(s => s.away > s.home).length}
+                Total: {awayScore} | Sets Won: {setScores.filter(s => s.away > s.home).length}
               </div>
             </div>
           </div>
@@ -747,7 +754,7 @@ export default function LiveScoringVolleyball() {
       </div>
 
       {selectedPlayer ? (
-        <div className="sticky z-30 bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900" style={{ top: '364px' }}>
+        <div className="sticky z-30 bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900" style={{ top: game.is_default ? '464px' : '364px' }}>
           <div className="mx-4 my-4">
             <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
               <CardContent className="p-6">
@@ -922,44 +929,6 @@ export default function LiveScoringVolleyball() {
         </div>
       </div>
 
-      <Dialog open={showSetEnd} onOpenChange={setShowSetEnd}>
-        <DialogContent className="bg-gray-900 border-4 border-blue-500 max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-white text-2xl font-black">End of {setLabel}</DialogTitle>
-            <DialogDescription className="text-gray-300 font-bold">
-              Save set data and proceed to next set?
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="bg-gray-800 rounded-xl p-6 border-2 border-gray-700">
-              <div className="flex justify-between text-lg font-bold mb-3 text-white">
-                <span>{homeTeam.name}</span>
-                <span className="text-blue-500 text-3xl">{homeScore}</span>
-              </div>
-              <div className="flex justify-between text-lg font-bold text-white">
-                <span>{awayTeam.name}</span>
-                <span className="text-cyan-500 text-3xl">{awayScore}</span>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                onClick={endSet}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-black"
-              >
-                PROCEED TO {currentSet < 5 ? `SET ${currentSet + 1}` : 'END GAME'}
-              </Button>
-              <Button
-                onClick={() => setShowSetEnd(false)}
-                variant="outline"
-                className="flex-1 border-2 border-gray-600 text-white hover:bg-gray-800 font-black"
-              >
-                CANCEL
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Declare Default Dialog */}
       <Dialog open={showDefaultDialog} onOpenChange={setShowDefaultDialog}>
         <DialogContent className="bg-gray-900 border-4 border-red-500 max-w-md">
@@ -1005,6 +974,44 @@ export default function LiveScoringVolleyball() {
             >
               CANCEL
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showSetEnd} onOpenChange={setShowSetEnd}>
+        <DialogContent className="bg-gray-900 border-4 border-blue-500 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white text-2xl font-black">End of {setLabel}</DialogTitle>
+            <DialogDescription className="text-gray-300 font-bold">
+              Save set data and proceed to next set?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-gray-800 rounded-xl p-6 border-2 border-gray-700">
+              <div className="flex justify-between text-lg font-bold mb-3 text-white">
+                <span>{homeTeam.name}</span>
+                <span className="text-blue-500 text-3xl">{currentSetHomeScore}</span>
+              </div>
+              <div className="flex justify-between text-lg font-bold text-white">
+                <span>{awayTeam.name}</span>
+                <span className="text-cyan-500 text-3xl">{currentSetAwayScore}</span>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                onClick={endSet}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-black"
+              >
+                PROCEED TO {currentSet < 5 ? `SET ${currentSet + 1}` : 'END GAME'}
+              </Button>
+              <Button
+                onClick={() => setShowSetEnd(false)}
+                variant="outline"
+                className="flex-1 border-2 border-gray-600 text-white hover:bg-gray-800 font-black"
+              >
+                CANCEL
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
