@@ -19,6 +19,7 @@ import {
   Alert,
   AlertDescription,
 } from "@/components/ui/alert";
+import VoiceAssistant from "@/components/VoiceAssistant";
 
 
 export default function LiveScoringVolleyball() {
@@ -409,6 +410,36 @@ export default function LiveScoringVolleyball() {
     navigate(createPageUrl("Games"));
   };
 
+  const handleVoiceCommand = async ({ team, player, action, value }) => {
+    if (!game) {
+      console.warn("Game not loaded, cannot process voice command.");
+      return;
+    }
+
+    const teamId = team === 'home' ? game.home_team_id : game.away_team_id;
+    
+    // Select the player and team
+    setSelectedPlayer(player);
+    setSelectedTeam(team);
+
+    // Execute the action based on the command
+    if (action === 'point') {
+      await handleScoreOnly();
+    } else if (action === 'kill') {
+      await handleScoreWithStat('field_goals_made', 'attack');
+    } else if (action === 'ace') {
+      await handleScoreWithStat('three_pointers', 'ace');
+    } else if (action === 'block') {
+      await handleScoreWithStat('blocks', 'block');
+    } else if (action === 'assist') {
+      await updatePlayerStats(player.id, teamId, [{ statType: 'assists', value: 1 }]);
+    } else if (action === 'dig') {
+      await updatePlayerStats(player.id, teamId, [{ statType: 'rebounds', value: 1 }]);
+    } else if (action === 'error') {
+      await updatePlayerStats(player.id, teamId, [{ statType: 'steals', value: 1 }]);
+    }
+  };
+
   if (!game || !homeTeam || !awayTeam || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
@@ -612,6 +643,16 @@ export default function LiveScoringVolleyball() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Voice Assistant - Add below scoreboard */}
+      <div className="max-w-7xl mx-auto px-4 mt-4">
+        <VoiceAssistant
+          homePlayers={homePlayers}
+          awayPlayers={awayPlayers}
+          onCommand={handleVoiceCommand}
+          sport="volleyball"
+        />
       </div>
 
       {selectedPlayer ? (

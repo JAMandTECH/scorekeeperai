@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import VoiceAssistant from "@/components/VoiceAssistant"; // New import
 
 export default function LiveScoring() {
   const [game, setGame] = useState(null);
@@ -30,7 +31,7 @@ export default function LiveScoring() {
   const [awayTeamFouls, setAwayTeamFouls] = useState(0);
   const [playerStats, setPlayerStats] = useState({});
   const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [selectedTeam, setSelectedTeam] = useState(null); // 'home' or 'away'
   const [showQuarterEnd, setShowQuarterEnd] = useState(false);
   const [actionHistory, setActionHistory] = useState([]);
   const [showQuarterStats, setShowQuarterStats] = useState(true);
@@ -201,19 +202,17 @@ export default function LiveScoring() {
     }
   };
 
-  const addPoints = async (points) => {
-    if (!selectedPlayer || !selectedTeam) return;
-
+  // Updated addPoints to accept playerId and teamId
+  const addPoints = async (playerId, teamId, points) => {
     const oldHomeScore = homeScore;
     const oldAwayScore = awayScore;
 
-    const newHomeScore = selectedTeam === 'home' ? homeScore + points : homeScore;
-    const newAwayScore = selectedTeam === 'away' ? awayScore + points : awayScore;
+    const isHomeTeam = teamId === game.home_team_id;
+    const newHomeScore = isHomeTeam ? homeScore + points : homeScore;
+    const newAwayScore = !isHomeTeam ? awayScore + points : awayScore;
 
     setHomeScore(newHomeScore);
     setAwayScore(newAwayScore);
-
-    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
     
     const statUpdates = [
       { statType: 'points', value: points }
@@ -237,7 +236,7 @@ export default function LiveScoring() {
       );
     }
 
-    await updatePlayerStats(selectedPlayer.id, teamId, statUpdates);
+    await updatePlayerStats(playerId, teamId, statUpdates);
 
     await base44.entities.Game.update(game.id, {
       home_score: newHomeScore,
@@ -246,9 +245,9 @@ export default function LiveScoring() {
 
     setActionHistory(prev => [...prev, {
       type: 'score',
-      team: selectedTeam,
+      team: isHomeTeam ? 'home' : 'away',
       points: points,
-      playerId: selectedPlayer.id,
+      playerId: playerId,
       quarter: currentQuarter,
       oldHomeScore: oldHomeScore,
       oldAwayScore: oldAwayScore,
@@ -256,16 +255,14 @@ export default function LiveScoring() {
     }]);
   };
 
-  const addPlayerStat = async (statType, value) => {
-    if (!selectedPlayer || !selectedTeam) return;
-
-    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
+  // Updated addPlayerStat to accept playerId and teamId
+  const addPlayerStat = async (playerId, teamId, statType, value) => {
     const statUpdates = [{ statType, value }];
-    await updatePlayerStats(selectedPlayer.id, teamId, statUpdates);
+    await updatePlayerStats(playerId, teamId, statUpdates);
     
     setActionHistory(prev => [...prev, {
       type: statType,
-      playerId: selectedPlayer.id,
+      playerId: playerId,
       teamId: teamId,
       quarter: currentQuarter,
       value: value,
@@ -273,17 +270,17 @@ export default function LiveScoring() {
     }]);
   };
 
-  const handleFoul = async () => {
-    if (!selectedPlayer || !selectedTeam) return;
-
-    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
-    const oldTeamFouls = selectedTeam === 'home' ? homeTeamFouls : awayTeamFouls;
+  // Updated handleFoul to accept playerId and teamId
+  const handleFoul = async (playerId, teamId) => {
+    const isHomeTeam = teamId === game.home_team_id;
+    const currentTeam = isHomeTeam ? 'home' : 'away';
+    const oldTeamFouls = isHomeTeam ? homeTeamFouls : awayTeamFouls;
     
     const statUpdates = [{ statType: 'fouls', value: 1 }];
-    await updatePlayerStats(selectedPlayer.id, teamId, statUpdates);
+    await updatePlayerStats(playerId, teamId, statUpdates);
     
     const newTeamFouls = oldTeamFouls + 1;
-    if (selectedTeam === 'home') {
+    if (isHomeTeam) {
       setHomeTeamFouls(newTeamFouls);
       await base44.entities.Game.update(game.id, { home_team_fouls: newTeamFouls });
     } else {
@@ -293,19 +290,18 @@ export default function LiveScoring() {
 
     setActionHistory(prev => [...prev, {
       type: 'foul',
-      playerId: selectedPlayer.id,
+      playerId: playerId,
       teamId: teamId,
       quarter: currentQuarter,
-      team: selectedTeam,
+      team: currentTeam,
       oldTeamFouls: oldTeamFouls,
       statUpdates: statUpdates,
     }]);
 
-    const totalFouls = getTotalPlayerFouls(selectedPlayer.id) + 1;
+    const totalFouls = getTotalPlayerFouls(playerId) + 1;
     if (totalFouls >= game.player_foul_limit) {
       alert(`⚠️ Player has reached foul limit (${game.player_foul_limit} fouls) and is disqualified!`);
-      setSelectedPlayer(null);
-      setSelectedTeam(null);
+      // Keeping player selected visually, but interaction is disabled by PlayerRow component
     } else if (totalFouls === game.player_foul_limit - 1) {
       alert(`⚠️ Warning: Player has ${totalFouls} fouls! One more foul and they will be disqualified.`);
     }
@@ -506,6 +502,36 @@ export default function LiveScoring() {
     });
 
     await loadGame();
+  };
+
+  // New voice command handler
+  const handleVoiceCommand = async ({ team, player, action }) => {
+    if (!game || !player) return;
+
+    const teamId = team === 'home' ? game.home_team_id : game.away_team_id;
+    
+    // Select the player and team for UI highlight
+    setSelectedPlayer(player);
+    setSelectedTeam(team);
+
+    // Execute the action based on the command
+    if (action === '3-pointer') {
+      await addPoints(player.id, teamId, 3);
+    } else if (action === '2-pointer') {
+      await addPoints(player.id, teamId, 2);
+    } else if (action === 'free-throw') {
+      await addPoints(player.id, teamId, 1);
+    } else if (action === 'foul') {
+      await handleFoul(player.id, teamId);
+    } else if (action === 'rebound') {
+      await addPlayerStat(player.id, teamId, 'rebounds', 1);
+    } else if (action === 'assist') {
+      await addPlayerStat(player.id, teamId, 'assists', 1);
+    } else if (action === 'steal') {
+      await addPlayerStat(player.id, teamId, 'steals', 1);
+    } else if (action === 'block') {
+      await addPlayerStat(player.id, teamId, 'blocks', 1);
+    }
   };
 
   if (!game || !homeTeam || !awayTeam) {
@@ -826,9 +852,19 @@ export default function LiveScoring() {
         </div>
       </div>
 
+      {/* Voice Assistant - Add below scoreboard */}
+      <div className="max-w-7xl mx-auto px-4 mt-4">
+        <VoiceAssistant
+          homePlayers={homePlayers}
+          awayPlayers={awayPlayers}
+          onCommand={handleVoiceCommand}
+          sport="basketball"
+        />
+      </div>
+
       {/* Control Panel */}
       {selectedPlayer ? (
-        <div className="sticky z-30 bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900" style={{ top: game.is_default ? '464px' : '364px' }}>
+        <div className="sticky z-30 bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900" style={{ top: game.is_default ? '564px' : '464px' }}> {/* Updated top value */}
           <div className="mx-4 my-4">
             <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
               <CardContent className="p-6">
@@ -860,53 +896,53 @@ export default function LiveScoring() {
 
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    onClick={() => addPoints(1)}
+                    onClick={() => addPoints(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 1)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     +1 PT
                   </Button>
                   <Button
-                    onClick={() => addPoints(2)}
+                    onClick={() => addPoints(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 2)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     +2 PTS
                   </Button>
                   <Button
-                    onClick={() => addPoints(3)}
+                    onClick={() => addPoints(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 3)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     +3 PTS
                   </Button>
                   <Button
-                    onClick={() => addPlayerStat('rebounds', 1)}
+                    onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'rebounds', 1)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <TrendingUp className="w-4 h-4 mr-1" />
                     REB
                   </Button>
                   <Button
-                    onClick={() => addPlayerStat('assists', 1)}
+                    onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'assists', 1)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Target className="w-4 h-4 mr-1" />
                     AST
                   </Button>
                   <Button
-                    onClick={() => addPlayerStat('steals', 1)}
+                    onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'steals', 1)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Zap className="w-4 h-4 mr-1" />
                     STL
                   </Button>
                   <Button
-                    onClick={() => addPlayerStat('blocks', 1)}
+                    onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'blocks', 1)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Shield className="w-4 h-4 mr-1" />
                     BLK
                   </Button>
                   <Button
-                    onClick={handleFoul}
+                    onClick={() => handleFoul(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <AlertTriangle className="w-4 h-4 mr-1" />
