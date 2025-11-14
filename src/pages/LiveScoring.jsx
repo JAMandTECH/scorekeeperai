@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -648,7 +649,7 @@ export default function LiveScoring() {
             <Alert className="bg-red-800/50 border-2 border-red-400">
               <Flag className="h-5 w-5 text-red-300" />
               <AlertDescription className="text-red-100 font-bold flex items-center justify-between">
-                <span>⚠️ This game ended by DEFAULT. {defaultedTeam?.name === homeTeam?.name ? homeTeam.name : awayTeam.name} defaulted. Final Score: {game.home_score}-{game.away_score}</span>
+                <span>⚠️ This game ended by DEFAULT. {game.defaulted_team_id === homeTeam.id ? homeTeam.name : awayTeam.name} defaulted. Final Score: {game.home_score}-{game.away_score}</span>
                 <Button
                   onClick={handleUndoDefault}
                   size="sm"
@@ -719,14 +720,16 @@ export default function LiveScoring() {
               
               {/* BUTTONS */}
               <div className="flex gap-2 justify-center flex-wrap">
-                <Button
-                  onClick={() => setShowDefaultDialog(true)}
-                  size="sm"
-                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-xs px-4 py-2"
-                >
-                  <Flag className="w-4 h-4 mr-1" />
-                  DECLARE DEFAULT
-                </Button>
+                {!game.is_default && game.status === 'in_progress' && (
+                  <Button
+                    onClick={() => setShowDefaultDialog(true)}
+                    size="sm"
+                    className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-xs px-4 py-2"
+                  >
+                    <Flag className="w-4 h-4 mr-1" />
+                    DEFAULT
+                  </Button>
+                )}
                 {currentQuarter <= 4 && (
                   <Button
                     onClick={() => setShowQuarterEnd(true)}
