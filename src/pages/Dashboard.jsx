@@ -1,14 +1,14 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Trophy, Users, Calendar, Building2, ArrowRight, LogOut, Menu, X, BarChart3, PlayCircle, Shield, Sun, Moon, Home } from "lucide-react";
+import { Trophy, Users, Calendar, Building2, ArrowRight, Settings } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AdminHeader from "@/components/AdminHeader";
+import AdminSidebar from "@/components/AdminSidebar";
 import AIInsights from "@/components/AIInsights";
 
 export default function Dashboard() {
@@ -100,29 +100,6 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
-  const superAdminNav = [
-    { title: "Home", url: createPageUrl("Home"), icon: Home },
-    { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
-    { title: "Organizations", url: createPageUrl("Organizations"), icon: Building2 },
-    { title: "All Teams", url: createPageUrl("AllTeams"), icon: Users },
-    { title: "All Games", url: createPageUrl("AllGames"), icon: Calendar },
-    { title: "Admin Approvals", url: createPageUrl("AdminApprovals"), icon: Shield },
-  ];
-
-  const adminNav = [
-    { title: "Home", url: createPageUrl("Home"), icon: Home },
-    { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
-    { title: "Divisions", url: createPageUrl("Divisions"), icon: Trophy },
-    { title: "Teams", url: createPageUrl("Teams"), icon: Users },
-    { title: "Players", url: createPageUrl("Players"), icon: Trophy },
-    { title: "Games", url: createPageUrl("Games"), icon: Calendar },
-    { title: "Scorekeepers", url: createPageUrl("Scorekeepers"), icon: Shield },
-    { title: "Live Scoring", url: createPageUrl("LiveScoring"), icon: PlayCircle },
-    { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 },
-  ];
-
-  const navigationItems = isSuperAdmin ? superAdminNav : adminNav;
-
   if (loading || !user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -137,166 +114,28 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* TOP HEADER WITH LOGOUT */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50 shadow-sm">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            title="Toggle Navigation Menu"
-          >
-            {sidebarOpen ? (
-              <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-            ) : (
-              <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-            )}
-          </button>
-          <div className="flex items-center gap-3">
-            {organization?.logo_url ? (
-              <Avatar className="w-10 h-10 border-2 border-orange-500 shadow-lg">
-                <AvatarImage src={organization.logo_url} />
-                <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black">
-                  {organization.name?.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            ) : (
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                  <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
-                </svg>
-              </div>
-            )}
-            <div className="hidden sm:block">
-              <span className="font-bold text-xl text-gray-900 dark:text-white tracking-tight">
-                {organization?.name || 'ALAB'}
-              </span>
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 -mt-1 font-medium tracking-wide">
-                {organization ? 'ORGANIZATION' : 'SPORTS LEAGUE'}
-              </p>
-            </div>
-            {isSuperAdmin && (
-              <span className="hidden lg:inline-block ml-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1 rounded-full font-semibold shadow-sm">
-                SUPER ADMIN
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={toggleDarkMode}
-            variant="ghost"
-            size="icon"
-            className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </Button>
-
-          <div className="hidden lg:flex items-center gap-3 text-sm">
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
-              <span className="text-sm font-bold text-white">
-                {user?.full_name?.[0] || 'U'}
-              </span>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900 dark:text-white text-sm">{user?.full_name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{user?.role === 'admin' ? 'Administrator' : 'User'}</p>
-            </div>
-          </div>
-          <Button
-            onClick={handleLogout}
-            className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold shadow-md"
-            size="sm"
-          >
-            <LogOut className="w-4 h-4 sm:mr-2" />
-            <span className="hidden sm:inline">Logout</span>
-          </Button>
-        </div>
-      </header>
+      <AdminHeader 
+        user={user}
+        organization={organization}
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
+        handleLogout={handleLogout}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
 
       <div className="flex">
-        {/* SIDEBAR - Now pop-out on all screens */}
-        <aside className={`
-          fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
-          transform transition-transform duration-200 ease-in-out mt-16 shadow-2xl
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}>
-          <div className="h-full flex flex-col pt-6 pb-6">
-            {organization && (
-              <div className="px-4 mb-6">
-                <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 rounded-xl border-2 border-orange-200 dark:border-orange-800">
-                  <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-lg">
-                    <AvatarImage src={organization.logo_url} />
-                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-sm">
-                      {organization.name?.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-black text-gray-900 dark:text-white truncate">{organization.name}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Your Organization</p>
-                  </div>
-                </div>
-              </div>
-            )}
+        <AdminSidebar 
+          user={user}
+          organization={organization}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          handleLogout={handleLogout}
+        />
 
-            <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
-              {navigationItems.map((item) => {
-                const isActive = window.location.pathname === item.url;
-                return (
-                  <Link
-                    key={item.title}
-                    to={item.url}
-                    onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                      isActive
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <item.icon className="w-5 h-5" />
-                    {item.title}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <div className="px-4 pt-4 border-t border-gray-200 dark:border-gray-700 mt-auto bg-gray-50 dark:bg-gray-900">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
-                  <span className="text-sm font-bold text-white">
-                    {user?.full_name?.[0] || 'U'}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{user?.full_name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-700 dark:hover:text-red-300 hover:border-red-300 dark:hover:border-red-700 font-semibold"
-                onClick={handleLogout}
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </aside>
-
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-gray-900/50 dark:bg-black/70 z-30 backdrop-blur-sm mt-16"
-            onClick={() => setSidebarOpen(false)}
-          ></div>
-        )}
-
-        {/* MAIN CONTENT */}
         <main className="flex-1 min-w-0">
           <div className="p-6 lg:p-8">
             <div className="max-w-7xl mx-auto space-y-8">
-              {/* Getting Started Guide */}
               {isAdmin && !isSuperAdmin && teams.length === 0 && (
                 <Card className="relative overflow-hidden bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 border-2 border-orange-200 dark:border-orange-800 shadow-xl">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-400/20 to-transparent rounded-full blur-3xl"></div>
@@ -388,7 +227,6 @@ export default function Dashboard() {
                 </Card>
               )}
 
-              {/* Header */}
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   {isSuperAdmin && (
@@ -403,7 +241,6 @@ export default function Dashboard() {
                 </p>
               </div>
 
-              {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {isSuperAdmin && (
                   <Card className="relative overflow-hidden border-2 border-purple-100 dark:border-purple-900 bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-purple-950/30 shadow-lg hover:shadow-xl transition-all group">
@@ -468,7 +305,6 @@ export default function Dashboard() {
                 </Card>
               </div>
 
-              {/* AI Insights */}
               {(teams.length > 0 || games.length > 0) && (
                 <AIInsights
                   teams={teams}
@@ -478,7 +314,6 @@ export default function Dashboard() {
                 />
               )}
 
-              {/* Games Grid */}
               <div className="grid lg:grid-cols-2 gap-8">
                 <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl">
                   <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-transparent dark:from-blue-950/30 dark:to-transparent">
