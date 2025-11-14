@@ -313,8 +313,8 @@ export default function GameHistory({
                         </p>
                         <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
                           {game.sport === 'basketball'
-                            ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.fouls || 0} FLS`
-                            : `${stat.field_goals_made || 0} ATK • ${stat.blocks || 0} BLK • ${stat.three_pointers || 0} ACE`
+                            ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.steals || 0} STL • ${stat.blocks || 0} BLK • ${stat.fouls || 0} FLS`
+                            : `${stat.field_goals_made || 0} ATK • ${stat.blocks || 0} BLK • ${stat.three_pointers || 0} ACE • ${stat.assists || 0} AST`
                           }
                         </p>
                       </div>
@@ -343,8 +343,8 @@ export default function GameHistory({
                         </p>
                         <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
                           {game.sport === 'basketball'
-                            ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.fouls || 0} FLS`
-                            : `${stat.field_goals_made || 0} ATK • ${stat.blocks || 0} BLK • ${stat.three_pointers || 0} ACE`
+                            ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.steals || 0} STL • ${stat.blocks || 0} BLK • ${stat.fouls || 0} FLS`
+                            : `${stat.field_goals_made || 0} ATK • ${stat.blocks || 0} BLK • ${stat.three_pointers || 0} ACE • ${stat.assists || 0} AST`
                           }
                         </p>
                       </div>
@@ -484,6 +484,7 @@ export default function GameHistory({
                       <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">MATCH</th>
                       <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">SPORT</th>
                       <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">SCORE</th>
+                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">DETAILS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -491,52 +492,193 @@ export default function GameHistory({
                       const sportColor = game.sport === 'basketball' ? 'orange' : 'blue';
                       const homeTeam = teams.find(t => t.id === game.home_team_id);
                       const awayTeam = teams.find(t => t.id === game.away_team_id);
+                      const isExpanded = expandedGame === game.id;
+                      const { homeStats, awayStats } = isExpanded ? getGamePlayerStats(game.id, game.home_team_id, game.away_team_id) : { homeStats: [], awayStats: [] };
+                      const homeBestPlayer = isExpanded ? getBestPlayerForTeam(game.id, game.home_team_id, game.sport) : null;
+                      const awayBestPlayer = isExpanded ? getBestPlayerForTeam(game.id, game.away_team_id, game.sport) : null;
+
+                      const topPlayersForAI = [];
+                      if (homeBestPlayer) {
+                        topPlayersForAI.push({
+                          name: `${homeBestPlayer.player?.first_name} ${homeBestPlayer.player?.last_name}`,
+                          team: homeTeam?.name,
+                          stats: game.sport === 'basketball'
+                            ? `${homeBestPlayer.stats.points} PTS, ${homeBestPlayer.stats.rebounds || 0} REB, ${homeBestPlayer.stats.assists || 0} AST`
+                            : `${homeBestPlayer.stats.field_goals_made || 0} ATK, ${homeBestPlayer.stats.blocks || 0} BLK, ${homeBestPlayer.stats.three_pointers || 0} ACE`
+                        });
+                      }
+                      if (awayBestPlayer) {
+                        topPlayersForAI.push({
+                          name: `${awayBestPlayer.player?.first_name} ${awayBestPlayer.player?.last_name}`,
+                          team: awayTeam?.name,
+                          stats: game.sport === 'basketball'
+                            ? `${awayBestPlayer.stats.points} PTS, ${awayBestPlayer.stats.rebounds || 0} REB, ${awayBestPlayer.stats.assists || 0} AST`
+                            : `${awayBestPlayer.stats.field_goals_made || 0} ATK, ${awayBestPlayer.stats.blocks || 0} BLK, ${awayBestPlayer.stats.three_pointers || 0} ACE`
+                        });
+                      }
 
                       return (
-                        <tr key={game.id} className={`border-b border-gray-100 dark:border-gray-700 hover:bg-${sportColor}-50/50 dark:hover:bg-${sportColor}-950/20 transition-colors`}>
-                          <td className="py-4 px-4 text-gray-700 dark:text-gray-300 font-semibold text-sm">
-                            {new Date(game.game_date).toLocaleDateString()}
-                            <br />
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {new Date(game.game_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2">
-                                <Avatar className="w-8 h-8 border-2 border-white dark:border-gray-700">
-                                  <AvatarImage src={homeTeam?.logo_url} />
-                                  <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white text-xs font-bold`}>
-                                    {homeTeam?.name?.substring(0, 2).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span className="font-bold text-gray-900 dark:text-white text-sm">{getTeamName(game.home_team_id)}</span>
+                        <React.Fragment key={game.id}>
+                          <tr className={`border-b border-gray-100 dark:border-gray-700 hover:bg-${sportColor}-50/50 dark:hover:bg-${sportColor}-950/20 transition-colors`}>
+                            <td className="py-4 px-4 text-gray-700 dark:text-gray-300 font-semibold text-sm">
+                              {new Date(game.game_date).toLocaleDateString()}
+                              <br />
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {new Date(game.game_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <Avatar className="w-8 h-8 border-2 border-white dark:border-gray-700">
+                                    <AvatarImage src={homeTeam?.logo_url} />
+                                    <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white text-xs font-bold`}>
+                                      {homeTeam?.name?.substring(0, 2).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="font-bold text-gray-900 dark:text-white text-sm">{getTeamName(game.home_team_id)}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Avatar className="w-8 h-8 border-2 border-white dark:border-gray-700">
+                                    <AvatarImage src={awayTeam?.logo_url} />
+                                    <AvatarFallback className="bg-gradient-to-br from-gray-500 to-gray-600 text-white text-xs font-bold">
+                                      {awayTeam?.name?.substring(0, 2).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="font-bold text-gray-900 dark:text-white text-sm">{getTeamName(game.away_team_id)}</span>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Avatar className="w-8 h-8 border-2 border-white dark:border-gray-700">
-                                  <AvatarImage src={awayTeam?.logo_url} />
-                                  <AvatarFallback className="bg-gradient-to-br from-gray-500 to-gray-600 text-white text-xs font-bold">
-                                    {awayTeam?.name?.substring(0, 2).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span className="font-bold text-gray-900 dark:text-white text-sm">{getTeamName(game.away_team_id)}</span>
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <Badge variant="outline" className={`text-${sportColor}-600 dark:text-${sportColor}-400 border-${sportColor}-600 dark:border-${sportColor}-400 font-bold`}>
+                                {game.sport === 'basketball' ? '🏀' : '🏐'} {game.sport}
+                              </Badge>
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <div className="font-black text-2xl text-gray-900 dark:text-white">
+                                {game.sport === 'volleyball' 
+                                  ? `${(game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0)} - ${(game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0)}`
+                                  : `${game.home_score} - ${game.away_score}`
+                                }
                               </div>
-                            </div>
-                          </td>
-                          <td className="py-4 px-4 text-center">
-                            <Badge variant="outline" className={`text-${sportColor}-600 dark:text-${sportColor}-400 border-${sportColor}-600 dark:border-${sportColor}-400 font-bold`}>
-                              {game.sport === 'basketball' ? '🏀' : '🏐'} {game.sport}
-                            </Badge>
-                          </td>
-                          <td className="py-4 px-4 text-center">
-                            <div className="font-black text-2xl text-gray-900 dark:text-white">
-                              {game.sport === 'volleyball' 
-                                ? `${(game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0)} - ${(game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0)}`
-                                : `${game.home_score} - ${game.away_score}`
-                              }
-                            </div>
-                          </td>
-                        </tr>
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="font-bold border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                onClick={() => setExpandedGame(isExpanded ? null : game.id)}
+                              >
+                                {isExpanded ? <><ChevronUp className="w-4 h-4 mr-1" />Hide</> : <><ChevronDown className="w-4 h-4 mr-1" />View</>}
+                              </Button>
+                            </td>
+                          </tr>
+                          
+                          {/* Expanded Row */}
+                          {isExpanded && (
+                            <tr className={`border-b-2 border-gray-200 dark:border-gray-700 bg-${sportColor}-50/30 dark:bg-${sportColor}-950/10`}>
+                              <td colSpan="5" className="p-6">
+                                <div className="space-y-6">
+                                  {/* Quarter/Set Scores */}
+                                  {game.quarter_scores && game.quarter_scores.length > 0 && (
+                                    <div>
+                                      <p className="text-sm font-bold text-gray-900 dark:text-white mb-3">
+                                        {game.sport === 'basketball' ? 'Quarter Scores' : 'Set Scores'}
+                                      </p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {game.quarter_scores.map((score, idx) => (
+                                          <div key={idx} className="bg-white dark:bg-gray-800 rounded-lg p-3 border-2 border-gray-200 dark:border-gray-700">
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-1">
+                                              {game.sport === 'basketball' ? `Q${score.quarter}` : `Set ${score.quarter}`}
+                                            </p>
+                                            <p className="font-black text-gray-900 dark:text-white text-lg">
+                                              {score.home} - {score.away}
+                                            </p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Player Statistics */}
+                                  <div className="grid md:grid-cols-2 gap-6">
+                                    {/* Home Team Stats */}
+                                    <div>
+                                      <p className="text-sm font-bold text-gray-900 dark:text-white mb-3">
+                                        {getTeamName(game.home_team_id)} - Player Statistics
+                                      </p>
+                                      <div className="space-y-2">
+                                        {homeStats.map((stat) => (
+                                          <div key={stat.id} className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-3 text-xs border border-gray-200 dark:border-gray-700">
+                                            <Avatar className="w-10 h-10 border-2 border-gray-300 dark:border-gray-600">
+                                              <AvatarImage src={stat.player?.photo_url} />
+                                              <AvatarFallback className="bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold">
+                                                {stat.player?.jersey_number}
+                                              </AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 min-w-0">
+                                              <p className="font-bold text-gray-900 dark:text-white truncate">
+                                                #{stat.player?.jersey_number} {stat.player?.first_name} {stat.player?.last_name}
+                                              </p>
+                                              <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">
+                                                {game.sport === 'basketball'
+                                                  ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.steals || 0} STL • ${stat.blocks || 0} BLK`
+                                                  : `${stat.field_goals_made || 0} ATK • ${stat.blocks || 0} BLK • ${stat.three_pointers || 0} ACE • ${stat.assists || 0} AST`
+                                                }
+                                              </p>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    {/* Away Team Stats */}
+                                    <div>
+                                      <p className="text-sm font-bold text-gray-900 dark:text-white mb-3">
+                                        {getTeamName(game.away_team_id)} - Player Statistics
+                                      </p>
+                                      <div className="space-y-2">
+                                        {awayStats.map((stat) => (
+                                          <div key={stat.id} className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-3 text-xs border border-gray-200 dark:border-gray-700">
+                                            <Avatar className="w-10 h-10 border-2 border-gray-300 dark:border-gray-600">
+                                              <AvatarImage src={stat.player?.photo_url} />
+                                              <AvatarFallback className="bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold">
+                                                {stat.player?.jersey_number}
+                                              </AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 min-w-0">
+                                              <p className="font-bold text-gray-900 dark:text-white truncate">
+                                                #{stat.player?.jersey_number} {stat.player?.first_name} {stat.player?.last_name}
+                                              </p>
+                                              <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">
+                                                {game.sport === 'basketball'
+                                                  ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.steals || 0} STL • ${stat.blocks || 0} BLK`
+                                                  : `${stat.field_goals_made || 0} ATK • ${stat.blocks || 0} BLK • ${stat.three_pointers || 0} ACE • ${stat.assists || 0} AST`
+                                                }
+                                              </p>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* AI Game Summary */}
+                                  {homeTeam && awayTeam && (
+                                    <div className="mt-4">
+                                      <AIGameSummary
+                                        game={game}
+                                        homeTeam={homeTeam}
+                                        awayTeam={awayTeam}
+                                        topPlayers={topPlayersForAI}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
                       );
                     })}
                   </tbody>
