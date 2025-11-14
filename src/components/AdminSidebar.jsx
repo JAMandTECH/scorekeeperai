@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut } from "lucide-react";
+import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -34,6 +34,7 @@ export default function AdminSidebar({
     { title: "Scorekeepers", url: createPageUrl("Scorekeepers"), icon: Shield },
     { title: "Live Scoring", url: createPageUrl("LiveScoring"), icon: PlayCircle },
     { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 },
+    { title: "Organization Settings", url: createPageUrl("OrganizationSettings"), icon: Settings },
   ];
 
   const navigationItems = isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : []);

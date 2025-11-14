@@ -19,6 +19,7 @@ import PublicLanding from './pages/PublicLanding';
 import RoleSelection from './pages/RoleSelection';
 import AssociateOrganization from './pages/AssociateOrganization';
 import OrganizationSelector from './pages/OrganizationSelector';
+import OrganizationSettings from './pages/OrganizationSettings';
 
 
 export const PAGES = {
@@ -43,6 +44,7 @@ export const PAGES = {
     "RoleSelection": RoleSelection,
     "AssociateOrganization": AssociateOrganization,
     "OrganizationSelector": OrganizationSelector,
+    "OrganizationSettings": OrganizationSettings,
 }
 
 export const pagesConfig = {
