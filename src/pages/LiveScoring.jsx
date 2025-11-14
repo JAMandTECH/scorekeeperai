@@ -1048,7 +1048,7 @@ export default function LiveScoring() {
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-3">
-              {homePlayers.map(player => (
+              {homePlayers && homePlayers.length > 0 && homePlayers.map(player => (
                 <PlayerRow key={getPlayerRenderKey(player.id)} player={player} team="home" teamId={game.home_team_id} onSelect={handlePlayerSelect} />
               ))}
             </div>
@@ -1072,7 +1072,7 @@ export default function LiveScoring() {
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-3">
-              {awayPlayers.map(player => (
+              {awayPlayers && awayPlayers.length > 0 && awayPlayers.map(player => (
                 <PlayerRow key={getPlayerRenderKey(player.id)} player={player} team="away" teamId={game.away_team_id} onSelect={handlePlayerSelect} />
               ))}
             </div>
