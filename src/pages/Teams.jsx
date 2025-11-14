@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -19,7 +20,7 @@ export default function Teams() {
   const [showForm, setShowForm] = useState(false);
   const [editingTeam, setEditingTeam] = useState(null);
   const [user, setUser] = useState(null);
-  const [organization, setOrganization] = useState(null);
+  // The 'organization' state will now be managed by React Query
   const [logoFile, setLogoFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [viewMode, setViewMode] = useState('card');
@@ -52,18 +53,22 @@ export default function Teams() {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      
-      if (currentUser?.organization_id) {
-        const orgs = await base44.entities.Organization.list();
-        const userOrg = orgs.find(o => o.id === currentUser.organization_id);
-        setOrganization(userOrg);
-      }
     } catch (error) {
       console.error("Error loading user:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Fetch organization using React Query
+  const { data: organization } = useQuery({
+    queryKey: ['organization', user?.organization_id],
+    queryFn: async () => {
+      const orgs = await base44.entities.Organization.list();
+      return orgs.find(o => o.id === user?.organization_id);
+    },
+    enabled: !!user?.organization_id, // Only run this query if user and organization_id are available
+  });
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("PublicLanding"));
@@ -269,7 +274,7 @@ export default function Teams() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/30 to-gray-50 dark:from-gray-900 dark:via-orange-950/10 dark:to-gray-900">
       <AdminHeader 
         user={user}
-        organization={organization}
+        organization={organization} // 'organization' now comes from useQuery
         darkMode={darkMode}
         toggleDarkMode={toggleDarkMode}
         handleLogout={handleLogout}
@@ -280,7 +285,7 @@ export default function Teams() {
       <div className="flex">
         <AdminSidebar 
           user={user}
-          organization={organization}
+          organization={organization} // 'organization' now comes from useQuery
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           handleLogout={handleLogout}

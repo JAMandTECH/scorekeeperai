@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -14,7 +15,7 @@ import AIInsights from "@/components/AIInsights";
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [organization, setOrganization] = useState(null);
+  // Removed [organization, setOrganization] from useState
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -46,11 +47,7 @@ export default function Dashboard() {
       setUser(currentUser);
       setIsSuperAdmin(currentUser.role === 'admin' && currentUser.is_super_admin === true);
       
-      if (currentUser?.organization_id) {
-        const orgs = await base44.entities.Organization.list();
-        const userOrg = orgs.find(o => o.id === currentUser.organization_id);
-        setOrganization(userOrg);
-      }
+      // Removed organization fetching logic from here
     } catch (error) {
       console.error("Dashboard: Error loading user", error);
       base44.auth.redirectToLogin(createPageUrl("Dashboard"));
@@ -62,6 +59,16 @@ export default function Dashboard() {
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("PublicLanding"));
   };
+
+  // Fetch organization using React Query
+  const { data: organization } = useQuery({
+    queryKey: ['organization', user?.organization_id],
+    queryFn: async () => {
+      const orgs = await base44.entities.Organization.list();
+      return orgs.find(o => o.id === user?.organization_id);
+    },
+    enabled: !!user?.organization_id, // Only run if organization_id is available
+  });
 
   const { data: organizations = [] } = useQuery({
     queryKey: ['organizations'],
@@ -292,7 +299,7 @@ export default function Dashboard() {
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/20 to-transparent rounded-full blur-2xl"></div>
                     <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
                       <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Games</CardTitle>
-                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
                         <Calendar className="w-5 h-5 text-white" />
                       </div>
                     </CardHeader>

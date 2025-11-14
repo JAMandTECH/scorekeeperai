@@ -18,7 +18,7 @@ import AdminSidebar from "@/components/AdminSidebar";
 export default function Games() {
   const [showForm, setShowForm] = useState(false);
   const [user, setUser] = useState(null);
-  const [organization, setOrganization] = useState(null);
+  // Organization state is now handled by useQuery
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const queryClient = useQueryClient();
@@ -46,17 +46,22 @@ export default function Games() {
   const loadUser = async () => {
     const currentUser = await base44.auth.me();
     setUser(currentUser);
-    
-    if (currentUser?.organization_id) {
-      const orgs = await base44.entities.Organization.list();
-      const userOrg = orgs.find(o => o.id === currentUser.organization_id);
-      setOrganization(userOrg);
-    }
+    // Organization fetching is now handled by useQuery
   };
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("PublicLanding"));
   };
+
+  // Fetch organization using React Query
+  const { data: organization } = useQuery({
+    queryKey: ['organization', user?.organization_id],
+    queryFn: async () => {
+      const orgs = await base44.entities.Organization.list();
+      return orgs.find(o => o.id === user?.organization_id);
+    },
+    enabled: !!user?.organization_id,
+  });
 
   const { data: teams = [] } = useQuery({
     queryKey: ['teams', user?.organization_id],

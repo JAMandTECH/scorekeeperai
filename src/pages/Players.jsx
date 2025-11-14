@@ -6,19 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, User, Edit, LayoutGrid, Table } from "lucide-react"; // Removed Menu, X, LogOut, Sun, Moon, Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2
+import { Plus, User, Edit, LayoutGrid, Table } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { createPageUrl } from "@/utils";
-import AdminHeader from "@/components/AdminHeader"; // Added AdminHeader import
-import AdminSidebar from "@/components/AdminSidebar"; // Added AdminSidebar import
+import AdminHeader from "@/components/AdminHeader";
+import AdminSidebar from "@/components/AdminSidebar";
 
 export default function Players() {
   const [showForm, setShowForm] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [user, setUser] = useState(null);
-  const [organization, setOrganization] = useState(null);
   const [selectedDivision, setSelectedDivision] = useState('all');
   const [selectedSport, setSelectedSport] = useState('all');
   const [selectedTeam, setSelectedTeam] = useState('all');
@@ -56,17 +55,21 @@ export default function Players() {
   const loadUser = async () => {
     const currentUser = await base44.auth.me();
     setUser(currentUser);
-    
-    if (currentUser?.organization_id) {
-      const orgs = await base44.entities.Organization.list();
-      const userOrg = orgs.find(o => o.id === currentUser.organization_id);
-      setOrganization(userOrg);
-    }
   };
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("PublicLanding"));
   };
+
+  // Fetch organization using React Query  
+  const { data: organization } = useQuery({
+    queryKey: ['organization', user?.organization_id],
+    queryFn: async () => {
+      const orgs = await base44.entities.Organization.list();
+      return orgs.find(o => o.id === user?.organization_id);
+    },
+    enabled: !!user?.organization_id,
+  });
 
   // Removed isSuperAdmin, isAdmin, superAdminNav, adminNav, navigationItems as they are now handled in AdminSidebar
 

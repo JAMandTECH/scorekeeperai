@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -30,7 +31,7 @@ export default function Scorekeepers() {
   const [searchError, setSearchError] = useState("");
   const [removingScorekeeper, setRemovingScorekeeper] = useState(null);
   const [user, setUser] = useState(null);
-  const [organization, setOrganization] = useState(null);
+  // Removed organization useState, now it comes from useQuery
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const queryClient = useQueryClient();
@@ -58,13 +59,20 @@ export default function Scorekeepers() {
   const loadUser = async () => {
     const currentUser = await base44.auth.me();
     setUser(currentUser);
-    
-    if (currentUser?.organization_id) {
-      const orgs = await base44.entities.Organization.list();
-      const userOrg = orgs.find(o => o.id === currentUser.organization_id);
-      setOrganization(userOrg);
-    }
+    // Removed organization fetching and setting from here, now handled by useQuery
   };
+
+  // Fetch organization using React Query
+  const { data: organization } = useQuery({
+    queryKey: ['organization', user?.organization_id],
+    queryFn: async () => {
+      // Ensure user is defined and has an organization_id
+      if (!user?.organization_id) return null; 
+      const orgs = await base44.entities.Organization.list();
+      return orgs.find(o => o.id === user?.organization_id);
+    },
+    enabled: !!user?.organization_id, // Only run this query if user and organization_id are available
+  });
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("PublicLanding"));

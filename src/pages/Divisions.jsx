@@ -32,7 +32,7 @@ export default function Divisions() {
   const [deletingDivision, setDeletingDivision] = useState(null);
   // user, organization, sidebarOpen, darkMode states remain here as per outline to be passed to AdminHeader/Sidebar
   const [user, setUser] = useState(null);
-  const [organization, setOrganization] = useState(null);
+  // organization state is now managed by React Query
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const queryClient = useQueryClient();
@@ -60,13 +60,17 @@ export default function Divisions() {
   const loadUser = async () => {
     const currentUser = await base44.auth.me();
     setUser(currentUser);
-    
-    if (currentUser?.organization_id) {
-      const orgs = await base44.entities.Organization.list();
-      const userOrg = orgs.find(o => o.id === currentUser.organization_id);
-      setOrganization(userOrg);
-    }
   };
+
+  // Fetch organization using React Query
+  const { data: organization } = useQuery({
+    queryKey: ['organization', user?.organization_id],
+    queryFn: async () => {
+      const orgs = await base44.entities.Organization.list();
+      return orgs.find(o => o.id === user?.organization_id);
+    },
+    enabled: !!user?.organization_id,
+  });
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("PublicLanding"));
