@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building2, Upload, Image, Save } from "lucide-react";
+import { Building2, Upload, Image, Save, AlertCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { createPageUrl } from "@/utils";
@@ -20,6 +20,7 @@ export default function OrganizationSettings() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -51,7 +52,7 @@ export default function OrganizationSettings() {
     base44.auth.logout(createPageUrl("PublicLanding"));
   };
 
-  // Fetch organization data with React Query
+  // Fetch organization using React Query
   const { data: organization, refetch: refetchOrganization } = useQuery({
     queryKey: ['organization', user?.organization_id],
     queryFn: async () => {
@@ -62,7 +63,12 @@ export default function OrganizationSettings() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Organization.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      console.log('Updating organization with data:', data);
+      const result = await base44.entities.Organization.update(id, data);
+      console.log('Update result:', result);
+      return result;
+    },
     onSuccess: async () => {
       // Invalidate all queries that might have organization data
       await queryClient.invalidateQueries(['organization']);
@@ -72,33 +78,48 @@ export default function OrganizationSettings() {
       await refetchOrganization();
       
       setSuccessMessage("Organization updated successfully!");
+      setErrorMessage("");
       setTimeout(() => setSuccessMessage(""), 3000);
       setLogoFile(null); // Clear the file input
     },
+    onError: (error) => {
+      console.error('Update error:', error);
+      setErrorMessage("Failed to update organization. Please try again.");
+      setTimeout(() => setErrorMessage(""), 5000);
+    }
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUploading(true);
     setSuccessMessage("");
+    setErrorMessage("");
 
     try {
       const formData = new FormData(e.target);
       const data = {
         name: formData.get('name'),
         contact_email: formData.get('contact_email'),
-        contact_phone: formData.get('contact_phone'),
-        address: formData.get('address'),
+        contact_phone: formData.get('contact_phone') || null,
+        address: formData.get('address') || null,
       };
 
+      console.log('Form data before upload:', data);
+
+      // Upload logo if a new file was selected
       if (logoFile) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file: logoFile });
-        data.logo_url = file_url;
+        console.log('Uploading logo file:', logoFile.name);
+        const uploadResult = await base44.integrations.Core.UploadFile({ file: logoFile });
+        console.log('Upload result:', uploadResult);
+        data.logo_url = uploadResult.file_url;
       }
 
+      console.log('Final data to update:', data);
       await updateMutation.mutateAsync({ id: organization.id, data });
     } catch (error) {
       console.error("Error updating organization:", error);
+      setErrorMessage("Error: " + (error.message || "Failed to update"));
+      setTimeout(() => setErrorMessage(""), 5000);
     } finally {
       setUploading(false);
     }
@@ -159,6 +180,15 @@ export default function OrganizationSettings() {
                 </Alert>
               )}
 
+              {errorMessage && (
+                <Alert className="bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-800">
+                  <AlertDescription className="text-red-800 dark:text-red-300 font-bold flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5" />
+                    {errorMessage}
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-xl">
                 <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-white dark:from-purple-950/30 dark:to-gray-800">
                   <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">
@@ -177,6 +207,7 @@ export default function OrganizationSettings() {
                           <AvatarImage 
                             src={logoFile ? URL.createObjectURL(logoFile) : organization.logo_url} 
                             className="object-cover"
+                            key={organization.logo_url || 'no-logo'}
                           />
                           <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-4xl">
                             {organization.name?.substring(0, 2).toUpperCase()}
@@ -186,7 +217,11 @@ export default function OrganizationSettings() {
                           <Input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => setLogoFile(e.target.files[0])}
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              console.log('File selected:', file);
+                              setLogoFile(file);
+                            }}
                             className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium mb-2"
                           />
                           <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
@@ -194,12 +229,12 @@ export default function OrganizationSettings() {
                           </p>
                           {logoFile && (
                             <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800 font-bold mt-2">
-                              New logo selected: {logoFile.name}
+                              ✓ New logo selected: {logoFile.name}
                             </Badge>
                           )}
                           {organization.logo_url && !logoFile && (
                             <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold mt-2">
-                              Current logo is set
+                              ✓ Current logo is set
                             </Badge>
                           )}
                         </div>
@@ -264,6 +299,14 @@ export default function OrganizationSettings() {
                       />
                     </div>
 
+                    {/* Debug Info - Remove after testing */}
+                    <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 text-xs font-mono">
+                      <p className="text-gray-600 dark:text-gray-400 mb-1">Debug Info:</p>
+                      <p className="text-gray-800 dark:text-gray-200">Org ID: {organization.id}</p>
+                      <p className="text-gray-800 dark:text-gray-200">Current Logo: {organization.logo_url || 'None'}</p>
+                      <p className="text-gray-800 dark:text-gray-200">Selected File: {logoFile?.name || 'None'}</p>
+                    </div>
+
                     {/* Submit Button */}
                     <div className="flex justify-end gap-3 pt-6 border-t-2 border-gray-200 dark:border-gray-700">
                       <Button 
@@ -302,7 +345,7 @@ export default function OrganizationSettings() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div className="bg-white/60 dark:bg-gray-900/60 rounded-lg p-3">
                       <span className="text-gray-500 dark:text-gray-400 font-semibold block mb-1">Organization ID</span>
-                      <span className="text-gray-900 dark:text-white font-bold font-mono text-xs">{organization.id}</span>
+                      <span className="text-gray-900 dark:text-white font-bold font-mono text-xs break-all">{organization.id}</span>
                     </div>
                     <div className="bg-white/60 dark:bg-gray-900/60 rounded-lg p-3">
                       <span className="text-gray-500 dark:text-gray-400 font-semibold block mb-1">Status</span>
