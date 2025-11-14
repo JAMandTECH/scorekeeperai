@@ -458,14 +458,12 @@ export default function Home() {
 
               {/* CTA Buttons */}
               <div className="flex gap-4 justify-center flex-wrap">
-                {isAdmin ? (
-                  <Link to={createPageUrl("Dashboard")}>
-                    <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all">
-                      Go to Dashboard
-                      <ArrowRight className="w-5 h-5 ml-2" />
-                    </Button>
-                  </Link>
-                ) : null}
+                <Link to={createPageUrl("Dashboard")}>
+                  <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all">
+                    Go to Dashboard
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
                 <Button 
                   onClick={() => setViewMode(viewMode === 'my-org' ? 'all' : 'my-org')}
                   variant="outline"
@@ -510,23 +508,26 @@ export default function Home() {
                 Real-time scoring • Live statistics • Tournament management
               </p>
               
-              <div className="flex gap-4 justify-center flex-wrap">
-                <Button 
-                  onClick={() => base44.auth.redirectToLogin(createPageUrl("Dashboard"))}
-                  className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all"
-                >
-                  Get Started
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-                <Link to={createPageUrl("RequestAdminAccess")}>
+              {/* Only show buttons if NOT authenticated */}
+              {!isAuthenticated && (
+                <div className="flex gap-4 justify-center flex-wrap">
                   <Button 
-                    variant="outline"
-                    className="border-2 border-white text-white hover:bg-white hover:text-blue-900 text-lg px-10 py-7 font-bold backdrop-blur-sm"
+                    onClick={() => base44.auth.redirectToLogin(createPageUrl("Dashboard"))}
+                    className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all"
                   >
-                    Request Admin Access
+                    Get Started
+                    <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
-                </Link>
-              </div>
+                  <Link to={createPageUrl("RequestAdminAccess")}>
+                    <Button 
+                      variant="outline"
+                      className="border-2 border-white text-white hover:bg-white hover:text-blue-900 text-lg px-10 py-7 font-bold backdrop-blur-sm"
+                    >
+                      Request Admin Access
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </>
           )}
         </div>
