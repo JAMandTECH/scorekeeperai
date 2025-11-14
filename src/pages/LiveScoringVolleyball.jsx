@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlayCircle, ChevronRight, Clock, Target, Shield, Zap, Trophy, RotateCcw, User, Eye, EyeOff, CheckCircle, AlertTriangle } from "lucide-react";
+import { PlayCircle, ChevronRight, Clock, Target, Shield, Zap, Trophy, RotateCcw, User, Eye, EyeOff, CheckCircle, AlertTriangle, Flag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -35,6 +35,7 @@ export default function LiveScoringVolleyball() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [showSetEnd, setShowSetEnd] = useState(false);
+  const [showDefaultDialog, setShowDefaultDialog] = useState(false);
   const [actionHistory, setActionHistory] = useState([]);
   const [showSetStats, setShowSetStats] = useState(true);
   const navigate = useNavigate();
@@ -441,6 +442,63 @@ export default function LiveScoringVolleyball() {
     }
   };
 
+  const handleDeclareDefault = async (defaultedTeamId) => {
+    const winningTeamId = defaultedTeamId === game.home_team_id ? game.away_team_id : game.home_team_id;
+    const newHomeScore = defaultedTeamId === game.home_team_id ? 0 : 20;
+    const newAwayScore = defaultedTeamId === game.away_team_id ? 0 : 20;
+
+    await base44.entities.Game.update(game.id, {
+      status: 'completed',
+      home_score: newHomeScore,
+      away_score: newAwayScore,
+      is_default: true,
+      defaulted_team_id: defaultedTeamId,
+      winning_team_id: winningTeamId,
+    });
+
+    const allTeams = await base44.entities.Team.list();
+    const winningTeam = allTeams.find(t => t.id === winningTeamId);
+    const defaultedTeam = allTeams.find(t => t.id === defaultedTeamId);
+
+    await base44.entities.Team.update(winningTeamId, {
+      wins: (winningTeam.wins || 0) + 1
+    });
+
+    await base44.entities.Team.update(defaultedTeamId, {
+      losses: (defaultedTeam.losses || 0) + 1
+    });
+
+    setShowDefaultDialog(false);
+    navigate(createPageUrl("Games"));
+  };
+
+  const handleUndoDefault = async () => {
+    if (!game.is_default) return;
+
+    const allTeams = await base44.entities.Team.list();
+    const winningTeam = allTeams.find(t => t.id === game.winning_team_id);
+    const defaultedTeam = allTeams.find(t => t.id === game.defaulted_team_id);
+
+    await base44.entities.Team.update(game.winning_team_id, {
+      wins: Math.max(0, (winningTeam.wins || 0) - 1)
+    });
+
+    await base44.entities.Team.update(game.defaulted_team_id, {
+      losses: Math.max(0, (defaultedTeam.losses || 0) - 1)
+    });
+
+    await base44.entities.Game.update(game.id, {
+      status: 'in_progress',
+      home_score: 0,
+      away_score: 0,
+      is_default: false,
+      defaulted_team_id: null,
+      winning_team_id: null,
+    });
+
+    await loadGame();
+  };
+
   if (!game || !homeTeam || !awayTeam || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
@@ -546,7 +604,29 @@ export default function LiveScoringVolleyball() {
         </div>
       </div>
 
-      <div className="sticky z-40 bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 border-b-4 border-blue-500 shadow-2xl" style={{ top: '64px' }}>
+      {/* DEFAULT GAME ALERT */}
+      {game.is_default && (
+        <div className="sticky z-40 bg-red-900/95 border-b-4 border-red-500" style={{ top: '64px' }}>
+          <div className="max-w-7xl mx-auto p-4">
+            <Alert className="bg-red-800/50 border-2 border-red-400">
+              <Flag className="h-5 w-5 text-red-300" />
+              <AlertDescription className="text-red-100 font-bold flex items-center justify-between">
+                <span>⚠️ This game ended by DEFAULT. {game.defaulted_team_id === homeTeam.id ? homeTeam.name : awayTeam.name} defaulted. Final Score: {game.home_score}-{game.away_score}</span>
+                <Button
+                  onClick={handleUndoDefault}
+                  size="sm"
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold ml-4"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Undo Default
+                </Button>
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
+      )}
+
+      <div className="sticky z-40 bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 border-b-4 border-blue-500 shadow-2xl" style={{ top: game.is_default ? '164px' : '64px' }}>
         <div className="max-w-7xl mx-auto p-4">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Badge className="bg-red-600 text-white border-2 border-red-400 px-6 py-2 text-base font-black shadow-lg">
@@ -595,6 +675,16 @@ export default function LiveScoringVolleyball() {
               </div>
 
               <div className="flex gap-2 justify-center">
+                {!game.is_default && game.status === 'in_progress' && (
+                  <Button
+                    onClick={() => setShowDefaultDialog(true)}
+                    size="sm"
+                    className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-xs px-4 py-2"
+                  >
+                    <Flag className="w-4 h-4 mr-1" />
+                    DEFAULT
+                  </Button>
+                )}
                 {currentSet <= 5 && (
                   <Button
                     onClick={() => setShowSetEnd(true)}
@@ -866,6 +956,55 @@ export default function LiveScoringVolleyball() {
                 CANCEL
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Declare Default Dialog */}
+      <Dialog open={showDefaultDialog} onOpenChange={setShowDefaultDialog}>
+        <DialogContent className="bg-gray-900 border-4 border-red-500 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white text-2xl font-black flex items-center gap-2">
+              <Flag className="w-6 h-6 text-red-400" />
+              Declare Game Default
+            </DialogTitle>
+            <DialogDescription className="text-gray-300 font-bold">
+              Select which team is defaulting. The non-defaulting team will automatically win 20-0.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Alert className="bg-red-900/50 border-2 border-red-500">
+              <AlertTriangle className="h-4 w-4 text-red-400" />
+              <AlertDescription className="text-red-200 font-bold text-sm">
+                ⚠️ This action will end the game immediately. The defaulting team will receive a loss and the other team will receive a win.
+              </AlertDescription>
+            </Alert>
+
+            <div className="space-y-3">
+              <Button
+                onClick={() => handleDeclareDefault(game.home_team_id)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-lg py-6 border-2 border-blue-400"
+              >
+                {homeTeam.name} DEFAULTS
+                <span className="ml-2 text-sm">(Away team wins 20-0)</span>
+              </Button>
+              
+              <Button
+                onClick={() => handleDeclareDefault(game.away_team_id)}
+                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-black text-lg py-6 border-2 border-cyan-400"
+              >
+                {awayTeam.name} DEFAULTS
+                <span className="ml-2 text-sm">(Home team wins 20-0)</span>
+              </Button>
+            </div>
+
+            <Button
+              onClick={() => setShowDefaultDialog(false)}
+              variant="outline"
+              className="w-full border-2 border-gray-600 text-white hover:bg-gray-800 font-black"
+            >
+              CANCEL
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
