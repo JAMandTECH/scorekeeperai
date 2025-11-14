@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2 } from "lucide-react";
+import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,6 +30,8 @@ import {
 export default function Games() {
   const [showForm, setShowForm] = useState(false);
   const [deletingGame, setDeletingGame] = useState(null);
+  const [archivingGame, setArchivingGame] = useState(null);
+  const [restoringGame, setRestoringGame] = useState(null);
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -142,6 +145,22 @@ export default function Games() {
     },
   });
 
+  const archiveMutation = useMutation({
+    mutationFn: ({ id }) => base44.entities.Game.update(id, { archived: true }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['games']);
+      setArchivingGame(null);
+    },
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: ({ id }) => base44.entities.Game.update(id, { archived: false }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['games']);
+      setRestoringGame(null);
+    },
+  });
+
   const handleFormChange = (e) => {
     const form = e.target.form;
     const gameDate = form?.game_date?.value;
@@ -171,6 +190,7 @@ export default function Games() {
       penalty_limit_per_quarter: parseInt(formData.get('penalty_limit_per_quarter')),
       player_foul_limit: parseInt(formData.get('player_foul_limit')),
       status: 'scheduled',
+      archived: false,
     };
 
     createMutation.mutate(data);
@@ -186,9 +206,10 @@ export default function Games() {
     return team?.name || 'Unknown';
   };
 
-  const scheduledGames = games.filter(g => g.status === 'scheduled');
-  const inProgressGames = games.filter(g => g.status === 'in_progress');
-  const completedGames = games.filter(g => g.status === 'completed');
+  const scheduledGames = games.filter(g => g.status === 'scheduled' && !g.archived);
+  const inProgressGames = games.filter(g => g.status === 'in_progress' && !g.archived);
+  const completedGames = games.filter(g => g.status === 'completed' && !g.archived);
+  const archivedGames = games.filter(g => g.archived === true);
 
   const handleDivisionChange = (division) => {
     setSelectedDivision(division);
@@ -201,7 +222,7 @@ export default function Games() {
     setSelectedTeam('all');
   };
 
-  const GameCard = ({ game, showDeleteButton = true }) => {
+  const GameCard = ({ game, showActions = true }) => {
     const sportColor = game.sport === 'basketball' ? 'orange' : 'blue';
     const statusColor = 
       game.status === 'scheduled' ? 'blue' :
@@ -234,7 +255,7 @@ export default function Games() {
               <Badge variant="outline" className={`text-${sportColor}-600 dark:text-${sportColor}-400 border-${sportColor}-600 dark:border-${sportColor}-400 font-black`}>
                 {game.sport}
               </Badge>
-              {showDeleteButton && game.status === 'scheduled' && (
+              {showActions && game.status === 'scheduled' && !game.archived && (
                 <Button 
                   variant="ghost" 
                   size="icon"
@@ -277,7 +298,7 @@ export default function Games() {
             </p>
           )}
           
-          {game.status === 'scheduled' && (
+          {game.status === 'scheduled' && !game.archived && (
             <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}`}>
               <Button className={`w-full bg-gradient-to-r from-${sportColor}-600 to-${sportColor}-700 hover:from-${sportColor}-700 hover:to-${sportColor}-800 text-white font-bold shadow-lg`}>
                 <PlayCircle className="w-4 h-4 mr-2" />
@@ -285,12 +306,52 @@ export default function Games() {
               </Button>
             </Link>
           )}
-          {game.status === 'in_progress' && (
+          {game.status === 'in_progress' && !game.archived && (
             <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}`}>
               <Button className={`w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white font-bold shadow-lg`}>
                 Continue Scoring
               </Button>
             </Link>
+          )}
+          {showActions && game.status === 'completed' && !game.archived && (
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                onClick={() => setArchivingGame(game)}
+                variant="outline"
+                className="border-2 border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 font-bold"
+              >
+                <Archive className="w-4 h-4 mr-2" />
+                Archive
+              </Button>
+              <Button
+                onClick={() => handleDeleteClick(game)}
+                variant="outline"
+                className="border-2 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-bold"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </Button>
+            </div>
+          )}
+          {game.archived && showActions && (
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                onClick={() => setRestoringGame(game)}
+                variant="outline"
+                className="border-2 border-green-300 dark:border-green-700 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 font-bold"
+              >
+                <ArchiveRestore className="w-4 h-4 mr-2" />
+                Restore
+              </Button>
+              <Button
+                onClick={() => handleDeleteClick(game)}
+                variant="outline"
+                className="border-2 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-bold"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -346,7 +407,10 @@ export default function Games() {
                   <TabsTrigger value="completed" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
                     Completed ({completedGames.length})
                   </TabsTrigger>
-                  <TabsTrigger value="history" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                  <TabsTrigger value="archived" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                    Archived ({archivedGames.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="history" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-indigo-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
                     Game History
                   </TabsTrigger>
                 </TabsList>
@@ -367,7 +431,7 @@ export default function Games() {
 
                 <TabsContent value="in_progress" className="space-y-4">
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {inProgressGames.map(game => <GameCard key={game.id} game={game} showDeleteButton={false} />)}
+                    {inProgressGames.map(game => <GameCard key={game.id} game={game} showActions={false} />)}
                   </div>
                   {inProgressGames.length === 0 && (
                     <div className="text-center py-20">
@@ -381,7 +445,7 @@ export default function Games() {
 
                 <TabsContent value="completed" className="space-y-4">
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {completedGames.map(game => <GameCard key={game.id} game={game} showDeleteButton={false} />)}
+                    {completedGames.map(game => <GameCard key={game.id} game={game} />)}
                   </div>
                   {completedGames.length === 0 && (
                     <div className="text-center py-20">
@@ -389,6 +453,20 @@ export default function Games() {
                         <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-300" />
                       </div>
                       <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No completed games</p>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="archived" className="space-y-4">
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {archivedGames.map(game => <GameCard key={game.id} game={game} />)}
+                  </div>
+                  {archivedGames.length === 0 && (
+                    <div className="text-center py-20">
+                      <div className="w-24 h-24 bg-gradient-to-br from-purple-200 to-purple-300 dark:from-purple-800 dark:to-purple-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Archive className="w-12 h-12 text-purple-600 dark:text-purple-300" />
+                      </div>
+                      <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No archived games</p>
                     </div>
                   )}
                 </TabsContent>
@@ -577,15 +655,22 @@ export default function Games() {
                         <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
                       </div>
                       <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
-                        Delete Scheduled Game?
+                        Delete Game Permanently?
                       </AlertDialogTitle>
                     </div>
                     <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
-                      Are you sure you want to delete this scheduled game between <span className="font-bold text-gray-900 dark:text-white">{getTeamName(deletingGame?.home_team_id)}</span> and <span className="font-bold text-gray-900 dark:text-white">{getTeamName(deletingGame?.away_team_id)}</span>?
+                      Are you sure you want to permanently delete this game between <span className="font-bold text-gray-900 dark:text-white">{getTeamName(deletingGame?.home_team_id)}</span> and <span className="font-bold text-gray-900 dark:text-white">{getTeamName(deletingGame?.away_team_id)}</span>?
                       <br /><br />
                       <p className="text-sm">
                         📅 {deletingGame?.game_date && new Date(deletingGame.game_date).toLocaleString()}
                       </p>
+                      {deletingGame?.statsCount > 0 && (
+                        <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                          <p className="text-sm text-yellow-800 dark:text-yellow-300 font-semibold">
+                            ⚠️ This game has {deletingGame.statsCount} player statistic record(s) that will also be deleted.
+                          </p>
+                        </div>
+                      )}
                       <p className="mt-3 font-semibold text-red-600 dark:text-red-400">This action cannot be undone.</p>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
@@ -597,7 +682,69 @@ export default function Games() {
                       onClick={() => deleteMutation.mutate(deletingGame.id)}
                       className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold"
                     >
-                      Delete Game
+                      Delete Permanently
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              <AlertDialog open={!!archivingGame} onOpenChange={() => setArchivingGame(null)}>
+                <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                  <AlertDialogHeader>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-12 h-12 bg-purple-100 dark:bg-purple-950/30 rounded-xl flex items-center justify-center">
+                        <Archive className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+                        Archive Completed Game?
+                      </AlertDialogTitle>
+                    </div>
+                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
+                      Archive the completed game between <span className="font-bold text-gray-900 dark:text-white">{getTeamName(archivingGame?.home_team_id)}</span> and <span className="font-bold text-gray-900 dark:text-white">{getTeamName(archivingGame?.away_team_id)}</span>?
+                      <br /><br />
+                      <p className="text-sm text-purple-700 dark:text-purple-300 font-semibold">
+                        📦 Archived games can be restored later from the Archived tab.
+                      </p>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => archiveMutation.mutate({ id: archivingGame.id })}
+                      className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold"
+                    >
+                      Archive Game
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              <AlertDialog open={!!restoringGame} onOpenChange={() => setRestoringGame(null)}>
+                <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                  <AlertDialogHeader>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-12 h-12 bg-green-100 dark:bg-green-950/30 rounded-xl flex items-center justify-center">
+                        <ArchiveRestore className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      </div>
+                      <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+                        Restore Archived Game?
+                      </AlertDialogTitle>
+                    </div>
+                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
+                      Restore the archived game between <span className="font-bold text-gray-900 dark:text-white">{getTeamName(restoringGame?.home_team_id)}</span> and <span className="font-bold text-gray-900 dark:text-white">{getTeamName(restoringGame?.away_team_id)}</span> back to the Completed tab?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => restoreMutation.mutate({ id: restoringGame.id })}
+                      className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold"
+                    >
+                      Restore Game
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
