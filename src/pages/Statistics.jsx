@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -227,7 +228,7 @@ export default function Statistics() {
   const createPlayerLeaderboard = (statKey, label) => {
     return filteredPlayers
       .map(player => {
-        const playerStats = relevantPlayerGameStats.filter(s => s.player_id === playerId);
+        const playerStats = relevantPlayerGameStats.filter(s => s.player_id === player.id);
         const total = playerStats.reduce((sum, s) => sum + (s[statKey] || 0), 0);
         const team = filteredTeams.find(t => t.id === player.team_id);
         return {
