@@ -180,6 +180,7 @@ export default function Home() {
         .map(team => {
           const teamGames = games.filter(g => 
             g.status === 'completed' && 
+            (g.game_type === 'regular_season' || !g.game_type) &&
             (g.home_team_id === team.id || g.away_team_id === team.id)
           );
           
@@ -251,6 +252,19 @@ export default function Home() {
     });
   };
 
+  const basketballStandings = getTeamStandings('basketball');
+  const volleyballStandings = getTeamStandings('volleyball');
+
+  const topScorers = getTopPlayers('points', 'basketball', 10);
+  const topRebounders = getTopPlayers('rebounds', 'basketball', 10);
+  const topBlockers = getTopPlayers('blocks', 'basketball', 10);
+  const top3Pointers = getTopPlayers('three_pointers', 'basketball', 10);
+
+  const topVolleyballScorers = getTopPlayers('points', 'volleyball', 10);
+  const topVolleyballAttackers = getTopPlayers('attacks', 'volleyball', 10);
+  const topVolleyballBlockers = getTopPlayers('blocks', 'volleyball', 10);
+  const topVolleyballAces = getTopPlayers('three_pointers', 'volleyball', 10);
+
   // Calculate top players for basketball
   const getTopPlayers = (statType, sport = 'basketball', limit = 10) => {
     const sportTeamIds = teams.filter(t => t.sport === sport).map(t => t.id);
@@ -304,19 +318,6 @@ export default function Home() {
       .sort((a, b) => b.total - a.total)
       .slice(0, limit);
   };
-
-  const basketballStandings = getTeamStandings('basketball');
-  const volleyballStandings = getTeamStandings('volleyball');
-
-  const topScorers = getTopPlayers('points', 'basketball', 10);
-  const topRebounders = getTopPlayers('rebounds', 'basketball', 10);
-  const topBlockers = getTopPlayers('blocks', 'basketball', 10);
-  const top3Pointers = getTopPlayers('three_pointers', 'basketball', 10);
-
-  const topVolleyballScorers = getTopPlayers('points', 'volleyball', 10);
-  const topVolleyballAttackers = getTopPlayers('attacks', 'volleyball', 10);
-  const topVolleyballBlockers = getTopPlayers('blocks', 'volleyball', 10);
-  const topVolleyballAces = getTopPlayers('three_pointers', 'volleyball', 10);
 
   const upcomingBasketballGames = games
     .filter(g => g.sport === 'basketball' && g.status === 'scheduled')
