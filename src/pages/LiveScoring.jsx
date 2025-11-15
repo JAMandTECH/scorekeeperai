@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import VoiceAssistant from "@/components/VoiceAssistant"; // New import
+import VoiceAssistant from "@/components/VoiceAssistant";
 
 export default function LiveScoring() {
   const [game, setGame] = useState(null);
@@ -381,10 +381,14 @@ export default function LiveScoring() {
   };
 
   const endQuarter = async () => {
+    // Calculate the score for THIS QUARTER ONLY by subtracting previous quarters' scores
+    const previousHomeTotalScore = quarterScores.reduce((sum, q) => sum + q.home, 0);
+    const previousAwayTotalScore = quarterScores.reduce((sum, q) => sum + q.away, 0);
+    
     const quarterScore = {
       quarter: currentQuarter,
-      home: homeScore,
-      away: awayScore,
+      home: homeScore - previousHomeTotalScore,
+      away: awayScore - previousAwayTotalScore,
     };
 
     const newQuarterScores = [...quarterScores, quarterScore];
@@ -401,9 +405,12 @@ export default function LiveScoring() {
       home_team_fouls: 0,
       away_team_fouls: 0,
       overtime_count: newOvertimeCount,
+      home_score: homeScore, // Persist the cumulative score
+      away_score: awayScore, // Persist the cumulative score
     });
 
     setCurrentQuarter(nextQuarter);
+    // DON'T reset scores - they continue accumulating
     setShowQuarterEnd(false);
     setActionHistory([]);
   };
@@ -1029,7 +1036,7 @@ export default function LiveScoring() {
 
       {/* Players Section */}
       <div className="max-w-7xl mx-auto p-4 pb-24">
-        <div className="grid lg:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-4"> {/* Changed lg:grid-cols-2 to md:grid-cols-2 */}
           {/* Home Team */}
           <div className="flex flex-col h-[700px] bg-gradient-to-br from-orange-900/40 to-orange-950/40 border-4 border-orange-500 backdrop-blur-sm rounded-xl">
             <div className="flex-shrink-0 bg-orange-900/95 backdrop-blur-sm border-b-4 border-orange-500 p-3 rounded-t-xl">
