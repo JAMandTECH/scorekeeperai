@@ -521,7 +521,6 @@ export default function LiveScoringVolleyball() {
     const attacks = getPlayerStat(player.id, 'field_goals_made');
     const blocks = getPlayerStat(player.id, 'blocks');
     const aces = getPlayerStat(player.id, 'three_pointers');
-    const assists = getPlayerStat(player.id, 'assists');
     const points = attacks + blocks + aces;
 
     const isSelected = selectedPlayer?.id === player.id;
@@ -565,10 +564,6 @@ export default function LiveScoringVolleyball() {
             <div className="text-center">
               <div className="text-xl font-black">{aces}</div>
               <div className={`text-[9px] font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>ACE</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xl font-black">{assists}</div>
-              <div className={`text-[9px] font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>AST</div>
             </div>
           </div>
         </div>
@@ -880,7 +875,7 @@ export default function LiveScoringVolleyball() {
       )}
 
       <div className="max-w-7xl mx-auto p-4 pb-24">
-        <div className="grid lg:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-4">
           <div className="flex flex-col h-[700px] bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm rounded-xl">
             <div className="flex-shrink-0 bg-blue-900/95 backdrop-blur-sm border-b-4 border-blue-500 p-3 rounded-t-xl">
               <div className="flex items-center justify-between gap-2">
