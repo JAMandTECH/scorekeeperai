@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -657,7 +658,7 @@ export default function LiveScoringVolleyball() {
               </div>
               <div className="text-blue-500 text-7xl font-black mb-2">{currentSetHomeScore}</div>
               <div className="text-white text-xs font-bold">
-                Total: {homeScore} | Sets Won: {setScores.filter(s => s.home > s.away).length}
+                Set {currentSet}: {currentSetHomeScore} | Sets Won: {setScores.filter(s => s.home > s.away).length}
               </div>
             </div>
 
@@ -731,7 +732,7 @@ export default function LiveScoringVolleyball() {
               </div>
               <div className="text-cyan-500 text-7xl font-black mb-2">{currentSetAwayScore}</div>
               <div className="text-white text-xs font-bold">
-                Total: {awayScore} | Sets Won: {setScores.filter(s => s.away > s.home).length}
+                Set {currentSet}: {currentSetAwayScore} | Sets Won: {setScores.filter(s => s.away > s.home).length}
               </div>
             </div>
           </div>
