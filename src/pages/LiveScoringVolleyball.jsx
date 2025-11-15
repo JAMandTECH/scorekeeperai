@@ -656,9 +656,9 @@ export default function LiveScoringVolleyball() {
                 </Avatar>
                 <div className="text-white text-2xl font-black text-left">{homeTeam.name}</div>
               </div>
-              <div className="text-blue-500 text-7xl font-black mb-2">{currentSetHomeScore}</div>
+              <div className="text-blue-500 text-7xl font-black mb-2">{homeScore}</div>
               <div className="text-white text-xs font-bold">
-                Set {currentSet}: {currentSetHomeScore} | Sets Won: {setScores.filter(s => s.home > s.away).length}
+                Current Set: {currentSetHomeScore} | Sets Won: {setScores.filter(s => s.home > s.away).length}
               </div>
             </div>
 
@@ -730,9 +730,9 @@ export default function LiveScoringVolleyball() {
                   </AvatarFallback>
                 </Avatar>
               </div>
-              <div className="text-cyan-500 text-7xl font-black mb-2">{currentSetAwayScore}</div>
+              <div className="text-cyan-500 text-7xl font-black mb-2">{awayScore}</div>
               <div className="text-white text-xs font-bold">
-                Set {currentSet}: {currentSetAwayScore} | Sets Won: {setScores.filter(s => s.away > s.home).length}
+                Current Set: {currentSetAwayScore} | Sets Won: {setScores.filter(s => s.away > s.home).length}
               </div>
             </div>
           </div>
