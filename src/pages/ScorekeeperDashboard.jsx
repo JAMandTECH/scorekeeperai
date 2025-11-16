@@ -6,7 +6,7 @@ import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PlayCircle, Calendar, MapPin, Trophy, Clock, CheckCircle, Sun, Moon, LogOut } from "lucide-react";
+import { PlayCircle, Calendar, MapPin, Trophy, Clock, CheckCircle, Sun, Moon, LogOut, Home, BarChart3 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function ScorekeeperDashboard() {
@@ -199,6 +199,16 @@ export default function ScorekeeperDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <Link to={createPageUrl("Home")}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-2 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-bold"
+                >
+                  <Home className="w-4 h-4 mr-2" />
+                  Home
+                </Button>
+              </Link>
               <button
                 onClick={toggleDarkMode}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
@@ -303,9 +313,15 @@ export default function ScorekeeperDashboard() {
                 <Calendar className="w-12 h-12 text-gray-400 dark:text-gray-500" />
               </div>
               <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">No Games Assigned Yet</h3>
-              <p className="text-gray-600 dark:text-gray-400 font-medium">
+              <p className="text-gray-600 dark:text-gray-400 font-medium mb-6">
                 You don't have any games assigned to you at the moment.
               </p>
+              <Link to={createPageUrl("Home")}>
+                <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
+                  <Home className="w-4 h-4 mr-2" />
+                  Go to Home Page
+                </Button>
+              </Link>
             </div>
           )}
         </div>
