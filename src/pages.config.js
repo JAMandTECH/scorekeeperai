@@ -24,6 +24,7 @@ import DataBackup from './pages/DataBackup';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import SuperAdminHome from './pages/SuperAdminHome';
 import ScorekeeperDashboard from './pages/ScorekeeperDashboard';
+import TournamentBracket from './pages/TournamentBracket';
 
 
 export const PAGES = {
@@ -53,6 +54,7 @@ export const PAGES = {
     "SuperAdminDashboard": SuperAdminDashboard,
     "SuperAdminHome": SuperAdminHome,
     "ScorekeeperDashboard": ScorekeeperDashboard,
+    "TournamentBracket": TournamentBracket,
 }
 
 export const pagesConfig = {
