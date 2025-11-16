@@ -10,7 +10,8 @@ export default function AdminSidebar({
   organization, 
   sidebarOpen, 
   setSidebarOpen, 
-  handleLogout 
+  handleLogout,
+  navigationItems 
 }) {
   const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
   const isAdmin = user?.role === 'admin';
@@ -34,7 +35,8 @@ export default function AdminSidebar({
     { title: "Organization Settings", url: createPageUrl("OrganizationSettings"), icon: Settings },
   ];
 
-  const navigationItems = isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : []);
+  // Use provided navigationItems if available, otherwise determine based on role
+  const navItems = navigationItems || (isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : []));
 
   return (
     <>
@@ -62,7 +64,7 @@ export default function AdminSidebar({
           )}
 
           <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
-            {navigationItems.map((item) => {
+            {navItems.map((item) => {
               const isActive = window.location.pathname === item.url;
               return (
                 <Link
