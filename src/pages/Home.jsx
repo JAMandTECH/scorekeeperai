@@ -380,7 +380,7 @@ export default function Home() {
               sidebarOpen={sidebarOpen}
               setSidebarOpen={setSidebarOpen}
               handleLogout={handleLogout}
-              navigationItems={navigationItems} // Pass the navigation items
+              navigationItems={navigationItems}
             />
           </div>
         </>
@@ -438,7 +438,12 @@ export default function Home() {
                 <h1 className="text-6xl md:text-7xl font-black mb-4 tracking-tight">
                   {organization.name}
                 </h1>
-                <p className="text-xl md:text-2xl text-blue-100 mb-6 max-w-3xl mx-auto font-medium">
+                {organization.tournament_name && (
+                  <p className="text-xl md:text-2xl text-blue-100 mb-3 max-w-3xl mx-auto font-medium">
+                    {organization.tournament_name}
+                  </p>
+                )}
+                <p className="text-lg md:text-xl text-blue-200 mb-6 max-w-3xl mx-auto font-medium">
                   Sports League Management Dashboard
                 </p>
               </div>
@@ -543,7 +548,6 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent"></div>
       </section>
 
-      {/* ONLY SHOW STATS AND DATA IF USER IS AUTHENTICATED */}
       {user && (
         <div className="max-w-7xl mx-auto px-4 py-16">
           {/* Organization Info Banner - Below Hero */}

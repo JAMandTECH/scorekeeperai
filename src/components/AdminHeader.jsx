@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -54,7 +53,7 @@ export default function AdminHeader({
               {organization?.name || 'ALAB'}
             </span>
             <p className="text-[10px] text-gray-500 dark:text-gray-400 -mt-1 font-medium tracking-wide">
-              {organization ? 'ORGANIZATION' : 'SPORTS LEAGUE'}
+              {organization?.tournament_name || (organization ? 'ORGANIZATION' : 'SPORTS LEAGUE')}
             </p>
           </div>
           {isSuperAdmin && (
