@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -80,10 +81,11 @@ export default function ScorekeeperDashboard() {
       const allGames = await base44.entities.Game.list('-game_date');
       console.log("Total games from API:", allGames.length);
       
-      // Manually filter games assigned to this scorekeeper
-      const myAssignedGames = allGames.filter(game => 
-        game.assigned_scorekeeper_email === user?.email
-      );
+      // Filter games where scorekeeper email is in the array
+      const myAssignedGames = allGames.filter(game => {
+        const emails = game.assigned_scorekeeper_emails || [];
+        return emails.includes(user?.email);
+      });
       
       console.log("Games assigned to this scorekeeper:", myAssignedGames.length);
       console.log("My games data:", JSON.stringify(myAssignedGames.map(g => ({
@@ -91,7 +93,7 @@ export default function ScorekeeperDashboard() {
         sport: g.sport,
         home_team_id: g.home_team_id,
         away_team_id: g.away_team_id,
-        assigned_scorekeeper_email: g.assigned_scorekeeper_email,
+        assigned_scorekeeper_emails: g.assigned_scorekeeper_emails, // Changed from single email to array
         status: g.status
       })), null, 2));
       
