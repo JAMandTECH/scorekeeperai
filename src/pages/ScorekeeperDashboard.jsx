@@ -6,15 +6,13 @@ import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PlayCircle, Calendar, MapPin, Trophy, Clock, CheckCircle, Home as HomeIcon, Clipboard } from "lucide-react";
-import AdminHeader from "@/components/AdminHeader";
-import AdminSidebar from "@/components/AdminSidebar";
+import { PlayCircle, Calendar, MapPin, Trophy, Clock, CheckCircle, Home as HomeIcon, Sun, Moon, LogOut } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function ScorekeeperDashboard() {
   const [user, setUser] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -95,11 +93,6 @@ export default function ScorekeeperDashboard() {
   const scheduledGames = myGames.filter(g => g.status === 'scheduled');
   const inProgressGames = myGames.filter(g => g.status === 'in_progress');
   const completedGames = myGames.filter(g => g.status === 'completed');
-
-  const scorekeeperNav = [
-    { title: "Home", url: createPageUrl("Home"), icon: HomeIcon },
-    { title: "My Games", url: createPageUrl("ScorekeeperDashboard"), icon: Clipboard },
-  ];
 
   const GameCard = ({ game }) => {
     const sportColor = game.sport === 'basketball' ? 'orange' : 'blue';
@@ -187,126 +180,152 @@ export default function ScorekeeperDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900">
-      <AdminHeader 
-        user={user}
-        organization={organization}
-        darkMode={darkMode}
-        toggleDarkMode={toggleDarkMode}
-        handleLogout={handleLogout}
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-      />
-
-      <div className="flex">
-        <AdminSidebar 
-          user={user}
-          organization={organization}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          handleLogout={handleLogout}
-          navigationItems={scorekeeperNav}
-        />
-
-        <main className="flex-1 min-w-0">
-          <div className="p-6 lg:p-8">
-            <div className="max-w-7xl mx-auto space-y-8">
-              {/* Welcome Card */}
-              <Card className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 border-0 shadow-2xl">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4 text-white">
-                    <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                      <Trophy className="w-8 h-8" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-black">Welcome, {user.full_name}!</h2>
-                      <p className="text-blue-100 font-medium">You have {scheduledGames.length} upcoming games to score</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Stats Overview */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="border-2 border-blue-100 dark:border-blue-900 bg-white dark:bg-gray-800 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Scheduled Games</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-4xl font-black text-blue-600 dark:text-blue-400">{scheduledGames.length}</div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-2 border-yellow-100 dark:border-yellow-900 bg-white dark:bg-gray-800 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">In Progress</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-4xl font-black text-yellow-600 dark:text-yellow-400">{inProgressGames.length}</div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-2 border-green-100 dark:border-green-900 bg-white dark:bg-gray-800 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Completed</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-4xl font-black text-green-600 dark:text-green-400">{completedGames.length}</div>
-                  </CardContent>
-                </Card>
+      {/* Simple Header for Scorekeepers */}
+      <div className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b-2 border-gray-200 dark:border-gray-700 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {organization?.logo_url && (
+                <Avatar className="w-12 h-12 border-2 border-blue-500 shadow-lg">
+                  <AvatarImage src={organization.logo_url} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-black">
+                    {organization.name?.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              )}
+              <div>
+                <h1 className="text-2xl font-black text-gray-900 dark:text-white">{organization?.name || 'Scorekeeper'}</h1>
+                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Game Scorekeeper</p>
               </div>
-
-              {/* Scheduled Games */}
-              {scheduledGames.length > 0 && (
-                <div>
-                  <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Upcoming Games</h2>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {scheduledGames.map(game => <GameCard key={game.id} game={game} />)}
-                  </div>
-                </div>
-              )}
-
-              {/* In Progress Games */}
-              {inProgressGames.length > 0 && (
-                <div>
-                  <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Games In Progress</h2>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {inProgressGames.map(game => <GameCard key={game.id} game={game} />)}
-                  </div>
-                </div>
-              )}
-
-              {/* Completed Games */}
-              {completedGames.length > 0 && (
-                <div>
-                  <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Recently Completed</h2>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {completedGames.slice(0, 6).map(game => <GameCard key={game.id} game={game} />)}
-                  </div>
-                </div>
-              )}
-
-              {/* No Games Assigned */}
-              {myGames.length === 0 && (
-                <div className="text-center py-20">
-                  <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Calendar className="w-12 h-12 text-gray-400 dark:text-gray-500" />
-                  </div>
-                  <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">No Games Assigned Yet</h3>
-                  <p className="text-gray-600 dark:text-gray-400 font-medium mb-6">
-                    You don't have any games assigned to you at the moment.
-                  </p>
-                  <Link to={createPageUrl("Home")}>
-                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
-                      <HomeIcon className="w-4 h-4 mr-2" />
-                      Go to Home Page
-                    </Button>
-                  </Link>
-                </div>
-              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <Link to={createPageUrl("Home")}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-2 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-bold"
+                >
+                  <HomeIcon className="w-4 h-4 mr-2" />
+                  Home
+                </Button>
+              </Link>
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+              >
+                {darkMode ? <Sun className="w-5 h-5 text-gray-600 dark:text-gray-400" /> : <Moon className="w-5 h-5 text-gray-600" />}
+              </button>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                size="sm"
+                className="border-2 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-bold"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
             </div>
           </div>
-        </main>
+        </div>
       </div>
+
+      <main className="max-w-7xl mx-auto p-6 lg:p-8">
+        <div className="space-y-8">
+          {/* Welcome Card */}
+          <Card className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 border-0 shadow-2xl">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4 text-white">
+                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                  <Trophy className="w-8 h-8" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black">Welcome, {user.full_name}!</h2>
+                  <p className="text-blue-100 font-medium">You have {scheduledGames.length} upcoming games to score</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="border-2 border-blue-100 dark:border-blue-900 bg-white dark:bg-gray-800 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Scheduled Games</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-black text-blue-600 dark:text-blue-400">{scheduledGames.length}</div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-yellow-100 dark:border-yellow-900 bg-white dark:bg-gray-800 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">In Progress</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-black text-yellow-600 dark:text-yellow-400">{inProgressGames.length}</div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-green-100 dark:border-green-900 bg-white dark:bg-gray-800 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Completed</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-black text-green-600 dark:text-green-400">{completedGames.length}</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Scheduled Games */}
+          {scheduledGames.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Upcoming Games</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {scheduledGames.map(game => <GameCard key={game.id} game={game} />)}
+              </div>
+            </div>
+          )}
+
+          {/* In Progress Games */}
+          {inProgressGames.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Games In Progress</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {inProgressGames.map(game => <GameCard key={game.id} game={game} />)}
+              </div>
+            </div>
+          )}
+
+          {/* Completed Games */}
+          {completedGames.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Recently Completed</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {completedGames.slice(0, 6).map(game => <GameCard key={game.id} game={game} />)}
+              </div>
+            </div>
+          )}
+
+          {/* No Games Assigned */}
+          {myGames.length === 0 && (
+            <div className="text-center py-20">
+              <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Calendar className="w-12 h-12 text-gray-400 dark:text-gray-500" />
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">No Games Assigned Yet</h3>
+              <p className="text-gray-600 dark:text-gray-400 font-medium mb-6">
+                You don't have any games assigned to you at the moment.
+              </p>
+              <Link to={createPageUrl("Home")}>
+                <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
+                  <HomeIcon className="w-4 h-4 mr-2" />
+                  Go to Home Page
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }
