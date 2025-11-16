@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -17,7 +18,7 @@ export default function AdminHeader({
   const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
   const isScorekeeper = user?.is_scorekeeper === true && user?.role !== 'admin';
   
-  const userRoleLabel = isScorekeeper ? 'Scorekeeper' : 'Administrator';
+  const userRoleLabel = isScorekeeper ? 'Scorekeeper' : (isSuperAdmin ? 'Super Administrator' : 'Administrator');
 
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50 shadow-sm">
