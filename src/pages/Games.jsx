@@ -10,7 +10,7 @@ import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
@@ -40,6 +40,7 @@ export default function Games() {
   const [selectedDivision, setSelectedDivision] = useState('all');
   const [selectedTeam, setSelectedTeam] = useState('all');
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadUser();
@@ -62,8 +63,26 @@ export default function Games() {
   };
 
   const loadUser = async () => {
-    const currentUser = await base44.auth.me();
-    setUser(currentUser);
+    try {
+      const currentUser = await base44.auth.me();
+      
+      // Redirect scorekeepers
+      if (currentUser.is_scorekeeper && currentUser.role !== 'admin') {
+        navigate(createPageUrl("ScorekeeperDashboard"));
+        return;
+      }
+      
+      // Only allow admins
+      if (currentUser.role !== 'admin') {
+        navigate(createPageUrl("Home"));
+        return;
+      }
+      
+      setUser(currentUser);
+    } catch (error) {
+      console.error("Error loading user:", error);
+      base44.auth.redirectToLogin(createPageUrl("Games"));
+    }
   };
 
   const handleLogout = () => {
@@ -374,6 +393,14 @@ export default function Games() {
       </Card>
     );
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-green-50/30 to-gray-50 dark:from-gray-900 dark:via-green-950/10 dark:to-gray-900">
