@@ -23,6 +23,7 @@ import OrganizationSettings from './pages/OrganizationSettings';
 import DataBackup from './pages/DataBackup';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import SuperAdminHome from './pages/SuperAdminHome';
+import ScorekeeperDashboard from './pages/ScorekeeperDashboard';
 
 
 export const PAGES = {
@@ -51,6 +52,7 @@ export const PAGES = {
     "DataBackup": DataBackup,
     "SuperAdminDashboard": SuperAdminDashboard,
     "SuperAdminHome": SuperAdminHome,
+    "ScorekeeperDashboard": ScorekeeperDashboard,
 }
 
 export const pagesConfig = {

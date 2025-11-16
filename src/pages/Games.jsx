@@ -109,6 +109,15 @@ export default function Games() {
     enabled: !!user?.organization_id,
   });
 
+  const { data: scorekeepers = [] } = useQuery({
+    queryKey: ['scorekeepers', user?.organization_id],
+    queryFn: async () => {
+      const allUsers = await base44.entities.User.list();
+      return allUsers.filter(u => u.is_scorekeeper === true && u.organization_id === user?.organization_id);
+    },
+    enabled: !!user?.organization_id,
+  });
+
   const checkScheduleConflicts = (gameDate, courtNumber, durationHours = 1.5) => {
     if (!gameDate || !courtNumber) return [];
     
@@ -189,6 +198,7 @@ export default function Games() {
       location: formData.get('location'),
       penalty_limit_per_quarter: parseInt(formData.get('penalty_limit_per_quarter')),
       player_foul_limit: parseInt(formData.get('player_foul_limit')),
+      assigned_scorekeeper_email: formData.get('assigned_scorekeeper_email') || null,
       status: 'scheduled',
       archived: false,
     };
@@ -227,6 +237,8 @@ export default function Games() {
     const statusColor = 
       game.status === 'scheduled' ? 'blue' :
       game.status === 'in_progress' ? 'yellow' : 'green';
+
+    const assignedScorekeeper = scorekeepers.find(s => s.email === game.assigned_scorekeeper_email);
     
     return (
       <Card className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 shadow-lg hover:shadow-2xl transition-all group`}>
@@ -249,6 +261,11 @@ export default function Games() {
                 <p className="text-gray-600 dark:text-gray-400 text-xs font-bold mt-1">
                   Court {game.court_number}
                 </p>
+              )}
+              {assignedScorekeeper && (
+                <Badge variant="outline" className="mt-2 text-xs font-bold border-green-300 dark:border-green-700 text-green-700 dark:text-green-300">
+                  👤 {assignedScorekeeper.full_name}
+                </Badge>
               )}
             </div>
             <div className="flex flex-col items-end gap-2">
@@ -538,6 +555,23 @@ export default function Games() {
                         <option value="semi_finals">Semi Finals</option>
                         <option value="finals">Finals</option>
                       </select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="assigned_scorekeeper_email" className="font-bold text-gray-700 dark:text-gray-300">Assign Scorekeeper (Optional)</Label>
+                      <select
+                        id="assigned_scorekeeper_email"
+                        name="assigned_scorekeeper_email"
+                        className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                      >
+                        <option value="">No scorekeeper assigned</option>
+                        {scorekeepers.map(scorekeeper => (
+                          <option key={scorekeeper.email} value={scorekeeper.email}>
+                            {scorekeeper.full_name} ({scorekeeper.email})
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Assigned scorekeeper will be able to score this game</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
