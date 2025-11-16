@@ -40,12 +40,17 @@ export default function ScorekeeperDashboard() {
   const loadUser = async () => {
     try {
       const currentUser = await base44.auth.me();
+      console.log("SCOREKEEPER USER FULL OBJECT:", JSON.stringify(currentUser, null, 2));
+      console.log("User email field:", currentUser.email);
+      console.log("User is_scorekeeper:", currentUser.is_scorekeeper);
+      console.log("User organization_id:", currentUser.organization_id);
       setUser(currentUser);
       
       if (!currentUser.is_scorekeeper) {
         navigate(createPageUrl("Home"));
       }
     } catch (error) {
+      console.error("Error loading user:", error);
       base44.auth.redirectToLogin(createPageUrl("ScorekeeperDashboard"));
     } finally {
       setLoading(false);
@@ -68,7 +73,23 @@ export default function ScorekeeperDashboard() {
   const { data: myGames = [] } = useQuery({
     queryKey: ['my-scorekeeper-games', user?.email],
     queryFn: async () => {
-      return await base44.entities.Game.list('-game_date');
+      console.log("=== FETCHING GAMES FOR SCOREKEEPER ===");
+      console.log("User email from query:", user?.email);
+      
+      // Get ALL games - RLS should filter automatically
+      const allGames = await base44.entities.Game.list('-game_date');
+      console.log("Games returned by API (should be filtered by RLS):", allGames.length);
+      console.log("Games data:", JSON.stringify(allGames.map(g => ({
+        id: g.id,
+        sport: g.sport,
+        home_team_id: g.home_team_id,
+        away_team_id: g.away_team_id,
+        assigned_scorekeeper_email: g.assigned_scorekeeper_email,
+        created_by: g.created_by,
+        status: g.status
+      })), null, 2));
+      
+      return allGames;
     },
     enabled: !!user?.email,
   });
