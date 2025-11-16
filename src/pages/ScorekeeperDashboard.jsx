@@ -68,8 +68,9 @@ export default function ScorekeeperDashboard() {
   const { data: myGames = [] } = useQuery({
     queryKey: ['my-scorekeeper-games', user?.email],
     queryFn: async () => {
-      const allGames = await base44.entities.Game.list('-game_date');
-      return allGames.filter(g => g.assigned_scorekeeper_email === user?.email);
+      return await base44.entities.Game.filter({ 
+        assigned_scorekeeper_email: user?.email 
+      }, '-game_date');
     },
     enabled: !!user?.email,
   });
