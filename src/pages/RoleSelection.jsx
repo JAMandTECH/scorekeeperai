@@ -38,11 +38,11 @@ export default function RoleSelection() {
         return;
       }
       
-      // Super admins are fully set up
+      // Super admins are fully set up - redirect to SuperAdminHome
       if (currentUser?.role === 'admin' && currentUser?.is_super_admin === true) {
-        console.log("RoleSelection: User is super admin, redirecting to Dashboard");
+        console.log("RoleSelection: User is super admin, redirecting to SuperAdminHome");
         setLoading(false);
-        navigate(createPageUrl("Dashboard"));
+        navigate(createPageUrl("SuperAdminHome"));
         return;
       }
       
