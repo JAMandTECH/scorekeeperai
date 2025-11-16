@@ -49,6 +49,12 @@ export default function Home() {
           const currentUser = await base44.auth.me();
           setUser(currentUser);
           
+          // Redirect super admins to SuperAdminHome
+          if (currentUser?.role === 'admin' && currentUser?.is_super_admin === true) {
+            navigate(createPageUrl("SuperAdminHome"));
+            return;
+          }
+          
           // Load organization if user has organization_id - NO REDIRECT
           if (currentUser?.organization_id) {
             const orgs = await base44.entities.Organization.list();
