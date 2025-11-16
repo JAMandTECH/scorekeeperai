@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -52,7 +53,6 @@ export default function OrganizationSettings() {
     base44.auth.logout(createPageUrl("PublicLanding"));
   };
 
-  // Fetch organization using React Query
   const { data: organization, refetch: refetchOrganization } = useQuery({
     queryKey: ['organization', user?.organization_id],
     queryFn: async () => {
@@ -70,17 +70,15 @@ export default function OrganizationSettings() {
       return result;
     },
     onSuccess: async () => {
-      // Invalidate all queries that might have organization data
       await queryClient.invalidateQueries(['organization']);
       await queryClient.invalidateQueries(['organizations']);
       
-      // Refetch the organization data
       await refetchOrganization();
       
       setSuccessMessage("Organization updated successfully!");
       setErrorMessage("");
       setTimeout(() => setSuccessMessage(""), 3000);
-      setLogoFile(null); // Clear the file input
+      setLogoFile(null);
     },
     onError: (error) => {
       console.error('Update error:', error);
@@ -99,6 +97,7 @@ export default function OrganizationSettings() {
       const formData = new FormData(e.target);
       const data = {
         name: formData.get('name'),
+        tournament_name: formData.get('tournament_name') || null, // New field added here
         contact_email: formData.get('contact_email'),
         contact_phone: formData.get('contact_phone') || null,
         address: formData.get('address') || null,
@@ -106,7 +105,6 @@ export default function OrganizationSettings() {
 
       console.log('Form data before upload:', data);
 
-      // Upload logo if a new file was selected
       if (logoFile) {
         console.log('Uploading logo file:', logoFile.name);
         const uploadResult = await base44.integrations.Core.UploadFile({ file: logoFile });
@@ -253,6 +251,23 @@ export default function OrganizationSettings() {
                         required
                         className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium text-lg mt-2"
                       />
+                    </div>
+
+                    {/* Tournament Name */}
+                    <div>
+                      <Label htmlFor="tournament_name" className="font-bold text-gray-700 dark:text-gray-300 text-lg">
+                        Tournament Name
+                      </Label>
+                      <Input
+                        id="tournament_name"
+                        name="tournament_name"
+                        defaultValue={organization.tournament_name}
+                        placeholder="e.g., Championship League 2025"
+                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium text-lg mt-2"
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">
+                        Optional: The name of your league or tournament
+                      </p>
                     </div>
 
                     {/* Contact Email */}
