@@ -15,6 +15,9 @@ export default function AdminHeader({
   setSidebarOpen 
 }) {
   const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
+  const isScorekeeper = user?.is_scorekeeper === true && user?.role !== 'admin';
+  
+  const userRoleLabel = isScorekeeper ? 'Scorekeeper' : 'Administrator';
 
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50 shadow-sm">
@@ -79,7 +82,7 @@ export default function AdminHeader({
           </div>
           <div>
             <p className="font-semibold text-gray-900 dark:text-white text-sm">{user?.full_name}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Administrator</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{userRoleLabel}</p>
           </div>
         </div>
         <Button
