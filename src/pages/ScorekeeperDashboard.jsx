@@ -123,8 +123,8 @@ export default function ScorekeeperDashboard() {
   const completedGames = myGames.filter(g => g.status === 'completed');
 
   const scorekeeperNav = [
-    { title: "Home", url: createPageUrl("Home"), icon: HomeIcon },
-    { title: "Live Scoring", url: createPageUrl("ScorekeeperDashboard"), icon: Clipboard },
+    { title: "Organization Home", url: createPageUrl("Home"), icon: HomeIcon },
+    { title: "My Games", url: createPageUrl("ScorekeeperDashboard"), icon: Clipboard },
   ];
 
   const GameCard = ({ game }) => {
@@ -318,7 +318,7 @@ export default function ScorekeeperDashboard() {
                   <Link to={createPageUrl("Home")}>
                     <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
                       <HomeIcon className="w-4 h-4 mr-2" />
-                      Go to Home Page
+                      Go to Organization Home
                     </Button>
                   </Link>
                 </div>
