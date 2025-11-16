@@ -47,11 +47,14 @@ export default function RoleSelection() {
       }
       
       // Users with onboarding_completed can proceed
-      // Regular users → Home, Admins → Dashboard
+      // Scorekeepers → ScorekeeperDashboard, Regular users → Home, Admins → Dashboard
       if (currentUser?.onboarding_completed === true) {
         if (currentUser?.role === 'admin') {
           console.log("RoleSelection: Admin with completed onboarding, redirecting to Dashboard");
           navigate(createPageUrl("Dashboard"));
+        } else if (currentUser?.is_scorekeeper === true) {
+          console.log("RoleSelection: Scorekeeper with completed onboarding, redirecting to ScorekeeperDashboard");
+          navigate(createPageUrl("ScorekeeperDashboard"));
         } else {
           console.log("RoleSelection: User with completed onboarding, redirecting to Home");
           navigate(createPageUrl("Home"));
@@ -156,7 +159,7 @@ export default function RoleSelection() {
           <div className="flex items-center justify-center gap-4 mb-6">
             <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-2xl">
               <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
               </svg>
             </div>
           </div>
