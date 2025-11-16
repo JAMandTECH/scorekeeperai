@@ -76,20 +76,26 @@ export default function ScorekeeperDashboard() {
       console.log("=== FETCHING GAMES FOR SCOREKEEPER ===");
       console.log("User email from query:", user?.email);
       
-      // Get ALL games - RLS should filter automatically
+      // Get ALL games (no RLS)
       const allGames = await base44.entities.Game.list('-game_date');
-      console.log("Games returned by API (should be filtered by RLS):", allGames.length);
-      console.log("Games data:", JSON.stringify(allGames.map(g => ({
+      console.log("Total games from API:", allGames.length);
+      
+      // Manually filter games assigned to this scorekeeper
+      const myAssignedGames = allGames.filter(game => 
+        game.assigned_scorekeeper_email === user?.email
+      );
+      
+      console.log("Games assigned to this scorekeeper:", myAssignedGames.length);
+      console.log("My games data:", JSON.stringify(myAssignedGames.map(g => ({
         id: g.id,
         sport: g.sport,
         home_team_id: g.home_team_id,
         away_team_id: g.away_team_id,
         assigned_scorekeeper_email: g.assigned_scorekeeper_email,
-        created_by: g.created_by,
         status: g.status
       })), null, 2));
       
-      return allGames;
+      return myAssignedGames;
     },
     enabled: !!user?.email,
   });
