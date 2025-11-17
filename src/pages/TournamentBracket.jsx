@@ -154,11 +154,10 @@ export default function TournamentBracket() {
   });
 
   const generateBracketMatches = async (tournament, seededTeamIds) => {
-    // Check if matches already exist for this tournament
     const existingMatches = await base44.entities.BracketMatch.filter({ tournament_id: tournament.id });
+    
     if (existingMatches.length > 0) {
-      console.log("Matches already exist for this tournament, skipping generation");
-      return existingMatches;
+      await Promise.all(existingMatches.map(m => base44.entities.BracketMatch.delete(m.id)));
     }
 
     const numTeams = tournament.num_teams;
@@ -180,7 +179,6 @@ export default function TournamentBracket() {
     const totalRounds = Math.log2(numTeams);
     const allMatches = [];
 
-    // Create all matches for all rounds
     for (let round = 1; round <= totalRounds; round++) {
       const matchesInRound = Math.pow(2, totalRounds - round);
       const roundName = getRoundName(round, totalRounds);
@@ -195,7 +193,6 @@ export default function TournamentBracket() {
           status: 'pending',
         };
 
-        // Only assign teams to first round matches
         if (round === 1) {
           const homeIdx = matchNum * 2;
           const awayIdx = matchNum * 2 + 1;
@@ -208,14 +205,12 @@ export default function TournamentBracket() {
       }
     }
 
-    // Create matches in database
     const createdMatches = [];
     for (const matchData of allMatches) {
       const created = await base44.entities.BracketMatch.create(matchData);
       createdMatches.push(created);
     }
 
-    // Link matches to their next round
     for (let round = 1; round < totalRounds; round++) {
       const roundName = getRoundName(round, totalRounds);
       const nextRoundName = getRoundName(round + 1, totalRounds);

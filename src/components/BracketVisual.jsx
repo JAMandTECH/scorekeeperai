@@ -90,33 +90,28 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
     );
   };
 
-  const renderMatch = (match, roundIndex, matchIndex, matchesInRound) => {
+  const renderMatch = (match) => {
     const isCompleted = match.status === 'completed';
     const homeWins = isCompleted && match.winner_team_id === match.home_team_id;
     const awayWins = isCompleted && match.winner_team_id === match.away_team_id;
 
     return (
-      <div className="relative flex items-center">
-        <div 
-          className="bg-gray-900 dark:bg-black rounded border border-gray-700 dark:border-gray-800 overflow-hidden transition-all hover:border-blue-600 cursor-pointer min-w-[180px]"
-          onClick={() => onMatchClick(match)}
-        >
-          <div className="space-y-0.5 p-1">
-            {renderTeamSlot(match, 'home', match.home_team_id, homeWins, match.id)}
-            {renderTeamSlot(match, 'away', match.away_team_id, awayWins, match.id)}
-          </div>
-          
-          {match.required_wins > 1 && (
-            <div className="px-2 py-0.5 bg-gray-950 border-t border-gray-800 text-center">
-              <span className="text-[10px] text-gray-500 font-semibold">
-                Best of {(match.required_wins * 2) - 1}
-              </span>
-            </div>
-          )}
+      <div 
+        className="bg-gray-900 dark:bg-black rounded border border-gray-700 dark:border-gray-800 overflow-hidden transition-all hover:border-blue-600 cursor-pointer w-[200px]"
+        onClick={() => onMatchClick(match)}
+      >
+        <div className="space-y-0.5 p-1">
+          {renderTeamSlot(match, 'home', match.home_team_id, homeWins, match.id)}
+          {renderTeamSlot(match, 'away', match.away_team_id, awayWins, match.id)}
         </div>
-
-        {/* Connector line to the right */}
-        <div className="w-6 h-0.5 bg-gray-700 dark:bg-gray-800"></div>
+        
+        {match.required_wins > 1 && (
+          <div className="px-2 py-0.5 bg-gray-950 border-t border-gray-800 text-center">
+            <span className="text-[10px] text-gray-500 font-semibold">
+              Best of {(match.required_wins * 2) - 1}
+            </span>
+          </div>
+        )}
       </div>
     );
   };
@@ -143,7 +138,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
   const champion = finalsMatch?.winner_team_id ? getTeam(finalsMatch.winner_team_id) : null;
 
   const getRoundLabel = (roundName) => {
-    return roundName.replace(/_/g, ' ').toUpperCase().replace('ROUND OF ', 'ROUND OF ');
+    return roundName.replace(/_/g, ' ').toUpperCase();
   };
 
   return (
@@ -172,14 +167,14 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           <div className="mb-6 bg-blue-950/30 border border-blue-800/50 rounded-lg p-3">
             <p className="text-xs text-blue-300 font-semibold flex items-center gap-2">
               <GripVertical className="w-4 h-4" />
-              Drag and drop teams to rearrange matchups before scheduling games
+              Drag and drop teams to rearrange matchups
             </p>
           </div>
         )}
 
         {/* Bracket Grid */}
         <div className="relative overflow-x-auto">
-          <div className="flex gap-12 pb-6" style={{ minWidth: 'max-content' }}>
+          <div className="flex gap-16 pb-6 items-start" style={{ minWidth: 'max-content' }}>
             {roundOrder.map((roundName, roundIdx) => {
               const roundMatches = matchesByRound[roundName] || [];
               if (roundMatches.length === 0) return null;
@@ -187,13 +182,12 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
               const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
               const isLastRound = roundName === 'finals';
               
-              // Calculate spacing between matches based on round
               const spacingMultiplier = Math.pow(2, roundIdx);
               
               return (
-                <div key={roundName} className="relative">
+                <div key={roundName} className="flex flex-col">
                   {/* Round Header */}
-                  <div className="mb-4 text-center">
+                  <div className="mb-6 text-center">
                     <h3 className="text-sm font-black text-white uppercase tracking-wider">
                       {getRoundLabel(roundName)}
                     </h3>
@@ -202,92 +196,29 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                     </p>
                   </div>
 
-                  {/* Matches Container */}
-                  <div className="space-y-4" style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    justifyContent: 'space-around',
-                    minHeight: roundIdx === 0 ? 'auto' : `${sortedMatches.length * spacingMultiplier * 80}px`
-                  }}>
+                  {/* Matches */}
+                  <div className="flex flex-col justify-around" style={{ flex: 1 }}>
                     {sortedMatches.map((match, matchIdx) => (
                       <div 
                         key={match.id}
                         style={{
-                          marginTop: matchIdx > 0 && roundIdx > 0 ? `${spacingMultiplier * 40}px` : '0'
+                          marginTop: matchIdx === 0 ? '0' : `${spacingMultiplier * 2}rem`
                         }}
                       >
-                        {renderMatch(match, roundIdx, matchIdx, sortedMatches.length)}
+                        {renderMatch(match)}
                       </div>
                     ))}
                   </div>
-
-                  {/* Vertical Connectors (SVG) */}
-                  {!isLastRound && sortedMatches.length > 1 && (
-                    <svg 
-                      className="absolute left-full top-0 pointer-events-none"
-                      style={{ 
-                        width: '48px', 
-                        height: '100%',
-                        transform: 'translateY(56px)'
-                      }}
-                    >
-                      {sortedMatches.map((match, idx) => {
-                        if (idx % 2 === 1) return null;
-                        
-                        const matchHeight = 80 + (spacingMultiplier * 40);
-                        const y1 = (idx * matchHeight) + (matchHeight / 2);
-                        const y2 = ((idx + 1) * matchHeight) + (matchHeight / 2);
-                        const midY = (y1 + y2) / 2;
-                        
-                        return (
-                          <g key={idx}>
-                            <line
-                              x1="0"
-                              y1={y1}
-                              x2="24"
-                              y2={y1}
-                              stroke="#374151"
-                              strokeWidth="2"
-                            />
-                            <line
-                              x1="0"
-                              y1={y2}
-                              x2="24"
-                              y2={y2}
-                              stroke="#374151"
-                              strokeWidth="2"
-                            />
-                            <line
-                              x1="24"
-                              y1={y1}
-                              x2="24"
-                              y2={y2}
-                              stroke="#374151"
-                              strokeWidth="2"
-                            />
-                            <line
-                              x1="24"
-                              y1={midY}
-                              x2="48"
-                              y2={midY}
-                              stroke="#374151"
-                              strokeWidth="2"
-                            />
-                          </g>
-                        );
-                      })}
-                    </svg>
-                  )}
                 </div>
               );
             })}
 
-            {/* Champion Trophy */}
+            {/* Champion Display */}
             {champion && (
-              <div className="flex items-center justify-center">
+              <div className="flex items-center">
                 <div className="text-center">
                   <Trophy className="w-12 h-12 text-yellow-500 mx-auto mb-3 animate-pulse" />
-                  <div className="bg-gradient-to-br from-yellow-600 to-orange-600 rounded-lg p-4 border-2 border-yellow-500 shadow-2xl min-w-[160px]">
+                  <div className="bg-gradient-to-br from-yellow-600 to-orange-600 rounded-lg p-4 border-2 border-yellow-500 shadow-2xl w-[180px]">
                     <Avatar className="w-16 h-16 mx-auto border-4 border-white shadow-xl mb-2">
                       <AvatarImage src={champion.logo_url} />
                       <AvatarFallback className="bg-yellow-500 text-white text-xl font-black">
