@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trophy, Trash2, Save } from "lucide-react";
+import { Plus, Trophy, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -32,7 +32,6 @@ export default function TournamentBracket() {
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [showSeeder, setShowSeeder] = useState(false);
   const [deletingTournament, setDeletingTournament] = useState(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -103,8 +102,8 @@ export default function TournamentBracket() {
   });
 
   const { data: allMatches = [] } = useQuery({
-    queryKey: ['bracket-matches'],
-    queryFn: () => base44.entities.BracketMatch.list(),
+    queryKey: ['bracket-matches', selectedTournament?.id],
+    queryFn: () => base44.entities.BracketMatch.filter({ tournament_id: selectedTournament.id }),
     enabled: !!selectedTournament,
   });
 
@@ -135,7 +134,6 @@ export default function TournamentBracket() {
     mutationFn: ({ id, data }) => base44.entities.BracketMatch.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['bracket-matches']);
-      setHasUnsavedChanges(false);
     },
   });
 
@@ -147,6 +145,7 @@ export default function TournamentBracket() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['tournaments']);
+      queryClient.invalidateQueries(['bracket-matches']);
       setDeletingTournament(null);
       if (selectedTournament?.id === deletingTournament?.id) {
         setSelectedTournament(null);
@@ -155,6 +154,13 @@ export default function TournamentBracket() {
   });
 
   const generateBracketMatches = async (tournament, seededTeamIds) => {
+    // Check if matches already exist for this tournament
+    const existingMatches = await base44.entities.BracketMatch.filter({ tournament_id: tournament.id });
+    if (existingMatches.length > 0) {
+      console.log("Matches already exist for this tournament, skipping generation");
+      return existingMatches;
+    }
+
     const numTeams = tournament.num_teams;
     const bestOfSettings = tournament.best_of_settings || {};
     
@@ -174,6 +180,7 @@ export default function TournamentBracket() {
     const totalRounds = Math.log2(numTeams);
     const allMatches = [];
 
+    // Create all matches for all rounds
     for (let round = 1; round <= totalRounds; round++) {
       const matchesInRound = Math.pow(2, totalRounds - round);
       const roundName = getRoundName(round, totalRounds);
@@ -188,6 +195,7 @@ export default function TournamentBracket() {
           status: 'pending',
         };
 
+        // Only assign teams to first round matches
         if (round === 1) {
           const homeIdx = matchNum * 2;
           const awayIdx = matchNum * 2 + 1;
@@ -200,12 +208,14 @@ export default function TournamentBracket() {
       }
     }
 
+    // Create matches in database
     const createdMatches = [];
     for (const matchData of allMatches) {
       const created = await base44.entities.BracketMatch.create(matchData);
       createdMatches.push(created);
     }
 
+    // Link matches to their next round
     for (let round = 1; round < totalRounds; round++) {
       const roundName = getRoundName(round, totalRounds);
       const nextRoundName = getRoundName(round + 1, totalRounds);
@@ -262,7 +272,6 @@ export default function TournamentBracket() {
     const sourceTeamId = sourceSlot === 'home' ? sourceMatch.home_team_id : sourceMatch.away_team_id;
     const destTeamId = destSlot === 'home' ? destMatch.home_team_id : destMatch.away_team_id;
     
-    // Swap teams
     const sourceUpdate = {};
     const destUpdate = {};
     
@@ -278,20 +287,13 @@ export default function TournamentBracket() {
       destUpdate.away_team_id = sourceTeamId;
     }
     
-    // Update both matches
     await updateMatchMutation.mutateAsync({ id: sourceMatchId, data: sourceUpdate });
     await updateMatchMutation.mutateAsync({ id: destMatchId, data: destUpdate });
-    
-    setHasUnsavedChanges(false);
   };
 
   const handleMatchClick = (match) => {
     console.log("Match clicked:", match);
   };
-
-  const tournamentMatches = selectedTournament 
-    ? allMatches.filter(m => m.tournament_id === selectedTournament.id)
-    : [];
 
   if (!user) {
     return (
@@ -407,7 +409,7 @@ export default function TournamentBracket() {
                   </Button>
                   <BracketVisual
                     tournament={selectedTournament}
-                    matches={tournamentMatches}
+                    matches={allMatches}
                     teams={teams}
                     onMatchClick={handleMatchClick}
                     onTeamReorder={handleTeamReorder}
