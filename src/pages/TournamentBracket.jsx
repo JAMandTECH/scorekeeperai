@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trophy, Trash2 } from "lucide-react";
+import { Plus, Trophy, Trash2, Save } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -32,6 +32,7 @@ export default function TournamentBracket() {
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [showSeeder, setShowSeeder] = useState(false);
   const [deletingTournament, setDeletingTournament] = useState(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -130,6 +131,14 @@ export default function TournamentBracket() {
     },
   });
 
+  const updateMatchMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.BracketMatch.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['bracket-matches']);
+      setHasUnsavedChanges(false);
+    },
+  });
+
   const deleteTournamentMutation = useMutation({
     mutationFn: async (id) => {
       const matches = await base44.entities.BracketMatch.filter({ tournament_id: id });
@@ -165,7 +174,6 @@ export default function TournamentBracket() {
     const totalRounds = Math.log2(numTeams);
     const allMatches = [];
 
-    // Create all matches bottom-up
     for (let round = 1; round <= totalRounds; round++) {
       const matchesInRound = Math.pow(2, totalRounds - round);
       const roundName = getRoundName(round, totalRounds);
@@ -180,7 +188,6 @@ export default function TournamentBracket() {
           status: 'pending',
         };
 
-        // First round - assign teams
         if (round === 1) {
           const homeIdx = matchNum * 2;
           const awayIdx = matchNum * 2 + 1;
@@ -193,14 +200,12 @@ export default function TournamentBracket() {
       }
     }
 
-    // Create matches in database
     const createdMatches = [];
     for (const matchData of allMatches) {
       const created = await base44.entities.BracketMatch.create(matchData);
       createdMatches.push(created);
     }
 
-    // Link matches (set next_match_id and is_home_slot)
     for (let round = 1; round < totalRounds; round++) {
       const roundName = getRoundName(round, totalRounds);
       const nextRoundName = getRoundName(round + 1, totalRounds);
@@ -248,8 +253,39 @@ export default function TournamentBracket() {
     }
   };
 
+  const handleTeamReorder = async (sourceMatchId, sourceSlot, destMatchId, destSlot) => {
+    const sourceMatch = allMatches.find(m => m.id === sourceMatchId);
+    const destMatch = allMatches.find(m => m.id === destMatchId);
+    
+    if (!sourceMatch || !destMatch) return;
+    
+    const sourceTeamId = sourceSlot === 'home' ? sourceMatch.home_team_id : sourceMatch.away_team_id;
+    const destTeamId = destSlot === 'home' ? destMatch.home_team_id : destMatch.away_team_id;
+    
+    // Swap teams
+    const sourceUpdate = {};
+    const destUpdate = {};
+    
+    if (sourceSlot === 'home') {
+      sourceUpdate.home_team_id = destTeamId;
+    } else {
+      sourceUpdate.away_team_id = destTeamId;
+    }
+    
+    if (destSlot === 'home') {
+      destUpdate.home_team_id = sourceTeamId;
+    } else {
+      destUpdate.away_team_id = sourceTeamId;
+    }
+    
+    // Update both matches
+    await updateMatchMutation.mutateAsync({ id: sourceMatchId, data: sourceUpdate });
+    await updateMatchMutation.mutateAsync({ id: destMatchId, data: destUpdate });
+    
+    setHasUnsavedChanges(false);
+  };
+
   const handleMatchClick = (match) => {
-    // Future: Open dialog to schedule games for this match
     console.log("Match clicked:", match);
   };
 
@@ -303,7 +339,6 @@ export default function TournamentBracket() {
                 </Button>
               </div>
 
-              {/* Tournament List */}
               {!selectedTournament && (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {tournaments.map(tournament => (
@@ -361,7 +396,6 @@ export default function TournamentBracket() {
                 </div>
               )}
 
-              {/* Bracket View */}
               {selectedTournament && !showSeeder && (
                 <div className="space-y-6">
                   <Button
@@ -376,11 +410,11 @@ export default function TournamentBracket() {
                     matches={tournamentMatches}
                     teams={teams}
                     onMatchClick={handleMatchClick}
+                    onTeamReorder={handleTeamReorder}
                   />
                 </div>
               )}
 
-              {/* Team Seeding */}
               {showSeeder && selectedTournament && (
                 <TeamSeeder
                   tournament={selectedTournament}
@@ -393,7 +427,6 @@ export default function TournamentBracket() {
                 />
               )}
 
-              {/* Create Tournament Dialog */}
               <Dialog open={showForm} onOpenChange={setShowForm}>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
@@ -407,7 +440,6 @@ export default function TournamentBracket() {
                 </DialogContent>
               </Dialog>
 
-              {/* Delete Confirmation */}
               <AlertDialog open={!!deletingTournament} onOpenChange={() => setDeletingTournament(null)}>
                 <AlertDialogContent>
                   <AlertDialogHeader>
