@@ -262,54 +262,8 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           )}
 
           {/* Bracket */}
-          <div className="bg-gradient-to-br from-gray-950 via-indigo-950/30 to-gray-950 rounded-xl p-8 border-2 border-blue-900/50 shadow-2xl overflow-x-auto relative">
-            <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%' }}>
-              {roundOrder.slice(0, -1).map((roundName, roundIdx) => {
-                const currentRoundMatches = matchesByRound[roundName] || [];
-                const nextRoundName = roundOrder[roundIdx + 1];
-                const nextRoundMatches = matchesByRound[nextRoundName] || [];
-                
-                return currentRoundMatches.map((match, matchIdx) => {
-                  const nextMatch = nextRoundMatches[Math.floor(matchIdx / 2)];
-                  if (!nextMatch) return null;
-                  
-                  const xOffset = 240 + (roundIdx * (260));
-                  const spacingMultiplier = Math.pow(2, roundIdx);
-                  const yStart = 160 + (matchIdx * (spacingMultiplier * 2.5 * 16)) + (matchIdx > 0 ? spacingMultiplier * 2.5 * 16 : 0);
-                  const yEnd = 160 + (Math.floor(matchIdx / 2) * (spacingMultiplier * 2 * 2.5 * 16)) + (Math.floor(matchIdx / 2) > 0 ? spacingMultiplier * 2 * 2.5 * 16 : 0);
-                  
-                  return (
-                    <g key={`${match.id}-connector`}>
-                      <line
-                        x1={xOffset}
-                        y1={yStart}
-                        x2={xOffset + 40}
-                        y2={yStart}
-                        stroke="#3b82f6"
-                        strokeWidth="2"
-                      />
-                      <line
-                        x1={xOffset + 40}
-                        y1={yStart}
-                        x2={xOffset + 40}
-                        y2={yEnd}
-                        stroke="#3b82f6"
-                        strokeWidth="2"
-                      />
-                      <line
-                        x1={xOffset + 40}
-                        y1={yEnd}
-                        x2={xOffset + 60}
-                        y2={yEnd}
-                        stroke="#3b82f6"
-                        strokeWidth="2"
-                      />
-                    </g>
-                  );
-                });
-              })}
-            </svg>
-            <div className="flex gap-20 pb-6 relative z-10" style={{ minWidth: 'max-content' }}>
+          <div className="bg-gradient-to-br from-gray-950 via-indigo-950/30 to-gray-950 rounded-xl p-8 border-2 border-blue-900/50 shadow-2xl overflow-x-auto">
+            <div className="flex gap-24 pb-6 relative" style={{ minWidth: 'max-content' }}>
               {roundOrder.map((roundName, roundIdx) => {
                 const roundMatches = matchesByRound[roundName] || [];
                 if (roundMatches.length === 0) return null;
@@ -317,8 +271,10 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                 const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
                 const spacingMultiplier = Math.pow(2, roundIdx);
                 
+                const isLastRound = roundIdx === roundOrder.length - 1;
+                
                 return (
-                  <div key={roundName} className="flex flex-col">
+                  <div key={roundName} className="flex flex-col relative">
                     <div className="mb-8 text-center">
                       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg px-6 py-3 shadow-lg inline-block">
                         <h3 className="text-base font-black text-white uppercase tracking-widest">
@@ -331,16 +287,51 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                     </div>
 
                     <div className="flex flex-col justify-around" style={{ flex: 1 }}>
-                      {sortedMatches.map((match, matchIdx) => (
-                        <div 
-                          key={match.id}
-                          style={{
-                            marginTop: matchIdx === 0 ? '0' : `${spacingMultiplier * 2.5}rem`
-                          }}
-                        >
-                          {renderMatch(match)}
-                        </div>
-                      ))}
+                      {sortedMatches.map((match, matchIdx) => {
+                        const nextRoundName = roundOrder[roundIdx + 1];
+                        const nextRoundMatches = matchesByRound[nextRoundName] || [];
+                        const nextMatch = nextRoundMatches[Math.floor(matchIdx / 2)];
+                        
+                        return (
+                          <div 
+                            key={match.id}
+                            className="relative"
+                            style={{
+                              marginTop: matchIdx === 0 ? '0' : `${spacingMultiplier * 2.5}rem`
+                            }}
+                          >
+                            {renderMatch(match)}
+                            
+                            {/* Connector lines */}
+                            {!isLastRound && nextMatch && (
+                              <svg 
+                                className="absolute left-full top-1/2 pointer-events-none" 
+                                style={{ 
+                                  width: '96px', 
+                                  height: matchIdx % 2 === 0 ? `${(spacingMultiplier * 2.5 * 16) + 100}px` : '100px',
+                                  transform: 'translateY(-50%)'
+                                }}
+                              >
+                                {matchIdx % 2 === 0 ? (
+                                  // Upper match - line goes right then down
+                                  <>
+                                    <line x1="0" y1="50%" x2="48" y2="50%" stroke="#3b82f6" strokeWidth="3" />
+                                    <line x1="48" y1="50%" x2="48" y2="100%" stroke="#3b82f6" strokeWidth="3" />
+                                    <line x1="48" y1="100%" x2="96" y2="100%" stroke="#3b82f6" strokeWidth="3" />
+                                  </>
+                                ) : (
+                                  // Lower match - line goes right then up
+                                  <>
+                                    <line x1="0" y1="50%" x2="48" y2="50%" stroke="#3b82f6" strokeWidth="3" />
+                                    <line x1="48" y1="50%" x2="48" y2="0" stroke="#3b82f6" strokeWidth="3" />
+                                    <line x1="48" y1="0" x2="96" y2="0" stroke="#3b82f6" strokeWidth="3" />
+                                  </>
+                                )}
+                              </svg>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );
