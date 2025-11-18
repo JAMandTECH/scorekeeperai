@@ -334,17 +334,18 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           )}
 
           <div className="bg-gradient-to-br from-gray-950 via-indigo-950/20 to-gray-950 rounded-xl p-4 md:p-8 border border-gray-800 shadow-2xl overflow-x-auto">
-            <div className="flex gap-12 md:gap-20 relative pb-4" style={{ minWidth: 'max-content' }}>
+            <div className="flex gap-20 relative pb-4" style={{ minWidth: 'max-content' }}>
               <AnimatePresence>
                 {roundOrder.map((roundName, roundIdx) => {
                   const roundMatches = matchesByRound[roundName] || [];
                   if (roundMatches.length === 0) return null;
-                  
+
                   const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
                   const matchCount = sortedMatches.length;
                   const spacingMultiplier = Math.pow(2, roundIdx);
-                  const matchGap = 140 * spacingMultiplier;
-                  
+                  const MATCH_HEIGHT = 100;
+                  const matchGap = MATCH_HEIGHT * spacingMultiplier;
+
                   return (
                     <motion.div 
                       key={roundName} 
@@ -371,35 +372,36 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                         {sortedMatches.map((match, matchIdx) => {
                           const isPairFirst = matchIdx % 2 === 0;
                           const shouldDrawConnector = roundIdx < roundOrder.length - 1;
-                          const connectorLength = 80;
-                          const midPoint = connectorLength / 2;
-                          const verticalDistance = (matchGap + 100) / 2;
-                          
+                          const CONNECTOR_LENGTH = 80;
+                          const HORIZONTAL_SEGMENT = 40;
+                          const verticalSpan = matchGap + MATCH_HEIGHT;
+
                           return (
                             <div key={match.id} className="relative">
                               {renderMatch(match)}
-                              
+
                               {shouldDrawConnector && (
                                 <svg 
                                   className="absolute pointer-events-none" 
                                   style={{
-                                    left: '240px',
-                                    top: '50px',
-                                    width: `${connectorLength}px`,
-                                    height: isPairFirst ? `${verticalDistance * 2}px` : '1px',
+                                    left: '100%',
+                                    top: '50%',
+                                    width: `${CONNECTOR_LENGTH}px`,
+                                    height: isPairFirst ? `${verticalSpan}px` : '1px',
+                                    transform: 'translateY(-50%)',
                                     overflow: 'visible'
                                   }}
                                 >
                                   {isPairFirst ? (
                                     <>
-                                      <line x1="0" y1="0" x2={midPoint} y2="0" stroke={theme.connector} strokeWidth="2" />
-                                      <line x1={midPoint} y1="0" x2={midPoint} y2={verticalDistance} stroke={theme.connector} strokeWidth="2" />
-                                      <line x1={midPoint} y1={verticalDistance} x2={connectorLength} y2={verticalDistance} stroke={theme.connector} strokeWidth="2" />
+                                      <line x1="0" y1="0" x2={HORIZONTAL_SEGMENT} y2="0" stroke={theme.connector} strokeWidth="3" />
+                                      <line x1={HORIZONTAL_SEGMENT} y1="0" x2={HORIZONTAL_SEGMENT} y2={verticalSpan / 2} stroke={theme.connector} strokeWidth="3" />
+                                      <line x1={HORIZONTAL_SEGMENT} y1={verticalSpan / 2} x2={CONNECTOR_LENGTH} y2={verticalSpan / 2} stroke={theme.connector} strokeWidth="3" />
                                     </>
                                   ) : (
                                     <>
-                                      <line x1="0" y1="0" x2={midPoint} y2="0" stroke={theme.connector} strokeWidth="2" />
-                                      <line x1={midPoint} y1="0" x2={midPoint} y2={-verticalDistance} stroke={theme.connector} strokeWidth="2" />
+                                      <line x1="0" y1="0" x2={HORIZONTAL_SEGMENT} y2="0" stroke={theme.connector} strokeWidth="3" />
+                                      <line x1={HORIZONTAL_SEGMENT} y1="0" x2={HORIZONTAL_SEGMENT} y2={-verticalSpan / 2} stroke={theme.connector} strokeWidth="3" />
                                     </>
                                   )}
                                 </svg>
