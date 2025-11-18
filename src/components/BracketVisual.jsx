@@ -132,17 +132,17 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
 
     return (
       <div 
-        className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-lg border-2 border-gray-800 overflow-hidden transition-all hover:border-blue-600 hover:shadow-xl hover:scale-[1.02] cursor-pointer w-[240px]"
+        className="bg-gradient-to-br from-gray-900/95 to-gray-950 rounded-xl border-2 border-gray-700/50 overflow-hidden transition-all hover:border-blue-500 hover:shadow-2xl cursor-pointer w-[220px]"
         onClick={() => onMatchClick && onMatchClick(match)}
       >
-        <div className="space-y-1.5 p-2">
+        <div className="space-y-0 p-2.5">
           {renderTeamSlot(match, 'home', match.home_team_id, homeWins, match.id)}
           {renderTeamSlot(match, 'away', match.away_team_id, awayWins, match.id)}
         </div>
         
-        <div className="px-2 py-1.5 bg-blue-950/30 border-t border-blue-900/50 text-center">
-          <span className="text-[10px] text-blue-400 font-bold tracking-wide">
-            {match.required_wins > 1 ? `BEST OF ${(match.required_wins * 2) - 1}` : 'SINGLE GAME'}
+        <div className="px-3 py-2 bg-blue-600/20 border-t border-blue-500/30 text-center">
+          <span className="text-[11px] text-blue-300 font-bold tracking-wider uppercase">
+            {match.required_wins > 1 ? `Best of ${(match.required_wins * 2) - 1}` : 'Single Game'}
           </span>
         </div>
       </div>
@@ -338,21 +338,22 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
               })}
 
               {champion && (
-                <div className="flex items-center pl-8">
+                <div className="flex items-center justify-center pl-12" style={{ alignSelf: 'center' }}>
                   <div className="text-center">
-                    <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4 animate-bounce" />
-                    <div className="bg-gradient-to-br from-yellow-500 via-yellow-600 to-orange-600 rounded-xl p-6 border-4 border-yellow-400 shadow-2xl w-[240px] relative overflow-hidden">
+                    <Trophy className="w-20 h-20 text-yellow-400 mx-auto mb-6 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+                    <div className="bg-gradient-to-br from-yellow-500 via-yellow-600 to-orange-600 rounded-2xl p-8 border-4 border-yellow-400 shadow-2xl w-[260px] relative overflow-hidden">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.3),transparent_50%)]"></div>
                       <div className="absolute inset-0 bg-gradient-to-br from-yellow-300/20 to-transparent"></div>
-                      <Avatar className="w-20 h-20 mx-auto border-4 border-white shadow-2xl mb-3 relative z-10">
+                      <Avatar className="w-24 h-24 mx-auto border-4 border-white shadow-2xl mb-4 relative z-10">
                         <AvatarImage src={champion.logo_url} />
-                        <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white text-2xl font-black">
+                        <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white text-3xl font-black">
                           {champion.name?.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <h3 className="text-lg font-black text-white uppercase mb-2 relative z-10 tracking-wide">
+                      <h3 className="text-xl font-black text-white uppercase mb-3 relative z-10 tracking-wider drop-shadow-md">
                         {champion.name}
                       </h3>
-                      <Badge className="bg-white text-yellow-700 font-black text-sm px-4 py-1.5 shadow-lg relative z-10">
+                      <Badge className="bg-white/95 text-yellow-700 font-black text-sm px-5 py-2 shadow-lg relative z-10 border-2 border-yellow-300">
                         🏆 CHAMPION 🏆
                       </Badge>
                     </div>
