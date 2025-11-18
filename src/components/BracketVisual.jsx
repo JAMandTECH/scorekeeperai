@@ -397,8 +397,12 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                           <div 
                             ref={provided.innerRef}
                             {...provided.droppableProps}
-                            className={`flex flex-col relative ${snapshot.isDraggingOver ? 'bg-blue-900/10 rounded-lg' : ''}`} 
-                            style={{ gap: `${matchGap}px`, marginTop: `${topOffset}px` }}
+                            className={`flex flex-col relative ${snapshot.isDraggingOver ? 'bg-blue-900/10 rounded-lg p-2' : ''}`} 
+                            style={{ 
+                              gap: `${matchGap}px`, 
+                              marginTop: `${topOffset}px`,
+                              minHeight: sortedMatches.length * (MATCH_HEIGHT + matchGap)
+                            }}
                           >
                             {sortedMatches.map((match, matchIdx) => {
                               const isPairFirst = matchIdx % 2 === 0;
@@ -411,20 +415,20 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                                   index={matchIdx}
                                   isDragDisabled={!canEdit}
                                 >
-                                  {(provided, snapshot) => (
+                                  {(dragProvided, dragSnapshot) => (
                                     <div 
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                      className={`relative ${snapshot.isDragging ? 'z-50 rotate-2' : ''}`} 
+                                      ref={dragProvided.innerRef}
+                                      {...dragProvided.draggableProps}
+                                      {...dragProvided.dragHandleProps}
+                                      className={`relative ${dragSnapshot.isDragging ? 'z-50 rotate-2 opacity-80' : ''}`} 
                                       style={{ 
                                         height: `${MATCH_HEIGHT}px`,
-                                        ...provided.draggableProps.style
+                                        ...dragProvided.draggableProps.style
                                       }}
                                     >
                                       {renderMatch(match, canEdit)}
 
-                                      {shouldDrawConnector && isPairFirst && !snapshot.isDragging && (
+                                      {!dragSnapshot.isDragging && shouldDrawConnector && isPairFirst && (
                                         <svg 
                                           className="absolute pointer-events-none" 
                                           style={{
@@ -441,7 +445,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                                         </svg>
                                       )}
 
-                                      {shouldDrawConnector && !isPairFirst && !snapshot.isDragging && (
+                                      {!dragSnapshot.isDragging && shouldDrawConnector && !isPairFirst && (
                                         <svg 
                                           className="absolute pointer-events-none" 
                                           style={{
@@ -473,7 +477,10 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
               {champion && (
                 <motion.div 
                   className="flex items-center pl-4 md:pl-8" 
-                  style={{ alignSelf: 'center' }}
+                  style={{ 
+                    alignSelf: 'center',
+                    marginTop: roundOrder.length > 2 ? `${80 * Math.pow(2, roundOrder.length - 2)}px` : '0px'
+                  }}
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.5 }}
