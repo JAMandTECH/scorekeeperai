@@ -64,13 +64,13 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
             <div
               ref={provided.innerRef}
               {...provided.droppableProps}
-              className={`flex items-center justify-center gap-2 px-3 py-2.5 border-2 border-dashed rounded transition-all min-h-[40px] ${
+              className={`flex items-center justify-center gap-2 px-3 py-3 border-2 border-dashed rounded-lg transition-all min-h-[44px] ${
                 snapshot.isDraggingOver 
-                  ? 'border-blue-400 bg-blue-900/30 scale-105' 
-                  : 'border-gray-700 bg-gray-900 hover:border-gray-600'
+                  ? 'border-blue-400 bg-blue-900/40 scale-[1.02] shadow-lg' 
+                  : 'border-gray-700 bg-gray-900/50 hover:border-gray-600 hover:bg-gray-900/70'
               }`}
             >
-              <span className="text-xs text-gray-600 font-semibold">Drop Team Here</span>
+              <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide">TBD</span>
               {provided.placeholder}
             </div>
           )}
@@ -84,36 +84,37 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={snapshot.isDraggingOver ? 'ring-2 ring-blue-400 rounded' : ''}
+            className={snapshot.isDraggingOver ? 'ring-2 ring-blue-400 rounded-lg' : ''}
           >
             <Draggable draggableId={`team-${teamId}-${matchId}-${slot}`} index={0} isDragDisabled={!isEditable}>
               {(provided, snapshot) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.draggableProps}
-                  className={`flex items-center gap-2 px-3 py-2 border-2 rounded transition-all ${
-                    snapshot.isDragging ? 'shadow-2xl scale-110 z-50 bg-blue-700 border-blue-500' : ''
+                  className={`flex items-center gap-2.5 px-3 py-2.5 border-2 rounded-lg transition-all ${
+                    snapshot.isDragging ? 'shadow-2xl scale-110 z-50 bg-blue-700 border-blue-400' : ''
                   } ${
                     isWinner 
-                      ? 'bg-green-700 border-green-500 text-white' 
-                      : 'bg-gray-800 border-gray-700 text-gray-100 hover:bg-gray-750'
+                      ? 'bg-gradient-to-r from-green-700 to-green-600 border-green-500 text-white shadow-lg' 
+                      : 'bg-gradient-to-r from-gray-800 to-gray-850 border-gray-700 text-gray-100 hover:from-gray-750 hover:to-gray-800 hover:border-gray-600'
                   } ${isEditable ? 'cursor-move' : 'cursor-pointer'}`}
                 >
                   {isEditable && (
                     <div {...provided.dragHandleProps}>
-                      <GripVertical className="w-3 h-3 text-gray-500" />
+                      <GripVertical className="w-3.5 h-3.5 text-gray-500" />
                     </div>
                   )}
-                  <div className="w-1 h-6 bg-blue-500 rounded"></div>
-                  <Avatar className="w-6 h-6 border border-gray-600">
+                  <div className="w-1 h-7 bg-blue-500 rounded-full"></div>
+                  <Avatar className="w-7 h-7 border-2 border-gray-600 shadow-md">
                     <AvatarImage src={team.logo_url} />
-                    <AvatarFallback className="bg-blue-600 text-white text-[10px] font-bold">
+                    <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-700 text-white text-[10px] font-black">
                       {team.name?.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-xs font-bold uppercase flex-1 truncate">
+                  <span className="text-sm font-black uppercase flex-1 truncate tracking-wide">
                     {team.name}
                   </span>
+                  {isWinner && <Trophy className="w-4 h-4 text-yellow-400" />}
                 </div>
               )}
             </Draggable>
@@ -131,18 +132,18 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
 
     return (
       <div 
-        className="bg-gray-950 rounded border border-gray-800 overflow-hidden transition-all hover:border-blue-700 cursor-pointer w-[220px]"
+        className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-lg border-2 border-gray-800 overflow-hidden transition-all hover:border-blue-600 hover:shadow-xl hover:scale-[1.02] cursor-pointer w-[240px]"
         onClick={() => onMatchClick && onMatchClick(match)}
       >
-        <div className="space-y-1 p-1.5">
+        <div className="space-y-1.5 p-2">
           {renderTeamSlot(match, 'home', match.home_team_id, homeWins, match.id)}
           {renderTeamSlot(match, 'away', match.away_team_id, awayWins, match.id)}
         </div>
         
         {match.required_wins > 1 && (
-          <div className="px-2 py-1 bg-gray-900 border-t border-gray-800 text-center">
-            <span className="text-[10px] text-gray-500 font-semibold">
-              Best of {(match.required_wins * 2) - 1}
+          <div className="px-2 py-1.5 bg-blue-950/30 border-t border-blue-900/50 text-center">
+            <span className="text-[10px] text-blue-400 font-bold tracking-wide">
+              BEST OF {(match.required_wins * 2) - 1}
             </span>
           </div>
         )}
@@ -211,10 +212,10 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-[300px,1fr] gap-6">
+        <div className={`${canEdit && availableTeams.length > 0 ? 'grid lg:grid-cols-[300px,1fr] gap-6' : ''}`}>
           {/* Available Teams List */}
           {canEdit && availableTeams.length > 0 && (
-            <div className="bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-950 rounded-xl p-6 border border-gray-800">
+            <div className="bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-950 rounded-xl p-6 border-2 border-purple-900/50 shadow-xl">
               <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
                 <GripVertical className="w-5 h-5 text-purple-500" />
                 Available Teams
@@ -233,7 +234,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className={`flex items-center gap-2 px-3 py-2.5 bg-gray-900 border-2 border-gray-700 rounded transition-all ${
+                            className={`flex items-center gap-2 px-3 py-2.5 bg-gray-900 border-2 border-gray-700 rounded-lg transition-all ${
                               snapshot.isDragging ? 'shadow-2xl scale-105 border-blue-500 bg-blue-900' : 'hover:border-gray-600 hover:bg-gray-850'
                             }`}
                           >
@@ -263,8 +264,8 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           )}
 
           {/* Bracket */}
-          <div className="bg-gradient-to-br from-gray-950 via-blue-950/20 to-gray-950 rounded-xl p-6 border border-gray-800 overflow-x-auto">
-            <div className="flex gap-16 pb-6" style={{ minWidth: 'max-content' }}>
+          <div className="bg-gradient-to-br from-gray-950 via-indigo-950/30 to-gray-950 rounded-xl p-8 border-2 border-blue-900/50 shadow-2xl overflow-x-auto">
+            <div className="flex gap-20 pb-6" style={{ minWidth: 'max-content' }}>
               {roundOrder.map((roundName, roundIdx) => {
                 const roundMatches = matchesByRound[roundName] || [];
                 if (roundMatches.length === 0) return null;
@@ -274,13 +275,15 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                 
                 return (
                   <div key={roundName} className="flex flex-col">
-                    <div className="mb-6 text-center">
-                      <h3 className="text-sm font-black text-white uppercase tracking-wider">
-                        {getRoundLabel(roundName)}
-                      </h3>
-                      <p className="text-[10px] text-gray-500 font-semibold mt-1">
-                        {sortedMatches.length} {sortedMatches.length === 1 ? 'Match' : 'Matches'}
-                      </p>
+                    <div className="mb-8 text-center">
+                      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg px-6 py-3 shadow-lg inline-block">
+                        <h3 className="text-base font-black text-white uppercase tracking-widest">
+                          {getRoundLabel(roundName)}
+                        </h3>
+                        <p className="text-[10px] text-blue-200 font-bold mt-1">
+                          {sortedMatches.length} {sortedMatches.length === 1 ? 'Match' : 'Matches'}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="flex flex-col justify-around" style={{ flex: 1 }}>
@@ -288,7 +291,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                         <div 
                           key={match.id}
                           style={{
-                            marginTop: matchIdx === 0 ? '0' : `${spacingMultiplier * 2}rem`
+                            marginTop: matchIdx === 0 ? '0' : `${spacingMultiplier * 2.5}rem`
                           }}
                         >
                           {renderMatch(match)}
@@ -300,21 +303,22 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
               })}
 
               {champion && (
-                <div className="flex items-center">
+                <div className="flex items-center pl-8">
                   <div className="text-center">
-                    <Trophy className="w-12 h-12 text-yellow-500 mx-auto mb-3 animate-pulse" />
-                    <div className="bg-gradient-to-br from-yellow-600 to-orange-600 rounded-lg p-4 border-2 border-yellow-500 shadow-2xl w-[180px]">
-                      <Avatar className="w-16 h-16 mx-auto border-4 border-white shadow-xl mb-2">
+                    <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4 animate-bounce" />
+                    <div className="bg-gradient-to-br from-yellow-500 via-yellow-600 to-orange-600 rounded-xl p-6 border-4 border-yellow-400 shadow-2xl w-[240px] relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-yellow-300/20 to-transparent"></div>
+                      <Avatar className="w-20 h-20 mx-auto border-4 border-white shadow-2xl mb-3 relative z-10">
                         <AvatarImage src={champion.logo_url} />
-                        <AvatarFallback className="bg-yellow-500 text-white text-xl font-black">
+                        <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white text-2xl font-black">
                           {champion.name?.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <h3 className="text-sm font-black text-white uppercase mb-1">
+                      <h3 className="text-lg font-black text-white uppercase mb-2 relative z-10 tracking-wide">
                         {champion.name}
                       </h3>
-                      <Badge className="bg-white text-yellow-700 font-black text-xs">
-                        CHAMPION
+                      <Badge className="bg-white text-yellow-700 font-black text-sm px-4 py-1.5 shadow-lg relative z-10">
+                        🏆 CHAMPION 🏆
                       </Badge>
                     </div>
                   </div>
