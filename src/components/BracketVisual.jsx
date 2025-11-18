@@ -37,7 +37,7 @@ const THEME_OPTIONS = {
   }
 };
 
-export default function BracketVisual({ tournament, matches, teams, onMatchClick, onTeamDrop, onSave, canEdit = true }) {
+export default function BracketVisual({ tournament, matches, teams, onMatchClick, onTeamDrop, onMatchReorder, onSave, canEdit = true }) {
   const [selectedTheme, setSelectedTheme] = useState('default');
   const theme = THEME_OPTIONS[selectedTheme];
   const getTeam = (teamId) => teams.find(t => t.id === teamId);
@@ -86,11 +86,11 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
       const sourceRound = sourceId.replace('round-', '');
       const destRound = destId.replace('round-', '');
       
-      // Only allow reordering within the same round for now
+      // Only allow reordering within the same round
       if (sourceRound === destRound && source.index !== destination.index) {
-        console.log(`Reordering match from position ${source.index} to ${destination.index} in ${sourceRound}`);
-        // This would require backend support to update match_number
-        // For now, just log it - you would need to implement this in the parent component
+        if (onMatchReorder) {
+          onMatchReorder(sourceRound, source.index, destination.index);
+        }
       }
     }
   };

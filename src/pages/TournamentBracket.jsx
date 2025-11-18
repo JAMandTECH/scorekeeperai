@@ -288,6 +288,26 @@ export default function TournamentBracket() {
     console.log("Match clicked:", match);
   };
 
+  const handleMatchReorder = async (roundName, sourceIndex, destIndex) => {
+    const roundMatches = allMatches.filter(m => m.round_name === roundName);
+    const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
+    
+    // Swap the match_number values
+    const sourceMatch = sortedMatches[sourceIndex];
+    const destMatch = sortedMatches[destIndex];
+    
+    if (sourceMatch && destMatch) {
+      await updateMatchMutation.mutateAsync({ 
+        id: sourceMatch.id, 
+        data: { match_number: destIndex } 
+      });
+      await updateMatchMutation.mutateAsync({ 
+        id: destMatch.id, 
+        data: { match_number: sourceIndex } 
+      });
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -420,6 +440,7 @@ export default function TournamentBracket() {
                     teams={teams}
                     onMatchClick={handleMatchClick}
                     onTeamDrop={handleTeamDrop}
+                    onMatchReorder={handleMatchReorder}
                     onSave={handleSaveBracket}
                     canEdit={selectedTournament.status === 'setup'}
                   />
