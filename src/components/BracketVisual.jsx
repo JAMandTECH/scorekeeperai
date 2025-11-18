@@ -1,11 +1,45 @@
-import React from "react";
+import React, { useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, GripVertical, Save } from "lucide-react";
+import { Trophy, GripVertical, Save, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+
+const THEME_OPTIONS = {
+  default: {
+    primary: 'from-blue-600 to-indigo-600',
+    accent: 'blue',
+    connector: 'rgba(96, 165, 250, 0.5)',
+    matchBg: 'bg-gray-900',
+    winnerBg: 'from-green-700 to-green-600 border-green-500'
+  },
+  ocean: {
+    primary: 'from-cyan-600 to-teal-600',
+    accent: 'cyan',
+    connector: 'rgba(34, 211, 238, 0.5)',
+    matchBg: 'bg-slate-900',
+    winnerBg: 'from-emerald-700 to-teal-600 border-emerald-500'
+  },
+  sunset: {
+    primary: 'from-orange-600 to-red-600',
+    accent: 'orange',
+    connector: 'rgba(251, 146, 60, 0.5)',
+    matchBg: 'bg-gray-900',
+    winnerBg: 'from-amber-700 to-orange-600 border-amber-500'
+  },
+  purple: {
+    primary: 'from-purple-600 to-pink-600',
+    accent: 'purple',
+    connector: 'rgba(168, 85, 247, 0.5)',
+    matchBg: 'bg-gray-900',
+    winnerBg: 'from-fuchsia-700 to-pink-600 border-fuchsia-500'
+  }
+};
 
 export default function BracketVisual({ tournament, matches, teams, onMatchClick, onTeamDrop, onSave, canEdit = true }) {
+  const [selectedTheme, setSelectedTheme] = useState('default');
+  const theme = THEME_OPTIONS[selectedTheme];
   const getTeam = (teamId) => teams.find(t => t.id === teamId);
 
   const teamsInBracket = new Set();
@@ -55,18 +89,20 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
       return (
         <Droppable droppableId={`match-${matchId}-${slot}`} isDropDisabled={!isEditable}>
           {(provided, snapshot) => (
-            <div
+            <motion.div
               ref={provided.innerRef}
               {...provided.droppableProps}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               className={`flex items-center justify-center gap-2 px-3 py-2.5 border-2 border-dashed rounded-lg transition-all ${
                 snapshot.isDraggingOver 
-                  ? 'border-blue-400 bg-blue-900/40' 
+                  ? `border-${theme.accent}-400 bg-${theme.accent}-900/40` 
                   : 'border-gray-700 bg-gray-900/50'
               }`}
             >
               <span className="text-xs text-gray-500 font-semibold">TBD</span>
               {provided.placeholder}
-            </div>
+            </motion.div>
           )}
         </Droppable>
       );
@@ -78,18 +114,22 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={snapshot.isDraggingOver ? 'ring-2 ring-blue-400 rounded-lg' : ''}
+            className={snapshot.isDraggingOver ? `ring-2 ring-${theme.accent}-400 rounded-lg` : ''}
           >
             <Draggable draggableId={`team-${teamId}-${matchId}-${slot}`} index={0} isDragDisabled={!isEditable}>
               {(provided, snapshot) => (
-                <div
+                <motion.div
                   ref={provided.innerRef}
                   {...provided.draggableProps}
-                  className={`flex items-center gap-2 px-3 py-2 border-2 rounded-lg transition-all ${
-                    snapshot.isDragging ? 'shadow-2xl scale-105 bg-blue-700 border-blue-400' : ''
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className={`flex items-center gap-2 px-3 py-2 border-2 rounded-lg transition-all duration-300 ${
+                    snapshot.isDragging ? `shadow-2xl scale-105 bg-${theme.accent}-700 border-${theme.accent}-400` : ''
                   } ${
                     isWinner 
-                      ? 'bg-gradient-to-r from-green-700 to-green-600 border-green-500 text-white' 
+                      ? `bg-gradient-to-r ${theme.winnerBg} text-white animate-pulse` 
                       : 'bg-gray-800 border-gray-700 text-gray-100'
                   } ${isEditable ? 'cursor-move' : 'cursor-pointer'}`}
                 >
@@ -98,18 +138,30 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                       <GripVertical className="w-3 h-3 text-gray-500" />
                     </div>
                   )}
-                  <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                  <motion.div 
+                    className={`w-1 h-6 bg-${theme.accent}-500 rounded-full`}
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
                   <Avatar className="w-6 h-6 border border-gray-600">
                     <AvatarImage src={team.logo_url} />
-                    <AvatarFallback className="bg-blue-600 text-white text-[9px] font-bold">
+                    <AvatarFallback className={`bg-${theme.accent}-600 text-white text-[9px] font-bold`}>
                       {team.name?.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <span className="text-xs font-bold uppercase flex-1 truncate">
                     {team.name}
                   </span>
-                  {isWinner && <Trophy className="w-3.5 h-3.5 text-yellow-400" />}
-                </div>
+                  {isWinner && (
+                    <motion.div
+                      initial={{ rotate: -10, scale: 0 }}
+                      animate={{ rotate: 0, scale: 1 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                    >
+                      <Trophy className="w-3.5 h-3.5 text-yellow-400" />
+                    </motion.div>
+                  )}
+                </motion.div>
               )}
             </Draggable>
             {provided.placeholder}
@@ -125,9 +177,13 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
     const awayWins = isCompleted && match.winner_team_id === match.away_team_id;
 
     return (
-      <div 
-        className="bg-gray-900 rounded-lg border-2 border-gray-800 overflow-hidden hover:border-blue-600 transition-all cursor-pointer"
-        style={{ width: '240px' }}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ scale: 1.03, boxShadow: "0 20px 50px rgba(0,0,0,0.3)" }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className={`${theme.matchBg} rounded-lg border-2 border-gray-800 overflow-hidden hover:border-${theme.accent}-600 transition-all cursor-pointer`}
+        style={{ width: '240px', minWidth: '200px' }}
         onClick={() => onMatchClick && onMatchClick(match)}
       >
         <div className="space-y-1 p-2">
@@ -135,12 +191,15 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           {renderTeamSlot(match, 'away', match.away_team_id, awayWins, match.id)}
         </div>
         
-        <div className="px-2 py-1.5 bg-blue-900/30 border-t border-blue-800/50 text-center">
-          <span className="text-[10px] text-blue-400 font-bold">
+        <motion.div 
+          className={`px-2 py-1.5 bg-${theme.accent}-900/30 border-t border-${theme.accent}-800/50 text-center`}
+          whileHover={{ backgroundColor: `rgba(59, 130, 246, 0.2)` }}
+        >
+          <span className={`text-[10px] text-${theme.accent}-400 font-bold`}>
             {match.required_wins > 1 ? `BEST OF ${(match.required_wins * 2) - 1}` : 'SINGLE GAME'}
           </span>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     );
   };
 
@@ -174,12 +233,16 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="space-y-6">
-        <div className="bg-gradient-to-br from-gray-950 via-blue-950/20 to-gray-950 rounded-xl p-6 border border-gray-800">
-          <div className="flex items-center justify-between">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-br from-gray-950 via-blue-950/20 to-gray-950 rounded-xl p-4 md:p-6 border border-gray-800"
+        >
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <Trophy className="w-7 h-7 text-yellow-500" />
+              <Trophy className="w-6 h-6 md:w-7 md:h-7 text-yellow-500" />
               <div>
-                <h2 className="text-2xl font-black text-white">
+                <h2 className="text-xl md:text-2xl font-black text-white">
                   {tournament.name}
                 </h2>
                 <p className="text-xs text-gray-400 font-semibold mt-0.5">
@@ -187,22 +250,38 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Badge className="text-sm px-4 py-1.5 bg-blue-600 text-white font-black">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1 bg-gray-800/50 rounded-lg p-1">
+                <Palette className="w-3 h-3 text-gray-400 ml-1" />
+                {Object.keys(THEME_OPTIONS).map((themeName) => (
+                  <button
+                    key={themeName}
+                    onClick={() => setSelectedTheme(themeName)}
+                    className={`px-2 py-1 rounded text-xs font-bold transition-all ${
+                      selectedTheme === themeName 
+                        ? `bg-gradient-to-r ${THEME_OPTIONS[themeName].primary} text-white` 
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <Badge className={`text-xs md:text-sm px-3 md:px-4 py-1.5 bg-gradient-to-r ${theme.primary} text-white font-black`}>
                 TOURNAMENT BRACKET
               </Badge>
               {canEdit && hasAllTeamsSeeded && onSave && (
                 <Button 
                   onClick={onSave}
-                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold"
+                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold text-sm"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  Save Bracket
+                  <span className="hidden sm:inline">Save Bracket</span>
                 </Button>
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
 
         <div className={`${canEdit && availableTeams.length > 0 ? 'grid lg:grid-cols-[280px,1fr] gap-6' : ''}`}>
           {canEdit && availableTeams.length > 0 && (
@@ -254,89 +333,159 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
             </div>
           )}
 
-          <div className="bg-gradient-to-br from-gray-950 via-indigo-950/20 to-gray-950 rounded-xl p-8 border border-gray-800 shadow-2xl overflow-x-auto">
-            <div className="flex gap-20 relative" style={{ minWidth: 'max-content' }}>
-              {roundOrder.map((roundName, roundIdx) => {
-                const roundMatches = matchesByRound[roundName] || [];
-                if (roundMatches.length === 0) return null;
-                
-                const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
-                const matchCount = sortedMatches.length;
-                const spacingMultiplier = Math.pow(2, roundIdx);
-                const matchGap = 140 * spacingMultiplier;
-                
-                return (
-                  <div key={roundName} className="flex flex-col">
-                    <div className="mb-8 text-center">
-                      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg px-6 py-3 shadow-lg inline-block">
-                        <h3 className="text-sm font-black text-white uppercase tracking-widest">
-                          {getRoundLabel(roundName)}
-                        </h3>
-                        <p className="text-[10px] text-blue-200 font-semibold mt-1">
-                          {matchCount} {matchCount === 1 ? 'Match' : 'Matches'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col relative" style={{ gap: `${matchGap}px` }}>
-                      {sortedMatches.map((match, matchIdx) => (
-                        <div key={match.id} className="relative">
-                          {renderMatch(match)}
-                          
-                          {roundIdx < roundOrder.length - 1 && (
-                            <svg 
-                              className="absolute pointer-events-none" 
-                              style={{
-                                left: '100%',
-                                top: '50%',
-                                width: '80px',
-                                height: matchIdx % 2 === 0 ? `${matchGap + 100}px` : '2px',
-                                transform: 'translateY(-50%)',
-                                overflow: 'visible'
-                              }}
-                            >
-                              {matchIdx % 2 === 0 ? (
-                                <g>
-                                  <line x1="0" y1="0" x2="40" y2="0" stroke="rgba(96, 165, 250, 0.5)" strokeWidth="2" />
-                                  <line x1="40" y1="0" x2="40" y2={matchGap / 2 + 50} stroke="rgba(96, 165, 250, 0.5)" strokeWidth="2" />
-                                  <line x1="40" y1={matchGap / 2 + 50} x2="80" y2={matchGap / 2 + 50} stroke="rgba(96, 165, 250, 0.5)" strokeWidth="2" />
-                                </g>
-                              ) : (
-                                <g>
-                                  <line x1="0" y1="0" x2="40" y2="0" stroke="rgba(96, 165, 250, 0.5)" strokeWidth="2" />
-                                  <line x1="40" y1="0" x2="40" y2={-(matchGap / 2 + 50)} stroke="rgba(96, 165, 250, 0.5)" strokeWidth="2" />
-                                </g>
-                              )}
-                            </svg>
-                          )}
+          <div className="bg-gradient-to-br from-gray-950 via-indigo-950/20 to-gray-950 rounded-xl p-4 md:p-8 border border-gray-800 shadow-2xl overflow-x-auto">
+            <div className="flex gap-12 md:gap-20 relative pb-4" style={{ minWidth: 'max-content' }}>
+              <AnimatePresence>
+                {roundOrder.map((roundName, roundIdx) => {
+                  const roundMatches = matchesByRound[roundName] || [];
+                  if (roundMatches.length === 0) return null;
+                  
+                  const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
+                  const matchCount = sortedMatches.length;
+                  const spacingMultiplier = Math.pow(2, roundIdx);
+                  const matchGap = 140 * spacingMultiplier;
+                  
+                  return (
+                    <motion.div 
+                      key={roundName} 
+                      className="flex flex-col"
+                      initial={{ opacity: 0, x: -50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: roundIdx * 0.1 }}
+                    >
+                      <motion.div 
+                        className="mb-6 md:mb-8 text-center"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        <div className={`bg-gradient-to-r ${theme.primary} rounded-lg px-4 md:px-6 py-2 md:py-3 shadow-lg inline-block`}>
+                          <h3 className="text-xs md:text-sm font-black text-white uppercase tracking-widest">
+                            {getRoundLabel(roundName)}
+                          </h3>
+                          <p className={`text-[10px] text-${theme.accent}-200 font-semibold mt-1`}>
+                            {matchCount} {matchCount === 1 ? 'Match' : 'Matches'}
+                          </p>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+                      </motion.div>
+
+                      <div className="flex flex-col relative" style={{ gap: `${matchGap}px` }}>
+                        {sortedMatches.map((match, matchIdx) => (
+                          <div key={match.id} className="relative">
+                            {renderMatch(match)}
+                            
+                            {roundIdx < roundOrder.length - 1 && (
+                              <motion.svg 
+                                className="absolute pointer-events-none" 
+                                initial={{ pathLength: 0, opacity: 0 }}
+                                animate={{ pathLength: 1, opacity: 1 }}
+                                transition={{ duration: 0.5, delay: 0.3 }}
+                                style={{
+                                  left: '100%',
+                                  top: '50%',
+                                  width: '60px',
+                                  height: matchIdx % 2 === 0 ? `${matchGap + 100}px` : '2px',
+                                  transform: 'translateY(-50%)',
+                                  overflow: 'visible'
+                                }}
+                              >
+                                {matchIdx % 2 === 0 ? (
+                                  <g>
+                                    <motion.line 
+                                      x1="0" y1="0" x2="30" y2="0" 
+                                      stroke={theme.connector} 
+                                      strokeWidth="2"
+                                      initial={{ pathLength: 0 }}
+                                      animate={{ pathLength: 1 }}
+                                      transition={{ duration: 0.3 }}
+                                    />
+                                    <motion.line 
+                                      x1="30" y1="0" x2="30" y2={matchGap / 2 + 50} 
+                                      stroke={theme.connector} 
+                                      strokeWidth="2"
+                                      initial={{ pathLength: 0 }}
+                                      animate={{ pathLength: 1 }}
+                                      transition={{ duration: 0.3, delay: 0.1 }}
+                                    />
+                                    <motion.line 
+                                      x1="30" y1={matchGap / 2 + 50} x2="60" y2={matchGap / 2 + 50} 
+                                      stroke={theme.connector} 
+                                      strokeWidth="2"
+                                      initial={{ pathLength: 0 }}
+                                      animate={{ pathLength: 1 }}
+                                      transition={{ duration: 0.3, delay: 0.2 }}
+                                    />
+                                  </g>
+                                ) : (
+                                  <g>
+                                    <motion.line 
+                                      x1="0" y1="0" x2="30" y2="0" 
+                                      stroke={theme.connector} 
+                                      strokeWidth="2"
+                                      initial={{ pathLength: 0 }}
+                                      animate={{ pathLength: 1 }}
+                                      transition={{ duration: 0.3 }}
+                                    />
+                                    <motion.line 
+                                      x1="30" y1="0" x2="30" y2={-(matchGap / 2 + 50)} 
+                                      stroke={theme.connector} 
+                                      strokeWidth="2"
+                                      initial={{ pathLength: 0 }}
+                                      animate={{ pathLength: 1 }}
+                                      transition={{ duration: 0.3, delay: 0.1 }}
+                                    />
+                                  </g>
+                                )}
+                              </motion.svg>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
 
               {champion && (
-                <div className="flex items-center pl-8" style={{ alignSelf: 'center' }}>
+                <motion.div 
+                  className="flex items-center pl-4 md:pl-8" 
+                  style={{ alignSelf: 'center' }}
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.5 }}
+                >
                   <div className="text-center">
-                    <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-                    <div className="bg-gradient-to-br from-yellow-500 via-yellow-600 to-orange-600 rounded-xl p-6 border-4 border-yellow-400 shadow-2xl w-[240px] relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-yellow-300/20 to-transparent"></div>
-                      <Avatar className="w-20 h-20 mx-auto border-4 border-white shadow-2xl mb-3 relative z-10">
+                    <motion.div
+                      animate={{ 
+                        rotate: [0, -10, 10, -10, 0],
+                        scale: [1, 1.1, 1]
+                      }}
+                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                    >
+                      <Trophy className="w-12 h-12 md:w-16 md:h-16 text-yellow-500 mx-auto mb-4" />
+                    </motion.div>
+                    <motion.div 
+                      className="bg-gradient-to-br from-yellow-500 via-yellow-600 to-orange-600 rounded-xl p-4 md:p-6 border-4 border-yellow-400 shadow-2xl w-[200px] md:w-[240px] relative overflow-hidden"
+                      whileHover={{ scale: 1.05, rotate: 2 }}
+                    >
+                      <motion.div 
+                        className="absolute inset-0 bg-gradient-to-br from-yellow-300/20 to-transparent"
+                        animate={{ opacity: [0.3, 0.6, 0.3] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                      <Avatar className="w-16 h-16 md:w-20 md:h-20 mx-auto border-4 border-white shadow-2xl mb-3 relative z-10">
                         <AvatarImage src={champion.logo_url} />
-                        <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white text-2xl font-black">
+                        <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white text-xl md:text-2xl font-black">
                           {champion.name?.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <h3 className="text-lg font-black text-white uppercase mb-2 relative z-10">
+                      <h3 className="text-base md:text-lg font-black text-white uppercase mb-2 relative z-10">
                         {champion.name}
                       </h3>
-                      <Badge className="bg-white text-yellow-700 font-black text-sm px-4 py-1 shadow-lg relative z-10">
+                      <Badge className="bg-white text-yellow-700 font-black text-xs md:text-sm px-3 md:px-4 py-1 shadow-lg relative z-10">
                         🏆 CHAMPION 🏆
                       </Badge>
-                    </div>
+                    </motion.div>
                   </div>
-                </div>
+                </motion.div>
               )}
             </div>
           </div>
