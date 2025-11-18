@@ -368,76 +368,43 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                       </motion.div>
 
                       <div className="flex flex-col relative" style={{ gap: `${matchGap}px` }}>
-                        {sortedMatches.map((match, matchIdx) => (
-                          <div key={match.id} className="relative">
-                            {renderMatch(match)}
-                            
-                            {roundIdx < roundOrder.length - 1 && (
-                              <motion.svg 
-                                className="absolute pointer-events-none" 
-                                initial={{ pathLength: 0, opacity: 0 }}
-                                animate={{ pathLength: 1, opacity: 1 }}
-                                transition={{ duration: 0.5, delay: 0.3 }}
-                                style={{
-                                  left: '100%',
-                                  top: '50%',
-                                  width: '60px',
-                                  height: matchIdx % 2 === 0 ? `${matchGap + 100}px` : '2px',
-                                  transform: 'translateY(-50%)',
-                                  overflow: 'visible'
-                                }}
-                              >
-                                {matchIdx % 2 === 0 ? (
-                                  <g>
-                                    <motion.line 
-                                      x1="0" y1="0" x2="30" y2="0" 
-                                      stroke={theme.connector} 
-                                      strokeWidth="2"
-                                      initial={{ pathLength: 0 }}
-                                      animate={{ pathLength: 1 }}
-                                      transition={{ duration: 0.3 }}
-                                    />
-                                    <motion.line 
-                                      x1="30" y1="0" x2="30" y2={matchGap / 2 + 50} 
-                                      stroke={theme.connector} 
-                                      strokeWidth="2"
-                                      initial={{ pathLength: 0 }}
-                                      animate={{ pathLength: 1 }}
-                                      transition={{ duration: 0.3, delay: 0.1 }}
-                                    />
-                                    <motion.line 
-                                      x1="30" y1={matchGap / 2 + 50} x2="60" y2={matchGap / 2 + 50} 
-                                      stroke={theme.connector} 
-                                      strokeWidth="2"
-                                      initial={{ pathLength: 0 }}
-                                      animate={{ pathLength: 1 }}
-                                      transition={{ duration: 0.3, delay: 0.2 }}
-                                    />
-                                  </g>
-                                ) : (
-                                  <g>
-                                    <motion.line 
-                                      x1="0" y1="0" x2="30" y2="0" 
-                                      stroke={theme.connector} 
-                                      strokeWidth="2"
-                                      initial={{ pathLength: 0 }}
-                                      animate={{ pathLength: 1 }}
-                                      transition={{ duration: 0.3 }}
-                                    />
-                                    <motion.line 
-                                      x1="30" y1="0" x2="30" y2={-(matchGap / 2 + 50)} 
-                                      stroke={theme.connector} 
-                                      strokeWidth="2"
-                                      initial={{ pathLength: 0 }}
-                                      animate={{ pathLength: 1 }}
-                                      transition={{ duration: 0.3, delay: 0.1 }}
-                                    />
-                                  </g>
-                                )}
-                              </motion.svg>
-                            )}
-                          </div>
-                        ))}
+                        {sortedMatches.map((match, matchIdx) => {
+                          const isPairFirst = matchIdx % 2 === 0;
+                          const shouldDrawConnector = roundIdx < roundOrder.length - 1;
+                          
+                          return (
+                            <div key={match.id} className="relative">
+                              {renderMatch(match)}
+                              
+                              {shouldDrawConnector && (
+                                <svg 
+                                  className="absolute pointer-events-none" 
+                                  style={{
+                                    left: '100%',
+                                    top: '50%',
+                                    width: '80px',
+                                    height: isPairFirst ? `${matchGap + 100}px` : '2px',
+                                    transform: 'translateY(-50%)',
+                                    overflow: 'visible'
+                                  }}
+                                >
+                                  {isPairFirst ? (
+                                    <g>
+                                      <line x1="0" y1="50%" x2="40" y2="50%" stroke={theme.connector} strokeWidth="2" />
+                                      <line x1="40" y1="50%" x2="40" y2="100%" stroke={theme.connector} strokeWidth="2" />
+                                      <line x1="40" y1="100%" x2="80" y2="100%" stroke={theme.connector} strokeWidth="2" />
+                                    </g>
+                                  ) : (
+                                    <g>
+                                      <line x1="0" y1="50%" x2="40" y2="50%" stroke={theme.connector} strokeWidth="2" />
+                                      <line x1="40" y1="50%" x2="40" y2={`-${matchGap / 2 + 50}px`} stroke={theme.connector} strokeWidth="2" />
+                                    </g>
+                                  )}
+                                </svg>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </motion.div>
                   );
