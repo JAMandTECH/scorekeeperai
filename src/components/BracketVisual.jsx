@@ -132,17 +132,18 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
 
     return (
       <div 
-        className="bg-gradient-to-br from-gray-900/95 to-gray-950 rounded-xl border-2 border-gray-700/50 overflow-hidden transition-all hover:border-blue-500 hover:shadow-2xl cursor-pointer w-[220px]"
+        className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-lg border-2 border-gray-800 overflow-hidden transition-all hover:border-blue-600 hover:shadow-xl cursor-pointer"
+        style={{ width: '240px' }}
         onClick={() => onMatchClick && onMatchClick(match)}
       >
-        <div className="space-y-0 p-2.5">
+        <div className="space-y-1 p-2">
           {renderTeamSlot(match, 'home', match.home_team_id, homeWins, match.id)}
           {renderTeamSlot(match, 'away', match.away_team_id, awayWins, match.id)}
         </div>
         
-        <div className="px-3 py-2 bg-blue-600/20 border-t border-blue-500/30 text-center">
-          <span className="text-[11px] text-blue-300 font-bold tracking-wider uppercase">
-            {match.required_wins > 1 ? `Best of ${(match.required_wins * 2) - 1}` : 'Single Game'}
+        <div className="px-2 py-1.5 bg-blue-950/30 border-t border-blue-900/50 text-center">
+          <span className="text-[10px] text-blue-400 font-bold tracking-wide">
+            {match.required_wins > 1 ? `BEST OF ${(match.required_wins * 2) - 1}` : 'SINGLE GAME'}
           </span>
         </div>
       </div>
@@ -262,8 +263,8 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           )}
 
           {/* Bracket */}
-          <div className="bg-gradient-to-br from-gray-950 via-blue-950/10 to-gray-950 rounded-2xl p-12 border border-gray-800/30 shadow-2xl overflow-x-auto">
-            <div className="flex relative" style={{ minWidth: 'max-content', gap: '100px' }}>
+          <div className="bg-gradient-to-br from-gray-950 via-indigo-950/30 to-gray-950 rounded-xl p-8 border-2 border-blue-900/50 shadow-2xl overflow-x-auto">
+            <div className="flex gap-16 pb-6 relative" style={{ minWidth: 'max-content' }}>
               {roundOrder.map((roundName, roundIdx) => {
                 const roundMatches = matchesByRound[roundName] || [];
                 if (roundMatches.length === 0) return null;
@@ -271,60 +272,53 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                 const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
                 const isLastRound = roundIdx === roundOrder.length - 1;
                 
-                // Dynamic spacing calculation
-                const matchHeight = 120;
-                const baseGap = 20;
-                const gapMultiplier = Math.pow(2, roundIdx);
-                const gap = baseGap * gapMultiplier;
-                
                 return (
                   <div key={roundName} className="flex flex-col">
-                    {/* Round Header */}
-                    <div className="mb-10 text-center">
-                      <div className="bg-gradient-to-r from-blue-600/90 to-indigo-600/90 backdrop-blur-sm rounded-xl px-8 py-3.5 shadow-xl inline-block border border-blue-400/20">
-                        <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">
+                    <div className="mb-8 text-center">
+                      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg px-6 py-3 shadow-lg inline-block">
+                        <h3 className="text-base font-black text-white uppercase tracking-widest">
                           {getRoundLabel(roundName)}
                         </h3>
-                        <p className="text-[10px] text-blue-100 font-semibold mt-1">
+                        <p className="text-[10px] text-blue-200 font-bold mt-1">
                           {sortedMatches.length} {sortedMatches.length === 1 ? 'Match' : 'Matches'}
                         </p>
                       </div>
                     </div>
 
-                    {/* Matches */}
-                    <div className="flex flex-col relative" style={{ gap: `${gap}px` }}>
+                    <div className="flex flex-col" style={{ gap: `${Math.pow(2, roundIdx + 1) * 60}px` }}>
                       {sortedMatches.map((match, matchIdx) => {
                         const nextRoundMatches = matchesByRound[roundOrder[roundIdx + 1]] || [];
                         const nextMatch = nextRoundMatches[Math.floor(matchIdx / 2)];
                         const isPairFirst = matchIdx % 2 === 0;
+                        const connectorHeight = Math.pow(2, roundIdx + 1) * 60 + 60;
                         
                         return (
                           <div key={match.id} className="relative">
                             {renderMatch(match)}
                             
-                            {/* Connector Lines */}
                             {!isLastRound && nextMatch && (
-                              <div className="absolute left-full top-1/2 pointer-events-none" style={{ transform: 'translateY(-50%)' }}>
-                                <svg width="50" height={isPairFirst ? gap + matchHeight : 2} style={{ overflow: 'visible' }}>
-                                  {isPairFirst ? (
-                                    <>
-                                      {/* Horizontal from match */}
-                                      <line x1="0" y1="0" x2="25" y2="0" stroke="rgba(96, 165, 250, 0.6)" strokeWidth="2.5" />
-                                      {/* Vertical down */}
-                                      <line x1="25" y1="0" x2="25" y2={gap/2 + matchHeight/2} stroke="rgba(96, 165, 250, 0.6)" strokeWidth="2.5" />
-                                      {/* Horizontal to next match */}
-                                      <line x1="25" y1={gap/2 + matchHeight/2} x2="50" y2={gap/2 + matchHeight/2} stroke="rgba(96, 165, 250, 0.6)" strokeWidth="2.5" />
-                                    </>
-                                  ) : (
-                                    <>
-                                      {/* Horizontal from match */}
-                                      <line x1="0" y1="0" x2="25" y2="0" stroke="rgba(96, 165, 250, 0.6)" strokeWidth="2.5" />
-                                      {/* Vertical up */}
-                                      <line x1="25" y1="0" x2="25" y2={-(gap/2 + matchHeight/2)} stroke="rgba(96, 165, 250, 0.6)" strokeWidth="2.5" />
-                                    </>
-                                  )}
-                                </svg>
-                              </div>
+                              <svg 
+                                className="absolute left-full top-1/2 pointer-events-none" 
+                                style={{ 
+                                  width: '64px',
+                                  height: isPairFirst ? `${connectorHeight}px` : '2px',
+                                  transform: 'translateY(-50%)',
+                                  overflow: 'visible'
+                                }}
+                              >
+                                {isPairFirst ? (
+                                  <>
+                                    <line x1="0" y1="50%" x2="32" y2="50%" stroke="#60a5fa" strokeWidth="2" />
+                                    <line x1="32" y1="50%" x2="32" y2="100%" stroke="#60a5fa" strokeWidth="2" />
+                                    <line x1="32" y1="100%" x2="64" y2="100%" stroke="#60a5fa" strokeWidth="2" />
+                                  </>
+                                ) : (
+                                  <>
+                                    <line x1="0" y1="50%" x2="32" y2="50%" stroke="#60a5fa" strokeWidth="2" />
+                                    <line x1="32" y1="50%" x2="32" y2={`-${connectorHeight - 10}px`} stroke="#60a5fa" strokeWidth="2" />
+                                  </>
+                                )}
+                              </svg>
                             )}
                           </div>
                         );
