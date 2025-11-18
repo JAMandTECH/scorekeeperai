@@ -347,6 +347,8 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   const spacingMultiplier = Math.pow(2, roundIdx);
                   const matchGap = BASE_GAP * spacingMultiplier;
 
+                  const topOffset = roundIdx > 0 ? (matchGap + MATCH_HEIGHT) / 2 * Math.pow(2, roundIdx - 1) : 0;
+
                   return (
                     <motion.div 
                       key={roundName} 
@@ -369,7 +371,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                         </div>
                       </motion.div>
 
-                      <div className="flex flex-col relative" style={{ gap: `${matchGap}px` }}>
+                      <div className="flex flex-col relative" style={{ gap: `${matchGap}px`, marginTop: `${topOffset}px` }}>
                         {sortedMatches.map((match, matchIdx) => {
                           const isPairFirst = matchIdx % 2 === 0;
                           const shouldDrawConnector = roundIdx < roundOrder.length - 1;
