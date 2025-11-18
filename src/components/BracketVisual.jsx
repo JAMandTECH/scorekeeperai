@@ -262,72 +262,69 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           )}
 
           {/* Bracket */}
-          <div className="bg-gradient-to-br from-gray-950 via-indigo-950/30 to-gray-950 rounded-xl p-8 border-2 border-blue-900/50 shadow-2xl overflow-x-auto">
-            <div className="flex gap-24 pb-6 relative" style={{ minWidth: 'max-content' }}>
+          <div className="bg-gradient-to-br from-gray-950 via-blue-950/10 to-gray-950 rounded-2xl p-12 border border-gray-800/30 shadow-2xl overflow-x-auto">
+            <div className="flex relative" style={{ minWidth: 'max-content', gap: '100px' }}>
               {roundOrder.map((roundName, roundIdx) => {
                 const roundMatches = matchesByRound[roundName] || [];
                 if (roundMatches.length === 0) return null;
                 
                 const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
-                const spacingMultiplier = Math.pow(2, roundIdx);
-                
                 const isLastRound = roundIdx === roundOrder.length - 1;
                 
+                // Dynamic spacing calculation
+                const matchHeight = 120;
+                const baseGap = 20;
+                const gapMultiplier = Math.pow(2, roundIdx);
+                const gap = baseGap * gapMultiplier;
+                
                 return (
-                  <div key={roundName} className="flex flex-col relative">
-                    <div className="mb-8 text-center">
-                      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg px-6 py-3 shadow-lg inline-block">
-                        <h3 className="text-base font-black text-white uppercase tracking-widest">
+                  <div key={roundName} className="flex flex-col">
+                    {/* Round Header */}
+                    <div className="mb-10 text-center">
+                      <div className="bg-gradient-to-r from-blue-600/90 to-indigo-600/90 backdrop-blur-sm rounded-xl px-8 py-3.5 shadow-xl inline-block border border-blue-400/20">
+                        <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">
                           {getRoundLabel(roundName)}
                         </h3>
-                        <p className="text-[10px] text-blue-200 font-bold mt-1">
+                        <p className="text-[10px] text-blue-100 font-semibold mt-1">
                           {sortedMatches.length} {sortedMatches.length === 1 ? 'Match' : 'Matches'}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex flex-col justify-around" style={{ flex: 1 }}>
+                    {/* Matches */}
+                    <div className="flex flex-col relative" style={{ gap: `${gap}px` }}>
                       {sortedMatches.map((match, matchIdx) => {
-                        const nextRoundName = roundOrder[roundIdx + 1];
-                        const nextRoundMatches = matchesByRound[nextRoundName] || [];
+                        const nextRoundMatches = matchesByRound[roundOrder[roundIdx + 1]] || [];
                         const nextMatch = nextRoundMatches[Math.floor(matchIdx / 2)];
+                        const isPairFirst = matchIdx % 2 === 0;
                         
                         return (
-                          <div 
-                            key={match.id}
-                            className="relative"
-                            style={{
-                              marginTop: matchIdx === 0 ? '0' : `${spacingMultiplier * 2.5}rem`
-                            }}
-                          >
+                          <div key={match.id} className="relative">
                             {renderMatch(match)}
                             
-                            {/* Connector lines */}
+                            {/* Connector Lines */}
                             {!isLastRound && nextMatch && (
-                              <svg 
-                                className="absolute left-full top-1/2 pointer-events-none" 
-                                style={{ 
-                                  width: '96px', 
-                                  height: matchIdx % 2 === 0 ? `${(spacingMultiplier * 2.5 * 16) + 100}px` : '100px',
-                                  transform: 'translateY(-50%)'
-                                }}
-                              >
-                                {matchIdx % 2 === 0 ? (
-                                  // Upper match - line goes right then down
-                                  <>
-                                    <line x1="0" y1="50%" x2="48" y2="50%" stroke="#3b82f6" strokeWidth="3" />
-                                    <line x1="48" y1="50%" x2="48" y2="100%" stroke="#3b82f6" strokeWidth="3" />
-                                    <line x1="48" y1="100%" x2="96" y2="100%" stroke="#3b82f6" strokeWidth="3" />
-                                  </>
-                                ) : (
-                                  // Lower match - line goes right then up
-                                  <>
-                                    <line x1="0" y1="50%" x2="48" y2="50%" stroke="#3b82f6" strokeWidth="3" />
-                                    <line x1="48" y1="50%" x2="48" y2="0" stroke="#3b82f6" strokeWidth="3" />
-                                    <line x1="48" y1="0" x2="96" y2="0" stroke="#3b82f6" strokeWidth="3" />
-                                  </>
-                                )}
-                              </svg>
+                              <div className="absolute left-full top-1/2 pointer-events-none" style={{ transform: 'translateY(-50%)' }}>
+                                <svg width="50" height={isPairFirst ? gap + matchHeight : 2} style={{ overflow: 'visible' }}>
+                                  {isPairFirst ? (
+                                    <>
+                                      {/* Horizontal from match */}
+                                      <line x1="0" y1="0" x2="25" y2="0" stroke="rgba(96, 165, 250, 0.6)" strokeWidth="2.5" />
+                                      {/* Vertical down */}
+                                      <line x1="25" y1="0" x2="25" y2={gap/2 + matchHeight/2} stroke="rgba(96, 165, 250, 0.6)" strokeWidth="2.5" />
+                                      {/* Horizontal to next match */}
+                                      <line x1="25" y1={gap/2 + matchHeight/2} x2="50" y2={gap/2 + matchHeight/2} stroke="rgba(96, 165, 250, 0.6)" strokeWidth="2.5" />
+                                    </>
+                                  ) : (
+                                    <>
+                                      {/* Horizontal from match */}
+                                      <line x1="0" y1="0" x2="25" y2="0" stroke="rgba(96, 165, 250, 0.6)" strokeWidth="2.5" />
+                                      {/* Vertical up */}
+                                      <line x1="25" y1="0" x2="25" y2={-(gap/2 + matchHeight/2)} stroke="rgba(96, 165, 250, 0.6)" strokeWidth="2.5" />
+                                    </>
+                                  )}
+                                </svg>
+                              </div>
                             )}
                           </div>
                         );
