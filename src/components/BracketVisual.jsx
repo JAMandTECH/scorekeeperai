@@ -336,7 +336,8 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   </div>
                 );
               })}
-
+              
+              {/* Champion Section */}
               {champion && (
                 <div className="flex items-center justify-center pl-12" style={{ alignSelf: 'center' }}>
                   <div className="text-center">
