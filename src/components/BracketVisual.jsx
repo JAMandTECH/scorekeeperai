@@ -371,43 +371,37 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                         {sortedMatches.map((match, matchIdx) => {
                           const isPairFirst = matchIdx % 2 === 0;
                           const shouldDrawConnector = roundIdx < roundOrder.length - 1;
-                          const halfGap = matchGap / 2;
+                          const connectorLength = 80;
+                          const midPoint = connectorLength / 2;
+                          const verticalDistance = (matchGap + 100) / 2;
                           
                           return (
                             <div key={match.id} className="relative">
                               {renderMatch(match)}
                               
-                              {shouldDrawConnector && isPairFirst && (
+                              {shouldDrawConnector && (
                                 <svg 
                                   className="absolute pointer-events-none" 
                                   style={{
-                                    left: '100%',
-                                    top: '50%',
-                                    width: '80px',
-                                    height: `${matchGap + 100}px`,
-                                    transform: 'translateY(-50%)',
+                                    left: '240px',
+                                    top: '50px',
+                                    width: `${connectorLength}px`,
+                                    height: isPairFirst ? `${verticalDistance * 2}px` : '1px',
                                     overflow: 'visible'
                                   }}
                                 >
-                                  <line x1="0" y1="0" x2="40" y2="0" stroke={theme.connector} strokeWidth="2" />
-                                  <line x1="40" y1="0" x2="40" y2={halfGap + 50} stroke={theme.connector} strokeWidth="2" />
-                                  <line x1="40" y1={halfGap + 50} x2="80" y2={halfGap + 50} stroke={theme.connector} strokeWidth="2" />
-                                </svg>
-                              )}
-                              
-                              {shouldDrawConnector && !isPairFirst && (
-                                <svg 
-                                  className="absolute pointer-events-none" 
-                                  style={{
-                                    left: '100%',
-                                    top: '50%',
-                                    width: '80px',
-                                    height: '2px',
-                                    overflow: 'visible'
-                                  }}
-                                >
-                                  <line x1="0" y1="0" x2="40" y2="0" stroke={theme.connector} strokeWidth="2" />
-                                  <line x1="40" y1="0" x2="40" y2={-(halfGap + 50)} stroke={theme.connector} strokeWidth="2" />
+                                  {isPairFirst ? (
+                                    <>
+                                      <line x1="0" y1="0" x2={midPoint} y2="0" stroke={theme.connector} strokeWidth="2" />
+                                      <line x1={midPoint} y1="0" x2={midPoint} y2={verticalDistance} stroke={theme.connector} strokeWidth="2" />
+                                      <line x1={midPoint} y1={verticalDistance} x2={connectorLength} y2={verticalDistance} stroke={theme.connector} strokeWidth="2" />
+                                    </>
+                                  ) : (
+                                    <>
+                                      <line x1="0" y1="0" x2={midPoint} y2="0" stroke={theme.connector} strokeWidth="2" />
+                                      <line x1={midPoint} y1="0" x2={midPoint} y2={-verticalDistance} stroke={theme.connector} strokeWidth="2" />
+                                    </>
+                                  )}
                                 </svg>
                               )}
                             </div>
