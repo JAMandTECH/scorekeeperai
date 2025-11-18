@@ -37,7 +37,7 @@ const THEME_OPTIONS = {
   }
 };
 
-export default function BracketVisual({ tournament, matches, teams, onMatchClick, onTeamDrop, onMatchReorder, onSave, canEdit = true }) {
+export default function BracketVisual({ tournament, matches, teams, onMatchClick, onTeamDrop, onSave, canEdit = true }) {
   const [selectedTheme, setSelectedTheme] = useState('default');
   const theme = THEME_OPTIONS[selectedTheme];
   const getTeam = (teamId) => teams.find(t => t.id === teamId);
@@ -61,7 +61,6 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
     const sourceId = source.droppableId;
     const destId = destination.droppableId;
     
-    // Handle dragging available teams to match slots
     if (sourceId === 'available-teams' && destId.startsWith('match-')) {
       const parts = destId.split('-');
       const matchId = parts[1];
@@ -70,42 +69,15 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
       
       onTeamDrop(matchId, slot, teamId);
     }
-    // Handle swapping teams between match slots
     else if (sourceId.startsWith('match-') && destId.startsWith('match-')) {
       const sourceParts = sourceId.split('-');
       const destParts = destId.split('-');
-      
-      // Check if it's a match card drag (no slot specified)
-      if (sourceParts.length === 2 && destParts.length === 2) {
-        // Match card reordering - do nothing for now as matches are linked
-        return;
-      }
-      
       const sourceMatchId = sourceParts[1];
       const sourceSlot = sourceParts[2];
       const destMatchId = destParts[1];
       const destSlot = destParts[2];
       
       onTeamDrop(sourceMatchId, sourceSlot, destMatchId, destSlot);
-    }
-    // Handle reordering matches within a round
-    else if (sourceId.startsWith('round-') && destId.startsWith('round-')) {
-      const sourceRound = sourceId.replace('round-', '');
-      const destRound = destId.replace('round-', '');
-      
-      if (sourceRound !== destRound) return; // Can only reorder within same round
-      
-      const roundMatches = matchesByRound[sourceRound] || [];
-      const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
-      const [movedMatch] = sortedMatches.splice(source.index, 1);
-      sortedMatches.splice(destination.index, 0, movedMatch);
-      
-      // Update match numbers
-      sortedMatches.forEach((match, index) => {
-        if (match.match_number !== index) {
-          onMatchReorder && onMatchReorder(match.id, index);
-        }
-      });
     }
   };
 
@@ -399,39 +371,14 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                         </div>
                       </motion.div>
 
-                      <Droppable droppableId={`round-${roundName}`} type="MATCH">
-                        {(provided) => (
-                          <div 
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            className="flex flex-col relative" 
-                            style={{ gap: `${matchGap}px`, marginTop: `${topOffset}px` }}
-                          >
-                            {sortedMatches.map((match, matchIdx) => {
-                              const isPairFirst = matchIdx % 2 === 0;
-                              const shouldDrawConnector = roundIdx < roundOrder.length - 1;
+                      <div className="flex flex-col relative" style={{ gap: `${matchGap}px`, marginTop: `${topOffset}px` }}>
+                        {sortedMatches.map((match, matchIdx) => {
+                          const isPairFirst = matchIdx % 2 === 0;
+                          const shouldDrawConnector = roundIdx < roundOrder.length - 1;
 
-                              return (
-                                <Draggable 
-                                  key={match.id} 
-                                  draggableId={`match-${match.id}`} 
-                                  index={matchIdx}
-                                  isDragDisabled={!canEdit}
-                                >
-                                  {(provided, snapshot) => (
-                                    <div 
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      className="relative" 
-                                      style={{ 
-                                        height: `${MATCH_HEIGHT}px`,
-                                        ...provided.draggableProps.style,
-                                        opacity: snapshot.isDragging ? 0.5 : 1
-                                      }}
-                                    >
-                                      <div {...provided.dragHandleProps}>
-                                        {renderMatch(match)}
-                                      </div>
+                          return (
+                            <div key={match.id} className="relative" style={{ height: `${MATCH_HEIGHT}px` }}>
+                              {renderMatch(match)}
 
                               {shouldDrawConnector && isPairFirst && (
                                 <svg 
@@ -450,30 +397,25 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                                 </svg>
                               )}
 
-                                      {shouldDrawConnector && !isPairFirst && (
-                                        <svg 
-                                          className="absolute pointer-events-none" 
-                                          style={{
-                                            left: '240px',
-                                            top: `${MATCH_HEIGHT / 2}px`,
-                                            width: '50px',
-                                            height: '1px',
-                                            overflow: 'visible'
-                                          }}
-                                        >
-                                          <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
-                                          <line x1="50" y1="0" x2="50" y2={`-${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
-                                        </svg>
-                                      )}
-                                    </div>
-                                  )}
-                                </Draggable>
-                              );
-                            })}
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
+                              {shouldDrawConnector && !isPairFirst && (
+                                <svg 
+                                  className="absolute pointer-events-none" 
+                                  style={{
+                                    left: '240px',
+                                    top: `${MATCH_HEIGHT / 2}px`,
+                                    width: '50px',
+                                    height: '1px',
+                                    overflow: 'visible'
+                                  }}
+                                >
+                                  <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
+                                  <line x1="50" y1="0" x2="50" y2={`-${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
+                                </svg>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </motion.div>
                   );
                 })}
