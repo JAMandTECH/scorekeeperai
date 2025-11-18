@@ -11,7 +11,6 @@ import { createPageUrl } from "@/utils";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import TournamentForm from "@/components/TournamentForm";
-import TeamSeeder from "@/components/TeamSeeder";
 import BracketVisual from "@/components/BracketVisual";
 import {
   AlertDialog,
@@ -30,7 +29,6 @@ export default function TournamentBracket() {
   const [darkMode, setDarkMode] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [selectedTournament, setSelectedTournament] = useState(null);
-  const [showSeeder, setShowSeeder] = useState(false);
   const [deletingTournament, setDeletingTournament] = useState(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -109,17 +107,22 @@ export default function TournamentBracket() {
 
   const createTournamentMutation = useMutation({
     mutationFn: async (data) => {
-      return await base44.entities.Tournament.create({
+      const tournament = await base44.entities.Tournament.create({
         ...data,
         organization_id: user?.organization_id,
         status: 'setup',
       });
+      
+      // Generate empty bracket structure
+      await generateEmptyBracket(tournament);
+      
+      return tournament;
     },
     onSuccess: (newTournament) => {
       queryClient.invalidateQueries(['tournaments']);
+      queryClient.invalidateQueries(['bracket-matches']);
       setShowForm(false);
       setSelectedTournament(newTournament);
-      setShowSeeder(true);
     },
   });
 
@@ -153,13 +156,7 @@ export default function TournamentBracket() {
     },
   });
 
-  const generateBracketMatches = async (tournament, seededTeamIds) => {
-    const existingMatches = await base44.entities.BracketMatch.filter({ tournament_id: tournament.id });
-    
-    if (existingMatches.length > 0) {
-      await Promise.all(existingMatches.map(m => base44.entities.BracketMatch.delete(m.id)));
-    }
-
+  const generateEmptyBracket = async (tournament) => {
     const numTeams = tournament.num_teams;
     const bestOfSettings = tournament.best_of_settings || {};
     
@@ -185,23 +182,15 @@ export default function TournamentBracket() {
       const requiredWins = calculateRequiredWins(roundName);
 
       for (let matchNum = 0; matchNum < matchesInRound; matchNum++) {
-        const match = {
+        allMatches.push({
           tournament_id: tournament.id,
           round_name: roundName,
           match_number: matchNum,
           required_wins: requiredWins,
           status: 'pending',
-        };
-
-        if (round === 1) {
-          const homeIdx = matchNum * 2;
-          const awayIdx = matchNum * 2 + 1;
-          match.home_team_id = seededTeamIds[homeIdx] || null;
-          match.away_team_id = seededTeamIds[awayIdx] || null;
-          match.status = (match.home_team_id && match.away_team_id) ? 'ready' : 'pending';
-        }
-
-        allMatches.push(match);
+          home_team_id: null,
+          away_team_id: null,
+        });
       }
     }
 
@@ -232,58 +221,57 @@ export default function TournamentBracket() {
     return createdMatches;
   };
 
-  const handleSeedingComplete = async (seededTeamIds) => {
+  const handleTeamDrop = async (matchId, slot, teamIdOrDestMatchId, destSlot) => {
+    const match = allMatches.find(m => m.id === matchId);
+    if (!match) return;
+
+    // Dropping a team from available list
+    if (typeof teamIdOrDestMatchId === 'string' && !destSlot) {
+      const teamId = teamIdOrDestMatchId;
+      const update = {};
+      update[`${slot}_team_id`] = teamId;
+      
+      // Check if both slots will be filled
+      const otherSlot = slot === 'home' ? 'away' : 'home';
+      const otherTeamId = match[`${otherSlot}_team_id`];
+      if (otherTeamId) {
+        update.status = 'ready';
+      }
+      
+      await updateMatchMutation.mutateAsync({ id: matchId, data: update });
+    }
+    // Swapping teams between slots
+    else if (destSlot) {
+      const destMatchId = teamIdOrDestMatchId;
+      const destMatch = allMatches.find(m => m.id === destMatchId);
+      if (!destMatch) return;
+      
+      const sourceTeamId = match[`${slot}_team_id`];
+      const destTeamId = destMatch[`${destSlot}_team_id`];
+      
+      const sourceUpdate = {};
+      const destUpdate = {};
+      
+      sourceUpdate[`${slot}_team_id`] = destTeamId;
+      destUpdate[`${destSlot}_team_id`] = sourceTeamId;
+      
+      await updateMatchMutation.mutateAsync({ id: matchId, data: sourceUpdate });
+      await updateMatchMutation.mutateAsync({ id: destMatchId, data: destUpdate });
+    }
+  };
+
+  const handleSaveBracket = async () => {
     try {
-      await updateTournamentMutation.mutateAsync({
-        id: selectedTournament.id,
-        data: {
-          initial_teams: seededTeamIds,
-          status: 'seeding',
-        }
-      });
-
-      await generateBracketMatches(selectedTournament, seededTeamIds);
-
       await updateTournamentMutation.mutateAsync({
         id: selectedTournament.id,
         data: { status: 'in_progress' }
       });
-
-      queryClient.invalidateQueries(['tournaments']);
-      queryClient.invalidateQueries(['bracket-matches']);
-      setShowSeeder(false);
+      
+      alert("Bracket saved successfully!");
     } catch (error) {
-      console.error("Error completing seeding:", error);
-      alert("Error setting up bracket. Please try again.");
+      console.error("Error saving bracket:", error);
+      alert("Error saving bracket. Please try again.");
     }
-  };
-
-  const handleTeamReorder = async (sourceMatchId, sourceSlot, destMatchId, destSlot) => {
-    const sourceMatch = allMatches.find(m => m.id === sourceMatchId);
-    const destMatch = allMatches.find(m => m.id === destMatchId);
-    
-    if (!sourceMatch || !destMatch) return;
-    
-    const sourceTeamId = sourceSlot === 'home' ? sourceMatch.home_team_id : sourceMatch.away_team_id;
-    const destTeamId = destSlot === 'home' ? destMatch.home_team_id : destMatch.away_team_id;
-    
-    const sourceUpdate = {};
-    const destUpdate = {};
-    
-    if (sourceSlot === 'home') {
-      sourceUpdate.home_team_id = destTeamId;
-    } else {
-      sourceUpdate.away_team_id = destTeamId;
-    }
-    
-    if (destSlot === 'home') {
-      destUpdate.home_team_id = sourceTeamId;
-    } else {
-      destUpdate.away_team_id = sourceTeamId;
-    }
-    
-    await updateMatchMutation.mutateAsync({ id: sourceMatchId, data: sourceUpdate });
-    await updateMatchMutation.mutateAsync({ id: destMatchId, data: destUpdate });
   };
 
   const handleMatchClick = (match) => {
@@ -393,7 +381,7 @@ export default function TournamentBracket() {
                 </div>
               )}
 
-              {selectedTournament && !showSeeder && (
+              {selectedTournament && (
                 <div className="space-y-6">
                   <Button
                     variant="outline"
@@ -407,21 +395,11 @@ export default function TournamentBracket() {
                     matches={allMatches}
                     teams={teams}
                     onMatchClick={handleMatchClick}
-                    onTeamReorder={handleTeamReorder}
+                    onTeamDrop={handleTeamDrop}
+                    onSave={handleSaveBracket}
+                    canEdit={selectedTournament.status === 'setup'}
                   />
                 </div>
-              )}
-
-              {showSeeder && selectedTournament && (
-                <TeamSeeder
-                  tournament={selectedTournament}
-                  teams={teams}
-                  onComplete={handleSeedingComplete}
-                  onCancel={() => {
-                    setShowSeeder(false);
-                    setSelectedTournament(null);
-                  }}
-                />
               )}
 
               <Dialog open={showForm} onOpenChange={setShowForm}>
