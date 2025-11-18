@@ -334,7 +334,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           )}
 
           <div className="bg-gradient-to-br from-gray-950 via-indigo-950/20 to-gray-950 rounded-xl p-4 md:p-8 border border-gray-800 shadow-2xl overflow-x-auto">
-            <div className="flex gap-20 relative pb-4" style={{ minWidth: 'max-content' }}>
+            <div className="flex relative pb-4" style={{ minWidth: 'max-content', gap: '100px' }}>
               <AnimatePresence>
                 {roundOrder.map((roundName, roundIdx) => {
                   const roundMatches = matchesByRound[roundName] || [];
@@ -342,9 +342,10 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
 
                   const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
                   const matchCount = sortedMatches.length;
-                  const spacingMultiplier = Math.pow(2, roundIdx);
                   const MATCH_HEIGHT = 100;
-                  const matchGap = MATCH_HEIGHT * spacingMultiplier;
+                  const BASE_GAP = 80;
+                  const spacingMultiplier = Math.pow(2, roundIdx);
+                  const matchGap = BASE_GAP * spacingMultiplier;
 
                   return (
                     <motion.div 
@@ -355,11 +356,11 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                       transition={{ delay: roundIdx * 0.1 }}
                     >
                       <motion.div 
-                        className="mb-6 md:mb-8 text-center"
+                        className="mb-8 text-center"
                         whileHover={{ scale: 1.05 }}
                       >
-                        <div className={`bg-gradient-to-r ${theme.primary} rounded-lg px-4 md:px-6 py-2 md:py-3 shadow-lg inline-block`}>
-                          <h3 className="text-xs md:text-sm font-black text-white uppercase tracking-widest">
+                        <div className={`bg-gradient-to-r ${theme.primary} rounded-lg px-6 py-3 shadow-lg inline-block`}>
+                          <h3 className="text-sm font-black text-white uppercase tracking-widest">
                             {getRoundLabel(roundName)}
                           </h3>
                           <p className={`text-[10px] text-${theme.accent}-200 font-semibold mt-1`}>
@@ -372,38 +373,41 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                         {sortedMatches.map((match, matchIdx) => {
                           const isPairFirst = matchIdx % 2 === 0;
                           const shouldDrawConnector = roundIdx < roundOrder.length - 1;
-                          const CONNECTOR_LENGTH = 80;
-                          const HORIZONTAL_SEGMENT = 40;
-                          const verticalSpan = matchGap + MATCH_HEIGHT;
 
                           return (
-                            <div key={match.id} className="relative">
+                            <div key={match.id} className="relative" style={{ height: `${MATCH_HEIGHT}px` }}>
                               {renderMatch(match)}
 
-                              {shouldDrawConnector && (
+                              {shouldDrawConnector && isPairFirst && (
                                 <svg 
                                   className="absolute pointer-events-none" 
                                   style={{
-                                    left: '100%',
-                                    top: '50%',
-                                    width: `${CONNECTOR_LENGTH}px`,
-                                    height: isPairFirst ? `${verticalSpan}px` : '1px',
-                                    transform: 'translateY(-50%)',
+                                    left: '240px',
+                                    top: `${MATCH_HEIGHT / 2}px`,
+                                    width: '100px',
+                                    height: `${matchGap + MATCH_HEIGHT}px`,
                                     overflow: 'visible'
                                   }}
                                 >
-                                  {isPairFirst ? (
-                                    <>
-                                      <line x1="0" y1="0" x2={HORIZONTAL_SEGMENT} y2="0" stroke={theme.connector} strokeWidth="3" />
-                                      <line x1={HORIZONTAL_SEGMENT} y1="0" x2={HORIZONTAL_SEGMENT} y2={verticalSpan / 2} stroke={theme.connector} strokeWidth="3" />
-                                      <line x1={HORIZONTAL_SEGMENT} y1={verticalSpan / 2} x2={CONNECTOR_LENGTH} y2={verticalSpan / 2} stroke={theme.connector} strokeWidth="3" />
-                                    </>
-                                  ) : (
-                                    <>
-                                      <line x1="0" y1="0" x2={HORIZONTAL_SEGMENT} y2="0" stroke={theme.connector} strokeWidth="3" />
-                                      <line x1={HORIZONTAL_SEGMENT} y1="0" x2={HORIZONTAL_SEGMENT} y2={-verticalSpan / 2} stroke={theme.connector} strokeWidth="3" />
-                                    </>
-                                  )}
+                                  <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
+                                  <line x1="50" y1="0" x2="50" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
+                                  <line x1="50" y1={`${(matchGap + MATCH_HEIGHT) / 2}`} x2="100" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
+                                </svg>
+                              )}
+
+                              {shouldDrawConnector && !isPairFirst && (
+                                <svg 
+                                  className="absolute pointer-events-none" 
+                                  style={{
+                                    left: '240px',
+                                    top: `${MATCH_HEIGHT / 2}px`,
+                                    width: '50px',
+                                    height: '1px',
+                                    overflow: 'visible'
+                                  }}
+                                >
+                                  <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
+                                  <line x1="50" y1="0" x2="50" y2={`-${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
                                 </svg>
                               )}
                             </div>
