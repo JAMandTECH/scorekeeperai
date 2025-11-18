@@ -392,16 +392,17 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                         </div>
                       </motion.div>
 
-                      <Droppable droppableId={`round-${roundName}`} type="MATCH">
+                      <Droppable droppableId={`round-${roundName}`} type="MATCH" direction="vertical">
                         {(provided, snapshot) => (
                           <div 
                             ref={provided.innerRef}
                             {...provided.droppableProps}
-                            className={`flex flex-col relative ${snapshot.isDraggingOver ? 'bg-blue-900/10 rounded-lg p-2' : ''}`} 
+                            className={`flex flex-col relative ${snapshot.isDraggingOver ? 'bg-blue-900/20 rounded-lg border-2 border-blue-500' : ''}`} 
                             style={{ 
                               gap: `${matchGap}px`, 
                               marginTop: `${topOffset}px`,
-                              minHeight: sortedMatches.length * (MATCH_HEIGHT + matchGap)
+                              minHeight: `${sortedMatches.length * MATCH_HEIGHT + (sortedMatches.length - 1) * matchGap}px`,
+                              paddingBottom: '20px'
                             }}
                           >
                             {sortedMatches.map((match, matchIdx) => {
@@ -428,37 +429,42 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                                     >
                                       {renderMatch(match, canEdit)}
 
-                                      {!dragSnapshot.isDragging && shouldDrawConnector && isPairFirst && (
-                                        <svg 
-                                          className="absolute pointer-events-none" 
-                                          style={{
-                                            left: '240px',
-                                            top: `${MATCH_HEIGHT / 2}px`,
-                                            width: '100px',
-                                            height: `${matchGap + MATCH_HEIGHT}px`,
-                                            overflow: 'visible'
-                                          }}
-                                        >
-                                          <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
-                                          <line x1="50" y1="0" x2="50" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
-                                          <line x1="50" y1={`${(matchGap + MATCH_HEIGHT) / 2}`} x2="100" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
-                                        </svg>
-                                      )}
-
-                                      {!dragSnapshot.isDragging && shouldDrawConnector && !isPairFirst && (
-                                        <svg 
-                                          className="absolute pointer-events-none" 
-                                          style={{
-                                            left: '240px',
-                                            top: `${MATCH_HEIGHT / 2}px`,
-                                            width: '50px',
-                                            height: '1px',
-                                            overflow: 'visible'
-                                          }}
-                                        >
-                                          <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
-                                          <line x1="50" y1="0" x2="50" y2={`-${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
-                                        </svg>
+                                      {!dragSnapshot.isDragging && shouldDrawConnector && (
+                                        <>
+                                          {isPairFirst && (
+                                            <svg 
+                                              className="absolute pointer-events-none" 
+                                              style={{
+                                                left: '240px',
+                                                top: `${MATCH_HEIGHT / 2}px`,
+                                                width: '100px',
+                                                height: `${matchGap + MATCH_HEIGHT}px`,
+                                                overflow: 'visible',
+                                                zIndex: 1
+                                              }}
+                                            >
+                                              <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
+                                              <line x1="50" y1="0" x2="50" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
+                                              <line x1="50" y1={`${(matchGap + MATCH_HEIGHT) / 2}`} x2="100" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
+                                            </svg>
+                                          )}
+                                          {!isPairFirst && (
+                                            <svg 
+                                              className="absolute pointer-events-none" 
+                                              style={{
+                                                left: '240px',
+                                                top: `${MATCH_HEIGHT / 2}px`,
+                                                width: '50px',
+                                                height: '1px',
+                                                overflow: 'visible',
+                                                zIndex: 1
+                                              }}
+                                            >
+                                              <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
+                                              <line x1="50" y1="0" x2="50" y2={`-${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
+                                            </svg>
+                                          )}
+                                        </>
                                       )}
                                     </div>
                                   )}
@@ -478,8 +484,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                 <motion.div 
                   className="flex items-center pl-4 md:pl-8" 
                   style={{ 
-                    alignSelf: 'center',
-                    marginTop: roundOrder.length > 2 ? `${80 * Math.pow(2, roundOrder.length - 2)}px` : '0px'
+                    marginTop: roundOrder.length > 1 ? `${(80 * Math.pow(2, roundOrder.length - 2) + 100) / 2 * Math.pow(2, roundOrder.length - 2) + 80}px` : '0px'
                   }}
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
