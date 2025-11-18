@@ -231,6 +231,13 @@ export default function TournamentBracket() {
     return createdMatches;
   };
 
+  const handleMatchReorder = async (matchId, newMatchNumber) => {
+    await updateMatchMutation.mutateAsync({ 
+      id: matchId, 
+      data: { match_number: newMatchNumber } 
+    });
+  };
+
   const handleTeamDrop = async (matchId, slot, teamIdOrDestMatchId, destSlot) => {
     const match = allMatches.find(m => m.id === matchId);
     if (!match) return;
@@ -420,6 +427,7 @@ export default function TournamentBracket() {
                     teams={teams}
                     onMatchClick={handleMatchClick}
                     onTeamDrop={handleTeamDrop}
+                    onMatchReorder={handleMatchReorder}
                     onSave={handleSaveBracket}
                     canEdit={selectedTournament.status === 'setup'}
                   />
