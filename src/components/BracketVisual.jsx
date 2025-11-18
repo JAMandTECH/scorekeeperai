@@ -371,35 +371,43 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                         {sortedMatches.map((match, matchIdx) => {
                           const isPairFirst = matchIdx % 2 === 0;
                           const shouldDrawConnector = roundIdx < roundOrder.length - 1;
+                          const halfGap = matchGap / 2;
                           
                           return (
                             <div key={match.id} className="relative">
                               {renderMatch(match)}
                               
-                              {shouldDrawConnector && (
+                              {shouldDrawConnector && isPairFirst && (
                                 <svg 
                                   className="absolute pointer-events-none" 
                                   style={{
                                     left: '100%',
                                     top: '50%',
                                     width: '80px',
-                                    height: isPairFirst ? `${matchGap + 100}px` : '2px',
+                                    height: `${matchGap + 100}px`,
                                     transform: 'translateY(-50%)',
                                     overflow: 'visible'
                                   }}
                                 >
-                                  {isPairFirst ? (
-                                    <g>
-                                      <line x1="0" y1="50%" x2="40" y2="50%" stroke={theme.connector} strokeWidth="2" />
-                                      <line x1="40" y1="50%" x2="40" y2="100%" stroke={theme.connector} strokeWidth="2" />
-                                      <line x1="40" y1="100%" x2="80" y2="100%" stroke={theme.connector} strokeWidth="2" />
-                                    </g>
-                                  ) : (
-                                    <g>
-                                      <line x1="0" y1="50%" x2="40" y2="50%" stroke={theme.connector} strokeWidth="2" />
-                                      <line x1="40" y1="50%" x2="40" y2={`-${matchGap / 2 + 50}px`} stroke={theme.connector} strokeWidth="2" />
-                                    </g>
-                                  )}
+                                  <line x1="0" y1="0" x2="40" y2="0" stroke={theme.connector} strokeWidth="2" />
+                                  <line x1="40" y1="0" x2="40" y2={halfGap + 50} stroke={theme.connector} strokeWidth="2" />
+                                  <line x1="40" y1={halfGap + 50} x2="80" y2={halfGap + 50} stroke={theme.connector} strokeWidth="2" />
+                                </svg>
+                              )}
+                              
+                              {shouldDrawConnector && !isPairFirst && (
+                                <svg 
+                                  className="absolute pointer-events-none" 
+                                  style={{
+                                    left: '100%',
+                                    top: '50%',
+                                    width: '80px',
+                                    height: '2px',
+                                    overflow: 'visible'
+                                  }}
+                                >
+                                  <line x1="0" y1="0" x2="40" y2="0" stroke={theme.connector} strokeWidth="2" />
+                                  <line x1="40" y1="0" x2="40" y2={-(halfGap + 50)} stroke={theme.connector} strokeWidth="2" />
                                 </svg>
                               )}
                             </div>
