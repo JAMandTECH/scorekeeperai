@@ -61,6 +61,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
     const sourceId = source.droppableId;
     const destId = destination.droppableId;
     
+    // Handle team dragging from available teams
     if (sourceId === 'available-teams' && destId.startsWith('match-')) {
       const parts = destId.split('-');
       const matchId = parts[1];
@@ -69,6 +70,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
       
       onTeamDrop(matchId, slot, teamId);
     }
+    // Handle team swapping between match slots
     else if (sourceId.startsWith('match-') && destId.startsWith('match-')) {
       const sourceParts = sourceId.split('-');
       const destParts = destId.split('-');
@@ -78,6 +80,18 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
       const destSlot = destParts[2];
       
       onTeamDrop(sourceMatchId, sourceSlot, destMatchId, destSlot);
+    }
+    // Handle match card reordering within a round
+    else if (sourceId.startsWith('round-') && destId.startsWith('round-')) {
+      const sourceRound = sourceId.replace('round-', '');
+      const destRound = destId.replace('round-', '');
+      
+      // Only allow reordering within the same round for now
+      if (sourceRound === destRound && source.index !== destination.index) {
+        console.log(`Reordering match from position ${source.index} to ${destination.index} in ${sourceRound}`);
+        // This would require backend support to update match_number
+        // For now, just log it - you would need to implement this in the parent component
+      }
     }
   };
 
@@ -171,21 +185,26 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
     );
   };
 
-  const renderMatch = (match) => {
+  const renderMatch = (match, isDraggable = false) => {
     const isCompleted = match.status === 'completed';
     const homeWins = isCompleted && match.winner_team_id === match.home_team_id;
     const awayWins = isCompleted && match.winner_team_id === match.away_team_id;
 
-    return (
+    const matchCard = (
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ scale: 1.03, boxShadow: "0 20px 50px rgba(0,0,0,0.3)" }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className={`${theme.matchBg} rounded-lg border-2 border-gray-800 overflow-hidden hover:border-${theme.accent}-600 transition-all cursor-pointer`}
+        className={`${theme.matchBg} rounded-lg border-2 border-gray-800 overflow-hidden hover:border-${theme.accent}-600 transition-all ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
         style={{ width: '240px', minWidth: '200px' }}
-        onClick={() => onMatchClick && onMatchClick(match)}
+        onClick={() => !isDraggable && onMatchClick && onMatchClick(match)}
       >
+        {isDraggable && (
+          <div className="absolute top-2 right-2 z-10 bg-gray-800/80 rounded p-1">
+            <GripVertical className="w-4 h-4 text-gray-400" />
+          </div>
+        )}
         <div className="space-y-1 p-2">
           {renderTeamSlot(match, 'home', match.home_team_id, homeWins, match.id)}
           {renderTeamSlot(match, 'away', match.away_team_id, awayWins, match.id)}
@@ -201,6 +220,8 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
         </motion.div>
       </motion.div>
     );
+
+    return matchCard;
   };
 
   const groupMatchesByRound = () => {
@@ -371,51 +392,79 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                         </div>
                       </motion.div>
 
-                      <div className="flex flex-col relative" style={{ gap: `${matchGap}px`, marginTop: `${topOffset}px` }}>
-                        {sortedMatches.map((match, matchIdx) => {
-                          const isPairFirst = matchIdx % 2 === 0;
-                          const shouldDrawConnector = roundIdx < roundOrder.length - 1;
+                      <Droppable droppableId={`round-${roundName}`} type="MATCH">
+                        {(provided, snapshot) => (
+                          <div 
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className={`flex flex-col relative ${snapshot.isDraggingOver ? 'bg-blue-900/10 rounded-lg' : ''}`} 
+                            style={{ gap: `${matchGap}px`, marginTop: `${topOffset}px` }}
+                          >
+                            {sortedMatches.map((match, matchIdx) => {
+                              const isPairFirst = matchIdx % 2 === 0;
+                              const shouldDrawConnector = roundIdx < roundOrder.length - 1;
 
-                          return (
-                            <div key={match.id} className="relative" style={{ height: `${MATCH_HEIGHT}px` }}>
-                              {renderMatch(match)}
-
-                              {shouldDrawConnector && isPairFirst && (
-                                <svg 
-                                  className="absolute pointer-events-none" 
-                                  style={{
-                                    left: '240px',
-                                    top: `${MATCH_HEIGHT / 2}px`,
-                                    width: '100px',
-                                    height: `${matchGap + MATCH_HEIGHT}px`,
-                                    overflow: 'visible'
-                                  }}
+                              return (
+                                <Draggable 
+                                  key={match.id} 
+                                  draggableId={`match-card-${match.id}`} 
+                                  index={matchIdx}
+                                  isDragDisabled={!canEdit}
                                 >
-                                  <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
-                                  <line x1="50" y1="0" x2="50" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
-                                  <line x1="50" y1={`${(matchGap + MATCH_HEIGHT) / 2}`} x2="100" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
-                                </svg>
-                              )}
+                                  {(provided, snapshot) => (
+                                    <div 
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className={`relative ${snapshot.isDragging ? 'z-50 rotate-2' : ''}`} 
+                                      style={{ 
+                                        height: `${MATCH_HEIGHT}px`,
+                                        ...provided.draggableProps.style
+                                      }}
+                                    >
+                                      {renderMatch(match, canEdit)}
 
-                              {shouldDrawConnector && !isPairFirst && (
-                                <svg 
-                                  className="absolute pointer-events-none" 
-                                  style={{
-                                    left: '240px',
-                                    top: `${MATCH_HEIGHT / 2}px`,
-                                    width: '50px',
-                                    height: '1px',
-                                    overflow: 'visible'
-                                  }}
-                                >
-                                  <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
-                                  <line x1="50" y1="0" x2="50" y2={`-${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
-                                </svg>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+                                      {shouldDrawConnector && isPairFirst && !snapshot.isDragging && (
+                                        <svg 
+                                          className="absolute pointer-events-none" 
+                                          style={{
+                                            left: '240px',
+                                            top: `${MATCH_HEIGHT / 2}px`,
+                                            width: '100px',
+                                            height: `${matchGap + MATCH_HEIGHT}px`,
+                                            overflow: 'visible'
+                                          }}
+                                        >
+                                          <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
+                                          <line x1="50" y1="0" x2="50" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
+                                          <line x1="50" y1={`${(matchGap + MATCH_HEIGHT) / 2}`} x2="100" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
+                                        </svg>
+                                      )}
+
+                                      {shouldDrawConnector && !isPairFirst && !snapshot.isDragging && (
+                                        <svg 
+                                          className="absolute pointer-events-none" 
+                                          style={{
+                                            left: '240px',
+                                            top: `${MATCH_HEIGHT / 2}px`,
+                                            width: '50px',
+                                            height: '1px',
+                                            overflow: 'visible'
+                                          }}
+                                        >
+                                          <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
+                                          <line x1="50" y1="0" x2="50" y2={`-${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
+                                        </svg>
+                                      )}
+                                    </div>
+                                  )}
+                                </Draggable>
+                              );
+                            })}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
                     </motion.div>
                   );
                 })}
