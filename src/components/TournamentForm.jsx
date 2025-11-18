@@ -6,21 +6,23 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Trophy } from "lucide-react";
 
-export default function TournamentForm({ teams, onSubmit, onCancel }) {
+export default function TournamentForm({ teams, tournament, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
-    name: "",
-    sport: "basketball",
-    division: "",
-    num_teams: 8,
-    start_date: "",
-    end_date: "",
+    name: tournament?.name || "",
+    sport: tournament?.sport || "basketball",
+    division: tournament?.division || "",
+    num_teams: tournament?.num_teams || 8,
+    start_date: tournament?.start_date || "",
+    end_date: tournament?.end_date || "",
   });
 
-  const [bestOfSettings, setBestOfSettings] = useState({
-    quarter_finals: 1,
-    semi_finals: 3,
-    finals: 5,
-  });
+  const [bestOfSettings, setBestOfSettings] = useState(
+    tournament?.best_of_settings || {
+      quarter_finals: 1,
+      semi_finals: 3,
+      finals: 5,
+    }
+  );
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -83,11 +85,15 @@ export default function TournamentForm({ teams, onSubmit, onCancel }) {
                 onChange={(e) => setFormData({ ...formData, num_teams: parseInt(e.target.value) })}
                 className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 font-medium"
                 required
+                disabled={!!tournament}
               >
                 <option value="4">4 Teams</option>
                 <option value="8">8 Teams</option>
                 <option value="16">16 Teams</option>
               </select>
+              {tournament && (
+                <p className="text-xs text-gray-500 mt-1">Cannot change team count after creation</p>
+              )}
             </div>
           </div>
 
@@ -164,7 +170,7 @@ export default function TournamentForm({ teams, onSubmit, onCancel }) {
               Cancel
             </Button>
             <Button type="submit" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
-              Create Tournament
+              {tournament ? 'Update Tournament' : 'Create Tournament'}
             </Button>
           </div>
         </form>

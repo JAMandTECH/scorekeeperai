@@ -28,6 +28,7 @@ export default function TournamentBracket() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [editingTournament, setEditingTournament] = useState(null);
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [deletingTournament, setDeletingTournament] = useState(null);
   const queryClient = useQueryClient();
@@ -105,24 +106,33 @@ export default function TournamentBracket() {
     enabled: !!selectedTournament,
   });
 
-  const createTournamentMutation = useMutation({
-    mutationFn: async (data) => {
-      const tournament = await base44.entities.Tournament.create({
-        ...data,
-        organization_id: user?.organization_id,
-        status: 'setup',
-      });
-      
-      // Generate empty bracket structure
-      await generateEmptyBracket(tournament);
-      
-      return tournament;
+  const saveTournamentMutation = useMutation({
+    mutationFn: async ({ id, data }) => {
+      if (id) {
+        // Update existing tournament
+        return await base44.entities.Tournament.update(id, data);
+      } else {
+        // Create new tournament
+        const tournament = await base44.entities.Tournament.create({
+          ...data,
+          organization_id: user?.organization_id,
+          status: 'setup',
+        });
+        
+        // Generate empty bracket structure
+        await generateEmptyBracket(tournament);
+        
+        return tournament;
+      }
     },
-    onSuccess: (newTournament) => {
+    onSuccess: (tournament, variables) => {
       queryClient.invalidateQueries(['tournaments']);
       queryClient.invalidateQueries(['bracket-matches']);
       setShowForm(false);
-      setSelectedTournament(newTournament);
+      setEditingTournament(null);
+      if (!variables.id) {
+        setSelectedTournament(tournament);
+      }
     },
   });
 
@@ -335,17 +345,31 @@ export default function TournamentBracket() {
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between mb-4">
                           <Trophy className="w-8 h-8 text-yellow-500" />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeletingTournament(tournament);
-                            }}
-                            className="text-gray-400 hover:text-red-600"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingTournament(tournament);
+                                setShowForm(true);
+                              }}
+                              className="text-gray-400 hover:text-blue-600"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeletingTournament(tournament);
+                              }}
+                              className="text-gray-400 hover:text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
                         <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">
                           {tournament.name}
@@ -402,15 +426,27 @@ export default function TournamentBracket() {
                 </div>
               )}
 
-              <Dialog open={showForm} onOpenChange={setShowForm}>
+              <Dialog open={showForm} onOpenChange={(open) => {
+                setShowForm(open);
+                if (!open) setEditingTournament(null);
+              }}>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle className="text-2xl font-black">Create New Tournament</DialogTitle>
+                    <DialogTitle className="text-2xl font-black">
+                      {editingTournament ? 'Edit Tournament' : 'Create New Tournament'}
+                    </DialogTitle>
                   </DialogHeader>
                   <TournamentForm
                     teams={teams}
-                    onSubmit={(data) => createTournamentMutation.mutate(data)}
-                    onCancel={() => setShowForm(false)}
+                    tournament={editingTournament}
+                    onSubmit={(data) => saveTournamentMutation.mutate({ 
+                      id: editingTournament?.id, 
+                      data 
+                    })}
+                    onCancel={() => {
+                      setShowForm(false);
+                      setEditingTournament(null);
+                    }}
                   />
                 </DialogContent>
               </Dialog>
