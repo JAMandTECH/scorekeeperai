@@ -427,7 +427,30 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                 </div>
                 
                 <div className="relative" style={{ minHeight: '600px', minWidth: '1000px' }}>
-                  <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%', zIndex: 0 }}>
+                  {manualMatches.map((match) => (
+                    <ManualMatchCard
+                      key={match.id}
+                      match={match}
+                      theme={theme}
+                      teams={teams}
+                      getTeam={getTeam}
+                      renderTeamSlot={renderTeamSlot}
+                      onDrag={handleManualMatchDrag}
+                      onDelete={handleDeleteManualMatch}
+                      onConnect={() => {
+                        if (connectingFrom) {
+                          handleConnectMatches(connectingFrom, match.id);
+                        } else {
+                          setConnectingFrom(match.id);
+                        }
+                      }}
+                      isConnecting={connectingFrom === match.id}
+                      isSelected={selectedMatch === match.id}
+                      onSelect={() => setSelectedMatch(match.id)}
+                    />
+                  ))}
+                  
+                  <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%', zIndex: 1000 }}>
                     {connectors.map((conn, idx) => {
                       const fromMatch = manualMatches.find(m => m.id === conn.from);
                       const toMatch = manualMatches.find(m => m.id === conn.to);
@@ -452,29 +475,6 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                       );
                     })}
                   </svg>
-                  
-                  {manualMatches.map((match) => (
-                    <ManualMatchCard
-                      key={match.id}
-                      match={match}
-                      theme={theme}
-                      teams={teams}
-                      getTeam={getTeam}
-                      renderTeamSlot={renderTeamSlot}
-                      onDrag={handleManualMatchDrag}
-                      onDelete={handleDeleteManualMatch}
-                      onConnect={() => {
-                        if (connectingFrom) {
-                          handleConnectMatches(connectingFrom, match.id);
-                        } else {
-                          setConnectingFrom(match.id);
-                        }
-                      }}
-                      isConnecting={connectingFrom === match.id}
-                      isSelected={selectedMatch === match.id}
-                      onSelect={() => setSelectedMatch(match.id)}
-                    />
-                  ))}
                 </div>
               </div>
             ) : (
