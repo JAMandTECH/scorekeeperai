@@ -479,7 +479,7 @@ const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_
                                               className="absolute pointer-events-none" 
                                               style={{
                                                 left: '240px',
-                                                top: `${MATCH_HEIGHT / 2}px`,
+                                                top: `${MATCH_HEIGHT / 2 - (matchGap / 2 + MATCH_HEIGHT / 2)}px`,
                                                 width: '50px',
                                                 height: `${matchGap / 2 + MATCH_HEIGHT / 2}px`,
                                                 overflow: 'visible',
@@ -487,9 +487,9 @@ const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_
                                               }}
                                             >
                                               {/* Horizontal line out from this match */}
-                                              <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
+                                              <line x1="0" y1={matchGap / 2 + MATCH_HEIGHT / 2} x2="50" y2={matchGap / 2 + MATCH_HEIGHT / 2} stroke={theme.connector} strokeWidth="3" />
                                               {/* Vertical up to merge point */}
-                                              <line x1="50" y1="0" x2="50" y2={-(matchGap / 2 + MATCH_HEIGHT / 2)} stroke={theme.connector} strokeWidth="3" />
+                                              <line x1="50" y1={matchGap / 2 + MATCH_HEIGHT / 2} x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
                                             </svg>
                                           )}
                                         </>
