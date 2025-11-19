@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, GripVertical, Save, Palette } from "lucide-react";
+import { Trophy, GripVertical, Save, Palette, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -40,6 +40,10 @@ const THEME_OPTIONS = {
 export default function BracketVisual({ tournament, matches, teams, onMatchClick, onTeamDrop, onMatchReorder, onSave, canEdit = true }) {
   const [selectedTheme, setSelectedTheme] = useState('default');
   const [manualMode, setManualMode] = useState(false);
+  const [manualMatches, setManualMatches] = useState([]);
+  const [connectors, setConnectors] = useState([]);
+  const [selectedMatch, setSelectedMatch] = useState(null);
+  const [connectingFrom, setConnectingFrom] = useState(null);
   const theme = THEME_OPTIONS[selectedTheme];
   const getTeam = (teamId) => teams.find(t => t.id === teamId);
 
@@ -252,6 +256,39 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
 
   const hasAllTeamsSeeded = matches.filter(m => m.round_name === roundOrder[0]).every(m => m.home_team_id && m.away_team_id);
 
+  const handleAddManualMatch = () => {
+    const newMatch = {
+      id: `manual-${Date.now()}`,
+      home_team_id: null,
+      away_team_id: null,
+      status: 'pending',
+      required_wins: 1,
+      position: { x: 100, y: 100 + (manualMatches.length * 150) }
+    };
+    setManualMatches([...manualMatches, newMatch]);
+  };
+
+  const handleDeleteManualMatch = (matchId) => {
+    setManualMatches(manualMatches.filter(m => m.id !== matchId));
+    setConnectors(connectors.filter(c => c.from !== matchId && c.to !== matchId));
+    if (selectedMatch === matchId) setSelectedMatch(null);
+  };
+
+  const handleManualMatchDrag = (matchId, newPosition) => {
+    setManualMatches(manualMatches.map(m => 
+      m.id === matchId ? { ...m, position: newPosition } : m
+    ));
+  };
+
+  const handleConnectMatches = (fromId, toId) => {
+    if (fromId === toId) return;
+    const existingConnector = connectors.find(c => c.from === fromId && c.to === toId);
+    if (!existingConnector) {
+      setConnectors([...connectors, { from: fromId, to: toId }]);
+    }
+    setConnectingFrom(null);
+  };
+
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="space-y-6">
@@ -363,14 +400,85 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           )}
 
           <div className="bg-gradient-to-br from-gray-950 via-indigo-950/20 to-gray-950 rounded-xl p-4 md:p-8 border border-gray-800 shadow-2xl overflow-x-auto">
-            {manualMode && (
-              <div className="mb-4 p-4 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
-                <p className="text-yellow-200 text-sm font-semibold">
-                  🚧 Manual Mode: Custom bracket builder coming soon! You'll be able to add cards, draw connectors, and arrange everything manually.
-                </p>
+            {manualMode ? (
+              <div className="space-y-4">
+                <div className="flex gap-3 flex-wrap">
+                  <Button 
+                    onClick={handleAddManualMatch}
+                    className={`bg-gradient-to-r ${theme.primary} hover:opacity-90 text-white font-bold`}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Match Card
+                  </Button>
+                  {connectingFrom && (
+                    <Button 
+                      onClick={() => setConnectingFrom(null)}
+                      variant="outline"
+                      className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-bold"
+                    >
+                      Cancel Connection
+                    </Button>
+                  )}
+                  <div className={`px-4 py-2 rounded-lg border ${connectingFrom ? 'bg-blue-900/30 border-blue-500' : 'bg-gray-800 border-gray-700'}`}>
+                    <span className="text-sm font-semibold text-gray-300">
+                      {connectingFrom ? '🔗 Click target match to connect' : '💡 Select match → Connect → Select target'}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="relative" style={{ minHeight: '600px', minWidth: '1000px' }}>
+                  <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%', zIndex: 0 }}>
+                    {connectors.map((conn, idx) => {
+                      const fromMatch = manualMatches.find(m => m.id === conn.from);
+                      const toMatch = manualMatches.find(m => m.id === conn.to);
+                      if (!fromMatch || !toMatch) return null;
+                      
+                      const x1 = fromMatch.position.x + 240;
+                      const y1 = fromMatch.position.y + 50;
+                      const x2 = toMatch.position.x;
+                      const y2 = toMatch.position.y + 50;
+                      const midX = (x1 + x2) / 2;
+                      
+                      return (
+                        <g key={idx}>
+                          <path
+                            d={`M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`}
+                            stroke={theme.connector}
+                            strokeWidth="3"
+                            fill="none"
+                          />
+                          <circle cx={x2} cy={y2} r="5" fill={theme.connector} />
+                        </g>
+                      );
+                    })}
+                  </svg>
+                  
+                  {manualMatches.map((match) => (
+                    <ManualMatchCard
+                      key={match.id}
+                      match={match}
+                      theme={theme}
+                      teams={teams}
+                      getTeam={getTeam}
+                      renderTeamSlot={renderTeamSlot}
+                      onDrag={handleManualMatchDrag}
+                      onDelete={handleDeleteManualMatch}
+                      onConnect={() => {
+                        if (connectingFrom) {
+                          handleConnectMatches(connectingFrom, match.id);
+                        } else {
+                          setConnectingFrom(match.id);
+                        }
+                      }}
+                      isConnecting={connectingFrom === match.id}
+                      isSelected={selectedMatch === match.id}
+                      onSelect={() => setSelectedMatch(match.id)}
+                    />
+                  ))}
+                </div>
               </div>
-            )}
-            <div className="flex relative pb-4" style={{ minWidth: 'max-content', gap: '100px' }}>
+            ) : (
+              <div className="flex relative pb-4" style={{ minWidth: 'max-content', gap: '100px' }}>
               <AnimatePresence>
                 {roundOrder.map((roundName, roundIdx) => {
                   const roundMatches = matchesByRound[roundName] || [];
@@ -567,9 +675,107 @@ style={{
                 </motion.div>
               )}
             </div>
+            )}
           </div>
         </div>
       </div>
     </DragDropContext>
+  );
+}
+
+function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag, onDelete, onConnect, isConnecting, isSelected, onSelect }) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  const handleMouseDown = (e) => {
+    if (e.target.closest('.action-button')) return;
+    setIsDragging(true);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+    onSelect();
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    const container = e.currentTarget.closest('.relative');
+    const containerRect = container.getBoundingClientRect();
+    onDrag(match.id, {
+      x: e.clientX - containerRect.left - dragOffset.x,
+      y: e.clientY - containerRect.top - dragOffset.y
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  React.useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging]);
+
+  return (
+    <motion.div
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      style={{
+        position: 'absolute',
+        left: `${match.position.x}px`,
+        top: `${match.position.y}px`,
+        zIndex: isDragging ? 100 : isSelected ? 50 : 1
+      }}
+      className={`${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+      onMouseDown={handleMouseDown}
+    >
+      <div className={`bg-gray-900 rounded-lg border-2 ${isConnecting ? 'border-blue-500 shadow-2xl' : isSelected ? 'border-purple-500' : 'border-gray-800'} overflow-hidden hover:border-${theme.accent}-600 transition-all`} style={{ width: '240px' }}>
+        <div className="absolute top-2 right-2 flex gap-1 z-10 action-button">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onConnect();
+            }}
+            className={`p-1.5 ${isConnecting ? 'bg-blue-600' : 'bg-gray-800/80'} hover:bg-${theme.accent}-600 rounded transition-colors`}
+            title="Connect to another match"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(match.id);
+            }}
+            className="p-1.5 bg-gray-800/80 hover:bg-red-600 rounded transition-colors"
+            title="Delete match"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 6h18"/>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+            </svg>
+          </button>
+        </div>
+        <div className="space-y-1 p-2 pt-10">
+          {renderTeamSlot(match, 'home', match.home_team_id, false, match.id)}
+          {renderTeamSlot(match, 'away', match.away_team_id, false, match.id)}
+        </div>
+        <div className={`px-2 py-1.5 bg-${theme.accent}-900/30 border-t border-${theme.accent}-800/50 text-center`}>
+          <span className={`text-[10px] text-${theme.accent}-400 font-bold`}>
+            {match.required_wins > 1 ? `BEST OF ${(match.required_wins * 2) - 1}` : 'SINGLE GAME'}
+          </span>
+        </div>
+      </div>
+    </motion.div>
   );
 }
