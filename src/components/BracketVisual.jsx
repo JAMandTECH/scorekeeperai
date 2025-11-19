@@ -685,27 +685,24 @@ style={{
 
 function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag, onDelete, onConnect, isConnecting, isSelected, onSelect }) {
   const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const handleMouseDown = (e) => {
     if (e.target.closest('.action-button')) return;
     setIsDragging(true);
-    const rect = e.currentTarget.getBoundingClientRect();
-    setDragOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    });
+    setDragStart({ x: e.clientX, y: e.clientY });
     onSelect();
   };
 
   const handleMouseMove = (e) => {
     if (!isDragging) return;
-    const container = e.currentTarget.closest('.relative');
-    const containerRect = container.getBoundingClientRect();
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
     onDrag(match.id, {
-      x: e.clientX - containerRect.left - dragOffset.x,
-      y: e.clientY - containerRect.top - dragOffset.y
+      x: match.position.x + deltaX,
+      y: match.position.y + deltaY
     });
+    setDragStart({ x: e.clientX, y: e.clientY });
   };
 
   const handleMouseUp = () => {
@@ -721,7 +718,7 @@ function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag,
         window.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging]);
+  }, [isDragging, dragStart, match.position]);
 
   return (
     <motion.div
