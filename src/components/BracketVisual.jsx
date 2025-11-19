@@ -380,16 +380,17 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   const matchCount = sortedMatches.length;
                   const MATCH_HEIGHT = 100;
                   const BASE_GAP = 80;
-                  const spacingMultiplier = Math.pow(2, roundIdx);
-                  const matchGap = BASE_GAP * spacingMultiplier;
+                  
+                  // Calculate gap between matches in THIS round
+                  const matchGap = BASE_GAP * Math.pow(2, roundIdx);
 
-                  // Calculate proper vertical centering
-                  // First match of each round should start at the midpoint of first two matches of previous round
+                  // Calculate vertical offset to center this round relative to previous round
                   let topOffset = 0;
                   if (roundIdx > 0) {
-                    // Each match in this round sits between 2 matches in previous round
-                    // So offset = (previous match height + previous gap) / 2
+                    // Previous round's gap between matches
                     const prevGap = BASE_GAP * Math.pow(2, roundIdx - 1);
+                    // This round should be centered between each pair of previous round matches
+                    // Offset = half of (one match height + gap to next match)
                     topOffset = (MATCH_HEIGHT + prevGap) / 2;
                   }
 
