@@ -408,6 +408,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                             {sortedMatches.map((match, matchIdx) => {
                               const isPairFirst = matchIdx % 2 === 0;
                               const shouldDrawConnector = roundIdx < roundOrder.length - 1;
+                              const isFinals = roundName === 'finals';
 
                               return (
                                 <Draggable 
@@ -429,6 +430,24 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                                     >
                                       {renderMatch(match, canEdit)}
 
+                                      {/* Incoming connector for finals */}
+                                      {!dragSnapshot.isDragging && isFinals && (
+                                        <svg 
+                                          className="absolute pointer-events-none" 
+                                          style={{
+                                            right: '240px',
+                                            top: `${MATCH_HEIGHT / 2}px`,
+                                            width: '100px',
+                                            height: '1px',
+                                            overflow: 'visible',
+                                            zIndex: 1
+                                          }}
+                                        >
+                                          <line x1="0" y1="0" x2="100" y2="0" stroke={theme.connector} strokeWidth="3" />
+                                        </svg>
+                                      )}
+
+                                      {/* Outgoing connectors for non-finals */}
                                       {!dragSnapshot.isDragging && shouldDrawConnector && isPairFirst && (
                                         <svg 
                                           className="absolute pointer-events-none" 
