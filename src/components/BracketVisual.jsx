@@ -458,38 +458,29 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                                       {!dragSnapshot.isDragging && shouldDrawConnector && (
                                         <>
                                           {isPairFirst && (
-                                            <svg 
-                                              className="absolute pointer-events-none" 
-                                              style={{
-                                                left: '240px',
-                                                top: `${MATCH_HEIGHT / 2}px`,
-                                                width: '100px',
-                                                height: `${matchGap + MATCH_HEIGHT}px`,
-                                                overflow: 'visible',
-                                                zIndex: 1
-                                              }}
-                                            >
-                                              <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
-                                              <line x1="50" y1="0" x2="50" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
-                                              <line x1="50" y1={`${(matchGap + MATCH_HEIGHT) / 2}`} x2="100" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
-                                            </svg>
-                                          )}
-                                          {!isPairFirst && (
-                                            <svg 
-                                              className="absolute pointer-events-none" 
-                                              style={{
-                                                left: '240px',
-                                                top: `${MATCH_HEIGHT / 2}px`,
-                                                width: '50px',
-                                                height: '1px',
-                                                overflow: 'visible',
-                                                zIndex: 1
-                                              }}
-                                            >
-                                              <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
-                                              <line x1="50" y1="0" x2="50" y2={`-${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
-                                            </svg>
-                                          )}
+                                                                                      <svg 
+                                                                                        className="absolute pointer-events-none" 
+                                                                                        style={{
+                                                                                          left: '240px',
+                                                                                          top: `${MATCH_HEIGHT / 2}px`,
+                                                                                          width: '100px',
+                                                                                          height: `${matchGap + MATCH_HEIGHT}px`,
+                                                                                          overflow: 'visible',
+                                                                                          zIndex: 1
+                                                                                        }}
+                                                                                      >
+                                                                                        {/* Top match outgoing line */}
+                                                                                        <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
+                                                                                        {/* Vertical down to merge point */}
+                                                                                        <line x1="50" y1="0" x2="50" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
+                                                                                        {/* Bottom match outgoing line */}
+                                                                                        <line x1="0" y1={`${matchGap + MATCH_HEIGHT}`} x2="50" y2={`${matchGap + MATCH_HEIGHT}`} stroke={theme.connector} strokeWidth="3" />
+                                                                                        {/* Vertical up to merge point */}
+                                                                                        <line x1="50" y1={`${matchGap + MATCH_HEIGHT}`} x2="50" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
+                                                                                        {/* Merged line to next round */}
+                                                                                        <line x1="50" y1={`${(matchGap + MATCH_HEIGHT) / 2}`} x2="100" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
+                                                                                      </svg>
+                                                                                    )}
                                         </>
                                       )}
                                     </div>
