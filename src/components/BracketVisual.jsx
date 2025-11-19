@@ -466,16 +466,16 @@ const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_
                                                                                           zIndex: 1
                                                                                         }}
                                                                                       >
-                                                                                        {/* Top match outgoing line */}
+                                                                                        {/* Top match (this card) outgoing line */}
                                                                                         <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
                                                                                         {/* Vertical down to merge point */}
-                                                                                        <line x1="50" y1="0" x2="50" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
-                                                                                        {/* Bottom match outgoing line */}
-                                                                                        <line x1="0" y1={`${matchGap + MATCH_HEIGHT}`} x2="50" y2={`${matchGap + MATCH_HEIGHT}`} stroke={theme.connector} strokeWidth="3" />
-                                                                                        {/* Vertical up to merge point */}
-                                                                                        <line x1="50" y1={`${matchGap + MATCH_HEIGHT}`} x2="50" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
+                                                                                        <line x1="50" y1="0" x2="50" y2={matchGap / 2 + MATCH_HEIGHT / 2} stroke={theme.connector} strokeWidth="3" />
+                                                                                        {/* Bottom match (pair) outgoing line - starts from its center */}
+                                                                                        <line x1="0" y1={matchGap + MATCH_HEIGHT} x2="50" y2={matchGap + MATCH_HEIGHT} stroke={theme.connector} strokeWidth="3" />
+                                                                                        {/* Vertical up from bottom match to merge point */}
+                                                                                        <line x1="50" y1={matchGap + MATCH_HEIGHT} x2="50" y2={matchGap / 2 + MATCH_HEIGHT / 2} stroke={theme.connector} strokeWidth="3" />
                                                                                         {/* Merged line to next round */}
-                                                                                        <line x1="50" y1={`${(matchGap + MATCH_HEIGHT) / 2}`} x2="100" y2={`${(matchGap + MATCH_HEIGHT) / 2}`} stroke={theme.connector} strokeWidth="3" />
+                                                                                        <line x1="50" y1={matchGap / 2 + MATCH_HEIGHT / 2} x2="100" y2={matchGap / 2 + MATCH_HEIGHT / 2} stroke={theme.connector} strokeWidth="3" />
                                                                                       </svg>
                                                                                     )}
                                         </>
