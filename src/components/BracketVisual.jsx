@@ -368,7 +368,12 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   const spacingMultiplier = Math.pow(2, roundIdx);
                   const matchGap = BASE_GAP * spacingMultiplier;
 
-                  const topOffset = roundIdx > 0 ? (matchGap + MATCH_HEIGHT) / 2 * Math.pow(2, roundIdx - 1) : 0;
+                  // Calculate proper vertical centering
+                  let topOffset = 0;
+                  if (roundIdx > 0) {
+                    const prevRoundGap = BASE_GAP * Math.pow(2, roundIdx - 1);
+                    topOffset = (prevRoundGap + MATCH_HEIGHT) / 2;
+                  }
 
                   return (
                     <motion.div 
@@ -500,7 +505,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                 <motion.div 
                   className="flex items-center pl-4 md:pl-8" 
                   style={{ 
-                    marginTop: roundOrder.length > 1 ? `${(80 * Math.pow(2, roundOrder.length - 2) + 100) / 2 * Math.pow(2, roundOrder.length - 2) + 80}px` : '0px'
+                    marginTop: roundOrder.length > 1 ? `${(80 * Math.pow(2, roundOrder.length - 2) + 100) / 2 + 50}px` : '50px'
                   }}
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
