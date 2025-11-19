@@ -402,7 +402,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           <div className="bg-gradient-to-br from-gray-950 via-indigo-950/20 to-gray-950 rounded-xl p-4 md:p-8 border border-gray-800 shadow-2xl overflow-x-auto">
             {manualMode ? (
               <div className="space-y-4">
-                <div className="flex gap-3 flex-wrap">
+                <div className="flex gap-3 flex-wrap items-center">
                   <Button 
                     onClick={handleAddManualMatch}
                     className={`bg-gradient-to-r ${theme.primary} hover:opacity-90 text-white font-bold`}
@@ -417,6 +417,15 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                       className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-bold"
                     >
                       Cancel Connection
+                    </Button>
+                  )}
+                  {manualMatches.length > 0 && onSave && (
+                    <Button 
+                      onClick={onSave}
+                      className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Manual Bracket
                     </Button>
                   )}
                   <div className={`px-4 py-2 rounded-lg border ${connectingFrom ? 'bg-blue-900/30 border-blue-500' : 'bg-gray-800 border-gray-700'}`}>
