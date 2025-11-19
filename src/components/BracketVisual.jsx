@@ -39,6 +39,7 @@ const THEME_OPTIONS = {
 
 export default function BracketVisual({ tournament, matches, teams, onMatchClick, onTeamDrop, onMatchReorder, onSave, canEdit = true }) {
   const [selectedTheme, setSelectedTheme] = useState('default');
+  const [manualMode, setManualMode] = useState(false);
   const theme = THEME_OPTIONS[selectedTheme];
   const getTeam = (teamId) => teams.find(t => t.id === teamId);
 
@@ -288,8 +289,15 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   </button>
                 ))}
               </div>
+              <Button
+                onClick={() => setManualMode(!manualMode)}
+                variant="outline"
+                className="text-xs font-bold"
+              >
+                {manualMode ? '🤖 Auto Mode' : '✋ Manual Mode'}
+              </Button>
               <Badge className={`text-xs md:text-sm px-3 md:px-4 py-1.5 bg-gradient-to-r ${theme.primary} text-white font-black`}>
-                TOURNAMENT BRACKET
+                {manualMode ? 'MANUAL BUILDER' : 'TOURNAMENT BRACKET'}
               </Badge>
               {canEdit && hasAllTeamsSeeded && onSave && (
                 <Button 
@@ -355,6 +363,13 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           )}
 
           <div className="bg-gradient-to-br from-gray-950 via-indigo-950/20 to-gray-950 rounded-xl p-4 md:p-8 border border-gray-800 shadow-2xl overflow-x-auto">
+            {manualMode && (
+              <div className="mb-4 p-4 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
+                <p className="text-yellow-200 text-sm font-semibold">
+                  🚧 Manual Mode: Custom bracket builder coming soon! You'll be able to add cards, draw connectors, and arrange everything manually.
+                </p>
+              </div>
+            )}
             <div className="flex relative pb-4" style={{ minWidth: 'max-content', gap: '100px' }}>
               <AnimatePresence>
                 {roundOrder.map((roundName, roundIdx) => {
@@ -369,11 +384,13 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   const matchGap = BASE_GAP * spacingMultiplier;
 
                   // Calculate proper vertical centering
-                  // Each round should be centered relative to the previous round
+                  // First match of each round should start at the midpoint of first two matches of previous round
                   let topOffset = 0;
                   if (roundIdx > 0) {
-                    const prevRoundGap = BASE_GAP * Math.pow(2, roundIdx - 1);
-                    topOffset = (prevRoundGap + MATCH_HEIGHT) / 2;
+                    // Each match in this round sits between 2 matches in previous round
+                    // So offset = (previous match height + previous gap) / 2
+                    const prevGap = BASE_GAP * Math.pow(2, roundIdx - 1);
+                    topOffset = (MATCH_HEIGHT + prevGap) / 2;
                   }
 
                   return (
@@ -508,13 +525,14 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   style={{ 
                     marginTop: (() => {
                       if (roundOrder.length === 1) return '50px';
-                      // Champion should align with finals card
-                      // Calculate cumulative offset for finals
+                      // Champion should align with finals card center
+                      // Calculate the same cumulative offset as finals
                       let cumulativeOffset = 0;
                       for (let i = 1; i < roundOrder.length; i++) {
-                        const prevRoundGap = 80 * Math.pow(2, i - 1);
-                        cumulativeOffset += (prevRoundGap + 100) / 2;
+                        const prevGap = 80 * Math.pow(2, i - 1);
+                        cumulativeOffset += (100 + prevGap) / 2;
                       }
+                      // Add half match height to center on the finals card
                       return `${cumulativeOffset + 50}px`;
                     })()
                   }}
