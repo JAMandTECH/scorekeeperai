@@ -376,7 +376,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   const roundMatches = matchesByRound[roundName] || [];
                   if (roundMatches.length === 0) return null;
 
-                  const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
+const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
                   const matchCount = sortedMatches.length;
                   const MATCH_HEIGHT = 100;
                   const BASE_GAP = 80;
@@ -384,14 +384,11 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   // Calculate gap between matches in THIS round
                   const matchGap = BASE_GAP * Math.pow(2, roundIdx);
 
-                  // Calculate vertical offset to center this round relative to previous round
+                  // Calculate vertical offset - cumulative from first round
                   let topOffset = 0;
-                  if (roundIdx > 0) {
-                    // Previous round's gap between matches
-                    const prevGap = BASE_GAP * Math.pow(2, roundIdx - 1);
-                    // This round should be centered between each pair of previous round matches
-                    // Offset = half of (one match height + gap to next match)
-                    topOffset = (MATCH_HEIGHT + prevGap) / 2;
+                  for (let i = 0; i < roundIdx; i++) {
+                    const gapAtLevel = BASE_GAP * Math.pow(2, i);
+                    topOffset += (MATCH_HEIGHT + gapAtLevel) / 2;
                   }
 
                   return (
@@ -500,18 +497,20 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
               {champion && (
                 <motion.div 
                   className="flex items-center pl-4 md:pl-8" 
-                  style={{ 
+style={{ 
                     marginTop: (() => {
                       if (roundOrder.length === 1) return '50px';
-                      // Champion should align with finals card center
-                      // Calculate the same cumulative offset as finals
+                      // Calculate cumulative offset for finals round
+                      const MATCH_HEIGHT = 100;
+                      const BASE_GAP = 80;
                       let cumulativeOffset = 0;
-                      for (let i = 1; i < roundOrder.length; i++) {
-                        const prevGap = 80 * Math.pow(2, i - 1);
-                        cumulativeOffset += (100 + prevGap) / 2;
+                      const finalsRoundIdx = roundOrder.length - 1;
+                      for (let i = 0; i < finalsRoundIdx; i++) {
+                        const gapAtLevel = BASE_GAP * Math.pow(2, i);
+                        cumulativeOffset += (MATCH_HEIGHT + gapAtLevel) / 2;
                       }
                       // Add half match height to center on the finals card
-                      return `${cumulativeOffset + 50}px`;
+                      return `${cumulativeOffset + (MATCH_HEIGHT / 2)}px`;
                     })()
                   }}
                   initial={{ scale: 0, rotate: -180 }}
