@@ -368,11 +368,14 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   const spacingMultiplier = Math.pow(2, roundIdx);
                   const matchGap = BASE_GAP * spacingMultiplier;
 
-                  // Calculate proper vertical centering
+                  // Calculate proper vertical centering - each round is offset by half the previous round's total height
                   let topOffset = 0;
                   if (roundIdx > 0) {
+                    // Calculate the total height of the previous round
+                    const prevRoundMatches = Math.pow(2, roundOrder.length - roundIdx);
                     const prevRoundGap = BASE_GAP * Math.pow(2, roundIdx - 1);
-                    topOffset = (prevRoundGap + MATCH_HEIGHT) / 2;
+                    const prevRoundTotalHeight = prevRoundMatches * MATCH_HEIGHT + (prevRoundMatches - 1) * prevRoundGap;
+                    topOffset = prevRoundTotalHeight / 2;
                   }
 
                   return (
@@ -505,7 +508,18 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                 <motion.div 
                   className="flex items-center pl-4 md:pl-8" 
                   style={{ 
-                    marginTop: roundOrder.length > 1 ? `${(80 * Math.pow(2, roundOrder.length - 2) + 100) / 2 + 50}px` : '50px'
+                    marginTop: (() => {
+                      if (roundOrder.length === 1) return '50px';
+                      // Calculate the finals card position
+                      let finalsOffset = 0;
+                      for (let i = 1; i < roundOrder.length; i++) {
+                        const prevRoundMatches = Math.pow(2, roundOrder.length - i);
+                        const prevRoundGap = 80 * Math.pow(2, i - 1);
+                        finalsOffset = prevRoundMatches * 100 + (prevRoundMatches - 1) * prevRoundGap;
+                        finalsOffset = finalsOffset / 2;
+                      }
+                      return `${finalsOffset + 50}px`;
+                    })()
                   }}
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
