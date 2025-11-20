@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap } from "lucide-react";
+import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap, Edit } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,6 +29,7 @@ import {
 
 export default function Games() {
   const [showForm, setShowForm] = useState(false);
+  const [editingGame, setEditingGame] = useState(null);
   const [deletingGame, setDeletingGame] = useState(null);
   const [archivingGame, setArchivingGame] = useState(null);
   const [restoringGame, setRestoringGame] = useState(null);
@@ -157,6 +158,17 @@ export default function Games() {
     return conflictingGames;
   };
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Game.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['games']);
+      setShowForm(false);
+      setEditingGame(null);
+      setConflicts([]);
+      setSelectedScorekeeperEmails([]);
+    },
+  });
+
   const createMutation = useMutation({
     mutationFn: async (data) => {
       if (Array.isArray(data)) {
@@ -268,7 +280,38 @@ export default function Games() {
       archived: false,
     };
 
-    createMutation.mutate(data);
+    if (editingGame) {
+      updateMutation.mutate({ id: editingGame.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  const handleEditGame = (game) => {
+    setEditingGame(game);
+    setSelectedScorekeeperEmails(game.assigned_scorekeeper_emails || []);
+    setShowForm(true);
+    
+    setTimeout(() => {
+      const form = document.getElementById('game-form');
+      if (form) {
+        form.sport.value = game.sport || '';
+        form.game_type.value = game.game_type || 'regular_season';
+        form.home_team_id.value = game.home_team_id || '';
+        form.away_team_id.value = game.away_team_id || '';
+        form.location.value = game.location || '';
+        form.court_number.value = game.court_number || '';
+        form.penalty_limit_per_quarter.value = game.penalty_limit_per_quarter || 5;
+        form.player_foul_limit.value = game.player_foul_limit || 5;
+        
+        if (game.game_date) {
+          const localDate = new Date(game.game_date);
+          const offset = localDate.getTimezoneOffset();
+          const adjustedDate = new Date(localDate.getTime() - (offset * 60 * 1000));
+          form.game_date.value = adjustedDate.toISOString().slice(0, 16);
+        }
+      }
+    }, 100);
   };
 
   const aiGenerateMutation = useMutation({
@@ -429,14 +472,24 @@ Return ONLY a JSON array of game objects with home_team_id and away_team_id prop
                 {game.sport}
               </Badge>
               {showActions && game.status === 'scheduled' && !game.archived && (
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => handleDeleteClick(game)}
-                  className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => handleEditGame(game)}
+                    className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => handleDeleteClick(game)}
+                    className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               )}
             </div>
           </div>
@@ -691,11 +744,14 @@ Return ONLY a JSON array of game objects with home_team_id and away_team_id prop
                   setConflicts([]);
                   setRecurringConfig({ enabled: false });
                   setSelectedScorekeeperEmails([]);
+                  setEditingGame(null);
                 }
               }}>
                 <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">Schedule New Game</DialogTitle>
+                    <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                      {editingGame ? 'Edit Game' : 'Schedule New Game'}
+                    </DialogTitle>
                   </DialogHeader>
                   <form id="game-form" onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -862,15 +918,16 @@ Return ONLY a JSON array of game objects with home_team_id and away_team_id prop
                         setConflicts([]); 
                         setRecurringConfig({ enabled: false });
                         setSelectedScorekeeperEmails([]);
+                        setEditingGame(null);
                       }} className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold">
                         Cancel
                       </Button>
                       <Button 
                         type="submit" 
-                        disabled={createMutation.isLoading}
+                        disabled={createMutation.isLoading || updateMutation.isLoading}
                         className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
                       >
-                        {createMutation.isLoading ? 'Scheduling...' : (recurringConfig.enabled ? `Schedule ${recurringConfig.occurrences} Games` : 'Schedule Game')}
+                        {editingGame ? (updateMutation.isLoading ? 'Updating...' : 'Update Game') : (createMutation.isLoading ? 'Scheduling...' : (recurringConfig.enabled ? `Schedule ${recurringConfig.occurrences} Games` : 'Schedule Game'))}
                       </Button>
                     </div>
                   </form>
