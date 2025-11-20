@@ -15,9 +15,10 @@ export default function AdminHeader({
   setSidebarOpen 
 }) {
   const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
+  const isAdmin = user?.role === 'admin' && !user?.is_super_admin;
   const isScorekeeper = user?.is_scorekeeper === true && user?.role !== 'admin';
   
-  const userRoleLabel = isScorekeeper ? 'Scorekeeper' : (isSuperAdmin ? 'Super Administrator' : 'Administrator');
+  const userRoleLabel = isSuperAdmin ? 'Super Administrator' : (isAdmin ? 'Administrator' : (isScorekeeper ? 'Scorekeeper' : 'User'));
 
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50 shadow-sm">
