@@ -270,13 +270,22 @@ export default function TournamentBracket() {
     }
   };
 
-  const handleSaveBracket = async () => {
+  const handleSaveBracket = async (manualData) => {
     try {
+      const updateData = manualData 
+        ? { 
+            is_manual_bracket: true,
+            manual_matches: manualData.manualMatches,
+            manual_connectors: manualData.connectors,
+            status: 'in_progress'
+          }
+        : { status: 'in_progress' };
+
       await updateTournamentMutation.mutateAsync({
         id: selectedTournament.id,
-        data: { status: 'in_progress' }
+        data: updateData
       });
-      
+
       alert("Bracket saved successfully!");
     } catch (error) {
       console.error("Error saving bracket:", error);

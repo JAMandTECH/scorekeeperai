@@ -39,9 +39,9 @@ const THEME_OPTIONS = {
 
 export default function BracketVisual({ tournament, matches, teams, onMatchClick, onTeamDrop, onMatchReorder, onSave, canEdit = true }) {
   const [selectedTheme, setSelectedTheme] = useState('default');
-  const [manualMode, setManualMode] = useState(false);
-  const [manualMatches, setManualMatches] = useState([]);
-  const [connectors, setConnectors] = useState([]);
+  const [manualMode, setManualMode] = useState(tournament?.is_manual_bracket || false);
+  const [manualMatches, setManualMatches] = useState(tournament?.manual_matches || []);
+  const [connectors, setConnectors] = useState(tournament?.manual_connectors || []);
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [connectingFrom, setConnectingFrom] = useState(null);
   const theme = THEME_OPTIONS[selectedTheme];
@@ -421,7 +421,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   )}
                   {manualMatches.length > 0 && onSave && (
                     <Button 
-                      onClick={onSave}
+                      onClick={() => onSave({ manualMatches, connectors })}
                       className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold"
                     >
                       <Save className="w-4 h-4 mr-2" />
