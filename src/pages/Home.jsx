@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, BarChart3, Home as HomeIcon, PlayCircle } from "lucide-react";
+import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, BarChart3, Home as HomeIcon, PlayCircle, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -132,7 +131,14 @@ export default function Home() {
 
   const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
   const isAdmin = user?.role === 'admin';
-  const navigationItems = isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : []);
+  
+  // Navigation for non-admin users (ordinary users)
+  const userNav = [
+    { title: "Home", url: createPageUrl("Home"), icon: HomeIcon },
+    { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
+  ];
+  
+  const navigationItems = isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : userNav);
 
   // Fetch all data - but conditionally based on auth
   const { data: allTeams = [] } = useQuery({
