@@ -236,10 +236,23 @@ export default function Games() {
   const clearAllScheduledMutation = useMutation({
     mutationFn: async () => {
       const scheduledGameIds = scheduledGames.map(g => g.id);
-      await Promise.all(scheduledGameIds.map(id => base44.entities.Game.delete(id)));
+      console.log("Deleting games:", scheduledGameIds);
+      const results = await Promise.allSettled(scheduledGameIds.map(id => base44.entities.Game.delete(id)));
+      const failed = results.filter(r => r.status === 'rejected');
+      if (failed.length > 0) {
+        console.error("Failed deletions:", failed);
+        throw new Error(`Failed to delete ${failed.length} game(s)`);
+      }
+      return results;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['games']);
+      setShowClearAllDialog(false);
+      alert(`Successfully deleted ${scheduledGames.length} scheduled games.`);
+    },
+    onError: (error) => {
+      console.error("Clear all failed:", error);
+      alert(`Error: ${error.message}`);
       setShowClearAllDialog(false);
     },
   });
