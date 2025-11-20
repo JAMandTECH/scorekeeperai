@@ -498,16 +498,18 @@ const matchCount = sortedMatches.length;
 const MATCH_HEIGHT = 100;
 const BASE_GAP = 80;
 
-// Calculate gap between matches in THIS round
-const matchGap = BASE_GAP * Math.pow(2, roundIdx);
+// Calculate gap between matches to align with merge points from previous round
+// Formula: gap[i] = 2^i * BASE_GAP + (2^i - 1) * MATCH_HEIGHT
+const matchGap = Math.pow(2, roundIdx) * BASE_GAP + (Math.pow(2, roundIdx) - 1) * MATCH_HEIGHT;
 
-// Calculate vertical offset to align with connector midpoints
+// Calculate vertical offset to center first match on merge point from previous round
 let topOffset = 0;
 if (roundIdx > 0) {
-  // For rounds after the first, offset by the height of previous round matches plus half their gap
+  // Position first match center at the merge point of first pair from previous round
+  let prevGap = BASE_GAP;
   for (let i = 0; i < roundIdx; i++) {
-    const gapAtLevel = BASE_GAP * Math.pow(2, i);
-    topOffset += MATCH_HEIGHT / 2 + gapAtLevel / 2;
+    topOffset += MATCH_HEIGHT / 2 + prevGap / 2;
+    prevGap = Math.pow(2, i + 1) * BASE_GAP + (Math.pow(2, i + 1) - 1) * MATCH_HEIGHT;
   }
 }
 
