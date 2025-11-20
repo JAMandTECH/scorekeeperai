@@ -459,7 +459,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                     />
                   ))}
                   
-                  <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%', zIndex: 1000 }}>
+                  <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: '2000px', zIndex: 1000 }}>
                     {connectors.map((conn, idx) => {
                       const fromMatch = manualMatches.find(m => m.id === conn.from);
                       const toMatch = manualMatches.find(m => m.id === conn.to);
