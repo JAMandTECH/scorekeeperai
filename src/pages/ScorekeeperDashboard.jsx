@@ -73,40 +73,21 @@ export default function ScorekeeperDashboard() {
   const { data: myGames = [] } = useQuery({
     queryKey: ['my-scorekeeper-games', user?.email],
     queryFn: async () => {
-      console.log("=== FETCHING GAMES FOR SCOREKEEPER ===");
-      console.log("User email from query:", user?.email);
-      
-      // Get ALL games (no RLS)
       const allGames = await base44.entities.Game.list('-game_date');
-      console.log("Total games from API:", allGames.length);
       
-      // DEBUG: Log all games with their assigned scorekeepers
-      console.log("All games with scorekeeper assignments:", allGames.map(g => ({
-        id: g.id,
-        sport: g.sport,
-        status: g.status,
-        assigned_scorekeeper_emails: g.assigned_scorekeeper_emails,
-        assigned_scorekeeper_emails_type: typeof g.assigned_scorekeeper_emails,
-        assigned_scorekeeper_emails_is_array: Array.isArray(g.assigned_scorekeeper_emails)
-      })));
-      
-      // Filter games where scorekeeper email is in the array
+      // Filter games assigned to this scorekeeper
+      // Handle both old format (assigned_scorekeeper_email string) and new format (assigned_scorekeeper_emails array)
       const myAssignedGames = allGames.filter(game => {
-        const emails = game.assigned_scorekeeper_emails || [];
-        const isAssigned = emails.includes(user?.email);
-        console.log(`Game ${game.id}: emails=${JSON.stringify(emails)}, includes ${user?.email}? ${isAssigned}`);
-        return isAssigned;
+        // Check new format (array)
+        if (Array.isArray(game.assigned_scorekeeper_emails)) {
+          return game.assigned_scorekeeper_emails.includes(user?.email);
+        }
+        // Check old format (single string)
+        if (game.assigned_scorekeeper_email) {
+          return game.assigned_scorekeeper_email === user?.email;
+        }
+        return false;
       });
-      
-      console.log("Games assigned to this scorekeeper:", myAssignedGames.length);
-      console.log("My games data:", JSON.stringify(myAssignedGames.map(g => ({
-        id: g.id,
-        sport: g.sport,
-        home_team_id: g.home_team_id,
-        away_team_id: g.away_team_id,
-        assigned_scorekeeper_emails: g.assigned_scorekeeper_emails,
-        status: g.status
-      })), null, 2));
       
       return myAssignedGames;
     },
