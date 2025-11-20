@@ -12,6 +12,7 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import TournamentForm from "@/components/TournamentForm";
 import BracketVisual from "@/components/BracketVisual";
+import BracketShareButton from "@/components/tournament/BracketShareButton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -436,13 +437,20 @@ export default function TournamentBracket() {
 
               {selectedTournament && (
                 <div className="space-y-6">
-                  <Button
-                    variant="outline"
-                    onClick={() => setSelectedTournament(null)}
-                    className="font-bold"
-                  >
-                    ← Back to Tournaments
-                  </Button>
+                  <div className="flex justify-between items-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => setSelectedTournament(null)}
+                      className="font-bold"
+                    >
+                      ← Back to Tournaments
+                    </Button>
+                    <BracketShareButton 
+                      tournament={selectedTournament}
+                      user={user}
+                      organizationId={user?.organization_id}
+                    />
+                  </div>
                   <BracketVisual
                     tournament={selectedTournament}
                     matches={allMatches}
