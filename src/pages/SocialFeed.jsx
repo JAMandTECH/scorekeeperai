@@ -1,0 +1,159 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { Users, Home as HomeIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import AdminHeader from "@/components/AdminHeader";
+import AdminSidebar from "@/components/AdminSidebar";
+import PostCreator from "@/components/social/PostCreator";
+import SocialPostCard from "@/components/social/SocialPostCard";
+
+export default function SocialFeed() {
+  const [user, setUser] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadUser();
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
+  const loadUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+    } catch (error) {
+      console.error("Error loading user:", error);
+      base44.auth.redirectToLogin(createPageUrl("SocialFeed"));
+    }
+  };
+
+  const handleLogout = () => {
+    base44.auth.logout(createPageUrl("Home"));
+  };
+
+  const { data: organization } = useQuery({
+    queryKey: ['organization', user?.organization_id || user?.active_organization_id],
+    queryFn: async () => {
+      const orgs = await base44.entities.Organization.list();
+      return orgs.find(o => o.id === (user?.organization_id || user?.active_organization_id));
+    },
+    enabled: !!(user?.organization_id || user?.active_organization_id),
+  });
+
+  const { data: posts = [], refetch: refetchPosts } = useQuery({
+    queryKey: ['social-posts', organization?.id],
+    queryFn: () => base44.entities.SocialPost.filter({ 
+      organization_id: organization.id 
+    }, '-created_date'),
+    enabled: !!organization,
+  });
+
+  const navigationItems = user?.role === 'admin' ? null : [
+    { title: "Organization Home", url: createPageUrl("Home"), icon: HomeIcon },
+    { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: Users },
+  ];
+
+  if (!user || !organization) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900">
+      <AdminHeader 
+        user={user}
+        organization={organization}
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
+        handleLogout={handleLogout}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
+
+      <div className="flex">
+        <AdminSidebar 
+          user={user}
+          organization={organization}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          handleLogout={handleLogout}
+          navigationItems={navigationItems}
+        />
+
+        <main className="flex-1 min-w-0">
+          <div className="p-6 lg:p-8">
+            <div className="max-w-3xl mx-auto space-y-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h1 className="text-4xl font-black text-gray-900 dark:text-white">Social Feed</h1>
+                  <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">
+                    Share updates, photos, and videos with {organization.name}
+                  </p>
+                </div>
+                <Button
+                  onClick={() => navigate(createPageUrl("Home"))}
+                  variant="outline"
+                  className="font-bold"
+                >
+                  <HomeIcon className="w-4 h-4 mr-2" />
+                  Home
+                </Button>
+              </div>
+
+              <PostCreator 
+                user={user} 
+                organizationId={organization.id}
+                onPostCreated={refetchPosts}
+              />
+
+              <div className="space-y-4">
+                {posts.length === 0 && (
+                  <div className="text-center py-20">
+                    <div className="w-24 h-24 bg-gradient-to-br from-blue-200 to-indigo-300 dark:from-blue-800 dark:to-indigo-900 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Users className="w-12 h-12 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">No posts yet</h3>
+                    <p className="text-gray-600 dark:text-gray-400 font-medium">
+                      Be the first to share something with your organization!
+                    </p>
+                  </div>
+                )}
+
+                {posts.map(post => (
+                  <SocialPostCard
+                    key={post.id}
+                    post={post}
+                    user={user}
+                    canDelete={user.role === 'admin' || post.user_id === user.id}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
