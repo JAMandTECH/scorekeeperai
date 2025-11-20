@@ -494,19 +494,22 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   if (roundMatches.length === 0) return null;
 
 const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
-                  const matchCount = sortedMatches.length;
-                  const MATCH_HEIGHT = 100;
-                  const BASE_GAP = 80;
-                  
-                  // Calculate gap between matches in THIS round
-                  const matchGap = BASE_GAP * Math.pow(2, roundIdx);
+const matchCount = sortedMatches.length;
+const MATCH_HEIGHT = 100;
+const BASE_GAP = 80;
 
-                  // Calculate vertical offset - cumulative from first round
-                  let topOffset = 0;
-                  for (let i = 0; i < roundIdx; i++) {
-                    const gapAtLevel = BASE_GAP * Math.pow(2, i);
-                    topOffset += (MATCH_HEIGHT + gapAtLevel) / 2;
-                  }
+// Calculate gap between matches in THIS round
+const matchGap = BASE_GAP * Math.pow(2, roundIdx);
+
+// Calculate vertical offset to align with connector midpoints
+let topOffset = 0;
+if (roundIdx > 0) {
+  // For rounds after the first, offset by the height of previous round matches plus half their gap
+  for (let i = 0; i < roundIdx; i++) {
+    const gapAtLevel = BASE_GAP * Math.pow(2, i);
+    topOffset += MATCH_HEIGHT / 2 + gapAtLevel / 2;
+  }
+}
 
                   return (
                     <motion.div 
