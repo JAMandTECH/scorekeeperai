@@ -236,24 +236,38 @@ export default function Games() {
   const clearAllScheduledMutation = useMutation({
     mutationFn: async () => {
       const scheduledGameIds = scheduledGames.map(g => g.id);
-      console.log("Deleting games:", scheduledGameIds);
-      const results = await Promise.allSettled(scheduledGameIds.map(id => base44.entities.Game.delete(id)));
-      const failed = results.filter(r => r.status === 'rejected');
-      if (failed.length > 0) {
-        console.error("Failed deletions:", failed);
-        throw new Error(`Failed to delete ${failed.length} game(s)`);
+      console.log(`Deleting ${scheduledGameIds.length} games in batches...`);
+      
+      const BATCH_SIZE = 10;
+      const DELAY_MS = 500;
+      let deletedCount = 0;
+      
+      for (let i = 0; i < scheduledGameIds.length; i += BATCH_SIZE) {
+        const batch = scheduledGameIds.slice(i, i + BATCH_SIZE);
+        console.log(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(scheduledGameIds.length / BATCH_SIZE)}`);
+        
+        const results = await Promise.allSettled(batch.map(id => base44.entities.Game.delete(id)));
+        const succeeded = results.filter(r => r.status === 'fulfilled').length;
+        deletedCount += succeeded;
+        
+        if (i + BATCH_SIZE < scheduledGameIds.length) {
+          await new Promise(resolve => setTimeout(resolve, DELAY_MS));
+        }
       }
-      return results;
+      
+      console.log(`Successfully deleted ${deletedCount} out of ${scheduledGameIds.length} games`);
+      return { total: scheduledGameIds.length, deleted: deletedCount };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries(['games']);
       setShowClearAllDialog(false);
-      alert(`Successfully deleted ${scheduledGames.length} scheduled games.`);
+      alert(`Successfully deleted ${result.deleted} scheduled games.`);
     },
     onError: (error) => {
       console.error("Clear all failed:", error);
       alert(`Error: ${error.message}`);
       setShowClearAllDialog(false);
+      queryClient.invalidateQueries(['games']);
     },
   });
 
