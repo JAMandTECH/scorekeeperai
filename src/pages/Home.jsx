@@ -391,7 +391,7 @@ export default function Home() {
           />
         )}
 
-        <main className="flex-1 min-w-0">
+        <main className={user ? "flex-1 min-w-0" : "w-full"}>
           {/* Hero Section */}
           <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-900 dark:to-indigo-950 text-white py-24 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZ3dCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9M0M2IDM2YzMuMzE0IDAgNiAyLjY4NiA2IDZzLTIuNjg2IDYtNiA2LTYtMi42ODYtNi02IDIuNjg2LTYgNi02eiIgc3Ryb2tlPSIjMWYyZDNkIiBzdHJva2Utd2lkdGg9IjIiLz48L2c+PC9zdmc+')] opacity-10"></div>
@@ -552,10 +552,10 @@ export default function Home() {
         
         {/* Decorative Elements */}
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent"></div>
-      </section>
+          </section>
 
-      {user && (
-        <div className="max-w-7xl mx-auto px-4 py-16">
+          {user && (
+            <div className="max-w-7xl mx-auto px-4 py-16">
           {/* Organization Info Banner - Below Hero */}
           {organization && viewMode === 'my-org' && (
             <div className="mb-12">
@@ -1540,13 +1540,13 @@ export default function Home() {
                   </Card>
                 </div>
               </TabsContent>
-            </Tabs>
-          </section>
-          </div>
-        )}
+              </Tabs>
+              </section>
+              </div>
+              )}
 
-        {/* Footer - ALWAYS SHOW */}
-        <footer className="bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-950 dark:to-indigo-950 text-white py-16 px-4 mt-20">
+              {/* Footer - ALWAYS SHOW */}
+              <footer className="bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-950 dark:to-indigo-950 text-white py-16 px-4 mt-20">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center gap-4 mb-6">
             <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-2xl">
@@ -1565,8 +1565,8 @@ export default function Home() {
           <p className="text-blue-400 dark:text-blue-500 text-sm mt-8">
             © 2025 ALAB Sports. All rights reserved.
           </p>
-          </div>
-        </footer>
+            </div>
+          </footer>
         </main>
       </div>
     </div>
