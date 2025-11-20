@@ -80,10 +80,22 @@ export default function ScorekeeperDashboard() {
       const allGames = await base44.entities.Game.list('-game_date');
       console.log("Total games from API:", allGames.length);
       
+      // DEBUG: Log all games with their assigned scorekeepers
+      console.log("All games with scorekeeper assignments:", allGames.map(g => ({
+        id: g.id,
+        sport: g.sport,
+        status: g.status,
+        assigned_scorekeeper_emails: g.assigned_scorekeeper_emails,
+        assigned_scorekeeper_emails_type: typeof g.assigned_scorekeeper_emails,
+        assigned_scorekeeper_emails_is_array: Array.isArray(g.assigned_scorekeeper_emails)
+      })));
+      
       // Filter games where scorekeeper email is in the array
       const myAssignedGames = allGames.filter(game => {
         const emails = game.assigned_scorekeeper_emails || [];
-        return emails.includes(user?.email);
+        const isAssigned = emails.includes(user?.email);
+        console.log(`Game ${game.id}: emails=${JSON.stringify(emails)}, includes ${user?.email}? ${isAssigned}`);
+        return isAssigned;
       });
       
       console.log("Games assigned to this scorekeeper:", myAssignedGames.length);
@@ -92,7 +104,7 @@ export default function ScorekeeperDashboard() {
         sport: g.sport,
         home_team_id: g.home_team_id,
         away_team_id: g.away_team_id,
-        assigned_scorekeeper_emails: g.assigned_scorekeeper_emails, // Changed from single email to array
+        assigned_scorekeeper_emails: g.assigned_scorekeeper_emails,
         status: g.status
       })), null, 2));
       
