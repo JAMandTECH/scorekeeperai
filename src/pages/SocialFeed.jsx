@@ -74,10 +74,27 @@ export default function SocialFeed() {
     enabled: !!organization?.id,
   });
 
-  const navigationItems = user?.role === 'admin' ? null : [
-    { title: "Organization Home", url: createPageUrl("Home"), icon: HomeIcon },
-    { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: Users },
-  ];
+  // Import icons at the top if needed
+  const { MessageCircle, Clipboard } = require('lucide-react');
+  
+  // Determine navigation based on user role
+  let navigationItems = null;
+  
+  if (user?.is_scorekeeper && user?.role !== 'admin') {
+    // Scorekeeper navigation
+    navigationItems = [
+      { title: "Organization Home", url: createPageUrl("Home"), icon: HomeIcon },
+      { title: "My Games", url: createPageUrl("ScorekeeperDashboard"), icon: Clipboard },
+      { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
+    ];
+  } else if (user?.role !== 'admin') {
+    // Regular user navigation
+    navigationItems = [
+      { title: "Organization Home", url: createPageUrl("Home"), icon: HomeIcon },
+      { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: Users },
+    ];
+  }
+  // Admins get null (default admin navigation)
 
   if (!user || orgLoading) {
     return (
