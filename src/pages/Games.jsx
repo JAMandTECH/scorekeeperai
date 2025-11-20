@@ -34,6 +34,7 @@ export default function Games() {
   const [archivingGame, setArchivingGame] = useState(null);
   const [restoringGame, setRestoringGame] = useState(null);
   const [showAIScheduleDialog, setShowAIScheduleDialog] = useState(false);
+  const [showClearAllDialog, setShowClearAllDialog] = useState(false);
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -229,6 +230,17 @@ export default function Games() {
     onSuccess: () => {
       queryClient.invalidateQueries(['games']);
       setRestoringGame(null);
+    },
+  });
+
+  const clearAllScheduledMutation = useMutation({
+    mutationFn: async () => {
+      const scheduledGameIds = scheduledGames.map(g => g.id);
+      await Promise.all(scheduledGameIds.map(id => base44.entities.Game.delete(id)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['games']);
+      setShowClearAllDialog(false);
     },
   });
 
@@ -659,6 +671,18 @@ Return ONLY a JSON array of game objects with home_team_id and away_team_id prop
                 </TabsList>
 
                 <TabsContent value="scheduled" className="space-y-4">
+                  {scheduledGames.length > 0 && (
+                    <div className="flex justify-end mb-4">
+                      <Button
+                        onClick={() => setShowClearAllDialog(true)}
+                        variant="outline"
+                        className="border-2 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-bold"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Clear All Scheduled Games
+                      </Button>
+                    </div>
+                  )}
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {scheduledGames.map(game => <GameCard key={game.id} game={game} />)}
                   </div>
@@ -1032,6 +1056,37 @@ Return ONLY a JSON array of game objects with home_team_id and away_team_id prop
                       className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold"
                     >
                       Restore Game
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              <AlertDialog open={showClearAllDialog} onOpenChange={setShowClearAllDialog}>
+                <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                  <AlertDialogHeader>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-12 h-12 bg-red-100 dark:bg-red-950/30 rounded-xl flex items-center justify-center">
+                        <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                      </div>
+                      <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+                        Clear All Scheduled Games?
+                      </AlertDialogTitle>
+                    </div>
+                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
+                      Are you sure you want to delete all <span className="font-bold text-gray-900 dark:text-white">{scheduledGames.length}</span> scheduled games?
+                      <br /><br />
+                      <p className="font-semibold text-red-600 dark:text-red-400">⚠️ This action cannot be undone. All scheduled games will be permanently deleted.</p>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => clearAllScheduledMutation.mutate()}
+                      className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold"
+                    >
+                      {clearAllScheduledMutation.isLoading ? 'Deleting...' : 'Delete All'}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
