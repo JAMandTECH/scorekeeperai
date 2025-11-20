@@ -50,11 +50,17 @@ export default function SocialFeed() {
     base44.auth.logout(createPageUrl("Home"));
   };
 
-  const { data: organization } = useQuery({
+  const { data: organization, isLoading: orgLoading } = useQuery({
     queryKey: ['organization', user?.organization_id || user?.active_organization_id],
     queryFn: async () => {
       const orgs = await base44.entities.Organization.list();
-      return orgs.find(o => o.id === (user?.organization_id || user?.active_organization_id));
+      const orgId = user?.organization_id || user?.active_organization_id;
+      const org = orgs.find(o => o.id === orgId);
+      if (!org) {
+        // If no organization found, return null instead of undefined
+        return null;
+      }
+      return org;
     },
     enabled: !!(user?.organization_id || user?.active_organization_id),
   });
@@ -72,10 +78,33 @@ export default function SocialFeed() {
     { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: Users },
   ];
 
-  if (!user || !organization) {
+  if (!user || orgLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!organization) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6">
+        <div className="max-w-md text-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-red-200 to-orange-300 dark:from-red-800 dark:to-orange-900 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Users className="w-10 h-10 text-red-600 dark:text-red-400" />
+          </div>
+          <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-3">No Organization Found</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            You need to be associated with an organization to access the social feed.
+          </p>
+          <Button
+            onClick={() => navigate(createPageUrl("Home"))}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+          >
+            <HomeIcon className="w-4 h-4 mr-2" />
+            Go to Home
+          </Button>
+        </div>
       </div>
     );
   }
