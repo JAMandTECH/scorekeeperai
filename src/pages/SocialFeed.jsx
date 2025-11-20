@@ -53,24 +53,25 @@ export default function SocialFeed() {
   const { data: organization, isLoading: orgLoading } = useQuery({
     queryKey: ['organization', user?.organization_id || user?.active_organization_id],
     queryFn: async () => {
-      const orgs = await base44.entities.Organization.list();
       const orgId = user?.organization_id || user?.active_organization_id;
+      if (!orgId) return null;
+      
+      const orgs = await base44.entities.Organization.list();
       const org = orgs.find(o => o.id === orgId);
-      if (!org) {
-        // If no organization found, return null instead of undefined
-        return null;
-      }
-      return org;
+      return org || null;
     },
     enabled: !!(user?.organization_id || user?.active_organization_id),
   });
 
   const { data: posts = [], refetch: refetchPosts } = useQuery({
     queryKey: ['social-posts', organization?.id],
-    queryFn: () => base44.entities.SocialPost.filter({ 
-      organization_id: organization.id 
-    }, '-created_date'),
-    enabled: !!organization,
+    queryFn: async () => {
+      if (!organization?.id) return [];
+      return await base44.entities.SocialPost.filter({ 
+        organization_id: organization.id 
+      }, '-created_date');
+    },
+    enabled: !!organization?.id,
   });
 
   const navigationItems = user?.role === 'admin' ? null : [
