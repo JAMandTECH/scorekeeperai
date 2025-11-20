@@ -367,7 +367,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-      {user && isAdmin && (
+      {user && (
         <>
           <AdminHeader 
             user={user}
@@ -396,8 +396,8 @@ export default function Home() {
       <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-900 dark:to-indigo-950 text-white py-24 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZ3dCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9M0M2IDM2YzMuMzE0IDAgNiAyLjY4NiA2IDZzLTIuNjg2IDYtNiA2LTYtMi42ODYtNi02IDIuNjg2LTYgNi02eiIgc3Ryb2tlPSIjMWYyZDNkIiBzdHJva2Utd2lkdGg9IjIiLz48L2c+PC9zdmc+')] opacity-10"></div>
         
-        {/* Top Right Controls - ONLY IF NOT ADMIN (admins have header) */}
-        {!isAdmin && (
+        {/* Top Right Controls - ONLY IF NOT AUTHENTICATED (authenticated users have header) */}
+        {!user && (
           <div className="absolute top-6 right-6 flex items-center gap-3 z-50">
             <button
               onClick={toggleDarkMode}
