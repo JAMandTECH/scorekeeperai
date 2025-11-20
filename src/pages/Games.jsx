@@ -14,7 +14,6 @@ import { createPageUrl } from "@/utils";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import GameHistory from "@/components/GameHistory";
-import RecurringGameForm from "@/components/RecurringGameForm";
 import ConflictResolver from "@/components/ConflictResolver";
 import AIScheduleGenerator from "@/components/AIScheduleGenerator";
 import {
@@ -699,12 +698,6 @@ Return ONLY a JSON array of game objects with home_team_id and away_team_id prop
                     <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">Schedule New Game</DialogTitle>
                   </DialogHeader>
                   <form id="game-form" onSubmit={handleSubmit} className="space-y-4">
-                    
-                    <RecurringGameForm 
-                      value={recurringConfig}
-                      onChange={setRecurringConfig}
-                    />
-
                     <div>
                       <Label htmlFor="sport" className="font-bold text-gray-700 dark:text-gray-300">Sport</Label>
                       <select
