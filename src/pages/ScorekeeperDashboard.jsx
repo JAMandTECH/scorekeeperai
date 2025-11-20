@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -7,7 +6,7 @@ import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PlayCircle, Calendar, MapPin, Trophy, Clock, CheckCircle, Home as HomeIcon, Clipboard } from "lucide-react";
+import { PlayCircle, Calendar, MapPin, Trophy, Clock, CheckCircle, Home as HomeIcon, Clipboard, MessageCircle } from "lucide-react";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 
@@ -127,6 +126,7 @@ export default function ScorekeeperDashboard() {
   const scorekeeperNav = [
     { title: "Organization Home", url: createPageUrl("Home"), icon: HomeIcon },
     { title: "My Games", url: createPageUrl("ScorekeeperDashboard"), icon: Clipboard },
+    { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
   ];
 
   const GameCard = ({ game }) => {
