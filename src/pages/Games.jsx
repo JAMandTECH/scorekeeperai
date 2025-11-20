@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore } from "lucide-react";
+import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,8 +13,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import GameHistory from "@/components/GameHistory";
+import RecurringGameForm from "@/components/RecurringGameForm";
+import ConflictResolver from "@/components/ConflictResolver";
+import AIScheduleGenerator from "@/components/AIScheduleGenerator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +33,7 @@ export default function Games() {
   const [deletingGame, setDeletingGame] = useState(null);
   const [archivingGame, setArchivingGame] = useState(null);
   const [restoringGame, setRestoringGame] = useState(null);
+  const [showAIScheduleDialog, setShowAIScheduleDialog] = useState(false);
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -39,6 +41,8 @@ export default function Games() {
   const [selectedSport, setSelectedSport] = useState('all');
   const [selectedDivision, setSelectedDivision] = useState('all');
   const [selectedTeam, setSelectedTeam] = useState('all');
+  const [recurringConfig, setRecurringConfig] = useState({ enabled: false });
+  const [selectedScorekeeperEmails, setSelectedScorekeeperEmails] = useState([]);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -66,13 +70,11 @@ export default function Games() {
     try {
       const currentUser = await base44.auth.me();
       
-      // Redirect scorekeepers
       if (currentUser.is_scorekeeper && currentUser.role !== 'admin') {
         navigate(createPageUrl("ScorekeeperDashboard"));
         return;
       }
       
-      // Only allow admins
       if (currentUser.role !== 'admin') {
         navigate(createPageUrl("Home"));
         return;
@@ -157,11 +159,41 @@ export default function Games() {
   };
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Game.create(data),
+    mutationFn: async (data) => {
+      if (Array.isArray(data)) {
+        return base44.entities.Game.bulkCreate(data);
+      } else if (recurringConfig.enabled) {
+        const seriesId = Date.now().toString();
+        const gamesToCreate = [];
+        
+        for (let i = 0; i < recurringConfig.occurrences; i++) {
+          const gameDate = new Date(data.game_date);
+          
+          if (recurringConfig.frequency === 'weekly') {
+            gameDate.setDate(gameDate.getDate() + (i * 7 * recurringConfig.interval));
+          } else {
+            gameDate.setDate(gameDate.getDate() + (i * recurringConfig.interval));
+          }
+          
+          gamesToCreate.push({
+            ...data,
+            game_date: gameDate.toISOString(),
+            recurring_series_id: seriesId,
+          });
+        }
+        
+        return Promise.all(gamesToCreate.map(game => base44.entities.Game.create(game)));
+      } else {
+        return base44.entities.Game.create(data);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['games']);
       setShowForm(false);
+      setShowAIScheduleDialog(false);
       setConflicts([]);
+      setRecurringConfig({ enabled: false });
+      setSelectedScorekeeperEmails([]);
     },
   });
 
@@ -202,6 +234,21 @@ export default function Games() {
     }
   };
 
+  const handleSelectAlternative = (alternative) => {
+    const form = document.getElementById('game-form');
+    if (alternative.gameDate) {
+      const dateInput = form.querySelector('[name="game_date"]');
+      const localDate = new Date(alternative.gameDate);
+      const offset = localDate.getTimezoneOffset();
+      const adjustedDate = new Date(localDate.getTime() - (offset * 60 * 1000));
+      dateInput.value = adjustedDate.toISOString().slice(0, 16);
+    }
+    if (alternative.courtNumber) {
+      form.querySelector('[name="court_number"]').value = alternative.courtNumber;
+    }
+    setConflicts([]);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -217,12 +264,91 @@ export default function Games() {
       location: formData.get('location'),
       penalty_limit_per_quarter: parseInt(formData.get('penalty_limit_per_quarter')),
       player_foul_limit: parseInt(formData.get('player_foul_limit')),
-      assigned_scorekeeper_email: formData.get('assigned_scorekeeper_email') || null,
+      assigned_scorekeeper_emails: selectedScorekeeperEmails,
       status: 'scheduled',
       archived: false,
     };
 
     createMutation.mutate(data);
+  };
+
+  const aiGenerateMutation = useMutation({
+    mutationFn: async ({ sport, rounds }) => {
+      if (!user?.organization_id) throw new Error("User organization not found.");
+      
+      const teamsInSport = teams.filter(t => t.sport === sport);
+
+      if (teamsInSport.length < 2) {
+        throw new Error(`Need at least 2 ${sport} teams to generate a schedule.`);
+      }
+
+      const prompt = `Generate a ${sport} game schedule for a sports league.
+The league has the following teams:
+${teamsInSport.map(team => `- ID: ${team.id}, Name: ${team.name}`).join('\n')}
+
+Create a schedule for ${rounds} round(s).
+- In 1 round, each team plays every other team once.
+- In 2 rounds, each team plays every other team twice.
+
+For each game, provide the 'home_team_id' and 'away_team_id' from the provided team IDs.
+Ensure that each team plays an equal number of home and away games as much as possible.
+Return ONLY a JSON array of game objects with home_team_id and away_team_id properties.`;
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: prompt,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            games: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  home_team_id: { type: "string" },
+                  away_team_id: { type: "string" },
+                },
+                required: ["home_team_id", "away_team_id"],
+              },
+            },
+          },
+          required: ["games"],
+        },
+      });
+
+      const gamesList = response?.games || response;
+      if (!gamesList || !Array.isArray(gamesList)) {
+        throw new Error("AI did not return a valid schedule.");
+      }
+
+      const generatedGames = gamesList.map(game => ({
+        organization_id: user.organization_id,
+        home_team_id: game.home_team_id,
+        away_team_id: game.away_team_id,
+        sport: sport,
+        game_date: new Date().toISOString(),
+        court_number: null,
+        location: null,
+        assigned_scorekeeper_emails: [],
+        status: 'scheduled',
+        archived: false,
+        game_type: 'regular_season',
+        penalty_limit_per_quarter: 5,
+        player_foul_limit: 5,
+      }));
+
+      return createMutation.mutate(generatedGames);
+    },
+    onSuccess: () => {
+      alert("AI-generated schedule created successfully! Remember to assign dates, times, venues, and scorekeepers to these games.");
+    },
+    onError: (error) => {
+      console.error("AI schedule generation failed:", error);
+      alert(`Failed to generate schedule: ${error.message}`);
+    },
+  });
+
+  const generateScheduleWithAI = (sport, rounds) => {
+    aiGenerateMutation.mutate({ sport, rounds });
   };
 
   const handleDeleteClick = (game) => {
@@ -233,6 +359,12 @@ export default function Games() {
   const getTeamName = (teamId) => {
     const team = teams.find(t => t.id === teamId);
     return team?.name || 'Unknown';
+  };
+
+  const toggleScorekeeperSelection = (email) => {
+    setSelectedScorekeeperEmails(prev => 
+      prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
+    );
   };
 
   const scheduledGames = games.filter(g => g.status === 'scheduled' && !g.archived);
@@ -257,7 +389,9 @@ export default function Games() {
       game.status === 'scheduled' ? 'blue' :
       game.status === 'in_progress' ? 'yellow' : 'green';
 
-    const assignedScorekeeper = scorekeepers.find(s => s.email === game.assigned_scorekeeper_email);
+    const assignedScorekeepersList = (game.assigned_scorekeeper_emails || []).map(email => 
+      scorekeepers.find(s => s.email === email)
+    ).filter(Boolean);
     
     return (
       <Card className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 shadow-lg hover:shadow-2xl transition-all group`}>
@@ -281,10 +415,14 @@ export default function Games() {
                   Court {game.court_number}
                 </p>
               )}
-              {assignedScorekeeper && (
-                <Badge variant="outline" className="mt-2 text-xs font-bold border-green-300 dark:border-green-700 text-green-700 dark:text-green-300">
-                  👤 {assignedScorekeeper.full_name}
-                </Badge>
+              {assignedScorekeepersList.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {assignedScorekeepersList.map((sk, idx) => (
+                    <Badge key={idx} variant="outline" className="text-xs font-bold border-green-300 dark:border-green-700 text-green-700 dark:text-green-300">
+                      👤 {sk.full_name}
+                    </Badge>
+                  ))}
+                </div>
               )}
             </div>
             <div className="flex flex-col items-end gap-2">
@@ -431,13 +569,22 @@ export default function Games() {
                   <h1 className="text-4xl font-black text-gray-900 dark:text-white">Games</h1>
                   <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Schedule and manage games</p>
                 </div>
-                <Button 
-                  onClick={() => setShowForm(true)}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
-                >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Schedule Game
-                </Button>
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={() => setShowAIScheduleDialog(true)}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-xl"
+                  >
+                    <Zap className="w-5 h-5 mr-2" />
+                    AI Generate Schedule
+                  </Button>
+                  <Button 
+                    onClick={() => setShowForm(true)}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Schedule Game
+                  </Button>
+                </div>
               </div>
 
               <Tabs defaultValue="scheduled" className="space-y-6">
@@ -530,30 +677,33 @@ export default function Games() {
                   />
                 </TabsContent>
               </Tabs>
+              
+              <AIScheduleGenerator 
+                isOpen={showAIScheduleDialog}
+                onClose={() => setShowAIScheduleDialog(false)}
+                onGenerate={generateScheduleWithAI}
+                isLoading={aiGenerateMutation.isLoading}
+                teams={teams}
+              />
 
-              <Dialog open={showForm} onOpenChange={setShowForm}>
-                <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-xl max-h-[90vh] overflow-y-auto">
+              <Dialog open={showForm} onOpenChange={(open) => {
+                setShowForm(open);
+                if (!open) {
+                  setConflicts([]);
+                  setRecurringConfig({ enabled: false });
+                  setSelectedScorekeeperEmails([]);
+                }
+              }}>
+                <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">Schedule New Game</DialogTitle>
                   </DialogHeader>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    {conflicts.length > 0 && (
-                      <Alert className="bg-red-50 dark:bg-red-950/30 border-2 border-red-500">
-                        <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                        <AlertDescription className="text-red-800 dark:text-red-300 font-bold">
-                          <p className="font-black mb-2">⚠️ SCHEDULING CONFLICT DETECTED!</p>
-                          <p className="text-sm">The selected court and time overlaps with {conflicts.length} existing game(s):</p>
-                          <ul className="mt-2 space-y-1 text-xs">
-                            {conflicts.map((conflict, idx) => (
-                              <li key={idx}>
-                                • Court {conflict.court_number} - {new Date(conflict.game_date).toLocaleString()} 
-                                ({getTeamName(conflict.home_team_id)} vs {getTeamName(conflict.away_team_id)})
-                              </li>
-                            ))}
-                          </ul>
-                        </AlertDescription>
-                      </Alert>
-                    )}
+                  <form id="game-form" onSubmit={handleSubmit} className="space-y-4">
+                    
+                    <RecurringGameForm 
+                      value={recurringConfig}
+                      onChange={setRecurringConfig}
+                    />
 
                     <div>
                       <Label htmlFor="sport" className="font-bold text-gray-700 dark:text-gray-300">Sport</Label>
@@ -585,20 +735,31 @@ export default function Games() {
                     </div>
 
                     <div>
-                      <Label htmlFor="assigned_scorekeeper_email" className="font-bold text-gray-700 dark:text-gray-300">Assign Scorekeeper (Optional)</Label>
-                      <select
-                        id="assigned_scorekeeper_email"
-                        name="assigned_scorekeeper_email"
-                        className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
-                      >
-                        <option value="">No scorekeeper assigned</option>
+                      <Label className="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        Assign Scorekeepers (Multiple)
+                      </Label>
+                      <div className="grid grid-cols-2 gap-2 mt-2">
                         {scorekeepers.map(scorekeeper => (
-                          <option key={scorekeeper.email} value={scorekeeper.email}>
-                            {scorekeeper.full_name} ({scorekeeper.email})
-                          </option>
+                          <div key={scorekeeper.email} className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id={`sk-${scorekeeper.email}`}
+                              checked={selectedScorekeeperEmails.includes(scorekeeper.email)}
+                              onChange={() => toggleScorekeeperSelection(scorekeeper.email)}
+                              className="rounded border-gray-300"
+                            />
+                            <label htmlFor={`sk-${scorekeeper.email}`} className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {scorekeeper.full_name}
+                            </label>
+                          </div>
                         ))}
-                      </select>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Assigned scorekeeper will be able to score this game</p>
+                      </div>
+                      {selectedScorekeeperEmails.length > 0 && (
+                        <p className="text-xs text-green-600 dark:text-green-400 mt-2 font-semibold">
+                          ✓ {selectedScorekeeperEmails.length} scorekeeper(s) selected
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -628,6 +789,14 @@ export default function Games() {
                       </div>
                     </div>
 
+                    <ConflictResolver
+                      conflicts={conflicts}
+                      gameDate={document.querySelector('[name="game_date"]')?.value}
+                      courtNumber={document.querySelector('[name="court_number"]')?.value}
+                      allGames={games}
+                      onSelectAlternative={handleSelectAlternative}
+                    />
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="penalty_limit_per_quarter" className="font-bold text-gray-700 dark:text-gray-300">Team Foul Penalty Limit</Label>
@@ -641,7 +810,6 @@ export default function Games() {
                           required
                           className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
                         />
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fouls per quarter before penalty</p>
                       </div>
                       <div>
                         <Label htmlFor="player_foul_limit" className="font-bold text-gray-700 dark:text-gray-300">Player Foul Limit</Label>
@@ -655,7 +823,6 @@ export default function Games() {
                           required
                           className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
                         />
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Personal fouls before ejection</p>
                       </div>
                     </div>
 
@@ -697,11 +864,20 @@ export default function Games() {
                       />
                     </div>
                     <div className="flex justify-end gap-3 pt-4">
-                      <Button type="button" variant="outline" onClick={() => { setShowForm(false); setConflicts([]); }} className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold">
+                      <Button type="button" variant="outline" onClick={() => { 
+                        setShowForm(false); 
+                        setConflicts([]); 
+                        setRecurringConfig({ enabled: false });
+                        setSelectedScorekeeperEmails([]);
+                      }} className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold">
                         Cancel
                       </Button>
-                      <Button type="submit" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
-                        Schedule Game
+                      <Button 
+                        type="submit" 
+                        disabled={createMutation.isLoading}
+                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                      >
+                        {createMutation.isLoading ? 'Scheduling...' : (recurringConfig.enabled ? `Schedule ${recurringConfig.occurrences} Games` : 'Schedule Game')}
                       </Button>
                     </div>
                   </form>
