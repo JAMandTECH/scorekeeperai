@@ -54,10 +54,11 @@ export default function Home() {
             return;
           }
           
-          // Load organization if user has organization_id - NO REDIRECT
-          if (currentUser?.organization_id) {
+          // Load organization if user has organization_id OR active_organization_id
+          const orgId = currentUser?.organization_id || currentUser?.active_organization_id;
+          if (orgId) {
             const orgs = await base44.entities.Organization.list();
-            const userOrg = orgs.find(o => o.id === currentUser.organization_id);
+            const userOrg = orgs.find(o => o.id === orgId);
             setOrganization(userOrg);
             setViewMode('my-org');
           }
