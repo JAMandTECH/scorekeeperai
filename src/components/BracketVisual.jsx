@@ -7,38 +7,46 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
 const THEME_OPTIONS = {
-  default: {
-    primary: 'from-blue-600 to-indigo-600',
-    accent: 'blue',
-    connector: 'rgba(96, 165, 250, 0.5)',
-    matchBg: 'bg-gray-900',
-    winnerBg: 'from-green-700 to-green-600 border-green-500'
-  },
-  ocean: {
-    primary: 'from-cyan-600 to-teal-600',
+  neon: {
+    primary: 'from-cyan-500 via-blue-500 to-purple-600',
     accent: 'cyan',
-    connector: 'rgba(34, 211, 238, 0.5)',
-    matchBg: 'bg-slate-900',
-    winnerBg: 'from-emerald-700 to-teal-600 border-emerald-500'
+    connector: 'rgba(34, 211, 238, 0.8)',
+    matchBg: 'bg-gradient-to-br from-gray-950 via-blue-950/20 to-gray-950',
+    winnerBg: 'from-cyan-500 to-blue-600 border-cyan-400',
+    glow: 'shadow-[0_0_30px_rgba(34,211,238,0.5)]',
+    accentColor: '#22d3ee'
   },
-  sunset: {
-    primary: 'from-orange-600 to-red-600',
+  fire: {
+    primary: 'from-orange-500 via-red-500 to-pink-600',
     accent: 'orange',
-    connector: 'rgba(251, 146, 60, 0.5)',
-    matchBg: 'bg-gray-900',
-    winnerBg: 'from-amber-700 to-orange-600 border-amber-500'
+    connector: 'rgba(251, 146, 60, 0.8)',
+    matchBg: 'bg-gradient-to-br from-gray-950 via-orange-950/20 to-gray-950',
+    winnerBg: 'from-orange-500 to-red-600 border-orange-400',
+    glow: 'shadow-[0_0_30px_rgba(251,146,60,0.5)]',
+    accentColor: '#fb923c'
   },
-  purple: {
-    primary: 'from-purple-600 to-pink-600',
+  toxic: {
+    primary: 'from-lime-500 via-green-500 to-emerald-600',
+    accent: 'lime',
+    connector: 'rgba(132, 204, 22, 0.8)',
+    matchBg: 'bg-gradient-to-br from-gray-950 via-green-950/20 to-gray-950',
+    winnerBg: 'from-lime-500 to-green-600 border-lime-400',
+    glow: 'shadow-[0_0_30px_rgba(132,204,22,0.5)]',
+    accentColor: '#84cc16'
+  },
+  violet: {
+    primary: 'from-purple-500 via-fuchsia-500 to-pink-600',
     accent: 'purple',
-    connector: 'rgba(168, 85, 247, 0.5)',
-    matchBg: 'bg-gray-900',
-    winnerBg: 'from-fuchsia-700 to-pink-600 border-fuchsia-500'
+    connector: 'rgba(168, 85, 247, 0.8)',
+    matchBg: 'bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-950',
+    winnerBg: 'from-purple-500 to-fuchsia-600 border-purple-400',
+    glow: 'shadow-[0_0_30px_rgba(168,85,247,0.5)]',
+    accentColor: '#a855f7'
   }
 };
 
 export default function BracketVisual({ tournament, matches, teams, onMatchClick, onTeamDrop, onMatchReorder, onSave, canEdit = true }) {
-  const [selectedTheme, setSelectedTheme] = useState('default');
+  const [selectedTheme, setSelectedTheme] = useState('neon');
   const [manualMode, setManualMode] = useState(tournament?.is_manual_bracket || false);
   const [manualMatches, setManualMatches] = useState(tournament?.manual_matches || []);
   const [connectors, setConnectors] = useState(tournament?.manual_connectors || []);
@@ -111,15 +119,25 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
             <motion.div
               ref={provided.innerRef}
               {...provided.droppableProps}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className={`flex items-center justify-center gap-2 px-3 py-2.5 border-2 border-dashed rounded-lg transition-all ${
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.02, borderColor: theme.accentColor }}
+              className={`flex items-center justify-center gap-2 px-3 py-2.5 border-2 border-dashed rounded-xl transition-all backdrop-blur-sm ${
                 snapshot.isDraggingOver 
-                  ? `border-${theme.accent}-400 bg-${theme.accent}-900/40` 
-                  : 'border-gray-700 bg-gray-900/50'
+                  ? `border-cyan-400 bg-cyan-500/20 ${theme.glow}` 
+                  : 'border-gray-700/50 bg-gray-900/30'
               }`}
+              style={{
+                boxShadow: snapshot.isDraggingOver ? `0 0 20px ${theme.accentColor}40` : 'none'
+              }}
             >
-              <span className="text-xs text-gray-500 font-semibold">TBD</span>
+              <motion.span 
+                className="text-xs text-gray-400 font-bold tracking-wider"
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                TBD
+              </motion.span>
               {provided.placeholder}
             </motion.div>
           )}
@@ -142,15 +160,21 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   {...provided.draggableProps}
                   initial={{ scale: 0.95, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className={`flex items-center gap-2 px-3 py-2 border-2 rounded-lg transition-all duration-300 ${
-                    snapshot.isDragging ? `shadow-2xl scale-105 bg-${theme.accent}-700 border-${theme.accent}-400` : ''
+                  whileHover={{ 
+                    scale: 1.03,
+                    boxShadow: `0 0 25px ${theme.accentColor}60`
+                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  className={`flex items-center gap-2 px-3 py-2 border-2 rounded-xl backdrop-blur-sm transition-all duration-300 ${
+                    snapshot.isDragging ? `scale-105 border-cyan-400 ${theme.glow}` : ''
                   } ${
                     isWinner 
-                      ? `bg-gradient-to-r ${theme.winnerBg} text-white animate-pulse` 
-                      : 'bg-gray-800 border-gray-700 text-gray-100'
+                      ? `bg-gradient-to-r ${theme.winnerBg} text-white shadow-lg` 
+                      : 'bg-gray-900/60 border-gray-700/50 text-gray-100'
                   } ${isEditable ? 'cursor-move' : 'cursor-pointer'}`}
+                  style={{
+                    boxShadow: snapshot.isDragging ? `0 10px 40px ${theme.accentColor}60, 0 0 30px ${theme.accentColor}40` : isWinner ? `0 0 20px ${theme.accentColor}30` : 'none'
+                  }}
                 >
                   {isEditable && (
                     <div {...provided.dragHandleProps}>
@@ -158,8 +182,15 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                     </div>
                   )}
                   <motion.div 
-                    className={`w-1 h-6 bg-${theme.accent}-500 rounded-full`}
-                    animate={{ scale: [1, 1.2, 1] }}
+                    className={`w-1 h-6 rounded-full`}
+                    style={{ 
+                      background: `linear-gradient(to bottom, ${theme.accentColor}, ${theme.accentColor}80)`,
+                      boxShadow: `0 0 10px ${theme.accentColor}`
+                    }}
+                    animate={{ 
+                      scale: [1, 1.2, 1],
+                      opacity: [0.8, 1, 0.8]
+                    }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
                   <Avatar className="w-6 h-6 border border-gray-600">
@@ -199,10 +230,18 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        whileHover={{ scale: 1.03, boxShadow: "0 20px 50px rgba(0,0,0,0.3)" }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className={`${theme.matchBg} rounded-lg border-2 border-gray-800 overflow-hidden hover:border-${theme.accent}-600 transition-all ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
-        style={{ width: '240px', minWidth: '200px' }}
+        whileHover={{ 
+          scale: 1.04,
+          boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 40px ${theme.accentColor}40`
+        }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        className={`${theme.matchBg} rounded-xl border-2 overflow-hidden backdrop-blur-md transition-all ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
+        style={{ 
+          width: '240px', 
+          minWidth: '200px',
+          borderColor: `${theme.accentColor}40`,
+          boxShadow: `0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`
+        }}
         onClick={() => !isDraggable && onMatchClick && onMatchClick(match)}
       >
         {isDraggable && (
@@ -216,10 +255,24 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
         </div>
         
         <motion.div 
-          className={`px-2 py-1.5 bg-${theme.accent}-900/30 border-t border-${theme.accent}-800/50 text-center`}
-          whileHover={{ backgroundColor: `rgba(59, 130, 246, 0.2)` }}
+          className={`px-2 py-1.5 text-center backdrop-blur-sm relative overflow-hidden`}
+          style={{
+            background: `linear-gradient(to right, ${theme.accentColor}15, ${theme.accentColor}25, ${theme.accentColor}15)`,
+            borderTop: `1px solid ${theme.accentColor}30`
+          }}
+          whileHover={{ 
+            background: `linear-gradient(to right, ${theme.accentColor}25, ${theme.accentColor}35, ${theme.accentColor}25)`
+          }}
         >
-          <span className={`text-[10px] text-${theme.accent}-400 font-bold`}>
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(90deg, transparent, ${theme.accentColor}20, transparent)`
+            }}
+            animate={{ x: ['-100%', '200%'] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+          />
+          <span className={`text-[10px] font-bold tracking-wider relative z-10`} style={{ color: theme.accentColor }}>
             {match.required_wins > 1 ? `BEST OF ${(match.required_wins * 2) - 1}` : 'SINGLE GAME'}
           </span>
         </motion.div>
@@ -295,55 +348,117 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-gray-950 via-blue-950/20 to-gray-950 rounded-xl p-4 md:p-6 border border-gray-800"
+          className="bg-gradient-to-br from-gray-950 via-blue-950/30 to-gray-950 rounded-2xl p-4 md:p-6 backdrop-blur-xl relative overflow-hidden"
+          style={{
+            border: `1px solid ${theme.accentColor}30`,
+            boxShadow: `0 0 40px ${theme.accentColor}10, inset 0 1px 0 rgba(255,255,255,0.05)`
+          }}
         >
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <motion.div
+            className="absolute inset-0 opacity-20"
+            style={{
+              background: `radial-gradient(circle at 50% 50%, ${theme.accentColor}20, transparent 70%)`
+            }}
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.1, 0.2, 0.1]
+            }}
+            transition={{ duration: 4, repeat: Infinity }}
+          />
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
             <div className="flex items-center gap-3">
-              <Trophy className="w-6 h-6 md:w-7 md:h-7 text-yellow-500" />
+              <motion.div
+                animate={{ 
+                  rotate: [0, -10, 10, -10, 0],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                <Trophy 
+                  className="w-6 h-6 md:w-7 md:h-7" 
+                  style={{ 
+                    color: theme.accentColor,
+                    filter: `drop-shadow(0 0 8px ${theme.accentColor})`
+                  }}
+                />
+              </motion.div>
               <div>
-                <h2 className="text-xl md:text-2xl font-black text-white">
+                <motion.h2 
+                  className="text-xl md:text-2xl font-black text-white tracking-tight"
+                  style={{
+                    textShadow: `0 0 20px ${theme.accentColor}60`
+                  }}
+                >
                   {tournament.name}
-                </h2>
-                <p className="text-xs text-gray-400 font-semibold mt-0.5">
+                </motion.h2>
+                <p className="text-xs font-bold mt-1 tracking-wider" style={{ color: `${theme.accentColor}` }}>
                   {tournament.sport.toUpperCase()} • {tournament.num_teams} TEAMS
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1 bg-gray-800/50 rounded-lg p-1">
-                <Palette className="w-3 h-3 text-gray-400 ml-1" />
+              <div className="flex items-center gap-1 bg-gray-900/60 backdrop-blur-sm rounded-xl p-1.5 border" style={{ borderColor: `${theme.accentColor}30` }}>
+                <Palette className="w-3 h-3 ml-1" style={{ color: theme.accentColor }} />
                 {Object.keys(THEME_OPTIONS).map((themeName) => (
-                  <button
+                  <motion.button
                     key={themeName}
                     onClick={() => setSelectedTheme(themeName)}
-                    className={`px-2 py-1 rounded text-xs font-bold transition-all ${
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       selectedTheme === themeName 
-                        ? `bg-gradient-to-r ${THEME_OPTIONS[themeName].primary} text-white` 
+                        ? `bg-gradient-to-r ${THEME_OPTIONS[themeName].primary} text-white shadow-lg` 
                         : 'text-gray-400 hover:text-white'
                     }`}
+                    style={selectedTheme === themeName ? {
+                      boxShadow: `0 0 20px ${THEME_OPTIONS[themeName].accentColor}60`
+                    } : {}}
                   >
                     {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
-              <Button
-                onClick={() => setManualMode(!manualMode)}
-                variant="outline"
-                className="text-xs font-bold"
-              >
-                {manualMode ? '🤖 Auto Mode' : '✋ Manual Mode'}
-              </Button>
-              <Badge className={`text-xs md:text-sm px-3 md:px-4 py-1.5 bg-gradient-to-r ${theme.primary} text-white font-black`}>
-                {manualMode ? 'MANUAL BUILDER' : 'TOURNAMENT BRACKET'}
-              </Badge>
-              {canEdit && hasAllTeamsSeeded && onSave && (
-                <Button 
-                  onClick={onSave}
-                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold text-sm"
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={() => setManualMode(!manualMode)}
+                  variant="outline"
+                  className="text-xs font-bold backdrop-blur-sm"
+                  style={{
+                    borderColor: `${theme.accentColor}40`,
+                    color: theme.accentColor
+                  }}
                 >
-                  <Save className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">Save Bracket</span>
+                  {manualMode ? '🤖 Auto Mode' : '✋ Manual Mode'}
                 </Button>
+              </motion.div>
+              <motion.div
+                animate={{
+                  boxShadow: [`0 0 10px ${theme.accentColor}40`, `0 0 20px ${theme.accentColor}60`, `0 0 10px ${theme.accentColor}40`]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Badge 
+                  className={`text-xs md:text-sm px-4 md:px-6 py-2 bg-gradient-to-r ${theme.primary} text-white font-black border-0`}
+                  style={{
+                    boxShadow: `0 4px 20px ${theme.accentColor}40`
+                  }}
+                >
+                  {manualMode ? 'MANUAL BUILDER' : 'TOURNAMENT BRACKET'}
+                </Badge>
+              </motion.div>
+              {canEdit && hasAllTeamsSeeded && onSave && (
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    onClick={onSave}
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm"
+                    style={{
+                      boxShadow: '0 0 20px rgba(34, 197, 94, 0.4)'
+                    }}
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    <span className="hidden sm:inline">Save Bracket</span>
+                  </Button>
+                </motion.div>
               )}
             </div>
           </div>
@@ -351,9 +466,28 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
 
         <div className={`${canEdit && availableTeams.length > 0 ? 'grid lg:grid-cols-[280px,1fr] gap-6' : ''}`}>
           {canEdit && availableTeams.length > 0 && (
-            <div className="bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-950 rounded-xl p-6 border-2 border-purple-900/50">
-              <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
-                <GripVertical className="w-5 h-5 text-purple-500" />
+            <motion.div 
+              className="bg-gradient-to-br from-gray-950 via-purple-950/30 to-gray-950 rounded-2xl p-6 backdrop-blur-md relative overflow-hidden"
+              style={{
+                border: `1px solid ${theme.accentColor}30`,
+                boxShadow: `0 0 30px ${theme.accentColor}10`
+              }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <motion.div
+                className="absolute inset-0 opacity-10"
+                style={{
+                  background: `radial-gradient(circle at 0% 0%, ${theme.accentColor}30, transparent 70%)`
+                }}
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [0.05, 0.15, 0.05]
+                }}
+                transition={{ duration: 4, repeat: Infinity }}
+              />
+              <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2 relative z-10" style={{ textShadow: `0 0 15px ${theme.accentColor}60` }}>
+                <GripVertical className="w-5 h-5" style={{ color: theme.accentColor }} />
                 Available Teams
               </h3>
               <Droppable droppableId="available-teams">
@@ -361,27 +495,50 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className="space-y-2"
+                    className="space-y-2 relative z-10"
                   >
                     {availableTeams.map((team, index) => (
                       <Draggable key={team.id} draggableId={`available-${team.id}`} index={index}>
                         {(provided, snapshot) => (
-                          <div
+                          <motion.div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className={`flex items-center gap-2 px-3 py-2 bg-gray-900 border-2 border-gray-700 rounded-lg transition-all ${
-                              snapshot.isDragging ? 'shadow-2xl scale-105 border-blue-500 bg-blue-900' : 'hover:border-gray-600'
+                            whileHover={{ 
+                              scale: 1.02,
+                              boxShadow: `0 0 20px ${theme.accentColor}40`
+                            }}
+                            className={`flex items-center gap-2 px-3 py-2 bg-gray-900/60 border-2 rounded-xl backdrop-blur-sm transition-all ${
+                              snapshot.isDragging ? 'shadow-2xl scale-105' : ''
                             }`}
+                            style={{
+                              borderColor: snapshot.isDragging ? theme.accentColor : `${theme.accentColor}30`,
+                              boxShadow: snapshot.isDragging ? `0 10px 40px ${theme.accentColor}60` : 'none'
+                            }}
                           >
                             <GripVertical className="w-4 h-4 text-gray-500" />
-                            <div className="w-1 h-6 bg-purple-500 rounded"></div>
-                            <Avatar className="w-6 h-6 border border-gray-600">
-                              <AvatarImage src={team.logo_url} />
-                              <AvatarFallback className="bg-purple-600 text-white text-xs font-bold">
-                                {team.name?.substring(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
+                            <motion.div 
+                              className="w-1 h-6 rounded-full"
+                              style={{ 
+                                background: `linear-gradient(to bottom, ${theme.accentColor}, ${theme.accentColor}60)`,
+                                boxShadow: `0 0 8px ${theme.accentColor}`
+                              }}
+                              animate={{ opacity: [0.6, 1, 0.6] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                            />
+                            <motion.div whileHover={{ scale: 1.1, rotate: 5 }}>
+                              <Avatar className="w-6 h-6 border-2" style={{ borderColor: `${theme.accentColor}60` }}>
+                                <AvatarImage src={team.logo_url} />
+                                <AvatarFallback 
+                                  className="text-white text-xs font-bold"
+                                  style={{ 
+                                    background: `linear-gradient(135deg, ${theme.accentColor}, ${theme.accentColor}80)`
+                                  }}
+                                >
+                                  {team.name?.substring(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                            </motion.div>
                             <span className="text-sm font-bold text-white uppercase flex-1 truncate">
                               {team.name}
                             </span>
@@ -393,13 +550,26 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   </div>
                 )}
               </Droppable>
-              <p className="text-xs text-gray-500 mt-4 font-medium">
-                Drag teams to bracket slots
+              <p className="text-xs mt-4 font-bold tracking-wider relative z-10" style={{ color: `${theme.accentColor}80` }}>
+                ⚡ Drag teams to bracket slots
               </p>
-            </div>
+            </motion.div>
           )}
 
-          <div className="bg-gradient-to-br from-gray-950 via-indigo-950/20 to-gray-950 rounded-xl p-4 md:p-8 border border-gray-800 shadow-2xl overflow-x-auto">
+          <div 
+            className="bg-gradient-to-br from-gray-950 via-indigo-950/30 to-gray-950 rounded-2xl p-4 md:p-8 backdrop-blur-xl shadow-2xl overflow-x-auto relative"
+            style={{
+              border: `1px solid ${theme.accentColor}20`,
+              boxShadow: `0 0 60px ${theme.accentColor}10, inset 0 1px 0 rgba(255,255,255,0.03)`
+            }}
+          >
+            <motion.div
+              className="absolute inset-0 opacity-5 pointer-events-none"
+              style={{
+                backgroundImage: `radial-gradient(circle at 2px 2px, ${theme.accentColor} 1px, transparent 1px)`,
+                backgroundSize: '40px 40px'
+              }}
+            />
             {manualMode ? (
               <div className="space-y-4">
                 <div className="flex gap-3 flex-wrap items-center">
@@ -522,17 +692,39 @@ if (roundIdx > 0) {
                       transition={{ delay: roundIdx * 0.1 }}
                     >
                       <motion.div 
-                        className="mb-8 text-center"
-                        whileHover={{ scale: 1.05 }}
+                        className="mb-8 text-center relative z-10"
+                        whileHover={{ scale: 1.08 }}
+                        transition={{ type: "spring", stiffness: 400 }}
                       >
-                        <div className={`bg-gradient-to-r ${theme.primary} rounded-lg px-6 py-3 shadow-lg inline-block`}>
-                          <h3 className="text-sm font-black text-white uppercase tracking-widest">
+                        <motion.div 
+                          className={`bg-gradient-to-r ${theme.primary} rounded-xl px-6 py-3 inline-block backdrop-blur-sm relative overflow-hidden`}
+                          style={{
+                            boxShadow: `0 0 30px ${theme.accentColor}50, 0 8px 20px rgba(0,0,0,0.4)`
+                          }}
+                          animate={{
+                            boxShadow: [
+                              `0 0 20px ${theme.accentColor}40, 0 8px 20px rgba(0,0,0,0.4)`,
+                              `0 0 40px ${theme.accentColor}60, 0 8px 20px rgba(0,0,0,0.4)`,
+                              `0 0 20px ${theme.accentColor}40, 0 8px 20px rgba(0,0,0,0.4)`
+                            ]
+                          }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                        >
+                          <motion.div
+                            className="absolute inset-0"
+                            style={{
+                              background: `linear-gradient(90deg, transparent, ${theme.accentColor}30, transparent)`
+                            }}
+                            animate={{ x: ['-100%', '200%'] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                          />
+                          <h3 className="text-sm font-black text-white uppercase tracking-widest relative z-10" style={{ textShadow: `0 0 10px rgba(0,0,0,0.5)` }}>
                             {getRoundLabel(roundName)}
                           </h3>
-                          <p className={`text-[10px] text-${theme.accent}-200 font-semibold mt-1`}>
+                          <p className="text-[10px] font-bold mt-1 tracking-wider relative z-10" style={{ color: `${theme.accentColor}`, textShadow: `0 0 10px ${theme.accentColor}80` }}>
                             {matchCount} {matchCount === 1 ? 'Match' : 'Matches'}
                           </p>
-                        </div>
+                        </motion.div>
                       </motion.div>
 
                       <Droppable droppableId={`round-${roundName}`} type="MATCH">
@@ -540,7 +732,12 @@ if (roundIdx > 0) {
                           <div 
                             ref={provided.innerRef}
                             {...provided.droppableProps}
-                            className={`flex flex-col relative ${snapshot.isDraggingOver ? 'bg-blue-900/20 rounded-lg border-2 border-blue-500' : ''}`} 
+                            className={`flex flex-col relative ${snapshot.isDraggingOver ? 'rounded-2xl border-2' : ''}`}
+                            style={snapshot.isDraggingOver ? {
+                              background: `${theme.accentColor}10`,
+                              borderColor: theme.accentColor,
+                              boxShadow: `0 0 30px ${theme.accentColor}30`
+                            } : {}} 
                             style={{ 
                               gap: `${matchGap}px`, 
                               marginTop: `${topOffset}px`,
@@ -589,11 +786,15 @@ if (roundIdx > 0) {
                                               }}
                                             >
                                               {/* Horizontal line out from this match */}
-                                              <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
+                                              <line x1="0" y1="0" x2="50" y2="0" stroke={theme.connector} strokeWidth="3" strokeLinecap="round" />
                                               {/* Vertical down to merge point */}
-                                              <line x1="50" y1="0" x2="50" y2={matchGap / 2 + MATCH_HEIGHT / 2} stroke={theme.connector} strokeWidth="3" />
+                                              <line x1="50" y1="0" x2="50" y2={matchGap / 2 + MATCH_HEIGHT / 2} stroke={theme.connector} strokeWidth="3" strokeLinecap="round" />
                                               {/* Merged line to next round */}
-                                              <line x1="50" y1={matchGap / 2 + MATCH_HEIGHT / 2} x2="100" y2={matchGap / 2 + MATCH_HEIGHT / 2} stroke={theme.connector} strokeWidth="3" />
+                                              <line x1="50" y1={matchGap / 2 + MATCH_HEIGHT / 2} x2="100" y2={matchGap / 2 + MATCH_HEIGHT / 2} stroke={theme.connector} strokeWidth="3" strokeLinecap="round" />
+                                              {/* Glow effect */}
+                                              <line x1="0" y1="0" x2="50" y2="0" stroke={theme.accentColor} strokeWidth="6" opacity="0.3" strokeLinecap="round" filter="blur(4px)" />
+                                              <line x1="50" y1="0" x2="50" y2={matchGap / 2 + MATCH_HEIGHT / 2} stroke={theme.accentColor} strokeWidth="6" opacity="0.3" strokeLinecap="round" filter="blur(4px)" />
+                                              <line x1="50" y1={matchGap / 2 + MATCH_HEIGHT / 2} x2="100" y2={matchGap / 2 + MATCH_HEIGHT / 2} stroke={theme.accentColor} strokeWidth="6" opacity="0.3" strokeLinecap="round" filter="blur(4px)" />
                                             </svg>
                                           )}
                                           {!isPairFirst && (
@@ -609,9 +810,12 @@ if (roundIdx > 0) {
                                               }}
                                             >
                                               {/* Horizontal line out from this match */}
-                                              <line x1="0" y1={matchGap / 2 + MATCH_HEIGHT / 2} x2="50" y2={matchGap / 2 + MATCH_HEIGHT / 2} stroke={theme.connector} strokeWidth="3" />
+                                              <line x1="0" y1={matchGap / 2 + MATCH_HEIGHT / 2} x2="50" y2={matchGap / 2 + MATCH_HEIGHT / 2} stroke={theme.connector} strokeWidth="3" strokeLinecap="round" />
                                               {/* Vertical up to merge point */}
-                                              <line x1="50" y1={matchGap / 2 + MATCH_HEIGHT / 2} x2="50" y2="0" stroke={theme.connector} strokeWidth="3" />
+                                              <line x1="50" y1={matchGap / 2 + MATCH_HEIGHT / 2} x2="50" y2="0" stroke={theme.connector} strokeWidth="3" strokeLinecap="round" />
+                                              {/* Glow effect */}
+                                              <line x1="0" y1={matchGap / 2 + MATCH_HEIGHT / 2} x2="50" y2={matchGap / 2 + MATCH_HEIGHT / 2} stroke={theme.accentColor} strokeWidth="6" opacity="0.3" strokeLinecap="round" filter="blur(4px)" />
+                                              <line x1="50" y1={matchGap / 2 + MATCH_HEIGHT / 2} x2="50" y2="0" stroke={theme.accentColor} strokeWidth="6" opacity="0.3" strokeLinecap="round" filter="blur(4px)" />
                                             </svg>
                                           )}
                                         </>
@@ -632,7 +836,7 @@ if (roundIdx > 0) {
 
               {champion && (
                 <motion.div 
-                  className="flex items-center pl-4 md:pl-8" 
+                  className="flex items-center pl-4 md:pl-8 relative z-10" 
 style={{ 
                     marginTop: (() => {
                       if (roundOrder.length === 1) return '50px';
@@ -657,19 +861,34 @@ style={{
                     <motion.div
                       animate={{ 
                         rotate: [0, -10, 10, -10, 0],
-                        scale: [1, 1.1, 1]
+                        scale: [1, 1.15, 1]
                       }}
                       transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
                     >
-                      <Trophy className="w-12 h-12 md:w-16 md:h-16 text-yellow-500 mx-auto mb-4" />
+                      <Trophy 
+                        className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4" 
+                        style={{ 
+                          color: '#FFD700',
+                          filter: 'drop-shadow(0 0 15px #FFD700)'
+                        }}
+                      />
                     </motion.div>
                     <motion.div 
-                      className="bg-gradient-to-br from-yellow-500 via-yellow-600 to-orange-600 rounded-xl p-4 md:p-6 border-4 border-yellow-400 shadow-2xl w-[200px] md:w-[240px] relative overflow-hidden"
-                      whileHover={{ scale: 1.05, rotate: 2 }}
+                      className="bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 rounded-2xl p-4 md:p-6 border-4 border-yellow-300 w-[200px] md:w-[240px] relative overflow-hidden"
+                      whileHover={{ scale: 1.08, rotate: 3 }}
+                      style={{
+                        boxShadow: '0 0 60px rgba(255, 215, 0, 0.6), 0 20px 40px rgba(0,0,0,0.4)'
+                      }}
                     >
                       <motion.div 
-                        className="absolute inset-0 bg-gradient-to-br from-yellow-300/20 to-transparent"
-                        animate={{ opacity: [0.3, 0.6, 0.3] }}
+                        className="absolute inset-0"
+                        style={{
+                          background: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.4), transparent 70%)'
+                        }}
+                        animate={{ 
+                          scale: [1, 1.3, 1],
+                          opacity: [0.3, 0.6, 0.3] 
+                        }}
                         transition={{ duration: 2, repeat: Infinity }}
                       />
                       <Avatar className="w-16 h-16 md:w-20 md:h-20 mx-auto border-4 border-white shadow-2xl mb-3 relative z-10">
@@ -678,12 +897,35 @@ style={{
                           {champion.name?.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <h3 className="text-base md:text-lg font-black text-white uppercase mb-2 relative z-10">
+                      <motion.h3 
+                        className="text-base md:text-lg font-black text-white uppercase mb-2 relative z-10"
+                        style={{ 
+                          textShadow: '0 2px 10px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.3)'
+                        }}
+                        animate={{
+                          textShadow: [
+                            '0 2px 10px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.3)',
+                            '0 2px 10px rgba(0,0,0,0.5), 0 0 30px rgba(255,255,255,0.5)',
+                            '0 2px 10px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.3)'
+                          ]
+                        }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
                         {champion.name}
-                      </h3>
-                      <Badge className="bg-white text-yellow-700 font-black text-xs md:text-sm px-3 md:px-4 py-1 shadow-lg relative z-10">
-                        🏆 CHAMPION 🏆
-                      </Badge>
+                      </motion.h3>
+                      <motion.div
+                        animate={{ scale: [1, 1.05, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        <Badge 
+                          className="bg-white text-yellow-700 font-black text-xs md:text-sm px-3 md:px-4 py-1 relative z-10"
+                          style={{
+                            boxShadow: '0 4px 15px rgba(255, 215, 0, 0.5)'
+                          }}
+                        >
+                          🏆 CHAMPION 🏆
+                        </Badge>
+                      </motion.div>
                     </motion.div>
                   </div>
                 </motion.div>
