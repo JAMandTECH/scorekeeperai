@@ -821,14 +821,26 @@ export default function Games() {
                         
                         return (
                           <div key={week} className="space-y-6">
-                            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl px-6 py-3 shadow-lg">
-                              <h3 className="text-xl font-black text-white">
-                                {week === 'Unassigned' ? 'Unassigned Games' : `WEEK ${week}`}
-                              </h3>
-                              <p className="text-sm text-blue-100 font-semibold">
-                                {gamesByWeek[week].length} {gamesByWeek[week].length === 1 ? 'game' : 'games'}
-                              </p>
-                            </div>
+                            <button
+                              onClick={() => toggleWeekExpanded(week)}
+                              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl px-6 py-3 shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-between"
+                            >
+                              <div className="text-left">
+                                <h3 className="text-xl font-black text-white">
+                                  {week === 'Unassigned' ? 'Unassigned Games' : `WEEK ${week}`}
+                                </h3>
+                                <p className="text-sm text-blue-100 font-semibold">
+                                  {gamesByWeek[week].length} {gamesByWeek[week].length === 1 ? 'game' : 'games'}
+                                </p>
+                              </div>
+                              {expandedWeeks[week] ? (
+                                <ChevronUp className="w-6 h-6 text-white" />
+                              ) : (
+                                <ChevronDown className="w-6 h-6 text-white" />
+                              )}
+                            </button>
+                            {expandedWeeks[week] && (
+                            <div className="space-y-6">
                             {Object.entries(gamesByDivision).map(([division, divisionGames]) => (
                               <div key={division} className="space-y-3">
                                 <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg px-4 py-2 shadow-md">
@@ -842,6 +854,8 @@ export default function Games() {
                                 </div>
                               </div>
                             ))}
+                            </div>
+                            )}
                           </div>
                         );
                       });
@@ -858,14 +872,26 @@ export default function Games() {
                         
                         return (
                           <div key={week} className="space-y-6">
-                            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl px-6 py-3 shadow-lg">
-                              <h3 className="text-xl font-black text-white">
-                                {week === 'Unassigned' ? 'Unassigned Games' : `WEEK ${week}`}
-                              </h3>
-                              <p className="text-sm text-blue-100 font-semibold">
-                                {gamesByWeek[week].length} {gamesByWeek[week].length === 1 ? 'game' : 'games'}
-                              </p>
-                            </div>
+                            <button
+                              onClick={() => toggleWeekExpanded(week)}
+                              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl px-6 py-3 shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-between"
+                            >
+                              <div className="text-left">
+                                <h3 className="text-xl font-black text-white">
+                                  {week === 'Unassigned' ? 'Unassigned Games' : `WEEK ${week}`}
+                                </h3>
+                                <p className="text-sm text-blue-100 font-semibold">
+                                  {gamesByWeek[week].length} {gamesByWeek[week].length === 1 ? 'game' : 'games'}
+                                </p>
+                              </div>
+                              {expandedWeeks[week] ? (
+                                <ChevronUp className="w-6 h-6 text-white" />
+                              ) : (
+                                <ChevronDown className="w-6 h-6 text-white" />
+                              )}
+                            </button>
+                            {expandedWeeks[week] && (
+                            <div className="space-y-6">
                             {Object.entries(gamesByDivision).map(([division, divisionGames]) => (
                               <div key={division} className="space-y-3">
                                 <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg px-4 py-2 shadow-md">
