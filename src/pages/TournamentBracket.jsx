@@ -84,7 +84,7 @@ export default function TournamentBracket() {
     queryKey: ['organization', user?.organization_id],
     queryFn: async () => {
       const orgs = await base44.entities.Organization.list();
-      return orgs.find(o => o.id === user?.organization_id);
+      return orgs.find(o => o.id === user?.organization_id) || null;
     },
     enabled: !!user?.organization_id,
   });
