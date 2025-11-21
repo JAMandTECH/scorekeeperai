@@ -374,24 +374,30 @@ export default function Games() {
         teamsByDivision[division].push(team);
       });
 
-      const allGeneratedGames = [];
-      let currentWeek = 1;
-
-      // Generate schedule for each division separately
+      // Calculate max weeks needed across all divisions
+      let maxWeeks = 0;
+      const divisionSchedules = {};
+      
+      // Generate schedules for each division
       for (const [division, divisionTeams] of Object.entries(teamsByDivision)) {
         const numTeams = divisionTeams.length;
         const isOdd = numTeams % 2 !== 0;
         const teamsForScheduling = isOdd ? [...divisionTeams, { id: 'BYE', name: 'BYE' }] : divisionTeams;
         const totalTeams = teamsForScheduling.length;
+        const weeksPerRound = totalTeams - 1;
+        const totalWeeks = weeksPerRound * rounds;
+        
+        maxWeeks = Math.max(maxWeeks, totalWeeks);
+        divisionSchedules[division] = [];
         
         // Generate round-robin schedule using circle method
         for (let round = 0; round < rounds; round++) {
-          for (let week = 0; week < totalTeams - 1; week++) {
+          for (let weekInRound = 0; weekInRound < weeksPerRound; weekInRound++) {
             const weekGames = [];
             
             for (let match = 0; match < totalTeams / 2; match++) {
-              let home = (week + match) % (totalTeams - 1);
-              let away = (totalTeams - 1 - match + week) % (totalTeams - 1);
+              let home = (weekInRound + match) % (totalTeams - 1);
+              let away = (totalTeams - 1 - match + weekInRound) % (totalTeams - 1);
               
               if (match === 0) {
                 away = totalTeams - 1;
@@ -416,11 +422,23 @@ export default function Games() {
               });
             }
             
-            // Add all games for this week with the same week number
+            divisionSchedules[division].push(weekGames);
+          }
+        }
+      }
+      
+      // Now combine all divisions week by week
+      const allGeneratedGames = [];
+      for (let weekIndex = 0; weekIndex < maxWeeks; weekIndex++) {
+        const weekNumber = weekIndex + 1;
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() + (weekIndex * 7));
+        
+        // Add games from each division for this week
+        for (const [division, schedule] of Object.entries(divisionSchedules)) {
+          if (weekIndex < schedule.length) {
+            const weekGames = schedule[weekIndex];
             weekGames.forEach(game => {
-              const startDate = new Date();
-              startDate.setDate(startDate.getDate() + ((currentWeek - 1) * 7));
-              
               allGeneratedGames.push({
                 organization_id: user.organization_id,
                 home_team_id: game.home_team_id,
@@ -435,12 +453,10 @@ export default function Games() {
                 game_type: 'regular_season',
                 penalty_limit_per_quarter: 5,
                 player_foul_limit: 5,
-                week_number: currentWeek,
+                week_number: weekNumber,
                 division: game.division,
               });
             });
-            
-            currentWeek++;
           }
         }
       }
