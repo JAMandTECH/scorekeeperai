@@ -934,15 +934,13 @@ export default function Games() {
                                     </tbody>
                                   </table>
                                 </div>
-                                </div>
-                                ))}
-                                </div>
-                                )}
-                                </div>
-                                );
-                                });
-                                }
-                                })()}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      });
+                    }
+                  })()}
                   
                   {scheduledGames.length === 0 && (
                     <div className="text-center py-20">
