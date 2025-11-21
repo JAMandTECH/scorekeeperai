@@ -936,6 +936,8 @@ export default function Games() {
                                 </div>
                               </div>
                             ))}
+                            </div>
+                            )}
                           </div>
                         );
                       });
