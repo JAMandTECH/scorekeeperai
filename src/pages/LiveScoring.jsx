@@ -778,8 +778,8 @@ export default function LiveScoring() {
                   </div>
                 </div>
               
-              {/* BUTTONS */}
-              <div className="flex gap-2 justify-center flex-wrap">
+                {/* BUTTONS */}
+                <div className="flex gap-2 justify-center flex-wrap">
                 {!game.is_default && game.status === 'in_progress' && (
                   <Button
                     onClick={() => setShowDefaultDialog(true)}
@@ -838,6 +838,7 @@ export default function LiveScoring() {
                 >
                   CANCEL
                 </Button>
+                </div>
               </div>
             </div>
 
