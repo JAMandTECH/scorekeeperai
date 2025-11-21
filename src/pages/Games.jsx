@@ -437,6 +437,19 @@ Return ONLY a JSON array of game objects with home_team_id and away_team_id prop
   });
 
   const generateScheduleWithAI = (sport, rounds) => {
+    if (scheduledGames.length > 0) {
+      const confirmGenerate = window.confirm(
+        `⚠️ Warning: You already have ${scheduledGames.length} scheduled game(s).\n\n` +
+        `Generating a new schedule will create additional games, which may cause duplicates.\n\n` +
+        `Recommendation: Clear all scheduled games first before generating a new schedule.\n\n` +
+        `Do you want to continue anyway?`
+      );
+      
+      if (!confirmGenerate) {
+        return;
+      }
+    }
+    
     aiGenerateMutation.mutate({ sport, rounds });
   };
 
