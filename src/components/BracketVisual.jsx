@@ -542,7 +542,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                             <span className="text-sm font-bold text-white uppercase flex-1 truncate">
                               {team.name}
                             </span>
-                          </div>
+                          </motion.div>
                         )}
                       </Draggable>
                     ))}
