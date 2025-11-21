@@ -44,6 +44,7 @@ export default function Games() {
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [recurringConfig, setRecurringConfig] = useState({ enabled: false });
   const [selectedScorekeeperEmails, setSelectedScorekeeperEmails] = useState([]);
+  const [aiScheduleView, setAiScheduleView] = useState('card');
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -401,21 +402,28 @@ Return ONLY a JSON array of game objects with home_team_id and away_team_id prop
         throw new Error("AI did not return a valid schedule.");
       }
 
-      const generatedGames = gamesList.map(game => ({
-        organization_id: user.organization_id,
-        home_team_id: game.home_team_id,
-        away_team_id: game.away_team_id,
-        sport: sport,
-        game_date: new Date().toISOString(),
-        court_number: null,
-        location: null,
-        assigned_scorekeeper_emails: [],
-        status: 'scheduled',
-        archived: false,
-        game_type: 'regular_season',
-        penalty_limit_per_quarter: 5,
-        player_foul_limit: 5,
-      }));
+      const generatedGames = gamesList.map((game, index) => {
+        const weekNumber = Math.floor(index / Math.max(1, Math.floor(gamesList.length / rounds))) + 1;
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() + ((weekNumber - 1) * 7));
+        
+        return {
+          organization_id: user.organization_id,
+          home_team_id: game.home_team_id,
+          away_team_id: game.away_team_id,
+          sport: sport,
+          game_date: startDate.toISOString(),
+          court_number: null,
+          location: null,
+          assigned_scorekeeper_emails: [],
+          status: 'scheduled',
+          archived: false,
+          game_type: 'regular_season',
+          penalty_limit_per_quarter: 5,
+          player_foul_limit: 5,
+          week_number: weekNumber,
+        };
+      });
 
       return createMutation.mutate(generatedGames);
     },
@@ -699,7 +707,25 @@ Return ONLY a JSON array of game objects with home_team_id and away_team_id prop
 
                 <TabsContent value="scheduled" className="space-y-4">
                   {scheduledGames.length > 0 && (
-                    <div className="flex justify-end mb-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex gap-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl">
+                        <Button
+                          onClick={() => setAiScheduleView('card')}
+                          variant={aiScheduleView === 'card' ? 'default' : 'ghost'}
+                          size="sm"
+                          className={aiScheduleView === 'card' ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold' : 'font-semibold text-gray-600 dark:text-gray-400'}
+                        >
+                          Card View
+                        </Button>
+                        <Button
+                          onClick={() => setAiScheduleView('table')}
+                          variant={aiScheduleView === 'table' ? 'default' : 'ghost'}
+                          size="sm"
+                          className={aiScheduleView === 'table' ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold' : 'font-semibold text-gray-600 dark:text-gray-400'}
+                        >
+                          Table View
+                        </Button>
+                      </div>
                       <Button
                         onClick={() => setShowClearAllDialog(true)}
                         variant="outline"
@@ -710,9 +736,113 @@ Return ONLY a JSON array of game objects with home_team_id and away_team_id prop
                       </Button>
                     </div>
                   )}
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {scheduledGames.map(game => <GameCard key={game.id} game={game} />)}
-                  </div>
+                  
+                  {(() => {
+                    const gamesByWeek = {};
+                    scheduledGames.forEach(game => {
+                      const week = game.week_number || 'Unassigned';
+                      if (!gamesByWeek[week]) gamesByWeek[week] = [];
+                      gamesByWeek[week].push(game);
+                    });
+                    
+                    const sortedWeeks = Object.keys(gamesByWeek).sort((a, b) => {
+                      if (a === 'Unassigned') return 1;
+                      if (b === 'Unassigned') return -1;
+                      return parseInt(a) - parseInt(b);
+                    });
+
+                    if (aiScheduleView === 'card') {
+                      return sortedWeeks.map(week => (
+                        <div key={week} className="space-y-4">
+                          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl px-6 py-3 shadow-lg">
+                            <h3 className="text-xl font-black text-white">
+                              {week === 'Unassigned' ? 'Unassigned Games' : `WEEK ${week}`}
+                            </h3>
+                            <p className="text-sm text-blue-100 font-semibold">
+                              {gamesByWeek[week].length} {gamesByWeek[week].length === 1 ? 'game' : 'games'}
+                            </p>
+                          </div>
+                          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {gamesByWeek[week].map(game => <GameCard key={game.id} game={game} />)}
+                          </div>
+                        </div>
+                      ));
+                    } else {
+                      return sortedWeeks.map(week => (
+                        <div key={week} className="space-y-4">
+                          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl px-6 py-3 shadow-lg">
+                            <h3 className="text-xl font-black text-white">
+                              {week === 'Unassigned' ? 'Unassigned Games' : `WEEK ${week}`}
+                            </h3>
+                            <p className="text-sm text-blue-100 font-semibold">
+                              {gamesByWeek[week].length} {gamesByWeek[week].length === 1 ? 'game' : 'games'}
+                            </p>
+                          </div>
+                          <div className="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg">
+                            <table className="w-full">
+                              <thead className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
+                                <tr>
+                                  <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Date & Time</th>
+                                  <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Matchup</th>
+                                  <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Sport</th>
+                                  <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Court</th>
+                                  <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Status</th>
+                                  <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {gamesByWeek[week].map(game => (
+                                  <tr key={game.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                                    <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">
+                                      {new Date(game.game_date).toLocaleDateString()}<br />
+                                      <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(game.game_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                    </td>
+                                    <td className="py-3 px-4 text-sm font-bold text-gray-900 dark:text-white">
+                                      {getTeamName(game.home_team_id)} <span className="text-gray-400 font-normal">vs</span> {getTeamName(game.away_team_id)}
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <Badge variant="outline" className={`text-${game.sport === 'basketball' ? 'orange' : 'blue'}-600 dark:text-${game.sport === 'basketball' ? 'orange' : 'blue'}-400 border-${game.sport === 'basketball' ? 'orange' : 'blue'}-600 font-bold`}>
+                                        {game.sport}
+                                      </Badge>
+                                    </td>
+                                    <td className="py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                      {game.court_number || '-'}
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold">
+                                        {game.status.replace('_', ' ').toUpperCase()}
+                                      </Badge>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <div className="flex gap-1">
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon"
+                                          onClick={() => handleEditGame(game)}
+                                          className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                                        >
+                                          <Edit className="w-4 h-4" />
+                                        </Button>
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon"
+                                          onClick={() => handleDeleteClick(game)}
+                                          className="text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      ));
+                    }
+                  })()}
+                  
                   {scheduledGames.length === 0 && (
                     <div className="text-center py-20">
                       <div className="w-24 h-24 bg-gradient-to-br from-blue-200 to-blue-300 dark:from-blue-800 dark:to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
