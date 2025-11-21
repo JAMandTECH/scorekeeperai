@@ -364,70 +364,88 @@ export default function Games() {
         throw new Error(`Need at least 2 ${sport} teams to generate a schedule.`);
       }
 
-      const prompt = `Generate a ${sport} game schedule for a sports league.
-The league has the following teams:
-${teamsInSport.map(team => `- ID: ${team.id}, Name: ${team.name}`).join('\n')}
-
-Create a schedule for ${rounds} round(s).
-- In 1 round, each team plays every other team once.
-- In 2 rounds, each team plays every other team twice.
-
-For each game, provide the 'home_team_id' and 'away_team_id' from the provided team IDs.
-Ensure that each team plays an equal number of home and away games as much as possible.
-Return ONLY a JSON array of game objects with home_team_id and away_team_id properties.`;
-
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: prompt,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            games: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  home_team_id: { type: "string" },
-                  away_team_id: { type: "string" },
-                },
-                required: ["home_team_id", "away_team_id"],
-              },
-            },
-          },
-          required: ["games"],
-        },
+      // Group teams by division
+      const teamsByDivision = {};
+      teamsInSport.forEach(team => {
+        const division = team.division || 'No Division';
+        if (!teamsByDivision[division]) {
+          teamsByDivision[division] = [];
+        }
+        teamsByDivision[division].push(team);
       });
 
-      const gamesList = response?.games || response;
-      if (!gamesList || !Array.isArray(gamesList)) {
-        throw new Error("AI did not return a valid schedule.");
+      const allGeneratedGames = [];
+      let currentWeek = 1;
+
+      // Generate schedule for each division separately
+      for (const [division, divisionTeams] of Object.entries(teamsByDivision)) {
+        const numTeams = divisionTeams.length;
+        const isOdd = numTeams % 2 !== 0;
+        const teamsForScheduling = isOdd ? [...divisionTeams, { id: 'BYE', name: 'BYE' }] : divisionTeams;
+        const totalTeams = teamsForScheduling.length;
+        
+        // Generate round-robin schedule using circle method
+        for (let round = 0; round < rounds; round++) {
+          for (let week = 0; week < totalTeams - 1; week++) {
+            const weekGames = [];
+            
+            for (let match = 0; match < totalTeams / 2; match++) {
+              let home = (week + match) % (totalTeams - 1);
+              let away = (totalTeams - 1 - match + week) % (totalTeams - 1);
+              
+              if (match === 0) {
+                away = totalTeams - 1;
+              }
+              
+              const homeTeam = teamsForScheduling[home];
+              const awayTeam = teamsForScheduling[away];
+              
+              // Skip BYE games
+              if (homeTeam.id === 'BYE' || awayTeam.id === 'BYE') {
+                continue;
+              }
+              
+              // Alternate home/away for second round
+              const actualHome = round % 2 === 0 ? homeTeam : awayTeam;
+              const actualAway = round % 2 === 0 ? awayTeam : homeTeam;
+              
+              weekGames.push({
+                home_team_id: actualHome.id,
+                away_team_id: actualAway.id,
+                division: division,
+              });
+            }
+            
+            // Add all games for this week with the same week number
+            weekGames.forEach(game => {
+              const startDate = new Date();
+              startDate.setDate(startDate.getDate() + ((currentWeek - 1) * 7));
+              
+              allGeneratedGames.push({
+                organization_id: user.organization_id,
+                home_team_id: game.home_team_id,
+                away_team_id: game.away_team_id,
+                sport: sport,
+                game_date: startDate.toISOString(),
+                court_number: null,
+                location: null,
+                assigned_scorekeeper_emails: [],
+                status: 'scheduled',
+                archived: false,
+                game_type: 'regular_season',
+                penalty_limit_per_quarter: 5,
+                player_foul_limit: 5,
+                week_number: currentWeek,
+                division: game.division,
+              });
+            });
+            
+            currentWeek++;
+          }
+        }
       }
 
-      const gamesPerWeek = Math.ceil(gamesList.length / rounds);
-      
-      const generatedGames = gamesList.map((game, index) => {
-        const weekNumber = Math.floor(index / gamesPerWeek) + 1;
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() + ((weekNumber - 1) * 7));
-        
-        return {
-          organization_id: user.organization_id,
-          home_team_id: game.home_team_id,
-          away_team_id: game.away_team_id,
-          sport: sport,
-          game_date: startDate.toISOString(),
-          court_number: null,
-          location: null,
-          assigned_scorekeeper_emails: [],
-          status: 'scheduled',
-          archived: false,
-          game_type: 'regular_season',
-          penalty_limit_per_quarter: 5,
-          player_foul_limit: 5,
-          week_number: weekNumber,
-        };
-      });
-
-      return createMutation.mutate(generatedGames);
+      return createMutation.mutate(allGeneratedGames);
     },
     onSuccess: () => {
       alert("AI-generated schedule created successfully! Remember to assign dates, times, venues, and scorekeepers to these games.");
@@ -767,94 +785,136 @@ Return ONLY a JSON array of game objects with home_team_id and away_team_id prop
                     });
 
                     if (aiScheduleView === 'card') {
-                      return sortedWeeks.map(week => (
-                        <div key={week} className="space-y-4">
-                          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl px-6 py-3 shadow-lg">
-                            <h3 className="text-xl font-black text-white">
-                              {week === 'Unassigned' ? 'Unassigned Games' : `WEEK ${week}`}
-                            </h3>
-                            <p className="text-sm text-blue-100 font-semibold">
-                              {gamesByWeek[week].length} {gamesByWeek[week].length === 1 ? 'game' : 'games'}
-                            </p>
+                      return sortedWeeks.map(week => {
+                        // Group games by division within each week
+                        const gamesByDivision = {};
+                        gamesByWeek[week].forEach(game => {
+                          const homeTeam = teams.find(t => t.id === game.home_team_id);
+                          const division = homeTeam?.division || 'No Division';
+                          if (!gamesByDivision[division]) gamesByDivision[division] = [];
+                          gamesByDivision[division].push(game);
+                        });
+                        
+                        return (
+                          <div key={week} className="space-y-6">
+                            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl px-6 py-3 shadow-lg">
+                              <h3 className="text-xl font-black text-white">
+                                {week === 'Unassigned' ? 'Unassigned Games' : `WEEK ${week}`}
+                              </h3>
+                              <p className="text-sm text-blue-100 font-semibold">
+                                {gamesByWeek[week].length} {gamesByWeek[week].length === 1 ? 'game' : 'games'}
+                              </p>
+                            </div>
+                            {Object.entries(gamesByDivision).map(([division, divisionGames]) => (
+                              <div key={division} className="space-y-3">
+                                <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg px-4 py-2 shadow-md">
+                                  <h4 className="text-lg font-black text-white">{division}</h4>
+                                  <p className="text-xs text-purple-100 font-semibold">
+                                    {divisionGames.length} {divisionGames.length === 1 ? 'game' : 'games'}
+                                  </p>
+                                </div>
+                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                  {divisionGames.map(game => <GameCard key={game.id} game={game} />)}
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {gamesByWeek[week].map(game => <GameCard key={game.id} game={game} />)}
-                          </div>
-                        </div>
-                      ));
+                        );
+                      });
                     } else {
-                      return sortedWeeks.map(week => (
-                        <div key={week} className="space-y-4">
-                          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl px-6 py-3 shadow-lg">
-                            <h3 className="text-xl font-black text-white">
-                              {week === 'Unassigned' ? 'Unassigned Games' : `WEEK ${week}`}
-                            </h3>
-                            <p className="text-sm text-blue-100 font-semibold">
-                              {gamesByWeek[week].length} {gamesByWeek[week].length === 1 ? 'game' : 'games'}
-                            </p>
+                      return sortedWeeks.map(week => {
+                        // Group games by division within each week
+                        const gamesByDivision = {};
+                        gamesByWeek[week].forEach(game => {
+                          const homeTeam = teams.find(t => t.id === game.home_team_id);
+                          const division = homeTeam?.division || 'No Division';
+                          if (!gamesByDivision[division]) gamesByDivision[division] = [];
+                          gamesByDivision[division].push(game);
+                        });
+                        
+                        return (
+                          <div key={week} className="space-y-6">
+                            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl px-6 py-3 shadow-lg">
+                              <h3 className="text-xl font-black text-white">
+                                {week === 'Unassigned' ? 'Unassigned Games' : `WEEK ${week}`}
+                              </h3>
+                              <p className="text-sm text-blue-100 font-semibold">
+                                {gamesByWeek[week].length} {gamesByWeek[week].length === 1 ? 'game' : 'games'}
+                              </p>
+                            </div>
+                            {Object.entries(gamesByDivision).map(([division, divisionGames]) => (
+                              <div key={division} className="space-y-3">
+                                <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg px-4 py-2 shadow-md">
+                                  <h4 className="text-lg font-black text-white">{division}</h4>
+                                  <p className="text-xs text-purple-100 font-semibold">
+                                    {divisionGames.length} {divisionGames.length === 1 ? 'game' : 'games'}
+                                  </p>
+                                </div>
+                                <div className="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg">
+                                  <table className="w-full">
+                                    <thead className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
+                                      <tr>
+                                        <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Date & Time</th>
+                                        <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Matchup</th>
+                                        <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Sport</th>
+                                        <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Court</th>
+                                        <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Status</th>
+                                        <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Actions</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {divisionGames.map(game => (
+                                        <tr key={game.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                                          <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">
+                                            {new Date(game.game_date).toLocaleDateString()}<br />
+                                            <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(game.game_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                          </td>
+                                          <td className="py-3 px-4 text-sm font-bold text-gray-900 dark:text-white">
+                                            {getTeamName(game.home_team_id)} <span className="text-gray-400 font-normal">vs</span> {getTeamName(game.away_team_id)}
+                                          </td>
+                                          <td className="py-3 px-4">
+                                            <Badge variant="outline" className={`text-${game.sport === 'basketball' ? 'orange' : 'blue'}-600 dark:text-${game.sport === 'basketball' ? 'orange' : 'blue'}-400 border-${game.sport === 'basketball' ? 'orange' : 'blue'}-600 font-bold`}>
+                                              {game.sport}
+                                            </Badge>
+                                          </td>
+                                          <td className="py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            {game.court_number || '-'}
+                                          </td>
+                                          <td className="py-3 px-4">
+                                            <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold">
+                                              {game.status.replace('_', ' ').toUpperCase()}
+                                            </Badge>
+                                          </td>
+                                          <td className="py-3 px-4">
+                                            <div className="flex gap-1">
+                                              <Button 
+                                                variant="ghost" 
+                                                size="icon"
+                                                onClick={() => handleEditGame(game)}
+                                                className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                                              >
+                                                <Edit className="w-4 h-4" />
+                                              </Button>
+                                              <Button 
+                                                variant="ghost" 
+                                                size="icon"
+                                                onClick={() => handleDeleteClick(game)}
+                                                className="text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                                              >
+                                                <Trash2 className="w-4 h-4" />
+                                              </Button>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                          <div className="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg">
-                            <table className="w-full">
-                              <thead className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
-                                <tr>
-                                  <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Date & Time</th>
-                                  <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Matchup</th>
-                                  <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Sport</th>
-                                  <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Court</th>
-                                  <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Status</th>
-                                  <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {gamesByWeek[week].map(game => (
-                                  <tr key={game.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
-                                    <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">
-                                      {new Date(game.game_date).toLocaleDateString()}<br />
-                                      <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(game.game_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                                    </td>
-                                    <td className="py-3 px-4 text-sm font-bold text-gray-900 dark:text-white">
-                                      {getTeamName(game.home_team_id)} <span className="text-gray-400 font-normal">vs</span> {getTeamName(game.away_team_id)}
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <Badge variant="outline" className={`text-${game.sport === 'basketball' ? 'orange' : 'blue'}-600 dark:text-${game.sport === 'basketball' ? 'orange' : 'blue'}-400 border-${game.sport === 'basketball' ? 'orange' : 'blue'}-600 font-bold`}>
-                                        {game.sport}
-                                      </Badge>
-                                    </td>
-                                    <td className="py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                      {game.court_number || '-'}
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold">
-                                        {game.status.replace('_', ' ').toUpperCase()}
-                                      </Badge>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                      <div className="flex gap-1">
-                                        <Button 
-                                          variant="ghost" 
-                                          size="icon"
-                                          onClick={() => handleEditGame(game)}
-                                          className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
-                                        >
-                                          <Edit className="w-4 h-4" />
-                                        </Button>
-                                        <Button 
-                                          variant="ghost" 
-                                          size="icon"
-                                          onClick={() => handleDeleteClick(game)}
-                                          className="text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                                        >
-                                          <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      ));
+                        );
+                      });
                     }
                   })()}
                   
