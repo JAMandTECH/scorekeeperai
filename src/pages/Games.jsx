@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap, Edit } from "lucide-react";
+import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap, Edit, ChevronDown, ChevronUp } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,6 +45,7 @@ export default function Games() {
   const [recurringConfig, setRecurringConfig] = useState({ enabled: false });
   const [selectedScorekeeperEmails, setSelectedScorekeeperEmails] = useState([]);
   const [aiScheduleView, setAiScheduleView] = useState('card');
+  const [expandedWeeks, setExpandedWeeks] = useState({});
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -500,9 +501,16 @@ export default function Games() {
   };
 
   const toggleScorekeeperSelection = (email) => {
-    setSelectedScorekeeperEmails(prev => 
-      prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
-    );
+  setSelectedScorekeeperEmails(prev => 
+    prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
+  );
+  };
+
+  const toggleWeekExpanded = (week) => {
+  setExpandedWeeks(prev => ({
+    ...prev,
+    [week]: !prev[week]
+  }));
   };
 
   const scheduledGames = games.filter(g => g.status === 'scheduled' && !g.archived);
@@ -926,13 +934,15 @@ export default function Games() {
                                     </tbody>
                                   </table>
                                 </div>
-                              </div>
-                            ))}
-                          </div>
-                        );
-                      });
-                    }
-                  })()}
+                                </div>
+                                ))}
+                                </div>
+                                )}
+                                </div>
+                                );
+                                });
+                                }
+                                })()}
                   
                   {scheduledGames.length === 0 && (
                     <div className="text-center py-20">
