@@ -402,8 +402,10 @@ Return ONLY a JSON array of game objects with home_team_id and away_team_id prop
         throw new Error("AI did not return a valid schedule.");
       }
 
+      const gamesPerWeek = Math.ceil(gamesList.length / rounds);
+      
       const generatedGames = gamesList.map((game, index) => {
-        const weekNumber = Math.floor(index / Math.max(1, Math.floor(gamesList.length / rounds))) + 1;
+        const weekNumber = Math.floor(index / gamesPerWeek) + 1;
         const startDate = new Date();
         startDate.setDate(startDate.getDate() + ((weekNumber - 1) * 7));
         
