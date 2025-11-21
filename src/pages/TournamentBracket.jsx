@@ -451,16 +451,18 @@ export default function TournamentBracket() {
                       organizationId={user?.organization_id}
                     />
                   </div>
-                  <BracketVisual
-                    tournament={selectedTournament}
-                    matches={allMatches}
-                    teams={teams}
-                    onMatchClick={handleMatchClick}
-                    onTeamDrop={handleTeamDrop}
-                    onMatchReorder={handleMatchReorder}
-                    onSave={handleSaveBracket}
-                    canEdit={selectedTournament.status === 'setup'}
-                  />
+                  <div className="bracket-visual-container">
+                    <BracketVisual
+                      tournament={selectedTournament}
+                      matches={allMatches}
+                      teams={teams}
+                      onMatchClick={handleMatchClick}
+                      onTeamDrop={handleTeamDrop}
+                      onMatchReorder={handleMatchReorder}
+                      onSave={handleSaveBracket}
+                      canEdit={selectedTournament.status === 'setup'}
+                    />
+                  </div>
                 </div>
               )}
 
