@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Share2, Facebook, Twitter, Instagram, Users, Check, Download, Camera } from "lucide-react";
+import { Share2, Facebook, Twitter, Instagram, Users, Check, Link2, Copy } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,14 +12,12 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import html2canvas from "html2canvas";
 
 export default function BracketShareButton({ tournament, user, organizationId }) {
   const [shared, setShared] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
-  const [bracketType, setBracketType] = useState("auto");
-  const [bracketImage, setBracketImage] = useState(null);
-  const [isCapturing, setIsCapturing] = useState(false);
+  const [bracketType, setBracketType] = useState(tournament?.is_manual_bracket ? "manual" : "auto");
+  const [linkCopied, setLinkCopied] = useState(false);
   const queryClient = useQueryClient();
 
   const shareToSocialFeedMutation = useMutation({
@@ -63,65 +61,19 @@ export default function BracketShareButton({ tournament, user, organizationId })
     alert("Link copied! Open Instagram and paste the link in your story or post.");
   };
 
-  const captureBracket = async () => {
-    setIsCapturing(true);
-    try {
-      // Find the bracket visual element
-      const bracketElement = document.querySelector('.bracket-visual-container');
-      if (!bracketElement) {
-        alert("Could not find bracket to capture. Please try again.");
-        setIsCapturing(false);
-        return;
-      }
-
-      // Capture the bracket as an image
-      const canvas = await html2canvas(bracketElement, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        logging: false,
-        useCORS: true,
-      });
-
-      // Convert to blob
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          alert("Failed to capture bracket. Please try again.");
-          setIsCapturing(false);
-          return;
-        }
-
-        // Upload the image
-        const file = new File([blob], `bracket-${tournament.name}.png`, { type: 'image/png' });
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        
-        setBracketImage(file_url);
-        setIsCapturing(false);
-        setShowShareDialog(true);
-      }, 'image/png');
-    } catch (error) {
-      console.error("Error capturing bracket:", error);
-      alert("Failed to capture bracket. Please try again.");
-      setIsCapturing(false);
-    }
+  const handleOpenShareDialog = () => {
+    setShowShareDialog(true);
   };
 
-  const downloadBracket = async () => {
-    if (!bracketImage) return;
-    
-    // Download the image
-    const link = document.createElement('a');
-    link.href = bracketImage;
-    link.download = `${tournament.name}-bracket.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const copyBracketLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
   };
 
   const shareToOrganizationFeed = async () => {
-    if (!bracketImage) return;
-
     const bracketTypeLabel = bracketType === "auto" ? "Automatic" : "Manual";
-    const content = `🏆 ${tournament.name} - ${tournament.sport.toUpperCase()} Tournament Bracket (${bracketTypeLabel} Builder) is live! Check out the tournament featuring ${tournament.num_teams} teams competing for the championship. #${tournament.sport} #tournament`;
+    const content = `🏆 ${tournament.name} - ${tournament.sport.toUpperCase()} Tournament Bracket (${bracketTypeLabel} Builder) is live! Check out the tournament featuring ${tournament.num_teams} teams competing for the championship. View it here: ${window.location.href}\n\n#${tournament.sport} #tournament`;
     
     await base44.entities.SocialPost.create({
       organization_id: organizationId,
@@ -129,8 +81,8 @@ export default function BracketShareButton({ tournament, user, organizationId })
       user_name: user.full_name,
       user_email: user.email,
       content: content,
-      media_urls: [bracketImage],
-      media_types: ['image'],
+      media_urls: [],
+      media_types: [],
       likes_count: 0,
       comments_count: 0
     });
@@ -142,21 +94,20 @@ export default function BracketShareButton({ tournament, user, organizationId })
   };
 
   const shareToSocialMedia = (platform) => {
-    if (!bracketImage) return;
-
     const bracketTypeLabel = bracketType === "auto" ? "Automatic" : "Manual";
-    const text = `🏆 ${tournament.name} - ${tournament.sport.toUpperCase()} Tournament (${bracketTypeLabel} Bracket) featuring ${tournament.num_teams} teams!`;
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(`🏆 ${tournament.name} - ${tournament.sport.toUpperCase()} Tournament (${bracketTypeLabel} Bracket) featuring ${tournament.num_teams} teams!`);
     
     switch(platform) {
       case 'facebook':
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(bracketImage)}`, '_blank');
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`, '_blank');
         break;
       case 'twitter':
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(bracketImage)}`, '_blank');
+        window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
         break;
       case 'instagram':
-        navigator.clipboard.writeText(bracketImage);
-        alert("Bracket image link copied! Open Instagram and paste the link in your story or post.");
+        copyBracketLink();
+        alert("Bracket link copied! Open Instagram and paste the link in your story or post.");
         break;
     }
   };
@@ -164,17 +115,11 @@ export default function BracketShareButton({ tournament, user, organizationId })
   return (
     <>
       <Button 
-        onClick={captureBracket} 
+        onClick={handleOpenShareDialog} 
         variant="outline" 
         className="font-bold"
-        disabled={isCapturing}
       >
-        {isCapturing ? (
-          <>
-            <Camera className="w-4 h-4 mr-2 animate-pulse" />
-            Capturing...
-          </>
-        ) : shared ? (
+        {shared ? (
           <>
             <Check className="w-4 h-4 mr-2 text-green-600" />
             Shared!
@@ -192,22 +137,11 @@ export default function BracketShareButton({ tournament, user, organizationId })
           <DialogHeader>
             <DialogTitle className="text-2xl font-black">Share Tournament Bracket</DialogTitle>
             <DialogDescription>
-              Choose bracket type and share options
+              Choose bracket type and share the {tournament.name} bracket
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">
-            {/* Bracket Preview */}
-            {bracketImage && (
-              <div className="border-2 border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                <img 
-                  src={bracketImage} 
-                  alt="Bracket Preview" 
-                  className="w-full h-auto"
-                />
-              </div>
-            )}
-
             {/* Bracket Type Selection */}
             <div>
               <Label className="text-base font-bold mb-3 block">Bracket Type</Label>
@@ -273,12 +207,21 @@ export default function BracketShareButton({ tournament, user, organizationId })
               </div>
 
               <Button 
-                onClick={downloadBracket} 
+                onClick={copyBracketLink} 
                 variant="outline"
                 className="w-full justify-start"
               >
-                <Download className="w-4 h-4 mr-2" />
-                Download Bracket Image
+                {linkCopied ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2 text-green-600" />
+                    Link Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Bracket Link
+                  </>
+                )}
               </Button>
             </div>
           </div>
