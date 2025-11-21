@@ -733,16 +733,16 @@ if (roundIdx > 0) {
                             ref={provided.innerRef}
                             {...provided.droppableProps}
                             className={`flex flex-col relative ${snapshot.isDraggingOver ? 'rounded-2xl border-2' : ''}`}
-                            style={snapshot.isDraggingOver ? {
-                              background: `${theme.accentColor}10`,
-                              borderColor: theme.accentColor,
-                              boxShadow: `0 0 30px ${theme.accentColor}30`
-                            } : {}} 
-                            style={{ 
+                            style={{
                               gap: `${matchGap}px`, 
                               marginTop: `${topOffset}px`,
                               minHeight: `${sortedMatches.length * MATCH_HEIGHT + (sortedMatches.length - 1) * matchGap}px`,
-                              paddingBottom: '20px'
+                              paddingBottom: '20px',
+                              ...(snapshot.isDraggingOver ? {
+                                background: `${theme.accentColor}10`,
+                                borderColor: theme.accentColor,
+                                boxShadow: `0 0 30px ${theme.accentColor}30`
+                              } : {})
                             }}
                           >
                             {sortedMatches.map((match, matchIdx) => {
