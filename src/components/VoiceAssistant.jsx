@@ -61,16 +61,24 @@ export default function VoiceAssistant({
 
     recognitionRef.current.onend = () => {
       if (isListening) {
-        recognitionRef.current.start();
+        try {
+          recognitionRef.current.start();
+        } catch (error) {
+          console.error('Error restarting recognition:', error);
+        }
       }
     };
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (error) {
+          console.error('Error stopping recognition:', error);
+        }
       }
     };
-  }, []);
+  }, [isListening]);
 
   const processCommand = (command) => {
     const lowerCommand = command.toLowerCase().trim();

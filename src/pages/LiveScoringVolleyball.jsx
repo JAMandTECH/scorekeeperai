@@ -796,7 +796,7 @@ export default function LiveScoringVolleyball() {
       </div>
 
       {selectedPlayer ? (
-        <div className="sticky z-30" style={{ top: game.is_default ? '464px' : '364px' }}>
+        <div className="sticky z-30" style={{ top: game.is_default ? '570px' : '470px' }}>
           <div className="mx-4 my-4">
             <Card className="relative overflow-hidden bg-gradient-to-br from-gray-900 to-black border-4 border-blue-500/50 shadow-2xl">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-purple-500/10"></div>
