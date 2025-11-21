@@ -709,7 +709,7 @@ export default function LiveScoringVolleyball() {
                   </div>
                 </div>
 
-              <div className="flex gap-2 justify-center flex-wrap">
+                <div className="flex gap-2 justify-center flex-wrap">
                 {!game.is_default && game.status === 'in_progress' && (
                   <Button
                     onClick={() => setShowDefaultDialog(true)}
@@ -748,6 +748,7 @@ export default function LiveScoringVolleyball() {
                 >
                   CANCEL
                 </Button>
+                </div>
               </div>
             </div>
 
