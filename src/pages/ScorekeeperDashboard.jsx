@@ -71,40 +71,43 @@ export default function ScorekeeperDashboard() {
   });
 
   const { data: myGames = [] } = useQuery({
-    queryKey: ['my-scorekeeper-games', user?.email],
+    queryKey: ['my-scorekeeper-games', user?.email, user?.organization_id],
     queryFn: async () => {
-      const allGames = await base44.entities.Game.list('-game_date');
-      console.log("TOTAL GAMES FETCHED:", allGames.length);
+      // Fetch games from scorekeeper's organization
+      const allGames = await base44.entities.Game.filter(
+        { organization_id: user?.organization_id },
+        '-game_date'
+      );
+      
+      console.log("TOTAL GAMES IN ORGANIZATION:", allGames.length);
       console.log("SCOREKEEPER EMAIL TO MATCH:", user?.email);
+      console.log("SAMPLE GAME DATA:", allGames[0]);
       
       // Filter games assigned to this scorekeeper
-      // Handle both old format (assigned_scorekeeper_email string) and new format (assigned_scorekeeper_emails array)
       const myAssignedGames = allGames.filter(game => {
-        // Check new format (array)
-        if (Array.isArray(game.assigned_scorekeeper_emails)) {
+        // Check if assigned_scorekeeper_emails array exists and includes this email
+        if (game.assigned_scorekeeper_emails && Array.isArray(game.assigned_scorekeeper_emails)) {
           const isAssigned = game.assigned_scorekeeper_emails.includes(user?.email);
           if (isAssigned) {
-            console.log("GAME ASSIGNED (array):", game.id, game.assigned_scorekeeper_emails);
+            console.log("✅ GAME ASSIGNED:", game.id, "Scorekeepers:", game.assigned_scorekeeper_emails);
           }
           return isAssigned;
         }
-        // Check old format (single string)
-        if (game.assigned_scorekeeper_email) {
-          const isAssigned = game.assigned_scorekeeper_email === user?.email;
-          if (isAssigned) {
-            console.log("GAME ASSIGNED (string):", game.id, game.assigned_scorekeeper_email);
-          }
-          return isAssigned;
+        
+        // Also check old format for backward compatibility
+        if (game.assigned_scorekeeper_email && game.assigned_scorekeeper_email === user?.email) {
+          console.log("✅ GAME ASSIGNED (old format):", game.id);
+          return true;
         }
+        
         return false;
       });
       
-      console.log("FILTERED MY GAMES COUNT:", myAssignedGames.length);
-      console.log("MY GAMES:", myAssignedGames);
+      console.log("🎯 FILTERED MY GAMES COUNT:", myAssignedGames.length);
       
       return myAssignedGames;
     },
-    enabled: !!user?.email,
+    enabled: !!user?.email && !!user?.organization_id,
   });
 
   const { data: teams = [] } = useQuery({
