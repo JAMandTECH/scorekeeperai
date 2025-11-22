@@ -907,7 +907,7 @@ export default function LiveScoring() {
 
       {/* Control Panel */}
       {selectedPlayer ? (
-        <div className="sticky z-30" style={{ top: game.is_default ? '670px' : '570px' }}>
+        <div className="sticky z-30" style={{ top: game.is_default ? '820px' : '720px' }}>
           <div className="mx-4 my-4">
             <Card className="relative overflow-hidden bg-gradient-to-br from-gray-900 to-black border-4 border-orange-500/50 shadow-2xl">
               <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-purple-500/10 to-blue-500/10"></div>
