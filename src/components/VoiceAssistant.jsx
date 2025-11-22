@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mic, MicOff, Volume2 } from "lucide-react";
@@ -16,16 +16,16 @@ export default function VoiceAssistant({
   const [feedbackType, setFeedbackType] = useState("neutral");
   const recognitionRef = useRef(null);
 
-  const showFeedback = useCallback((message, type) => {
+  const showFeedback = (message, type) => {
     setFeedback(message);
     setFeedbackType(type);
     setTimeout(() => {
       setFeedback("");
       setFeedbackType("neutral");
     }, 3000);
-  }, []);
+  };
 
-  const processCommand = useCallback((command) => {
+  const processCommand = (command) => {
     const lowerCommand = command.toLowerCase().trim();
     
     // Parse team (home/away)
@@ -48,7 +48,7 @@ export default function VoiceAssistant({
     }
 
     const jerseyNumber = numberMatch[1];
-    const player = players.find(p => p.jersey_number === jerseyNumber);
+    const player = players.find(p => String(p.jersey_number) === String(jerseyNumber));
     
     if (!player) {
       showFeedback(`Player #${jerseyNumber} not found in ${team} team`, "error");
@@ -115,92 +115,77 @@ export default function VoiceAssistant({
     });
 
     showFeedback(`✓ ${player.first_name} ${player.last_name} - ${action}`, "success");
-  }, [homePlayers, awayPlayers, sport, onCommand, showFeedback]);
-
-  useEffect(() => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      setFeedback("Voice recognition not supported in this browser");
-      setFeedbackType("error");
-      return;
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-
-    recognition.onresult = (event) => {
-      let interimTranscript = '';
-      let finalTranscript = '';
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
-        }
-      }
-
-      if (finalTranscript) {
-        setTranscript(finalTranscript);
-        processCommand(finalTranscript);
-      } else {
-        setTranscript(interimTranscript);
-      }
-    };
-
-    recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
-      setFeedback(`Error: ${event.error}`);
-      setFeedbackType("error");
-      if (event.error === 'no-speech' || event.error === 'audio-capture') {
-        setIsListening(false);
-      }
-    };
-
-    recognition.onend = () => {
-      if (isListening && recognitionRef.current) {
-        try {
-          recognitionRef.current.start();
-        } catch (error) {
-          console.error('Error restarting recognition:', error);
-          setIsListening(false);
-        }
-      }
-    };
-
-    recognitionRef.current = recognition;
-
-    return () => {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (error) {
-          console.error('Error stopping recognition:', error);
-        }
-      }
-    };
-  }, [isListening, processCommand]);
+  };
 
   const toggleListening = () => {
     if (isListening) {
-      recognitionRef.current?.stop();
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
       setIsListening(false);
       setTranscript("");
       setFeedback("Voice assistant stopped");
       setFeedbackType("neutral");
     } else {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        showFeedback("Voice recognition not supported in this browser", "error");
+        return;
+      }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        if (finalTranscript) {
+          setTranscript(finalTranscript);
+          processCommand(finalTranscript);
+        } else {
+          setTranscript(interimTranscript);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        showFeedback(`Error: ${event.error}`, "error");
+        if (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'not-allowed') {
+          setIsListening(false);
+        }
+      };
+
+      recognition.onend = () => {
+        if (isListening) {
+          try {
+            recognition.start();
+          } catch (error) {
+            console.error('Error restarting recognition:', error);
+            setIsListening(false);
+          }
+        }
+      };
+
       try {
-        recognitionRef.current?.start();
+        recognition.start();
+        recognitionRef.current = recognition;
         setIsListening(true);
-        setFeedback("Listening... Say commands like 'home 17 2 points'");
-        setFeedbackType("listening");
+        showFeedback("Listening... Say commands like 'home 17 2 points'", "listening");
       } catch (error) {
         console.error('Error starting recognition:', error);
-        setFeedback("Failed to start voice recognition");
-        setFeedbackType("error");
+        showFeedback("Failed to start voice recognition", "error");
       }
     }
   };
