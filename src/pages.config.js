@@ -26,6 +26,7 @@ import SuperAdminHome from './pages/SuperAdminHome';
 import ScorekeeperDashboard from './pages/ScorekeeperDashboard';
 import TournamentBracket from './pages/TournamentBracket';
 import SocialFeed from './pages/SocialFeed';
+import WeeklySummary from './pages/WeeklySummary';
 
 
 export const PAGES = {
@@ -57,6 +58,7 @@ export const PAGES = {
     "ScorekeeperDashboard": ScorekeeperDashboard,
     "TournamentBracket": TournamentBracket,
     "SocialFeed": SocialFeed,
+    "WeeklySummary": WeeklySummary,
 }
 
 export const pagesConfig = {
