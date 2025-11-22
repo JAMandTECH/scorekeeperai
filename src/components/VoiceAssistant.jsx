@@ -16,10 +16,10 @@ export default function VoiceAssistant({
   const [feedbackType, setFeedbackType] = useState("neutral");
   const recognitionRef = useRef(null);
 
-  React.useEffect(() => {
-    console.log("VoiceAssistant mounted", { homePlayers: homePlayers.length, awayPlayers: awayPlayers.length, sport });
+  useEffect(() => {
+    console.log("✅ VoiceAssistant MOUNTED");
     return () => {
-      console.log("VoiceAssistant unmounting");
+      console.log("❌ VoiceAssistant UNMOUNTING");
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
@@ -27,6 +27,7 @@ export default function VoiceAssistant({
   }, []);
 
   const showFeedback = (message, type) => {
+    console.log(`📢 Feedback: ${message} (${type})`);
     setFeedback(message);
     setFeedbackType(type);
     setTimeout(() => {
@@ -36,6 +37,7 @@ export default function VoiceAssistant({
   };
 
   const processCommand = (command) => {
+    console.log("🎤 Processing command:", command);
     const lowerCommand = command.toLowerCase().trim();
     
     const isHome = lowerCommand.includes('home');
@@ -71,12 +73,10 @@ export default function VoiceAssistant({
       return;
     }
 
-    // Parse action based on sport
     let action = null;
     let value = 1;
 
     if (sport === "basketball") {
-      // Basketball actions
       if (lowerCommand.includes('3 point') || lowerCommand.includes('three point') || lowerCommand.includes('3-point')) {
         action = '3-pointer';
         value = 3;
@@ -98,7 +98,6 @@ export default function VoiceAssistant({
         action = 'block';
       }
     } else if (sport === "volleyball") {
-      // Volleyball actions
       if (lowerCommand.includes('point') || lowerCommand.includes('score')) {
         action = 'point';
       } else if (lowerCommand.includes('kill') || lowerCommand.includes('spike')) {
@@ -122,99 +121,100 @@ export default function VoiceAssistant({
       return;
     }
 
-    // Execute the command
-    onCommand({
-      team,
-      player,
-      action,
-      value
-    });
-
+    console.log("✅ Command parsed:", { team, player: player.jersey_number, action, value });
+    onCommand({ team, player, action, value });
     showFeedback(`✓ ${player.first_name} ${player.last_name} - ${action}`, "success");
   };
 
   const toggleListening = () => {
-    console.log("Voice Assistant button clicked, isListening:", isListening);
+    console.log("🔘 BUTTON CLICKED! isListening:", isListening);
     
     if (isListening) {
-      console.log("Stopping voice assistant");
+      console.log("⏹️ STOPPING voice assistant");
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          console.error("Error stopping recognition:", e);
+        }
       }
       setIsListening(false);
       setTranscript("");
-      setFeedback("Voice assistant stopped");
-      setFeedbackType("neutral");
+      showFeedback("Voice assistant stopped", "neutral");
       return;
     }
 
-    console.log("Starting voice assistant");
+    console.log("▶️ STARTING voice assistant");
     
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      console.error("Speech recognition not supported");
+      console.error("❌ Speech recognition NOT SUPPORTED");
       showFeedback("Voice recognition not supported in this browser", "error");
       return;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-
-    recognition.onresult = (event) => {
-      let finalTranscript = '';
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        }
-      }
-
-      if (finalTranscript) {
-        console.log("Voice command received:", finalTranscript);
-        setTranscript(finalTranscript);
-        processCommand(finalTranscript);
-      }
-    };
-
-    recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
-      showFeedback(`Microphone error: ${event.error}. Check permissions.`, "error");
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      console.log("Recognition ended, isListening:", isListening);
-      if (isListening) {
-        try {
-          recognition.start();
-        } catch (error) {
-          console.error('Error restarting recognition:', error);
-          setIsListening(false);
-        }
-      }
-    };
-
     try {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          }
+        }
+        if (finalTranscript) {
+          console.log("🎤 Voice input:", finalTranscript);
+          setTranscript(finalTranscript);
+          processCommand(finalTranscript);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error("❌ Speech error:", event.error);
+        showFeedback(`Microphone error: ${event.error}`, "error");
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        console.log("🔄 Recognition ended");
+        if (isListening) {
+          try {
+            recognition.start();
+          } catch (error) {
+            console.error("Error restarting:", error);
+            setIsListening(false);
+          }
+        }
+      };
+
       recognition.start();
       recognitionRef.current = recognition;
       setIsListening(true);
       showFeedback("🎤 Listening... Say 'home 17 2 points'", "listening");
-      console.log("Voice assistant started successfully");
+      console.log("✅ Voice assistant STARTED");
     } catch (error) {
-      console.error('Error starting recognition:', error);
-      showFeedback("Failed to start. Check microphone permissions.", "error");
+      console.error("❌ Failed to start:", error);
+      showFeedback("Failed to start microphone", "error");
     }
   };
+
+  console.log("🔄 VoiceAssistant RENDER, isListening:", isListening);
 
   return (
     <Card className="border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/30 dark:to-gray-800">
       <CardContent className="p-4">
         <div className="flex items-center gap-4">
           <Button
-            onClick={toggleListening}
+            onClick={() => {
+              console.log("🖱️ onClick triggered!");
+              toggleListening();
+            }}
+            type="button"
             className={`${
               isListening 
                 ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 animate-pulse' 
