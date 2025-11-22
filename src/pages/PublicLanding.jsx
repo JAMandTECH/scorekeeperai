@@ -32,11 +32,17 @@ export default function PublicLanding() {
       const authenticated = await base44.auth.isAuthenticated();
       setIsAuthenticated(authenticated);
       if (authenticated) {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
+        try {
+          const currentUser = await base44.auth.me();
+          setUser(currentUser);
+        } catch (userError) {
+          // Silently handle user fetch errors (expected for logged-out users)
+          setIsAuthenticated(false);
+          setUser(null);
+        }
       }
     } catch (error) {
-      console.error("Failed to check authentication or fetch user:", error);
+      // Expected on public pages - silently handle
       setIsAuthenticated(false);
       setUser(null);
     }
