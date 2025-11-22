@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -38,6 +37,7 @@ export default function LiveScoringVolleyball() {
   const [showDefaultDialog, setShowDefaultDialog] = useState(false);
   const [actionHistory, setActionHistory] = useState([]);
   const [showSetStats, setShowSetStats] = useState(true);
+  const [showVoiceAssistant, setShowVoiceAssistant] = useState(true);
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
@@ -741,12 +741,34 @@ export default function LiveScoringVolleyball() {
 
       {/* Voice Assistant - Add below scoreboard */}
       <div className="max-w-7xl mx-auto px-4 mt-4">
-        <VoiceAssistant
-          homePlayers={homePlayers}
-          awayPlayers={awayPlayers}
-          onCommand={handleVoiceCommand}
-          sport="volleyball"
-        />
+        <div className="flex justify-end mb-2">
+          <Button
+            onClick={() => setShowVoiceAssistant(!showVoiceAssistant)}
+            variant="outline"
+            size="sm"
+            className="border-2 border-gray-600 text-white hover:bg-gray-800 font-bold"
+          >
+            {showVoiceAssistant ? (
+              <>
+                <EyeOff className="w-4 h-4 mr-2" />
+                Hide Voice Assistant
+              </>
+            ) : (
+              <>
+                <Eye className="w-4 h-4 mr-2" />
+                Show Voice Assistant
+              </>
+            )}
+          </Button>
+        </div>
+        {showVoiceAssistant && (
+          <VoiceAssistant
+            homePlayers={homePlayers}
+            awayPlayers={awayPlayers}
+            onCommand={handleVoiceCommand}
+            sport="volleyball"
+          />
+        )}
       </div>
 
       {selectedPlayer ? (
