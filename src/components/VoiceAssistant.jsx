@@ -124,7 +124,10 @@ export default function VoiceAssistant({
   };
 
   const toggleListening = () => {
+    console.log("Voice Assistant button clicked, isListening:", isListening);
+    
     if (isListening) {
+      console.log("Stopping voice assistant");
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
@@ -132,67 +135,67 @@ export default function VoiceAssistant({
       setTranscript("");
       setFeedback("Voice assistant stopped");
       setFeedbackType("neutral");
-    } else {
-      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        showFeedback("Voice recognition not supported in this browser", "error");
-        return;
+      return;
+    }
+
+    console.log("Starting voice assistant");
+    
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      console.error("Speech recognition not supported");
+      showFeedback("Voice recognition not supported in this browser", "error");
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event) => {
+      let finalTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        }
       }
 
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
+      if (finalTranscript) {
+        console.log("Voice command received:", finalTranscript);
+        setTranscript(finalTranscript);
+        processCommand(finalTranscript);
+      }
+    };
 
-      recognition.onresult = (event) => {
-        let interimTranscript = '';
-        let finalTranscript = '';
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      showFeedback(`Microphone error: ${event.error}. Check permissions.`, "error");
+      setIsListening(false);
+    };
 
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript;
-          } else {
-            interimTranscript += transcript;
-          }
-        }
-
-        if (finalTranscript) {
-          setTranscript(finalTranscript);
-          processCommand(finalTranscript);
-        } else {
-          setTranscript(interimTranscript);
-        }
-      };
-
-      recognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        showFeedback(`Error: ${event.error}`, "error");
-        if (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'not-allowed') {
+    recognition.onend = () => {
+      console.log("Recognition ended, isListening:", isListening);
+      if (isListening) {
+        try {
+          recognition.start();
+        } catch (error) {
+          console.error('Error restarting recognition:', error);
           setIsListening(false);
         }
-      };
-
-      recognition.onend = () => {
-        if (isListening) {
-          try {
-            recognition.start();
-          } catch (error) {
-            console.error('Error restarting recognition:', error);
-            setIsListening(false);
-          }
-        }
-      };
-
-      try {
-        recognition.start();
-        recognitionRef.current = recognition;
-        setIsListening(true);
-        showFeedback("Listening... Say commands like 'home 17 2 points'", "listening");
-      } catch (error) {
-        console.error('Error starting recognition:', error);
-        showFeedback("Failed to start voice recognition", "error");
       }
+    };
+
+    try {
+      recognition.start();
+      recognitionRef.current = recognition;
+      setIsListening(true);
+      showFeedback("🎤 Listening... Say 'home 17 2 points'", "listening");
+      console.log("Voice assistant started successfully");
+    } catch (error) {
+      console.error('Error starting recognition:', error);
+      showFeedback("Failed to start. Check microphone permissions.", "error");
     }
   };
 
