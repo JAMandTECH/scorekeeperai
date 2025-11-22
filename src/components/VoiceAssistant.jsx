@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mic, MicOff, Volume2 } from "lucide-react";
+import { Mic, MicOff, Volume2, Globe } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export default function VoiceAssistant({ 
   homePlayers = [], 
@@ -14,6 +16,9 @@ export default function VoiceAssistant({
   const [transcript, setTranscript] = useState("");
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState("neutral");
+  const [selectedLanguage, setSelectedLanguage] = useState(() => {
+    return localStorage.getItem('voiceAssistantLanguage') || 'en-US';
+  });
   const recognitionRef = useRef(null);
 
   useEffect(() => {
@@ -27,7 +32,7 @@ export default function VoiceAssistant({
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.continuous = true;
     recognitionRef.current.interimResults = true;
-    recognitionRef.current.lang = 'en-US';
+    recognitionRef.current.lang = selectedLanguage;
 
     recognitionRef.current.onresult = (event) => {
       let interimTranscript = '';
@@ -86,7 +91,7 @@ export default function VoiceAssistant({
         recognitionRef.current.stop();
       }
     };
-  }, []);
+  }, [selectedLanguage]);
 
   const processCommand = (command) => {
     const lowerCommand = command.toLowerCase().trim();
@@ -189,6 +194,31 @@ export default function VoiceAssistant({
     }, 3000);
   };
 
+  const handleLanguageChange = (lang) => {
+    setSelectedLanguage(lang);
+    localStorage.setItem('voiceAssistantLanguage', lang);
+    
+    // If currently listening, restart recognition with new language
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      setTimeout(() => {
+        try {
+          recognitionRef.current?.start();
+          setIsListening(true);
+          setFeedback(`Language changed to ${lang}. Listening...`);
+          setFeedbackType("listening");
+        } catch (error) {
+          console.error('Error restarting recognition:', error);
+          setFeedback("Failed to restart voice recognition");
+          setFeedbackType("error");
+        }
+      }, 300);
+    } else {
+      showFeedback(`Language set to ${lang}`, "success");
+    }
+  };
+
   const toggleListening = () => {
     if (isListening) {
       recognitionRef.current?.stop();
@@ -212,7 +242,28 @@ export default function VoiceAssistant({
 
   return (
     <Card className="border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/30 dark:to-gray-800">
-      <CardContent className="p-4">
+      <CardContent className="p-4 space-y-4">
+        {/* Language Selection */}
+        <div className="flex items-center gap-3">
+          <Globe className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          <Label className="font-bold text-gray-700 dark:text-gray-300 text-sm">Language/Accent:</Label>
+          <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
+            <SelectTrigger className="w-64 bg-white dark:bg-gray-900 border-2 border-purple-300 dark:border-purple-700">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en-US">English (United States)</SelectItem>
+              <SelectItem value="en-GB">English (United Kingdom)</SelectItem>
+              <SelectItem value="en-AU">English (Australia)</SelectItem>
+              <SelectItem value="en-PH">English (Philippines)</SelectItem>
+              <SelectItem value="en-IN">English (India)</SelectItem>
+              <SelectItem value="fil-PH">Filipino (Tagalog)</SelectItem>
+              <SelectItem value="es-ES">Spanish (Spain)</SelectItem>
+              <SelectItem value="es-MX">Spanish (Mexico)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="flex items-center gap-4">
           <Button
             onClick={toggleListening}
