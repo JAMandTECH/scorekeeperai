@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Mic, MicOff, Volume2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Mic, MicOff } from "lucide-react";
 
 export default function VoiceAssistant({ 
   homePlayers = [], 
@@ -11,144 +9,31 @@ export default function VoiceAssistant({
   sport = "basketball"
 }) {
   const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  const [feedback, setFeedback] = useState("");
-  const [feedbackType, setFeedbackType] = useState("neutral");
+  const [message, setMessage] = useState("");
   const recognitionRef = useRef(null);
 
   useEffect(() => {
-    console.log("✅ VoiceAssistant MOUNTED");
     return () => {
-      console.log("❌ VoiceAssistant UNMOUNTING");
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
     };
   }, []);
 
-  const showFeedback = (message, type) => {
-    console.log(`📢 Feedback: ${message} (${type})`);
-    setFeedback(message);
-    setFeedbackType(type);
-    setTimeout(() => {
-      setFeedback("");
-      setFeedbackType("neutral");
-    }, 3000);
-  };
-
-  const processCommand = (command) => {
-    console.log("🎤 Processing command:", command);
-    const lowerCommand = command.toLowerCase().trim();
-    
-    const isHome = lowerCommand.includes('home');
-    const isAway = lowerCommand.includes('away');
-    
-    if (!isHome && !isAway) {
-      showFeedback("Please specify 'home' or 'away'", "error");
-      return;
-    }
-
-    const team = isHome ? 'home' : 'away';
-    const players = isHome ? homePlayers : awayPlayers;
-
-    if (!players || players.length === 0) {
-      showFeedback(`No players found for ${team} team`, "error");
-      return;
-    }
-
-    const numberMatch = lowerCommand.match(/(?:number\s+)?(\d{1,3})/);
-    if (!numberMatch) {
-      showFeedback("Player number not found", "error");
-      return;
-    }
-
-    const jerseyNumber = numberMatch[1];
-    const player = players.find(p => 
-      String(p.jersey_number).trim() === String(jerseyNumber).trim() ||
-      parseInt(p.jersey_number) === parseInt(jerseyNumber)
-    );
-    
-    if (!player) {
-      showFeedback(`Player #${jerseyNumber} not found in ${team} team`, "error");
-      return;
-    }
-
-    let action = null;
-    let value = 1;
-
-    if (sport === "basketball") {
-      if (lowerCommand.includes('3 point') || lowerCommand.includes('three point') || lowerCommand.includes('3-point')) {
-        action = '3-pointer';
-        value = 3;
-      } else if (lowerCommand.includes('2 point') || lowerCommand.includes('two point') || lowerCommand.includes('2-point')) {
-        action = '2-pointer';
-        value = 2;
-      } else if (lowerCommand.includes('free throw') || lowerCommand.includes('foul shot')) {
-        action = 'free-throw';
-        value = 1;
-      } else if (lowerCommand.includes('foul')) {
-        action = 'foul';
-      } else if (lowerCommand.includes('rebound')) {
-        action = 'rebound';
-      } else if (lowerCommand.includes('assist')) {
-        action = 'assist';
-      } else if (lowerCommand.includes('steal')) {
-        action = 'steal';
-      } else if (lowerCommand.includes('block')) {
-        action = 'block';
-      }
-    } else if (sport === "volleyball") {
-      if (lowerCommand.includes('point') || lowerCommand.includes('score')) {
-        action = 'point';
-      } else if (lowerCommand.includes('kill') || lowerCommand.includes('spike')) {
-        action = 'kill';
-      } else if (lowerCommand.includes('ace') || lowerCommand.includes('service ace')) {
-        action = 'ace';
-      } else if (lowerCommand.includes('block')) {
-        action = 'block';
-      } else if (lowerCommand.includes('assist') || lowerCommand.includes('set')) {
-        action = 'assist';
-      } else if (lowerCommand.includes('dig')) {
-        action = 'dig';
-      } else if (lowerCommand.includes('error')) {
-        action = 'error';
-      }
-    }
-
-    if (!action) {
-      showFeedback("Action not recognized. Try: points, foul, rebound, assist, steal, block" + 
-        (sport === "volleyball" ? ", kill, ace, dig, error" : ""), "error");
-      return;
-    }
-
-    console.log("✅ Command parsed:", { team, player: player.jersey_number, action, value });
-    onCommand({ team, player, action, value });
-    showFeedback(`✓ ${player.first_name} ${player.last_name} - ${action}`, "success");
-  };
-
-  const toggleListening = () => {
-    console.log("🔘 BUTTON CLICKED! isListening:", isListening);
+  const handleClick = () => {
+    console.log("BUTTON CLICKED - isListening:", isListening);
     
     if (isListening) {
-      console.log("⏹️ STOPPING voice assistant");
       if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (e) {
-          console.error("Error stopping recognition:", e);
-        }
+        recognitionRef.current.stop();
       }
       setIsListening(false);
-      setTranscript("");
-      showFeedback("Voice assistant stopped", "neutral");
+      setMessage("Stopped");
       return;
     }
 
-    console.log("▶️ STARTING voice assistant");
-    
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      console.error("❌ Speech recognition NOT SUPPORTED");
-      showFeedback("Voice recognition not supported in this browser", "error");
+      setMessage("Not supported");
       return;
     }
 
@@ -162,31 +47,27 @@ export default function VoiceAssistant({
       recognition.onresult = (event) => {
         let finalTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalTranscript += transcript;
+            finalTranscript += event.results[i][0].transcript;
           }
         }
         if (finalTranscript) {
-          console.log("🎤 Voice input:", finalTranscript);
-          setTranscript(finalTranscript);
+          console.log("Voice:", finalTranscript);
           processCommand(finalTranscript);
         }
       };
 
       recognition.onerror = (event) => {
-        console.error("❌ Speech error:", event.error);
-        showFeedback(`Microphone error: ${event.error}`, "error");
+        console.error("Error:", event.error);
+        setMessage("Error: " + event.error);
         setIsListening(false);
       };
 
       recognition.onend = () => {
-        console.log("🔄 Recognition ended");
         if (isListening) {
           try {
             recognition.start();
-          } catch (error) {
-            console.error("Error restarting:", error);
+          } catch (e) {
             setIsListening(false);
           }
         }
@@ -195,101 +76,112 @@ export default function VoiceAssistant({
       recognition.start();
       recognitionRef.current = recognition;
       setIsListening(true);
-      showFeedback("🎤 Listening... Say 'home 17 2 points'", "listening");
-      console.log("✅ Voice assistant STARTED");
+      setMessage("Listening...");
     } catch (error) {
-      console.error("❌ Failed to start:", error);
-      showFeedback("Failed to start microphone", "error");
+      console.error("Start error:", error);
+      setMessage("Failed to start");
     }
   };
 
-  console.log("🔄 VoiceAssistant RENDER, isListening:", isListening);
+  const processCommand = (command) => {
+    const lower = command.toLowerCase().trim();
+    const isHome = lower.includes('home');
+    const isAway = lower.includes('away');
+    
+    if (!isHome && !isAway) {
+      setMessage("Say 'home' or 'away'");
+      return;
+    }
+
+    const team = isHome ? 'home' : 'away';
+    const players = isHome ? homePlayers : awayPlayers;
+
+    if (!players || players.length === 0) {
+      setMessage("No players");
+      return;
+    }
+
+    const match = lower.match(/(\d{1,3})/);
+    if (!match) {
+      setMessage("No number found");
+      return;
+    }
+
+    const jerseyNumber = match[1];
+    const player = players.find(p => String(p.jersey_number) === jerseyNumber || parseInt(p.jersey_number) === parseInt(jerseyNumber));
+    
+    if (!player) {
+      setMessage(`#${jerseyNumber} not found`);
+      return;
+    }
+
+    let action = null;
+    let value = 1;
+
+    if (sport === "basketball") {
+      if (lower.includes('3 point') || lower.includes('three')) {
+        action = '3-pointer';
+        value = 3;
+      } else if (lower.includes('2 point') || lower.includes('two')) {
+        action = '2-pointer';
+        value = 2;
+      } else if (lower.includes('free throw')) {
+        action = 'free-throw';
+        value = 1;
+      } else if (lower.includes('foul')) {
+        action = 'foul';
+      } else if (lower.includes('rebound')) {
+        action = 'rebound';
+      } else if (lower.includes('assist')) {
+        action = 'assist';
+      } else if (lower.includes('steal')) {
+        action = 'steal';
+      } else if (lower.includes('block')) {
+        action = 'block';
+      }
+    }
+
+    if (!action) {
+      setMessage("Action not recognized");
+      return;
+    }
+
+    onCommand({ team, player, action, value });
+    setMessage(`✓ ${player.jersey_number} ${action}`);
+  };
 
   return (
-    <Card className="border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/30 dark:to-gray-800">
-      <CardContent className="p-4">
-        <div className="flex items-center gap-4">
-          <Button
-            onClick={() => {
-              console.log("🖱️ onClick triggered!");
-              toggleListening();
-            }}
-            type="button"
-            className={`${
-              isListening 
-                ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 animate-pulse' 
-                : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
-            } text-white font-bold shadow-lg`}
-            size="lg"
-          >
-            {isListening ? (
-              <>
-                <MicOff className="w-5 h-5 mr-2" />
-                Stop Voice Assistant
-              </>
-            ) : (
-              <>
-                <Mic className="w-5 h-5 mr-2" />
-                Start Voice Assistant
-              </>
-            )}
-          </Button>
-          
-          <div className="flex-1 min-w-0">
-            {transcript && (
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1 italic truncate">
-                "{transcript}"
-              </div>
-            )}
-            {feedback && (
-              <Badge 
-                className={`font-bold ${
-                  feedbackType === "success" 
-                    ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800'
-                    : feedbackType === "error"
-                    ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800'
-                    : feedbackType === "listening"
-                    ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800'
-                    : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-950 dark:text-gray-300 dark:border-gray-800'
-                }`}
-              >
-                {feedbackType === "listening" && <Volume2 className="w-3 h-3 mr-1 inline animate-pulse" />}
-                {feedback}
-              </Badge>
-            )}
-          </div>
+    <div style={{ 
+      padding: '20px', 
+      background: isListening ? '#fee' : '#eef', 
+      border: '3px solid ' + (isListening ? '#f00' : '#00f'),
+      borderRadius: '10px',
+      marginBottom: '20px'
+    }}>
+      <button
+        onClick={handleClick}
+        style={{
+          padding: '15px 30px',
+          fontSize: '18px',
+          fontWeight: 'bold',
+          background: isListening ? '#f00' : '#00f',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}
+      >
+        {isListening ? <MicOff size={24} /> : <Mic size={24} />}
+        {isListening ? 'STOP' : 'START VOICE'}
+      </button>
+      {message && (
+        <div style={{ marginTop: '10px', fontSize: '14px', fontWeight: 'bold' }}>
+          {message}
         </div>
-        
-        {isListening && (
-          <div className="mt-3 p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800">
-            <p className="text-xs font-bold text-purple-900 dark:text-purple-300 mb-2">Voice Commands:</p>
-            <div className="grid grid-cols-2 gap-2 text-xs text-purple-700 dark:text-purple-400">
-              {sport === "basketball" ? (
-                <>
-                  <div>"home 17 2 points"</div>
-                  <div>"away 23 3 points"</div>
-                  <div>"home 5 free throw"</div>
-                  <div>"away 12 foul"</div>
-                  <div>"home 8 rebound"</div>
-                  <div>"away 11 assist"</div>
-                  <div>"home 3 steal"</div>
-                  <div>"away 9 block"</div>
-                </>
-              ) : (
-                <>
-                  <div>"home 17 point"</div>
-                  <div>"away 23 kill"</div>
-                  <div>"home 5 ace"</div>
-                  <div>"away 12 block"</div>
-                  <div>"home 8 assist"</div>
-                  <div>"away 11 dig"</div>
-                  <div>"home 3 error"</div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }
