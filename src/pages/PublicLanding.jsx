@@ -32,17 +32,11 @@ export default function PublicLanding() {
       const authenticated = await base44.auth.isAuthenticated();
       setIsAuthenticated(authenticated);
       if (authenticated) {
-        try {
-          const currentUser = await base44.auth.me();
-          setUser(currentUser);
-        } catch (userError) {
-          // Silently handle user fetch errors (expected for logged-out users)
-          setIsAuthenticated(false);
-          setUser(null);
-        }
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
       }
     } catch (error) {
-      // Expected on public pages - silently handle
+      console.error("Failed to check authentication or fetch user:", error);
       setIsAuthenticated(false);
       setUser(null);
     }
@@ -592,7 +586,7 @@ export default function PublicLanding() {
 
             <Card className="border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all overflow-hidden group">
               <div className="bg-gradient-to-br from-orange-500 to-red-600 p-8 h-48 flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjIiLz48L2g+PC9zdmc+')] opacity-20"></div>
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjIiLz48L2c+PC9sZz4=')] opacity-20"></div>
                 <Calendar className="w-24 h-24 text-white relative z-10 transform group-hover:scale-110 transition-transform" />
               </div>
               <CardContent className="p-6">
@@ -603,7 +597,7 @@ export default function PublicLanding() {
 
             <Card className="border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all overflow-hidden group">
               <div className="bg-gradient-to-br from-blue-500 to-cyan-600 p-8 h-48 flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjIiLz48L2g+PC9zdmc+')] opacity-20"></div>
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjIiLz48L2c+PC9zdmc+')] opacity-20"></div>
                 <Globe className="w-24 h-24 text-white relative z-10 transform group-hover:scale-110 transition-transform" />
               </div>
               <CardContent className="p-6">
@@ -738,7 +732,7 @@ export default function PublicLanding() {
                     {useCase.benefits.map((benefit, j) => (
                       <div key={j} className="flex items-center gap-2 text-sm">
                         <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        <span className="font-medium text-gray-700 dark:text-gray-300">{benefit}</span>
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">{benefit}</span>
                       </div>
                     ))}
                   </div>
@@ -803,7 +797,9 @@ export default function PublicLanding() {
             <div className="col-span-2">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-xl">
-                  <Trophy className="w-7 h-7 text-white" />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 0 0 0 2.5 2.5z"/>
+                  </svg>
                 </div>
                 <span className="text-2xl font-black">ALAB SPORTS</span>
               </div>
