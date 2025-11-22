@@ -28,7 +28,6 @@ export default function VoiceAssistant({
   const processCommand = (command) => {
     const lowerCommand = command.toLowerCase().trim();
     
-    // Parse team (home/away)
     const isHome = lowerCommand.includes('home');
     const isAway = lowerCommand.includes('away');
     
@@ -40,15 +39,22 @@ export default function VoiceAssistant({
     const team = isHome ? 'home' : 'away';
     const players = isHome ? homePlayers : awayPlayers;
 
-    // Extract jersey number
-    const numberMatch = lowerCommand.match(/\b(\d{1,2})\b/);
+    if (!players || players.length === 0) {
+      showFeedback(`No players found for ${team} team`, "error");
+      return;
+    }
+
+    const numberMatch = lowerCommand.match(/(?:number\s+)?(\d{1,3})/);
     if (!numberMatch) {
       showFeedback("Player number not found", "error");
       return;
     }
 
     const jerseyNumber = numberMatch[1];
-    const player = players.find(p => String(p.jersey_number) === String(jerseyNumber));
+    const player = players.find(p => 
+      String(p.jersey_number).trim() === String(jerseyNumber).trim() ||
+      parseInt(p.jersey_number) === parseInt(jerseyNumber)
+    );
     
     if (!player) {
       showFeedback(`Player #${jerseyNumber} not found in ${team} team`, "error");
