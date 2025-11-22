@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle } from "lucide-react";
+import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -28,6 +28,7 @@ export default function AdminSidebar({
     { title: "Teams", url: createPageUrl("Teams"), icon: Users },
     { title: "Players", url: createPageUrl("Players"), icon: Trophy },
     { title: "Games", url: createPageUrl("Games"), icon: Calendar },
+    { title: "Weekly Summary", url: createPageUrl("WeeklySummary"), icon: Sparkles },
     { title: "Tournament Brackets", url: createPageUrl("TournamentBracket"), icon: Award },
     { title: "Scorekeepers", url: createPageUrl("Scorekeepers"), icon: Shield },
     { title: "Live Scoring", url: createPageUrl("LiveScoring"), icon: PlayCircle },
