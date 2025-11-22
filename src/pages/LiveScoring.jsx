@@ -340,17 +340,13 @@ export default function LiveScoring() {
     const lastAction = actionHistory[actionHistory.length - 1];
     setActionHistory(prev => prev.slice(0, -1));
 
-    if (lastAction.type === 'score' ||
-        ['rebounds', 'assists', 'steals', 'blocks', 'fouls'].includes(lastAction.type)) {
-      
-      if (lastAction.type === 'score') {
-        setHomeScore(lastAction.oldHomeScore);
-        setAwayScore(lastAction.oldAwayScore);
-        await base44.entities.Game.update(game.id, {
-          home_score: lastAction.oldHomeScore,
-          away_score: lastAction.oldAwayScore,
-        });
-      }
+    if (lastAction.type === 'score') {
+      setHomeScore(lastAction.oldHomeScore);
+      setAwayScore(lastAction.oldAwayScore);
+      await base44.entities.Game.update(game.id, {
+        home_score: lastAction.oldHomeScore,
+        away_score: lastAction.oldAwayScore,
+      });
 
       const reverseUpdates = lastAction.statUpdates.map(update => ({
         statType: update.statType,
@@ -359,15 +355,31 @@ export default function LiveScoring() {
       
       await updatePlayerStats(lastAction.playerId, lastAction.teamId, reverseUpdates);
 
-      if (lastAction.type === 'foul') {
-        if (lastAction.team === 'home') {
-          setHomeTeamFouls(lastAction.oldTeamFouls);
-          await base44.entities.Game.update(game.id, { home_team_fouls: lastAction.oldTeamFouls });
-        } else {
-          setAwayTeamFouls(lastAction.oldTeamFouls);
-          await base44.entities.Game.update(game.id, { away_team_fouls: lastAction.oldTeamFouls });
-        }
+    } else if (lastAction.type === 'foul') {
+      // Undo player foul
+      const reverseUpdates = lastAction.statUpdates.map(update => ({
+        statType: update.statType,
+        value: -update.value
+      }));
+      
+      await updatePlayerStats(lastAction.playerId, lastAction.teamId, reverseUpdates);
+
+      // Undo team foul
+      if (lastAction.team === 'home') {
+        setHomeTeamFouls(lastAction.oldTeamFouls);
+        await base44.entities.Game.update(game.id, { home_team_fouls: lastAction.oldTeamFouls });
+      } else {
+        setAwayTeamFouls(lastAction.oldTeamFouls);
+        await base44.entities.Game.update(game.id, { away_team_fouls: lastAction.oldTeamFouls });
       }
+
+    } else if (['rebounds', 'assists', 'steals', 'blocks'].includes(lastAction.type)) {
+      const reverseUpdates = lastAction.statUpdates.map(update => ({
+        statType: update.statType,
+        value: -update.value
+      }));
+      
+      await updatePlayerStats(lastAction.playerId, lastAction.teamId, reverseUpdates);
 
     } else if (lastAction.type === 'timeout') {
       if (lastAction.team === 'home') {
