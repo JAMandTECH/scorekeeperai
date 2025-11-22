@@ -545,32 +545,52 @@ export default function LiveScoring() {
   };
 
   // New voice command handler
-  const handleVoiceCommand = async ({ team, player, action }) => {
-    if (!game || !player) return;
-
-    const teamId = team === 'home' ? game.home_team_id : game.away_team_id;
+  const handleVoiceCommand = async ({ team, player, action, value }) => {
+    console.log('Voice command received:', { team, player: player?.jersey_number, action, value });
     
-    // Select the player and team for UI highlight
-    setSelectedPlayer(player);
-    setSelectedTeam(team);
+    if (!game || !player) {
+      console.error('Game or player not found');
+      return;
+    }
 
-    // Execute the action based on the command
-    if (action === '3-pointer') {
-      await addPoints(player.id, teamId, 3);
-    } else if (action === '2-pointer') {
-      await addPoints(player.id, teamId, 2);
-    } else if (action === 'free-throw') {
-      await addPoints(player.id, teamId, 1);
-    } else if (action === 'foul') {
-      await handleFoul(player.id, teamId);
-    } else if (action === 'rebound') {
-      await addPlayerStat(player.id, teamId, 'rebounds', 1);
-    } else if (action === 'assist') {
-      await addPlayerStat(player.id, teamId, 'assists', 1);
-    } else if (action === 'steal') {
-      await addPlayerStat(player.id, teamId, 'steals', 1);
-    } else if (action === 'block') {
-      await addPlayerStat(player.id, teamId, 'blocks', 1);
+    try {
+      const teamId = team === 'home' ? game.home_team_id : game.away_team_id;
+      
+      // Select the player and team for UI highlight
+      setSelectedPlayer(player);
+      setSelectedTeam(team);
+
+      // Execute the action based on the command
+      if (action === '3-pointer') {
+        console.log('Adding 3 points for player', player.jersey_number);
+        await addPoints(player.id, teamId, 3);
+      } else if (action === '2-pointer') {
+        console.log('Adding 2 points for player', player.jersey_number);
+        await addPoints(player.id, teamId, 2);
+      } else if (action === 'free-throw') {
+        console.log('Adding 1 point for player', player.jersey_number);
+        await addPoints(player.id, teamId, 1);
+      } else if (action === 'foul') {
+        console.log('Adding foul for player', player.jersey_number);
+        await handleFoul(player.id, teamId);
+      } else if (action === 'rebound') {
+        console.log('Adding rebound for player', player.jersey_number);
+        await addPlayerStat(player.id, teamId, 'rebounds', 1);
+      } else if (action === 'assist') {
+        console.log('Adding assist for player', player.jersey_number);
+        await addPlayerStat(player.id, teamId, 'assists', 1);
+      } else if (action === 'steal') {
+        console.log('Adding steal for player', player.jersey_number);
+        await addPlayerStat(player.id, teamId, 'steals', 1);
+      } else if (action === 'block') {
+        console.log('Adding block for player', player.jersey_number);
+        await addPlayerStat(player.id, teamId, 'blocks', 1);
+      }
+      
+      console.log('Action completed successfully');
+    } catch (error) {
+      console.error('Error executing voice command:', error);
+      alert(`Error executing command: ${error.message}`);
     }
   };
 
