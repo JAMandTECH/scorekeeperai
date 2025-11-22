@@ -678,9 +678,9 @@ export default function LiveScoring() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50 dark:from-gray-900 dark:via-orange-900/20 dark:to-gray-900">
       {/* TOP NAVIGATION BAR */}
-      <div className="sticky top-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700 shadow-xl">
+      <div className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {organization?.logo_url && (
@@ -692,8 +692,8 @@ export default function LiveScoring() {
               </Avatar>
             )}
             <div>
-              <h1 className="text-lg font-black text-white">{organization?.name || 'Live Scoring'}</h1>
-              <p className="text-xs text-gray-400 font-semibold">Basketball Game Management</p>
+              <h1 className="text-lg font-black text-gray-900 dark:text-white">{organization?.name || 'Live Scoring'}</h1>
+              <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Basketball Game Management</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -701,7 +701,7 @@ export default function LiveScoring() {
               onClick={toggleDarkMode}
               variant="outline"
               size="sm"
-              className="border-2 border-gray-600 text-white hover:bg-gray-800 font-bold p-2"
+              className="border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 font-bold p-2"
             >
               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -709,7 +709,7 @@ export default function LiveScoring() {
               onClick={() => navigate(createPageUrl("Dashboard"))}
               variant="outline"
               size="sm"
-              className="border-2 border-gray-600 text-white hover:bg-gray-800 font-bold"
+              className="border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 font-bold"
             >
               <ChevronRight className="w-4 h-4 mr-1 rotate-180" />
               Back to Dashboard
@@ -720,11 +720,11 @@ export default function LiveScoring() {
 
       {/* DEFAULT GAME ALERT */}
       {game.is_default && (
-        <div className="sticky z-40 bg-red-900/95 border-b-4 border-red-500" style={{ top: '64px' }}>
+        <div className="sticky z-40 bg-red-100 dark:bg-red-900/95 border-b-4 border-red-500" style={{ top: '64px' }}>
           <div className="max-w-7xl mx-auto p-4">
-            <Alert className="bg-red-800/50 border-2 border-red-400">
-              <Flag className="h-5 w-5 text-red-300" />
-              <AlertDescription className="text-red-100 font-bold flex items-center justify-between">
+            <Alert className="bg-red-200 dark:bg-red-800/50 border-2 border-red-400">
+              <Flag className="h-5 w-5 text-red-600 dark:text-red-300" />
+              <AlertDescription className="text-red-900 dark:text-red-100 font-bold flex items-center justify-between">
                 <span>⚠️ This game ended by DEFAULT. {game.defaulted_team_id === homeTeam.id ? homeTeam.name : awayTeam.name} defaulted. Final Score: {game.home_score}-{game.away_score}</span>
                 <Button
                   onClick={handleUndoDefault}
@@ -741,7 +741,7 @@ export default function LiveScoring() {
       )}
 
       {/* Main Scoreboard */}
-      <div className="sticky z-40 bg-gradient-to-r from-gray-900 via-orange-900 to-gray-900 border-b-4 border-orange-500 shadow-2xl" style={{ top: game.is_default ? '164px' : '64px' }}>
+      <div className="sticky z-40 bg-gradient-to-r from-orange-100 via-orange-200 to-orange-100 dark:from-gray-900 dark:via-orange-900 dark:to-gray-900 border-b-4 border-orange-500 shadow-2xl" style={{ top: game.is_default ? '164px' : '64px' }}>
         <div className="max-w-7xl mx-auto p-4">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Badge className="bg-red-600 text-white border-2 border-red-400 px-6 py-2 text-base font-black shadow-lg">
@@ -759,7 +759,7 @@ export default function LiveScoring() {
           <div className="grid grid-cols-3 gap-4 items-center mb-4">
             {/* HOME TEAM */}
             <div className="text-center">
-              <div className="text-orange-400 text-sm font-black mb-2">HOME</div>
+              <div className="text-orange-600 dark:text-orange-400 text-sm font-black mb-2">HOME</div>
               <div className="flex items-center justify-center gap-3 mb-2">
                 <Avatar className="w-16 h-16 border-4 border-orange-400 shadow-2xl">
                   <AvatarImage src={homeTeam.logo_url} />
@@ -767,27 +767,27 @@ export default function LiveScoring() {
                     {homeTeam.name?.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="text-white text-2xl font-black text-left">{homeTeam.name}</div>
+                <div className="text-gray-900 dark:text-white text-2xl font-black text-left">{homeTeam.name}</div>
               </div>
-              <div className="text-orange-500 text-7xl font-black mb-2">{homeScore}</div>
+              <div className="text-orange-600 dark:text-orange-500 text-7xl font-black mb-2">{homeScore}</div>
               <div className="flex justify-center gap-4 text-xs font-bold">
-                <span className={`${inPenalty('home') ? 'text-red-400' : 'text-white'}`}>
+                <span className={`${inPenalty('home') ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
                   FOULS: {homeTeamFouls}/{game.penalty_limit_per_quarter}
                 </span>
-                <span className="text-white">TO: {homeTimeouts}</span>
+                <span className="text-gray-900 dark:text-white">TO: {homeTimeouts}</span>
               </div>
             </div>
 
             {/* QUARTER SCORES */}
             <div className="text-center">
-              <div className="text-white text-2xl font-black mb-3">{quarterLabel}</div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
+              <div className="text-gray-900 dark:text-white text-2xl font-black mb-3">{quarterLabel}</div>
+              <div className="bg-white/60 dark:bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4 border-2 border-orange-300 dark:border-transparent">
                 <div className="flex justify-center gap-3 flex-wrap">
                   {[1, 2, 3, 4].map(q => {
                     const qScore = quarterScores.find(qs => qs.quarter === q);
                     return (
-                      <div key={q} className="text-base font-black text-white">
-                        <span className="text-gray-400">Q{q}:</span> {qScore ? `${qScore.home}-${qScore.away}` : '-'}
+                      <div key={q} className="text-base font-black text-gray-900 dark:text-white">
+                        <span className="text-gray-600 dark:text-gray-400">Q{q}:</span> {qScore ? `${qScore.home}-${qScore.away}` : '-'}
                       </div>
                     );
                   })}
@@ -859,9 +859,9 @@ export default function LiveScoring() {
 
             {/* AWAY TEAM */}
             <div className="text-center">
-              <div className="text-blue-400 text-sm font-black mb-2">AWAY</div>
+              <div className="text-blue-600 dark:text-blue-400 text-sm font-black mb-2">AWAY</div>
               <div className="flex items-center justify-center gap-3 mb-2">
-                <div className="text-white text-2xl font-black text-right">{awayTeam.name}</div>
+                <div className="text-gray-900 dark:text-white text-2xl font-black text-right">{awayTeam.name}</div>
                 <Avatar className="w-16 h-16 border-4 border-blue-400 shadow-2xl">
                   <AvatarImage src={awayTeam.logo_url} />
                   <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
@@ -869,12 +869,12 @@ export default function LiveScoring() {
                   </AvatarFallback>
                 </Avatar>
               </div>
-              <div className="text-blue-500 text-7xl font-black mb-2">{awayScore}</div>
+              <div className="text-blue-600 dark:text-blue-500 text-7xl font-black mb-2">{awayScore}</div>
               <div className="flex justify-center gap-4 text-xs font-bold">
-                <span className={`${inPenalty('away') ? 'text-red-400' : 'text-white'}`}>
+                <span className={`${inPenalty('away') ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
                   FOULS: {awayTeamFouls}/{game.penalty_limit_per_quarter}
                 </span>
-                <span className="text-white">TO: {awayTimeouts}</span>
+                <span className="text-gray-900 dark:text-white">TO: {awayTimeouts}</span>
               </div>
             </div>
           </div>
@@ -909,7 +909,7 @@ export default function LiveScoring() {
             onClick={() => setShowVoiceAssistant(!showVoiceAssistant)}
             variant="outline"
             size="sm"
-            className="border-2 border-gray-600 text-white hover:bg-gray-800 font-bold"
+            className="border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 font-bold"
           >
             {showVoiceAssistant ? (
               <>
@@ -1090,8 +1090,8 @@ export default function LiveScoring() {
           </div>
         </div>
       ) : (
-        <div className="mx-4 mt-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-gray-700 rounded-xl p-8 text-center shadow-lg">
-          <User className="w-16 h-16 text-blue-400 dark:text-blue-500 mx-auto mb-4" />
+        <div className="mx-4 mt-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-300 dark:border-gray-700 rounded-xl p-8 text-center shadow-lg">
+          <User className="w-16 h-16 text-blue-500 dark:text-blue-400 mx-auto mb-4" />
           <p className="text-xl font-black text-gray-900 dark:text-white mb-2">Select a Player</p>
           <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
             Click on a player below to start tracking statistics
@@ -1103,10 +1103,10 @@ export default function LiveScoring() {
       <div className="max-w-7xl mx-auto p-4 pb-24">
         <div className="grid md:grid-cols-2 gap-4"> {/* Changed lg:grid-cols-2 to md:grid-cols-2 */}
           {/* Home Team */}
-          <div className="flex flex-col h-[700px] bg-gradient-to-br from-orange-900/40 to-orange-950/40 border-4 border-orange-500 backdrop-blur-sm rounded-xl">
-            <div className="flex-shrink-0 bg-orange-900/95 backdrop-blur-sm border-b-4 border-orange-500 p-3 rounded-t-xl">
+          <div className="flex flex-col h-[700px] bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/40 dark:to-orange-950/40 border-4 border-orange-500 backdrop-blur-sm rounded-xl">
+            <div className="flex-shrink-0 bg-orange-200 dark:bg-orange-900/95 backdrop-blur-sm border-b-4 border-orange-500 p-3 rounded-t-xl">
               <div className="flex items-center justify-between gap-2">
-                <h2 className="text-xl font-black text-white">
+                <h2 className="text-xl font-black text-gray-900 dark:text-white">
                   {homeTeam.name} - HOME
                 </h2>
                 <Button
@@ -1127,10 +1127,10 @@ export default function LiveScoring() {
           </div>
 
           {/* Away Team */}
-          <div className="flex flex-col h-[700px] bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm rounded-xl">
-            <div className="flex-shrink-0 bg-blue-900/95 backdrop-blur-sm border-b-4 border-blue-500 p-3 rounded-t-xl">
+          <div className="flex flex-col h-[700px] bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm rounded-xl">
+            <div className="flex-shrink-0 bg-blue-200 dark:bg-blue-900/95 backdrop-blur-sm border-b-4 border-blue-500 p-3 rounded-t-xl">
               <div className="flex items-center justify-between gap-2">
-                <h2 className="text-xl font-black text-white">
+                <h2 className="text-xl font-black text-gray-900 dark:text-white">
                   {awayTeam.name} - AWAY
                 </h2>
                 <Button
@@ -1154,13 +1154,13 @@ export default function LiveScoring() {
 
       {/* Declare Default Dialog */}
       <Dialog open={showDefaultDialog} onOpenChange={setShowDefaultDialog}>
-        <DialogContent className="bg-gray-900 border-4 border-red-500 max-w-md">
+        <DialogContent className="bg-white dark:bg-gray-900 border-4 border-red-500 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white text-2xl font-black flex items-center gap-2">
-              <Flag className="w-6 h-6 text-red-400" />
+            <DialogTitle className="text-gray-900 dark:text-white text-2xl font-black flex items-center gap-2">
+              <Flag className="w-6 h-6 text-red-500 dark:text-red-400" />
               Declare Game Default
             </DialogTitle>
-            <DialogDescription className="text-gray-300 font-bold">
+            <DialogDescription className="text-gray-700 dark:text-gray-300 font-bold">
               Select which team is defaulting. The non-defaulting team will automatically win 20-0.
             </DialogDescription>
           </DialogHeader>
@@ -1193,7 +1193,7 @@ export default function LiveScoring() {
             <Button
               onClick={() => setShowDefaultDialog(false)}
               variant="outline"
-              className="w-full border-2 border-gray-600 text-white hover:bg-gray-800 font-black"
+              className="w-full border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 font-black"
             >
               CANCEL
             </Button>
@@ -1203,26 +1203,26 @@ export default function LiveScoring() {
 
       {/* End Quarter Dialog */}
       <Dialog open={showQuarterEnd} onOpenChange={setShowQuarterEnd}>
-        <DialogContent className="bg-gray-900 border-4 border-orange-500 max-w-md">
+        <DialogContent className="bg-white dark:bg-gray-900 border-4 border-orange-500 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white text-2xl font-black">
+            <DialogTitle className="text-gray-900 dark:text-white text-2xl font-black">
               End of {quarterLabel}
             </DialogTitle>
-            <DialogDescription className="text-gray-300 font-bold">
+            <DialogDescription className="text-gray-700 dark:text-gray-300 font-bold">
               {currentQuarter === 4 && homeScore === awayScore 
                 ? 'Game is tied! Overtime will begin.' 
                 : 'Save quarter data and proceed to next period?'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="bg-gray-800 rounded-xl p-6 border-2 border-gray-700">
-              <div className="flex justify-between text-lg font-bold mb-3 text-white">
+            <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-6 border-2 border-gray-300 dark:border-gray-700">
+              <div className="flex justify-between text-lg font-bold mb-3 text-gray-900 dark:text-white">
                 <span>{homeTeam.name}</span>
-                <span className="text-orange-500 text-3xl">{homeScore}</span>
+                <span className="text-orange-600 dark:text-orange-500 text-3xl">{homeScore}</span>
               </div>
-              <div className="flex justify-between text-lg font-bold text-white">
+              <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white">
                 <span>{awayTeam.name}</span>
-                <span className="text-blue-500 text-3xl">{awayScore}</span>
+                <span className="text-blue-600 dark:text-blue-500 text-3xl">{awayScore}</span>
               </div>
             </div>
             {currentQuarter === 4 && homeScore === awayScore && (
@@ -1253,7 +1253,7 @@ export default function LiveScoring() {
               <Button
                 onClick={() => setShowQuarterEnd(false)}
                 variant="outline"
-                className="flex-1 border-2 border-gray-600 text-white hover:bg-gray-800 font-black"
+                className="flex-1 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 font-black"
               >
                 CANCEL
               </Button>
