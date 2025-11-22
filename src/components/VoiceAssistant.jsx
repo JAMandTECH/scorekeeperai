@@ -42,6 +42,22 @@ export default function VoiceAssistant({
         }
       }
 
+      const currentTranscript = finalTranscript || interimTranscript;
+      
+      // Check if "DONE" command is detected
+      if (currentTranscript.toLowerCase().includes('done')) {
+        // Extract command before "DONE"
+        const commandText = currentTranscript.toLowerCase().split('done')[0].trim();
+        if (commandText) {
+          setTranscript(commandText);
+          processCommand(commandText);
+          // Stop listening after processing
+          recognitionRef.current?.stop();
+          setIsListening(false);
+        }
+        return;
+      }
+
       if (finalTranscript) {
         setTranscript(finalTranscript);
         processCommand(finalTranscript);
@@ -248,27 +264,30 @@ export default function VoiceAssistant({
         {isListening && (
           <div className="mt-3 p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800">
             <p className="text-xs font-bold text-purple-900 dark:text-purple-300 mb-2">Voice Commands:</p>
+            <div className="mb-2 p-2 bg-green-50 dark:bg-green-950/30 border border-green-300 dark:border-green-800 rounded">
+              <p className="text-xs font-bold text-green-800 dark:text-green-300">Say "DONE" to execute command immediately</p>
+            </div>
             <div className="grid grid-cols-2 gap-2 text-xs text-purple-700 dark:text-purple-400">
               {sport === "basketball" ? (
                 <>
-                  <div>"home 17 2 points"</div>
-                  <div>"away 23 3 points"</div>
-                  <div>"home 5 free throw"</div>
-                  <div>"away 12 foul"</div>
-                  <div>"home 8 rebound"</div>
-                  <div>"away 11 assist"</div>
-                  <div>"home 3 steal"</div>
-                  <div>"away 9 block"</div>
+                  <div>"home 17 2 points DONE"</div>
+                  <div>"away 23 3 points DONE"</div>
+                  <div>"home 5 free throw DONE"</div>
+                  <div>"away 12 foul DONE"</div>
+                  <div>"home 8 rebound DONE"</div>
+                  <div>"away 11 assist DONE"</div>
+                  <div>"home 3 steal DONE"</div>
+                  <div>"away 9 block DONE"</div>
                 </>
               ) : (
                 <>
-                  <div>"home 17 point"</div>
-                  <div>"away 23 kill"</div>
-                  <div>"home 5 ace"</div>
-                  <div>"away 12 block"</div>
-                  <div>"home 8 assist"</div>
-                  <div>"away 11 dig"</div>
-                  <div>"home 3 error"</div>
+                  <div>"home 17 point DONE"</div>
+                  <div>"away 23 kill DONE"</div>
+                  <div>"home 5 ace DONE"</div>
+                  <div>"away 12 block DONE"</div>
+                  <div>"home 8 assist DONE"</div>
+                  <div>"away 11 dig DONE"</div>
+                  <div>"home 3 error DONE"</div>
                 </>
               )}
             </div>
