@@ -228,13 +228,70 @@ export default function VoiceAssistant({
       setFeedbackType("neutral");
     } else {
       try {
-        recognitionRef.current?.start();
+        // Recreate recognition instance for better Android Chrome compatibility
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
+        recognitionRef.current.lang = selectedLanguage;
+
+        recognitionRef.current.onresult = (event) => {
+          let interimTranscript = '';
+          let finalTranscript = '';
+
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript;
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+
+          const currentTranscript = finalTranscript || interimTranscript;
+          
+          if (currentTranscript.toLowerCase().includes('done')) {
+            const commandText = currentTranscript.toLowerCase().split('done')[0].trim();
+            if (commandText) {
+              setTranscript(commandText);
+              processCommand(commandText);
+              recognitionRef.current?.stop();
+              setIsListening(false);
+            }
+            return;
+          }
+
+          if (finalTranscript) {
+            setTranscript(finalTranscript);
+          } else {
+            setTranscript(interimTranscript);
+          }
+        };
+
+        recognitionRef.current.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          setFeedback(`Error: ${event.error}`);
+          setFeedbackType("error");
+          setIsListening(false);
+        };
+
+        recognitionRef.current.onend = () => {
+          if (isListening) {
+            try {
+              recognitionRef.current?.start();
+            } catch (e) {
+              setIsListening(false);
+            }
+          }
+        };
+
+        recognitionRef.current.start();
         setIsListening(true);
-        setFeedback("Listening... Say commands like 'home 17 2 points'");
+        setFeedback("Listening... Say commands like 'home 17 2 points DONE'");
         setFeedbackType("listening");
       } catch (error) {
         console.error('Error starting recognition:', error);
-        setFeedback("Failed to start voice recognition");
+        setFeedback(`Failed to start: ${error.message}`);
         setFeedbackType("error");
       }
     }
