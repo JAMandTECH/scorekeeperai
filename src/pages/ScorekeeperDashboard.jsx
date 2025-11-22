@@ -74,20 +74,33 @@ export default function ScorekeeperDashboard() {
     queryKey: ['my-scorekeeper-games', user?.email],
     queryFn: async () => {
       const allGames = await base44.entities.Game.list('-game_date');
+      console.log("TOTAL GAMES FETCHED:", allGames.length);
+      console.log("SCOREKEEPER EMAIL TO MATCH:", user?.email);
       
       // Filter games assigned to this scorekeeper
       // Handle both old format (assigned_scorekeeper_email string) and new format (assigned_scorekeeper_emails array)
       const myAssignedGames = allGames.filter(game => {
         // Check new format (array)
         if (Array.isArray(game.assigned_scorekeeper_emails)) {
-          return game.assigned_scorekeeper_emails.includes(user?.email);
+          const isAssigned = game.assigned_scorekeeper_emails.includes(user?.email);
+          if (isAssigned) {
+            console.log("GAME ASSIGNED (array):", game.id, game.assigned_scorekeeper_emails);
+          }
+          return isAssigned;
         }
         // Check old format (single string)
         if (game.assigned_scorekeeper_email) {
-          return game.assigned_scorekeeper_email === user?.email;
+          const isAssigned = game.assigned_scorekeeper_email === user?.email;
+          if (isAssigned) {
+            console.log("GAME ASSIGNED (string):", game.id, game.assigned_scorekeeper_email);
+          }
+          return isAssigned;
         }
         return false;
       });
+      
+      console.log("FILTERED MY GAMES COUNT:", myAssignedGames.length);
+      console.log("MY GAMES:", myAssignedGames);
       
       return myAssignedGames;
     },
