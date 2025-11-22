@@ -27,6 +27,8 @@ import ScorekeeperDashboard from './pages/ScorekeeperDashboard';
 import TournamentBracket from './pages/TournamentBracket';
 import SocialFeed from './pages/SocialFeed';
 import WeeklySummary from './pages/WeeklySummary';
+import TeamRegistration from './pages/TeamRegistration';
+import PendingTeams from './pages/PendingTeams';
 
 
 export const PAGES = {
@@ -59,6 +61,8 @@ export const PAGES = {
     "TournamentBracket": TournamentBracket,
     "SocialFeed": SocialFeed,
     "WeeklySummary": WeeklySummary,
+    "TeamRegistration": TeamRegistration,
+    "PendingTeams": PendingTeams,
 }
 
 export const pagesConfig = {
