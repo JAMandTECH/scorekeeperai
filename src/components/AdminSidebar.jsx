@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles } from "lucide-react";
+import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles, Clock, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -27,6 +27,7 @@ export default function AdminSidebar({
     { title: "Divisions", url: createPageUrl("Divisions"), icon: Trophy },
     { title: "Teams", url: createPageUrl("Teams"), icon: Users },
     { title: "Players", url: createPageUrl("Players"), icon: Trophy },
+    { title: "Pending Teams", url: createPageUrl("PendingTeams"), icon: Clock },
     { title: "Games", url: createPageUrl("Games"), icon: Calendar },
     { title: "Weekly Summary", url: createPageUrl("WeeklySummary"), icon: Sparkles },
     { title: "Tournament Brackets", url: createPageUrl("TournamentBracket"), icon: Award },
@@ -38,7 +39,13 @@ export default function AdminSidebar({
     { title: "Organization Settings", url: createPageUrl("OrganizationSettings"), icon: Settings },
   ];
 
-  const navItems = navigationItems || (isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : []));
+  const userNav = [
+    { title: "Home", url: createPageUrl("Home"), icon: Home },
+    { title: "Register Team", url: createPageUrl("TeamRegistration"), icon: UserPlus },
+    { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
+  ];
+
+  const navItems = navigationItems || (isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : userNav));
 
   return (
     <>
