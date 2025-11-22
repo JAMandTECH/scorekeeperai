@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mic, MicOff, Volume2 } from "lucide-react";
@@ -16,71 +16,16 @@ export default function VoiceAssistant({
   const [feedbackType, setFeedbackType] = useState("neutral");
   const recognitionRef = useRef(null);
 
-  useEffect(() => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      setFeedback("Voice recognition not supported in this browser");
-      setFeedbackType("error");
-      return;
-    }
+  const showFeedback = useCallback((message, type) => {
+    setFeedback(message);
+    setFeedbackType(type);
+    setTimeout(() => {
+      setFeedback("");
+      setFeedbackType("neutral");
+    }, 3000);
+  }, []);
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.continuous = true;
-    recognitionRef.current.interimResults = true;
-    recognitionRef.current.lang = 'en-US';
-
-    recognitionRef.current.onresult = (event) => {
-      let interimTranscript = '';
-      let finalTranscript = '';
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
-        }
-      }
-
-      if (finalTranscript) {
-        setTranscript(finalTranscript);
-        processCommand(finalTranscript);
-      } else {
-        setTranscript(interimTranscript);
-      }
-    };
-
-    recognitionRef.current.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
-      setFeedback(`Error: ${event.error}`);
-      setFeedbackType("error");
-      if (event.error === 'no-speech' || event.error === 'audio-capture') {
-        setIsListening(false);
-      }
-    };
-
-    recognitionRef.current.onend = () => {
-      if (isListening) {
-        try {
-          recognitionRef.current.start();
-        } catch (error) {
-          console.error('Error restarting recognition:', error);
-        }
-      }
-    };
-
-    return () => {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (error) {
-          console.error('Error stopping recognition:', error);
-        }
-      }
-    };
-  }, [isListening]);
-
-  const processCommand = (command) => {
+  const processCommand = useCallback((command) => {
     const lowerCommand = command.toLowerCase().trim();
     
     // Parse team (home/away)
@@ -170,16 +115,74 @@ export default function VoiceAssistant({
     });
 
     showFeedback(`✓ ${player.first_name} ${player.last_name} - ${action}`, "success");
-  };
+  }, [homePlayers, awayPlayers, sport, onCommand, showFeedback]);
 
-  const showFeedback = (message, type) => {
-    setFeedback(message);
-    setFeedbackType(type);
-    setTimeout(() => {
-      setFeedback("");
-      setFeedbackType("neutral");
-    }, 3000);
-  };
+  useEffect(() => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      setFeedback("Voice recognition not supported in this browser");
+      setFeedbackType("error");
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event) => {
+      let interimTranscript = '';
+      let finalTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      if (finalTranscript) {
+        setTranscript(finalTranscript);
+        processCommand(finalTranscript);
+      } else {
+        setTranscript(interimTranscript);
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setFeedback(`Error: ${event.error}`);
+      setFeedbackType("error");
+      if (event.error === 'no-speech' || event.error === 'audio-capture') {
+        setIsListening(false);
+      }
+    };
+
+    recognition.onend = () => {
+      if (isListening && recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+        } catch (error) {
+          console.error('Error restarting recognition:', error);
+          setIsListening(false);
+        }
+      }
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (error) {
+          console.error('Error stopping recognition:', error);
+        }
+      }
+    };
+  }, [isListening, processCommand]);
 
   const toggleListening = () => {
     if (isListening) {
