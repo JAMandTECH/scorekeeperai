@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mic, MicOff, Volume2 } from "lucide-react";
@@ -8,13 +8,23 @@ export default function VoiceAssistant({
   homePlayers = [], 
   awayPlayers = [], 
   onCommand,
-  sport = "basketball" // "basketball" or "volleyball"
+  sport = "basketball"
 }) {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [feedback, setFeedback] = useState("");
   const [feedbackType, setFeedbackType] = useState("neutral");
   const recognitionRef = useRef(null);
+
+  React.useEffect(() => {
+    console.log("VoiceAssistant mounted", { homePlayers: homePlayers.length, awayPlayers: awayPlayers.length, sport });
+    return () => {
+      console.log("VoiceAssistant unmounting");
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
 
   const showFeedback = (message, type) => {
     setFeedback(message);
