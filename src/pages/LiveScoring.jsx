@@ -510,33 +510,37 @@ export default function LiveScoring() {
     await loadGame();
   };
 
-  // New voice command handler
-  const handleVoiceCommand = async ({ team, player, action }) => {
-    if (!game || !player) return;
+  const handleVoiceCommand = async ({ team, player, action, value }) => {
+    if (!game || !player) {
+      console.warn("Voice command missing game or player data");
+      return;
+    }
 
     const teamId = team === 'home' ? game.home_team_id : game.away_team_id;
     
-    // Select the player and team for UI highlight
     setSelectedPlayer(player);
     setSelectedTeam(team);
 
-    // Execute the action based on the command
-    if (action === '3-pointer') {
-      await addPoints(player.id, teamId, 3);
-    } else if (action === '2-pointer') {
-      await addPoints(player.id, teamId, 2);
-    } else if (action === 'free-throw') {
-      await addPoints(player.id, teamId, 1);
-    } else if (action === 'foul') {
-      await handleFoul(player.id, teamId);
-    } else if (action === 'rebound') {
-      await addPlayerStat(player.id, teamId, 'rebounds', 1);
-    } else if (action === 'assist') {
-      await addPlayerStat(player.id, teamId, 'assists', 1);
-    } else if (action === 'steal') {
-      await addPlayerStat(player.id, teamId, 'steals', 1);
-    } else if (action === 'block') {
-      await addPlayerStat(player.id, teamId, 'blocks', 1);
+    try {
+      if (action === '3-pointer') {
+        await addPoints(player.id, teamId, 3);
+      } else if (action === '2-pointer') {
+        await addPoints(player.id, teamId, 2);
+      } else if (action === 'free-throw') {
+        await addPoints(player.id, teamId, 1);
+      } else if (action === 'foul') {
+        await handleFoul(player.id, teamId);
+      } else if (action === 'rebound') {
+        await addPlayerStat(player.id, teamId, 'rebounds', 1);
+      } else if (action === 'assist') {
+        await addPlayerStat(player.id, teamId, 'assists', 1);
+      } else if (action === 'steal') {
+        await addPlayerStat(player.id, teamId, 'steals', 1);
+      } else if (action === 'block') {
+        await addPlayerStat(player.id, teamId, 'blocks', 1);
+      }
+    } catch (error) {
+      console.error("Voice command execution error:", error);
     }
   };
 
