@@ -63,9 +63,9 @@ export default function VoiceAssistant({
         return;
       }
 
+      // Only show transcript but don't execute until "DONE" is said
       if (finalTranscript) {
         setTranscript(finalTranscript);
-        processCommand(finalTranscript);
       } else {
         setTranscript(interimTranscript);
       }
