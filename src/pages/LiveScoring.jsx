@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User, Eye, EyeOff, Flag } from "lucide-react";
+import { CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User, Eye, EyeOff, Flag, Sun, Moon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -37,11 +37,21 @@ export default function LiveScoring() {
   const [showDefaultDialog, setShowDefaultDialog] = useState(false);
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(true);
   const [user, setUser] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadGame();
     loadUser();
+    
+    // Load dark mode preference
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadUser = async () => {
@@ -496,6 +506,17 @@ export default function LiveScoring() {
     navigate(createPageUrl("Games"));
   };
 
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   const handleUndoDefault = async () => {
     if (!game.is_default) return;
 
@@ -675,15 +696,25 @@ export default function LiveScoring() {
               <p className="text-xs text-gray-400 font-semibold">Basketball Game Management</p>
             </div>
           </div>
-          <Button
-            onClick={() => navigate(createPageUrl("Dashboard"))}
-            variant="outline"
-            size="sm"
-            className="border-2 border-gray-600 text-white hover:bg-gray-800 font-bold"
-          >
-            <ChevronRight className="w-4 h-4 mr-1 rotate-180" />
-            Back to Dashboard
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={toggleDarkMode}
+              variant="outline"
+              size="sm"
+              className="border-2 border-gray-600 text-white hover:bg-gray-800 font-bold p-2"
+            >
+              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
+            <Button
+              onClick={() => navigate(createPageUrl("Dashboard"))}
+              variant="outline"
+              size="sm"
+              className="border-2 border-gray-600 text-white hover:bg-gray-800 font-bold"
+            >
+              <ChevronRight className="w-4 h-4 mr-1 rotate-180" />
+              Back to Dashboard
+            </Button>
+          </div>
         </div>
       </div>
 
