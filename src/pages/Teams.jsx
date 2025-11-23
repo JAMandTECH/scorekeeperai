@@ -78,14 +78,22 @@ export default function Teams() {
     }
   };
 
-  const { data: organization } = useQuery({
+  const { data: organization, isLoading: orgLoading, error: orgError } = useQuery({
     queryKey: ['organization', user?.organization_id],
     queryFn: async () => {
+      console.log("Teams: Fetching organization for", user?.organization_id);
       const orgs = await base44.entities.Organization.list();
-      return orgs.find(o => o.id === user?.organization_id);
+      const org = orgs.find(o => o.id === user?.organization_id);
+      console.log("Teams: Organization found", org);
+      return org;
     },
     enabled: !!user?.organization_id,
   });
+  
+  // Log organization loading state
+  useEffect(() => {
+    console.log("Teams: orgLoading", orgLoading, "orgError", orgError, "organization", organization);
+  }, [orgLoading, orgError, organization]);
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("PublicLanding"));
