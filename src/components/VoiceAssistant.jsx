@@ -138,30 +138,29 @@ export default function VoiceAssistant({
         return;
       }
 
-      // Support both full commands and shorthand (e.g., "2 p" or "2 points")
-      if (lowerCommand.match(/3\s*p\b/) || lowerCommand.includes('3 point') || lowerCommand.includes('three point') || lowerCommand.includes('3-point')) {
+      if (lowerCommand.includes('3 point') || lowerCommand.includes('three point') || lowerCommand.includes('3-point')) {
         action = '3-pointer';
         value = 3;
-      } else if (lowerCommand.match(/2\s*p\b/) || lowerCommand.includes('2 point') || lowerCommand.includes('two point') || lowerCommand.includes('2-point')) {
+      } else if (lowerCommand.includes('2 point') || lowerCommand.includes('two point') || lowerCommand.includes('2-point')) {
         action = '2-pointer';
         value = 2;
-      } else if (lowerCommand.match(/1\s*p\b/) || lowerCommand.includes('free throw') || lowerCommand.includes('foul shot')) {
+      } else if (lowerCommand.includes('free throw') || lowerCommand.includes('foul shot')) {
         action = 'free-throw';
         value = 1;
-      } else if (lowerCommand.match(/\bf\b/) || lowerCommand.includes('foul')) {
+      } else if (lowerCommand.includes('foul')) {
         action = 'foul';
-      } else if (lowerCommand.match(/\br\b/) || lowerCommand.includes('rebound')) {
+      } else if (lowerCommand.includes('rebound')) {
         action = 'rebound';
-      } else if (lowerCommand.match(/\ba\b/) || lowerCommand.includes('assist')) {
+      } else if (lowerCommand.includes('assist')) {
         action = 'assist';
-      } else if (lowerCommand.match(/\bs\b/) || lowerCommand.includes('steal')) {
+      } else if (lowerCommand.includes('steal')) {
         action = 'steal';
-      } else if (lowerCommand.match(/\bb\b/) || lowerCommand.includes('block')) {
+      } else if (lowerCommand.includes('block')) {
         action = 'block';
       }
 
       if (!action) {
-        showFeedback("Action not recognized. Try: '2 p', 'f', 'r', 'a', 's', 'b'", "error");
+        showFeedback("Action not recognized. Try: points, foul, rebound, assist, steal, block", "error");
         return;
       }
 
@@ -174,35 +173,35 @@ export default function VoiceAssistant({
 
       showFeedback(`✓ ${player.first_name} ${player.last_name} - ${action}`, "success");
     } else if (sport === "volleyball") {
-      // Volleyball actions - support both full commands and shorthand
+      // Volleyball actions
       // Rally/point doesn't require player number
-      if (lowerCommand.match(/\br\b/) || lowerCommand.includes('rally') || (lowerCommand.includes('point') && !lowerCommand.match(/\b(attack|kill|ace|block)\b/))) {
+      if (lowerCommand.includes('rally') || (lowerCommand.includes('point') && !lowerCommand.match(/\b(attack|kill|ace|block)\b/))) {
         action = 'point';
         requiresPlayer = false;
       } 
       // Attack, kill, ace, block require player number
-      else if (lowerCommand.match(/\bat\b/) || lowerCommand.includes('attack') || lowerCommand.includes('kill') || lowerCommand.includes('spike')) {
+      else if (lowerCommand.includes('attack') || lowerCommand.includes('kill') || lowerCommand.includes('spike')) {
         action = 'kill';
         requiresPlayer = true;
-      } else if (lowerCommand.match(/\ba\b/) || lowerCommand.includes('ace') || lowerCommand.includes('service ace')) {
+      } else if (lowerCommand.includes('ace') || lowerCommand.includes('service ace')) {
         action = 'ace';
         requiresPlayer = true;
-      } else if (lowerCommand.match(/\bb\b/) || lowerCommand.includes('block')) {
+      } else if (lowerCommand.includes('block')) {
         action = 'block';
         requiresPlayer = true;
       } else if (lowerCommand.includes('assist') || lowerCommand.includes('set')) {
         action = 'assist';
         requiresPlayer = true;
-      } else if (lowerCommand.match(/\bdg\b/) || lowerCommand.includes('dig')) {
+      } else if (lowerCommand.includes('dig')) {
         action = 'dig';
         requiresPlayer = true;
-      } else if (lowerCommand.match(/\berr\b/) || lowerCommand.includes('error')) {
+      } else if (lowerCommand.includes('error')) {
         action = 'error';
         requiresPlayer = true;
       }
 
       if (!action) {
-        showFeedback("Action not recognized. Try: 'r', 'at', 'a', 'b', 'dg', 'err'", "error");
+        showFeedback("Action not recognized. Try: rally, attack, ace, block, dig, error", "error");
         return;
       }
 
@@ -346,7 +345,7 @@ export default function VoiceAssistant({
 
         recognitionRef.current.start();
         setIsListening(true);
-        setFeedback("Listening... Say commands like 'home 17 2 p DONE'");
+        setFeedback("Listening... Say commands like 'home 17 2 points DONE'");
         setFeedbackType("listening");
       } catch (error) {
         console.error('Error starting recognition:', error);
@@ -437,25 +436,25 @@ export default function VoiceAssistant({
             <div className="grid grid-cols-2 gap-2 text-xs text-purple-700 dark:text-purple-400">
               {sport === "basketball" ? (
                 <>
-                  <div>"home 17 2 p DONE"</div>
-                  <div>"away 23 3 p DONE"</div>
-                  <div>"home 5 1 p DONE"</div>
-                  <div>"away 12 f DONE"</div>
-                  <div>"home 8 r DONE"</div>
-                  <div>"away 11 a DONE"</div>
-                  <div>"home 3 s DONE"</div>
-                  <div>"away 9 b DONE"</div>
+                  <div>"home 17 2 points DONE"</div>
+                  <div>"away 23 3 points DONE"</div>
+                  <div>"home 5 free throw DONE"</div>
+                  <div>"away 12 foul DONE"</div>
+                  <div>"home 8 rebound DONE"</div>
+                  <div>"away 11 assist DONE"</div>
+                  <div>"home 3 steal DONE"</div>
+                  <div>"away 9 block DONE"</div>
                   <div>"undo DONE"</div>
                 </>
               ) : (
                 <>
-                  <div>"home r DONE"</div>
-                  <div>"away r DONE"</div>
-                  <div>"home 17 at DONE"</div>
-                  <div>"away 23 a DONE"</div>
-                  <div>"home 5 b DONE"</div>
-                  <div>"away 12 dg DONE"</div>
-                  <div>"home 8 err DONE"</div>
+                  <div>"home rally DONE"</div>
+                  <div>"away rally DONE"</div>
+                  <div>"home 17 attack DONE"</div>
+                  <div>"away 23 ace DONE"</div>
+                  <div>"home 5 block DONE"</div>
+                  <div>"away 12 dig DONE"</div>
+                  <div>"home 8 error DONE"</div>
                   <div>"undo DONE"</div>
                 </>
               )}
