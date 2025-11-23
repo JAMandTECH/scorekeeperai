@@ -5,10 +5,15 @@ import { useQuery } from "@tanstack/react-query";
 export function usePermissions() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     loadUser();
-  }, []);
+    
+    // Poll for user updates every 5 seconds to catch role changes
+    const interval = setInterval(loadUser, 5000);
+    return () => clearInterval(interval);
+  }, [refreshKey]);
 
   const loadUser = async () => {
     try {
@@ -21,6 +26,10 @@ export function usePermissions() {
     } finally {
       setLoading(false);
     }
+  };
+  
+  const refresh = () => {
+    setRefreshKey(prev => prev + 1);
   };
 
   const { data: role, isLoading: roleLoading } = useQuery({
@@ -77,5 +86,6 @@ export function usePermissions() {
     hasPermission,
     isAdmin,
     isSuperAdmin,
+    refresh,
   };
 }
