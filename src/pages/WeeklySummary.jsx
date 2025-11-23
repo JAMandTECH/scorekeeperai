@@ -14,6 +14,7 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { usePermissions } from "@/components/hooks/usePermissions";
 
 export default function WeeklySummary() {
   const [user, setUser] = useState(null);
@@ -31,6 +32,7 @@ export default function WeeklySummary() {
   const [generatedPosterUrl, setGeneratedPosterUrl] = useState("");
   const [selectedBestPlayer, setSelectedBestPlayer] = useState(null);
   const [isSharing, setIsSharing] = useState(false);
+  const { hasPermission } = usePermissions();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -46,10 +48,6 @@ export default function WeeklySummary() {
   const loadUser = async () => {
     try {
       const currentUser = await base44.auth.me();
-      if (currentUser.role !== 'admin') {
-        navigate(createPageUrl("Home"));
-        return;
-      }
       setUser(currentUser);
     } catch (error) {
       console.error("Error loading user:", error);
@@ -585,23 +583,25 @@ export default function WeeklySummary() {
                           AI-Generated Summary
                         </CardTitle>
                       </div>
-                      <Button
-                        onClick={generateAISummary}
-                        disabled={isGeneratingSummary}
-                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-xl"
-                      >
-                        {isGeneratingSummary ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="w-4 h-4 mr-2" />
-                            Generate AI Summary
-                          </>
-                        )}
-                      </Button>
+                      {hasPermission('view_statistics') && (
+                        <Button
+                          onClick={generateAISummary}
+                          disabled={isGeneratingSummary}
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-xl"
+                        >
+                          {isGeneratingSummary ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Generate AI Summary
+                            </>
+                          )}
+                        </Button>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent className="p-6">
@@ -789,7 +789,7 @@ export default function WeeklySummary() {
               )}
 
               {/* Share Section */}
-              {weekGames.length > 0 && (aiSummary || generatedPosterUrl || highlightMedia.length > 0) && (
+              {weekGames.length > 0 && (aiSummary || generatedPosterUrl || highlightMedia.length > 0) && hasPermission('manage_social') && (
                 <Card className="bg-white dark:bg-gray-800 border-2 border-green-200 dark:border-green-800 shadow-lg">
                   <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-green-50 to-white dark:from-gray-800 dark:to-gray-900">
                     <div className="flex items-center gap-3">
