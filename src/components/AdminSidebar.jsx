@@ -4,6 +4,7 @@ import { createPageUrl } from "@/utils";
 import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles, Clock, UserPlus, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { usePermissions } from "@/components/hooks/usePermissions";
 
 export default function AdminSidebar({ 
   user, 
@@ -13,6 +14,7 @@ export default function AdminSidebar({
   handleLogout,
   navigationItems 
 }) {
+  const { hasPermission } = usePermissions();
   const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
   const isAdmin = user?.role === 'admin';
 
@@ -24,29 +26,36 @@ export default function AdminSidebar({
   const adminNav = [
     { title: "Home", url: createPageUrl("Home"), icon: Home },
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
-    { title: "Divisions", url: createPageUrl("Divisions"), icon: Trophy },
-    { title: "Teams", url: createPageUrl("Teams"), icon: Users },
-    { title: "Players", url: createPageUrl("Players"), icon: Trophy },
-    { title: "Pending Teams", url: createPageUrl("PendingTeams"), icon: Clock },
-    { title: "Games", url: createPageUrl("Games"), icon: Calendar },
-    { title: "Weekly Summary", url: createPageUrl("WeeklySummary"), icon: Sparkles },
-    { title: "Tournament Brackets", url: createPageUrl("TournamentBracket"), icon: Award },
-    { title: "Scorekeepers", url: createPageUrl("Scorekeepers"), icon: Shield },
-    { title: "Live Scoring", url: createPageUrl("LiveScoring"), icon: PlayCircle },
-    { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 },
-    { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
-    { title: "Roles & Permissions", url: createPageUrl("RolesPermissions"), icon: UserCog },
-    { title: "Data Backup", url: createPageUrl("DataBackup"), icon: Database },
-    { title: "Organization Settings", url: createPageUrl("OrganizationSettings"), icon: Settings },
+    { title: "Divisions", url: createPageUrl("Divisions"), icon: Trophy, permission: "manage_divisions" },
+    { title: "Teams", url: createPageUrl("Teams"), icon: Users, permission: "manage_teams" },
+    { title: "Players", url: createPageUrl("Players"), icon: Trophy, permission: "manage_players" },
+    { title: "Pending Teams", url: createPageUrl("PendingTeams"), icon: Clock, permission: "manage_teams" },
+    { title: "Games", url: createPageUrl("Games"), icon: Calendar, permission: "manage_games" },
+    { title: "Weekly Summary", url: createPageUrl("WeeklySummary"), icon: Sparkles, permission: "view_statistics" },
+    { title: "Tournament Brackets", url: createPageUrl("TournamentBracket"), icon: Award, permission: "manage_tournaments" },
+    { title: "Scorekeepers", url: createPageUrl("Scorekeepers"), icon: Shield, permission: "manage_scorekeepers" },
+    { title: "Live Scoring", url: createPageUrl("LiveScoring"), icon: PlayCircle, permission: "live_scoring" },
+    { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3, permission: "view_statistics" },
+    { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle, permission: "manage_social" },
+    { title: "Roles & Permissions", url: createPageUrl("RolesPermissions"), icon: UserCog, permission: "manage_roles" },
+    { title: "Data Backup", url: createPageUrl("DataBackup"), icon: Database, permission: "data_backup" },
+    { title: "Organization Settings", url: createPageUrl("OrganizationSettings"), icon: Settings, permission: "manage_organization" },
   ];
 
   const userNav = [
     { title: "Home", url: createPageUrl("Home"), icon: Home },
     { title: "Register Team", url: createPageUrl("TeamRegistration"), icon: UserPlus },
     { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
+    { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3, permission: "view_statistics" },
+    { title: "Weekly Summary", url: createPageUrl("WeeklySummary"), icon: Sparkles, permission: "view_statistics" },
   ];
 
-  const navItems = navigationItems || (isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : userNav));
+  let navItems = navigationItems || (isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : userNav));
+  
+  // Filter nav items based on permissions for non-admin users
+  if (!isAdmin && !navigationItems) {
+    navItems = navItems.filter(item => !item.permission || hasPermission(item.permission));
+  }
 
   return (
     <>

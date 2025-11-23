@@ -9,11 +9,13 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import PostCreator from "@/components/social/PostCreator";
 import SocialPostCard from "@/components/social/SocialPostCard";
+import { usePermissions } from "@/components/hooks/usePermissions";
 
 export default function SocialFeed() {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const { hasPermission } = usePermissions();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -166,11 +168,13 @@ export default function SocialFeed() {
                 </Button>
               </div>
 
-              <PostCreator 
-                user={user} 
-                organizationId={organization.id}
-                onPostCreated={refetchPosts}
-              />
+              {hasPermission('manage_social') && (
+                <PostCreator 
+                  user={user} 
+                  organizationId={organization.id}
+                  onPostCreated={refetchPosts}
+                />
+              )}
 
               <div className="space-y-4">
                 {posts.length === 0 && (
@@ -190,7 +194,7 @@ export default function SocialFeed() {
                     key={post.id}
                     post={post}
                     user={user}
-                    canDelete={user.role === 'admin' || post.user_id === user.id}
+                    canDelete={hasPermission('manage_social') || post.user_id === user.id}
                   />
                 ))}
               </div>
