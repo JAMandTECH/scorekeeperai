@@ -139,7 +139,9 @@ export default function Home() {
     { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
   ];
   
-  const navigationItems = isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : userNav);
+  // Only pass explicit navigation for super admins and regular admins
+  // Users with role_id (but not admin role) should get null so AdminSidebar filters based on permissions
+  const navigationItems = isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : (user?.role_id ? null : userNav));
 
   // Fetch all data - but conditionally based on auth
   const { data: allTeams = [] } = useQuery({

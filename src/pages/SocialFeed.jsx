@@ -86,14 +86,14 @@ export default function SocialFeed() {
       { title: "My Games", url: createPageUrl("ScorekeeperDashboard"), icon: Clipboard },
       { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
     ];
-  } else if (user?.role !== 'admin') {
-    // Regular user navigation
+  } else if (user?.role !== 'admin' && !user?.role_id) {
+    // Regular user navigation (WITHOUT role_id - basic users only)
     navigationItems = [
       { title: "Organization Home", url: createPageUrl("Home"), icon: HomeIcon },
       { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: Users },
     ];
   }
-  // Admins get null (default admin navigation)
+  // Admins and users with role_id get null (AdminSidebar will filter based on permissions)
 
   if (!user || orgLoading) {
     return (
