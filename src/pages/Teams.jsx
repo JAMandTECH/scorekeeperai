@@ -61,9 +61,18 @@ export default function Teams() {
   const loadUser = async () => {
     try {
       const currentUser = await base44.auth.me();
+      console.log("Teams: User loaded", currentUser);
+      
+      if (!currentUser?.organization_id) {
+        console.log("Teams: No organization_id, redirecting to Dashboard");
+        window.location.href = createPageUrl("Dashboard");
+        return;
+      }
+      
       setUser(currentUser);
     } catch (error) {
       console.error("Error loading user:", error);
+      window.location.href = createPageUrl("Home");
     } finally {
       setLoading(false);
     }
