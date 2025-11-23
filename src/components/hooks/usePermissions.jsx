@@ -47,12 +47,6 @@ export function usePermissions() {
       return true;
     }
 
-    // Default permissions for all authenticated users
-    const defaultPermissions = ['view_statistics'];
-    if (defaultPermissions.includes(permissionKey)) {
-      return true;
-    }
-
     return false;
   };
 

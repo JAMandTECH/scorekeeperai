@@ -50,11 +50,28 @@ export default function AdminSidebar({
     { title: "Weekly Summary", url: createPageUrl("WeeklySummary"), icon: Sparkles, permission: "view_statistics" },
   ];
 
-  let navItems = navigationItems || (isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : userNav));
+  // Determine which nav array to use
+  let baseNavItems;
+  if (navigationItems) {
+    baseNavItems = navigationItems;
+  } else if (isSuperAdmin) {
+    baseNavItems = superAdminNav;
+  } else if (isAdmin) {
+    baseNavItems = adminNav;
+  } else if (user?.role_id) {
+    // Users with assigned roles get admin nav, but filtered by permissions
+    baseNavItems = adminNav;
+  } else {
+    baseNavItems = userNav;
+  }
   
-  // Filter nav items based on permissions ONLY for non-admin users
-  if (!isAdmin && !isSuperAdmin && !navigationItems) {
-    navItems = navItems.filter(item => !item.permission || hasPermission(item.permission));
+  // Filter nav items based on permissions for non-super-admin users
+  let navItems = baseNavItems;
+  if (!isSuperAdmin && !navigationItems) {
+    // Admins see everything
+    if (!isAdmin) {
+      navItems = baseNavItems.filter(item => !item.permission || hasPermission(item.permission));
+    }
   }
 
   return (
