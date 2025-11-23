@@ -174,35 +174,35 @@ export default function VoiceAssistant({
 
       showFeedback(`✓ ${player.first_name} ${player.last_name} - ${action}`, "success");
     } else if (sport === "volleyball") {
-      // Volleyball actions
+      // Volleyball actions - support both full commands and shorthand
       // Rally/point doesn't require player number
-      if (lowerCommand.includes('rally') || (lowerCommand.includes('point') && !lowerCommand.match(/\b(attack|kill|ace|block)\b/))) {
+      if (lowerCommand.match(/\br\b/) || lowerCommand.includes('rally') || (lowerCommand.includes('point') && !lowerCommand.match(/\b(attack|kill|ace|block)\b/))) {
         action = 'point';
         requiresPlayer = false;
       } 
       // Attack, kill, ace, block require player number
-      else if (lowerCommand.includes('attack') || lowerCommand.includes('kill') || lowerCommand.includes('spike')) {
+      else if (lowerCommand.match(/\bat\b/) || lowerCommand.includes('attack') || lowerCommand.includes('kill') || lowerCommand.includes('spike')) {
         action = 'kill';
         requiresPlayer = true;
-      } else if (lowerCommand.includes('ace') || lowerCommand.includes('service ace')) {
+      } else if (lowerCommand.match(/\ba\b/) || lowerCommand.includes('ace') || lowerCommand.includes('service ace')) {
         action = 'ace';
         requiresPlayer = true;
-      } else if (lowerCommand.includes('block')) {
+      } else if (lowerCommand.match(/\bb\b/) || lowerCommand.includes('block')) {
         action = 'block';
         requiresPlayer = true;
       } else if (lowerCommand.includes('assist') || lowerCommand.includes('set')) {
         action = 'assist';
         requiresPlayer = true;
-      } else if (lowerCommand.includes('dig')) {
+      } else if (lowerCommand.match(/\bdg\b/) || lowerCommand.includes('dig')) {
         action = 'dig';
         requiresPlayer = true;
-      } else if (lowerCommand.includes('error')) {
+      } else if (lowerCommand.match(/\berr\b/) || lowerCommand.includes('error')) {
         action = 'error';
         requiresPlayer = true;
       }
 
       if (!action) {
-        showFeedback("Action not recognized. Try: rally, attack, ace, block, dig, error", "error");
+        showFeedback("Action not recognized. Try: 'r', 'at', 'a', 'b', 'dg', 'err'", "error");
         return;
       }
 
@@ -449,13 +449,13 @@ export default function VoiceAssistant({
                 </>
               ) : (
                 <>
-                  <div>"home rally DONE"</div>
-                  <div>"away rally DONE"</div>
-                  <div>"home 17 attack DONE"</div>
-                  <div>"away 23 ace DONE"</div>
-                  <div>"home 5 block DONE"</div>
-                  <div>"away 12 dig DONE"</div>
-                  <div>"home 8 error DONE"</div>
+                  <div>"home r DONE"</div>
+                  <div>"away r DONE"</div>
+                  <div>"home 17 at DONE"</div>
+                  <div>"away 23 a DONE"</div>
+                  <div>"home 5 b DONE"</div>
+                  <div>"away 12 dg DONE"</div>
+                  <div>"home 8 err DONE"</div>
                   <div>"undo DONE"</div>
                 </>
               )}
