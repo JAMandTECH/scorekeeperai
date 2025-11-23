@@ -30,6 +30,7 @@ import WeeklySummary from './pages/WeeklySummary';
 import TeamRegistration from './pages/TeamRegistration';
 import PendingTeams from './pages/PendingTeams';
 import OrganizationMembers from './pages/OrganizationMembers';
+import RolesPermissions from './pages/RolesPermissions';
 
 
 export const PAGES = {
@@ -65,6 +66,7 @@ export const PAGES = {
     "TeamRegistration": TeamRegistration,
     "PendingTeams": PendingTeams,
     "OrganizationMembers": OrganizationMembers,
+    "RolesPermissions": RolesPermissions,
 }
 
 export const pagesConfig = {

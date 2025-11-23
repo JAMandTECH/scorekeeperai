@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building2, Upload, Image, Save, AlertCircle, Users, Shield, UserCheck } from "lucide-react";
+import { Building2, Upload, Image, Save, AlertCircle, Users, Shield, UserCheck, UserCog } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { createPageUrl } from "@/utils";
@@ -425,12 +425,20 @@ export default function OrganizationSettings() {
                           </div>
                         ))}
                       </div>
-                      <Link to={createPageUrl("OrganizationMembers")}>
-                        <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-lg">
-                          <Users className="w-4 h-4 mr-2" />
-                          Manage All Members
-                        </Button>
-                      </Link>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Link to={createPageUrl("OrganizationMembers")}>
+                          <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-lg">
+                            <Users className="w-4 h-4 mr-2" />
+                            Members
+                          </Button>
+                        </Link>
+                        <Link to={createPageUrl("RolesPermissions")}>
+                          <Button className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold shadow-lg">
+                            <UserCog className="w-4 h-4 mr-2" />
+                            Roles
+                          </Button>
+                        </Link>
+                      </div>
                     </>
                   )}
                 </CardContent>
