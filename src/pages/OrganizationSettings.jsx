@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building2, Upload, Image, Save, AlertCircle } from "lucide-react";
+import { Building2, Upload, Image, Save, AlertCircle, Users, Shield, UserCheck } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { createPageUrl } from "@/utils";
@@ -58,6 +57,15 @@ export default function OrganizationSettings() {
     queryFn: async () => {
       const orgs = await base44.entities.Organization.list();
       return orgs.find(o => o.id === user?.organization_id);
+    },
+    enabled: !!user?.organization_id,
+  });
+
+  const { data: orgMembers = [] } = useQuery({
+    queryKey: ['org-members', user?.organization_id],
+    queryFn: async () => {
+      const allUsers = await base44.entities.User.list();
+      return allUsers.filter(u => u.organization_id === user?.organization_id || u.active_organization_id === user?.organization_id);
     },
     enabled: !!user?.organization_id,
   });
@@ -343,6 +351,79 @@ export default function OrganizationSettings() {
                       </Button>
                     </div>
                   </form>
+                </CardContent>
+              </Card>
+
+              {/* Authenticated Members Card */}
+              <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-xl">
+                <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-white dark:from-blue-950/30 dark:to-gray-800">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <Users className="w-5 h-5 text-white" />
+                      </div>
+                      <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                        Authenticated Members
+                      </CardTitle>
+                    </div>
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold">
+                      {orgMembers.length} {orgMembers.length === 1 ? 'Member' : 'Members'}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {orgMembers.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Users className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                      <p className="text-gray-500 dark:text-gray-400 font-medium">No members found</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {orgMembers.map((member) => (
+                        <div
+                          key={member.id}
+                          className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-blue-950/20 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:shadow-md transition-all"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-600 shadow-md">
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold">
+                                {member.full_name?.[0] || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-bold text-gray-900 dark:text-white">{member.full_name}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{member.email}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {member.role === 'admin' && member.is_super_admin && (
+                              <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-0 font-bold">
+                                <Shield className="w-3 h-3 mr-1" />
+                                Super Admin
+                              </Badge>
+                            )}
+                            {member.role === 'admin' && !member.is_super_admin && (
+                              <Badge className="bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 font-bold">
+                                <Shield className="w-3 h-3 mr-1" />
+                                Admin
+                              </Badge>
+                            )}
+                            {member.is_scorekeeper && (
+                              <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800 font-bold">
+                                <UserCheck className="w-3 h-3 mr-1" />
+                                Scorekeeper
+                              </Badge>
+                            )}
+                            {!member.role && !member.is_scorekeeper && (
+                              <Badge variant="outline" className="font-bold">
+                                Member
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
