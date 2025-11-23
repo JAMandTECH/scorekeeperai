@@ -182,10 +182,13 @@ export default function Teams() {
     setDeletingTeam({ ...team, playersCount: playersInTeam.length });
   };
 
-  if (loading || !user) {
+  console.log("Teams: Render check - loading:", loading, "user:", user, "teamsLoading:", teamsLoading);
+  
+  if (loading || !user || teamsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+        <p className="mt-4 text-gray-600 dark:text-gray-400">Loading teams...</p>
       </div>
     );
   }
