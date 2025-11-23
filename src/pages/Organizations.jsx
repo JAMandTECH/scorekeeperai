@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Building2, Mail, Phone, MapPin, Edit, Upload, Image, Pause, Play, Trash2, MoreVertical } from "lucide-react";
+import { Plus, Building2, Mail, Phone, MapPin, Edit, Upload, Image, Pause, Play, Trash2, MoreVertical, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,6 +24,7 @@ export default function Organizations() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(null);
+  const [membersDialog, setMembersDialog] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -58,6 +59,12 @@ export default function Organizations() {
   const { data: organizations = [], isLoading } = useQuery({
     queryKey: ['organizations'],
     queryFn: () => base44.entities.Organization.list('-created_date'),
+  });
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['all-users'],
+    queryFn: () => base44.entities.User.list(),
+    enabled: !!user,
   });
 
   const createMutation = useMutation({
@@ -132,6 +139,10 @@ export default function Organizations() {
 
   const handleDelete = async (orgId) => {
     await deleteMutation.mutateAsync(orgId);
+  };
+
+  const getOrgMembers = (orgId) => {
+    return allUsers.filter(u => u.organization_id === orgId || u.active_organization_id === orgId);
   };
 
   return (
@@ -213,7 +224,14 @@ export default function Organizations() {
                               <MoreVertical className="w-5 h-5" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                          <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                            <DropdownMenuItem 
+                              onClick={() => setMembersDialog(org)}
+                              className="cursor-pointer font-semibold"
+                            >
+                              <Users className="w-4 h-4 mr-2" />
+                              View Members ({getOrgMembers(org.id).length})
+                            </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => handleEdit(org)}
                               className="cursor-pointer font-semibold"
@@ -363,6 +381,96 @@ export default function Organizations() {
                       </Button>
                     </div>
                   </form>
+                </DialogContent>
+              </Dialog>
+
+              {/* Members Dialog */}
+              <Dialog open={!!membersDialog} onOpenChange={() => setMembersDialog(null)}>
+                <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+                  <DialogHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <Users className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                          {membersDialog?.name} - Members
+                        </DialogTitle>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                          {getOrgMembers(membersDialog?.id || '').length} authenticated members
+                        </p>
+                      </div>
+                    </div>
+                  </DialogHeader>
+                  <div className="flex-1 overflow-y-auto">
+                    {getOrgMembers(membersDialog?.id || '').length === 0 ? (
+                      <div className="text-center py-12">
+                        <Users className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                        <p className="text-gray-500 dark:text-gray-400 font-medium">No members in this organization</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 py-4">
+                        {getOrgMembers(membersDialog?.id || '').map((member) => (
+                          <div
+                            key={member.id}
+                            className="p-4 bg-gradient-to-r from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-blue-950/20 rounded-xl border-2 border-gray-200 dark:border-gray-700"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-600 shadow-md">
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold">
+                                  {member.full_name?.[0] || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-gray-900 dark:text-white truncate">{member.full_name}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{member.email}</p>
+                              </div>
+                              <div className="flex flex-wrap gap-1 justify-end">
+                                {member.role === 'admin' && member.is_super_admin && (
+                                  <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-0 font-bold text-xs">
+                                    Super Admin
+                                  </Badge>
+                                )}
+                                {member.role === 'admin' && !member.is_super_admin && (
+                                  <Badge className="bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 font-bold text-xs">
+                                    Admin
+                                  </Badge>
+                                )}
+                                {member.is_scorekeeper && (
+                                  <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800 font-bold text-xs">
+                                    Scorekeeper
+                                  </Badge>
+                                )}
+                                {member.member_status === 'blocked' && (
+                                  <Badge className="bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800 font-bold text-xs">
+                                    Blocked
+                                  </Badge>
+                                )}
+                                {member.member_status === 'paused' && (
+                                  <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800 font-bold text-xs">
+                                    Paused
+                                  </Badge>
+                                )}
+                                {!member.role && !member.is_scorekeeper && (
+                                  <Badge variant="outline" className="font-bold text-xs">
+                                    Member
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <Button 
+                      onClick={() => setMembersDialog(null)}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                    >
+                      Close
+                    </Button>
+                  </div>
                 </DialogContent>
               </Dialog>
 
