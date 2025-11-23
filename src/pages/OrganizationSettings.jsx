@@ -12,6 +12,7 @@ import { createPageUrl } from "@/utils";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Link } from "react-router-dom";
 
 export default function OrganizationSettings() {
   const [user, setUser] = useState(null);
