@@ -447,16 +447,18 @@ export default function VoiceAssistant({
                   <div>"away 11 assist DONE"</div>
                   <div>"home 3 steal DONE"</div>
                   <div>"away 9 block DONE"</div>
+                  <div>"undo DONE"</div>
                 </>
               ) : (
                 <>
-                  <div>"home 17 point DONE"</div>
-                  <div>"away 23 kill DONE"</div>
-                  <div>"home 5 ace DONE"</div>
-                  <div>"away 12 block DONE"</div>
-                  <div>"home 8 assist DONE"</div>
-                  <div>"away 11 dig DONE"</div>
-                  <div>"home 3 error DONE"</div>
+                  <div>"home rally DONE"</div>
+                  <div>"away rally DONE"</div>
+                  <div>"home 17 attack DONE"</div>
+                  <div>"away 23 ace DONE"</div>
+                  <div>"home 5 block DONE"</div>
+                  <div>"away 12 dig DONE"</div>
+                  <div>"home 8 error DONE"</div>
+                  <div>"undo DONE"</div>
                 </>
               )}
             </div>
