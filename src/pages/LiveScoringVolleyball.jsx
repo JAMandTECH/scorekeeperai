@@ -477,9 +477,23 @@ export default function LiveScoringVolleyball() {
       return;
     }
 
+    // Handle undo command
+    if (action === 'undo') {
+      await handleUndo();
+      return;
+    }
+
     const teamId = team === 'home' ? game.home_team_id : game.away_team_id;
     
-    // Select the player and team
+    // For rally/point without player - set team but no player
+    if (action === 'point' && !player) {
+      setSelectedTeam(team);
+      setSelectedPlayer(null);
+      await handleScoreOnly();
+      return;
+    }
+    
+    // For actions with player - select the player and team
     setSelectedPlayer(player);
     setSelectedTeam(team);
 
