@@ -14,7 +14,7 @@ export default function AdminSidebar({
   handleLogout,
   navigationItems 
 }) {
-  const { hasPermission } = usePermissions();
+  const { hasPermission, loading: permissionsLoading } = usePermissions();
   const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
   const isAdmin = user?.role === 'admin';
 
@@ -67,11 +67,18 @@ export default function AdminSidebar({
   
   // Filter nav items based on permissions for non-super-admin users
   let navItems = baseNavItems;
-  if (!isSuperAdmin && !navigationItems) {
-    // Admins see everything
-    if (!isAdmin) {
-      navItems = baseNavItems.filter(item => !item.permission || hasPermission(item.permission));
-    }
+  
+  // While loading permissions, show nothing for role-based users (prevent flash of wrong items)
+  if (permissionsLoading && user?.role_id && !isAdmin && !isSuperAdmin) {
+    navItems = [];
+  } else if (!isSuperAdmin && !navigationItems && !isAdmin) {
+    // Filter items based on permissions for non-admin users
+    navItems = baseNavItems.filter(item => {
+      // Items without permission requirement are always shown
+      if (!item.permission) return true;
+      // Check if user has the required permission
+      return hasPermission(item.permission);
+    });
   }
 
   return (
@@ -100,24 +107,34 @@ export default function AdminSidebar({
           )}
 
           <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
-            {navItems.map((item) => {
-              const isActive = window.location.pathname === item.url;
-              return (
-                <Link
-                  key={item.title}
-                  to={item.url}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                    isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <item.icon className="w-5 h-5" />
-                  {item.title}
-                </Link>
-              );
-            })}
+            {permissionsLoading && user?.role_id && !isAdmin && !isSuperAdmin ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
+              </div>
+            ) : navItems.length === 0 && user?.role_id ? (
+              <div className="px-4 py-6 text-center">
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">No menu items available. Contact admin to assign permissions to your role.</p>
+              </div>
+            ) : (
+              navItems.map((item) => {
+                const isActive = window.location.pathname === item.url;
+                return (
+                  <Link
+                    key={item.title}
+                    to={item.url}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    {item.title}
+                  </Link>
+                );
+              })
+            )}
           </nav>
 
           <div className="px-4 pt-4 border-t border-gray-200 dark:border-gray-700 mt-auto bg-gray-50 dark:bg-gray-900">
