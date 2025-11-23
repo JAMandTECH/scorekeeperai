@@ -583,25 +583,23 @@ export default function WeeklySummary() {
                           AI-Generated Summary
                         </CardTitle>
                       </div>
-                      {hasPermission('view_statistics') && (
-                        <Button
-                          onClick={generateAISummary}
-                          disabled={isGeneratingSummary}
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-xl"
-                        >
-                          {isGeneratingSummary ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="w-4 h-4 mr-2" />
-                              Generate AI Summary
-                            </>
-                          )}
-                        </Button>
-                      )}
+                      <Button
+                        onClick={generateAISummary}
+                        disabled={isGeneratingSummary}
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-xl"
+                      >
+                        {isGeneratingSummary ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            Generate AI Summary
+                          </>
+                        )}
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="p-6">
@@ -789,7 +787,7 @@ export default function WeeklySummary() {
               )}
 
               {/* Share Section */}
-              {weekGames.length > 0 && (aiSummary || generatedPosterUrl || highlightMedia.length > 0) && hasPermission('manage_social') && (
+              {weekGames.length > 0 && (aiSummary || generatedPosterUrl || highlightMedia.length > 0) && (
                 <Card className="bg-white dark:bg-gray-800 border-2 border-green-200 dark:border-green-800 shadow-lg">
                   <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-green-50 to-white dark:from-gray-800 dark:to-gray-900">
                     <div className="flex items-center gap-3">

@@ -52,8 +52,8 @@ export default function AdminSidebar({
 
   let navItems = navigationItems || (isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : userNav));
   
-  // Filter nav items based on permissions for non-admin users
-  if (!isAdmin && !navigationItems) {
+  // Filter nav items based on permissions ONLY for non-admin users
+  if (!isAdmin && !isSuperAdmin && !navigationItems) {
     navItems = navItems.filter(item => !item.permission || hasPermission(item.permission));
   }
 

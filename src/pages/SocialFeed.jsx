@@ -168,13 +168,11 @@ export default function SocialFeed() {
                 </Button>
               </div>
 
-              {hasPermission('manage_social') && (
-                <PostCreator 
-                  user={user} 
-                  organizationId={organization.id}
-                  onPostCreated={refetchPosts}
-                />
-              )}
+              <PostCreator 
+                user={user} 
+                organizationId={organization.id}
+                onPostCreated={refetchPosts}
+              />
 
               <div className="space-y-4">
                 {posts.length === 0 && (
@@ -194,7 +192,7 @@ export default function SocialFeed() {
                     key={post.id}
                     post={post}
                     user={user}
-                    canDelete={hasPermission('manage_social') || post.user_id === user.id}
+                    canDelete={user.role === 'admin' || post.user_id === user.id}
                   />
                 ))}
               </div>
