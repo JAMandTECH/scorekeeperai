@@ -96,6 +96,18 @@ export default function VoiceAssistant({
   const processCommand = (command) => {
     const lowerCommand = command.toLowerCase().trim();
     
+    // Check for undo command first (no team/player required)
+    if (lowerCommand.includes('undo')) {
+      onCommand({
+        team: null,
+        player: null,
+        action: 'undo',
+        value: 1
+      });
+      showFeedback("✓ Undo last action", "success");
+      return;
+    }
+    
     // Parse team (home/away)
     const isHome = lowerCommand.includes('home');
     const isAway = lowerCommand.includes('away');
@@ -108,27 +120,27 @@ export default function VoiceAssistant({
     const team = isHome ? 'home' : 'away';
     const players = isHome ? homePlayers : awayPlayers;
 
-    // Extract jersey number
-    const numberMatch = lowerCommand.match(/\b(\d{1,2})\b/);
-    if (!numberMatch) {
-      showFeedback("Player number not found", "error");
-      return;
-    }
-
-    const jerseyNumber = numberMatch[1];
-    const player = players.find(p => p.jersey_number === jerseyNumber);
-    
-    if (!player) {
-      showFeedback(`Player #${jerseyNumber} not found in ${team} team`, "error");
-      return;
-    }
-
     // Parse action based on sport
     let action = null;
     let value = 1;
+    let requiresPlayer = true;
 
     if (sport === "basketball") {
-      // Basketball actions
+      // Basketball actions - all require player number
+      const numberMatch = lowerCommand.match(/\b(\d{1,2})\b/);
+      if (!numberMatch) {
+        showFeedback("Player number not found", "error");
+        return;
+      }
+
+      const jerseyNumber = numberMatch[1];
+      const player = players.find(p => p.jersey_number === jerseyNumber);
+      
+      if (!player) {
+        showFeedback(`Player #${jerseyNumber} not found in ${team} team`, "error");
+        return;
+      }
+
       if (lowerCommand.includes('3 point') || lowerCommand.includes('three point') || lowerCommand.includes('3-point')) {
         action = '3-pointer';
         value = 3;
@@ -149,40 +161,89 @@ export default function VoiceAssistant({
       } else if (lowerCommand.includes('block')) {
         action = 'block';
       }
+
+      if (!action) {
+        showFeedback("Action not recognized. Try: points, foul, rebound, assist, steal, block", "error");
+        return;
+      }
+
+      onCommand({
+        team,
+        player,
+        action,
+        value
+      });
+
+      showFeedback(`✓ ${player.first_name} ${player.last_name} - ${action}`, "success");
     } else if (sport === "volleyball") {
       // Volleyball actions
-      if (lowerCommand.includes('point') || lowerCommand.includes('score')) {
+      // Rally/point doesn't require player number
+      if (lowerCommand.includes('rally') || (lowerCommand.includes('point') && !lowerCommand.match(/\b(attack|kill|ace|block)\b/))) {
         action = 'point';
-      } else if (lowerCommand.includes('kill') || lowerCommand.includes('spike')) {
+        requiresPlayer = false;
+      } 
+      // Attack, kill, ace, block require player number
+      else if (lowerCommand.includes('attack') || lowerCommand.includes('kill') || lowerCommand.includes('spike')) {
         action = 'kill';
+        requiresPlayer = true;
       } else if (lowerCommand.includes('ace') || lowerCommand.includes('service ace')) {
         action = 'ace';
+        requiresPlayer = true;
       } else if (lowerCommand.includes('block')) {
         action = 'block';
+        requiresPlayer = true;
       } else if (lowerCommand.includes('assist') || lowerCommand.includes('set')) {
         action = 'assist';
+        requiresPlayer = true;
       } else if (lowerCommand.includes('dig')) {
         action = 'dig';
+        requiresPlayer = true;
       } else if (lowerCommand.includes('error')) {
         action = 'error';
+        requiresPlayer = true;
+      }
+
+      if (!action) {
+        showFeedback("Action not recognized. Try: rally, attack, ace, block, dig, error", "error");
+        return;
+      }
+
+      // Handle player requirement
+      if (requiresPlayer) {
+        const numberMatch = lowerCommand.match(/\b(\d{1,2})\b/);
+        if (!numberMatch) {
+          showFeedback("Player number required for this action", "error");
+          return;
+        }
+
+        const jerseyNumber = numberMatch[1];
+        const player = players.find(p => p.jersey_number === jerseyNumber);
+        
+        if (!player) {
+          showFeedback(`Player #${jerseyNumber} not found in ${team} team`, "error");
+          return;
+        }
+
+        onCommand({
+          team,
+          player,
+          action,
+          value
+        });
+
+        showFeedback(`✓ ${player.first_name} ${player.last_name} - ${action}`, "success");
+      } else {
+        // Rally point - no player needed
+        onCommand({
+          team,
+          player: null,
+          action,
+          value
+        });
+
+        showFeedback(`✓ ${team} team - ${action}`, "success");
       }
     }
-
-    if (!action) {
-      showFeedback("Action not recognized. Try: points, foul, rebound, assist, steal, block" + 
-        (sport === "volleyball" ? ", kill, ace, dig, error" : ""), "error");
-      return;
-    }
-
-    // Execute the command
-    onCommand({
-      team,
-      player,
-      action,
-      value
-    });
-
-    showFeedback(`✓ ${player.first_name} ${player.last_name} - ${action}`, "success");
   };
 
   const showFeedback = (message, type) => {
