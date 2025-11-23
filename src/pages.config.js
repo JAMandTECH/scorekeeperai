@@ -29,6 +29,7 @@ import SocialFeed from './pages/SocialFeed';
 import WeeklySummary from './pages/WeeklySummary';
 import TeamRegistration from './pages/TeamRegistration';
 import PendingTeams from './pages/PendingTeams';
+import OrganizationMembers from './pages/OrganizationMembers';
 
 
 export const PAGES = {
@@ -63,6 +64,7 @@ export const PAGES = {
     "WeeklySummary": WeeklySummary,
     "TeamRegistration": TeamRegistration,
     "PendingTeams": PendingTeams,
+    "OrganizationMembers": OrganizationMembers,
 }
 
 export const pagesConfig = {

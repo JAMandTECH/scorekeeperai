@@ -378,51 +378,59 @@ export default function OrganizationSettings() {
                       <p className="text-gray-500 dark:text-gray-400 font-medium">No members found</p>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      {orgMembers.map((member) => (
-                        <div
-                          key={member.id}
-                          className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-blue-950/20 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:shadow-md transition-all"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-600 shadow-md">
-                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold">
-                                {member.full_name?.[0] || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-bold text-gray-900 dark:text-white">{member.full_name}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{member.email}</p>
+                    <>
+                      <div className="space-y-3 mb-4">
+                        {orgMembers.slice(0, 5).map((member) => (
+                          <div
+                            key={member.id}
+                            className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-blue-950/20 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:shadow-md transition-all"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-600 shadow-md">
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold">
+                                  {member.full_name?.[0] || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-bold text-gray-900 dark:text-white">{member.full_name}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">{member.email}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {member.role === 'admin' && member.is_super_admin && (
+                                <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-0 font-bold">
+                                  <Shield className="w-3 h-3 mr-1" />
+                                  Super Admin
+                                </Badge>
+                              )}
+                              {member.role === 'admin' && !member.is_super_admin && (
+                                <Badge className="bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 font-bold">
+                                  <Shield className="w-3 h-3 mr-1" />
+                                  Admin
+                                </Badge>
+                              )}
+                              {member.is_scorekeeper && (
+                                <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800 font-bold">
+                                  <UserCheck className="w-3 h-3 mr-1" />
+                                  Scorekeeper
+                                </Badge>
+                              )}
+                              {!member.role && !member.is_scorekeeper && (
+                                <Badge variant="outline" className="font-bold">
+                                  Member
+                                </Badge>
+                              )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            {member.role === 'admin' && member.is_super_admin && (
-                              <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-0 font-bold">
-                                <Shield className="w-3 h-3 mr-1" />
-                                Super Admin
-                              </Badge>
-                            )}
-                            {member.role === 'admin' && !member.is_super_admin && (
-                              <Badge className="bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 font-bold">
-                                <Shield className="w-3 h-3 mr-1" />
-                                Admin
-                              </Badge>
-                            )}
-                            {member.is_scorekeeper && (
-                              <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800 font-bold">
-                                <UserCheck className="w-3 h-3 mr-1" />
-                                Scorekeeper
-                              </Badge>
-                            )}
-                            {!member.role && !member.is_scorekeeper && (
-                              <Badge variant="outline" className="font-bold">
-                                Member
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                      <Link to={createPageUrl("OrganizationMembers")}>
+                        <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-lg">
+                          <Users className="w-4 h-4 mr-2" />
+                          Manage All Members
+                        </Button>
+                      </Link>
+                    </>
                   )}
                 </CardContent>
               </Card>
