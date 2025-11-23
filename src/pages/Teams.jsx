@@ -165,7 +165,7 @@ export default function Teams() {
     setDeletingTeam({ ...team, playersCount: playersInTeam.length });
   };
 
-  if (loading) {
+  if (loading || !user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
