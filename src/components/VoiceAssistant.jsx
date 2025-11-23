@@ -99,10 +99,7 @@ export default function VoiceAssistant({
     // Check for undo command first (no team/player required)
     if (lowerCommand.includes('undo')) {
       onCommand({
-        team: null,
-        player: null,
         action: 'undo',
-        value: 1
       });
       showFeedback("✓ Undo last action", "success");
       return;

@@ -55,10 +55,11 @@ export default function Dashboard() {
       }
       
       setUser(currentUser);
-      setLoading(false);
     } catch (error) {
       console.error("Error loading user:", error);
       base44.auth.redirectToLogin(createPageUrl("Dashboard"));
+    } finally {
+      setLoading(false);
     }
   };
 

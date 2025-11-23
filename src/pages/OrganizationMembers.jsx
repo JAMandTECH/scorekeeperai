@@ -93,6 +93,7 @@ export default function OrganizationMembers() {
     mutationFn: ({ userId, data }) => base44.entities.User.update(userId, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['org-members']);
+      queryClient.invalidateQueries(['all-users']);
       setActionDialog(null);
       showSuccess("Member updated successfully");
     },
@@ -102,6 +103,7 @@ export default function OrganizationMembers() {
     mutationFn: (userId) => base44.entities.User.delete(userId),
     onSuccess: () => {
       queryClient.invalidateQueries(['org-members']);
+      queryClient.invalidateQueries(['all-users']);
       setActionDialog(null);
       showSuccess("Member deleted successfully");
     },

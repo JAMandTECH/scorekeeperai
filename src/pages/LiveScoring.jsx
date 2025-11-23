@@ -363,7 +363,8 @@ export default function LiveScoring() {
         value: -update.value
       }));
       
-      await updatePlayerStats(lastAction.playerId, lastAction.teamId, reverseUpdates);
+      const teamId = lastAction.team === 'home' ? game.home_team_id : game.away_team_id;
+      await updatePlayerStats(lastAction.playerId, teamId, reverseUpdates);
 
     } else if (lastAction.type === 'foul') {
       // Undo player foul
@@ -547,6 +548,12 @@ export default function LiveScoring() {
   // New voice command handler
   const handleVoiceCommand = async ({ team, player, action, value }) => {
     console.log('Voice command received:', { team, player: player?.jersey_number, action, value });
+    
+    // Handle undo command
+    if (action === 'undo') {
+      await handleUndo();
+      return;
+    }
     
     if (!game || !player) {
       console.error('Game or player not found');

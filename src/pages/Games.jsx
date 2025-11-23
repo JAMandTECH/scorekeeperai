@@ -137,7 +137,10 @@ export default function Games() {
     queryKey: ['scorekeepers', user?.organization_id],
     queryFn: async () => {
       const allUsers = await base44.entities.User.list();
-      return allUsers.filter(u => u.is_scorekeeper === true && u.organization_id === user?.organization_id);
+      return allUsers.filter(u => 
+        u.is_scorekeeper === true && 
+        (u.organization_id === user?.organization_id || u.active_organization_id === user?.organization_id)
+      );
     },
     enabled: !!user?.organization_id,
   });
