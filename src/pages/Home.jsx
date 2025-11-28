@@ -1589,6 +1589,8 @@ export default function Home() {
           </footer>
         </main>
       </div>
+      
+      <AIAssistant />
     </div>
   );
 }
