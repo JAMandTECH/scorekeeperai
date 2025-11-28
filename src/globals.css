@@ -12,28 +12,7 @@
   --glass-bg: rgba(255, 255, 255, 0.05);
   --glass-border: rgba(255, 255, 255, 0.1);
   
-  /* Organization Theme Colors (defaults) */
-  --org-primary: #3b82f6;
-  --org-secondary: #f97316;
-  --org-accent: #8b5cf6;
-  --org-primary-light: #3b82f620;
-  --org-secondary-light: #f9731620;
-  --org-accent-light: #8b5cf620;
-}
-
-/* Organization Theme Utility Classes */
-.bg-org-primary { background-color: var(--org-primary) !important; }
-.bg-org-secondary { background-color: var(--org-secondary) !important; }
-.bg-org-accent { background-color: var(--org-accent) !important; }
-.text-org-primary { color: var(--org-primary) !important; }
-.text-org-secondary { color: var(--org-secondary) !important; }
-.text-org-accent { color: var(--org-accent) !important; }
-.border-org-primary { border-color: var(--org-primary) !important; }
-.border-org-secondary { border-color: var(--org-secondary) !important; }
-.border-org-accent { border-color: var(--org-accent) !important; }
-.bg-org-primary-light { background-color: var(--org-primary-light) !important; }
-.bg-org-secondary-light { background-color: var(--org-secondary-light) !important; }
-.bg-org-accent-light { background-color: var(--org-accent-light) !important; }
+  }
 
 .dark {
   --glass-bg: rgba(0, 0, 0, 0.2);
