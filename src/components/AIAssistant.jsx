@@ -145,14 +145,80 @@ export default function AIAssistant() {
   const [showGuides, setShowGuides] = useState(true);
   const [selectedGuide, setSelectedGuide] = useState(null);
   const messagesEndRef = useRef(null);
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content: "👋 Hi! I'm your ALAB Sports AI assistant. I can help you navigate the platform and answer any questions. Select a quick guide below or ask me anything!"
-    }
-  ]);
+  const [user, setUser] = useState(null);
+  const [userRole, setUserRole] = useState(null); // 'super_admin', 'admin', 'scorekeeper', 'user', 'public'
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Load user and determine role
+  useEffect(() => {
+    loadUserRole();
+  }, []);
+
+  const loadUserRole = async () => {
+    try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        setUserRole('public');
+        return;
+      }
+      
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      
+      if (currentUser.role === 'admin' && currentUser.is_super_admin) {
+        setUserRole('super_admin');
+      } else if (currentUser.role === 'admin') {
+        setUserRole('admin');
+      } else if (currentUser.is_scorekeeper) {
+        setUserRole('scorekeeper');
+      } else {
+        setUserRole('user');
+      }
+    } catch (error) {
+      setUserRole('public');
+    }
+  };
+
+  // Get guides based on user role
+  const getGuidesForRole = () => {
+    switch (userRole) {
+      case 'super_admin':
+      case 'admin':
+        return ADMIN_GUIDES;
+      case 'scorekeeper':
+        return SCOREKEEPER_GUIDES;
+      case 'user':
+        return USER_GUIDES;
+      default:
+        return PUBLIC_GUIDES;
+    }
+  };
+
+  // Get welcome message based on role
+  const getWelcomeMessage = () => {
+    switch (userRole) {
+      case 'super_admin':
+        return "👋 Hi Super Admin! I can help you manage organizations, users, and platform-wide settings. Select a guide or ask me anything!";
+      case 'admin':
+        return "👋 Hi Admin! I can help you manage your organization, teams, games, and scorekeepers. Select a guide below or ask me anything!";
+      case 'scorekeeper':
+        return "👋 Hi Scorekeeper! I can help you with live scoring, voice commands, and managing games. Select a guide or ask me anything!";
+      case 'user':
+        return "👋 Hi! I can help you register your team, view standings, and use the social feed. Select a guide below or ask me anything!";
+      default:
+        return "👋 Welcome to ALAB Sports! I can help you explore the platform and get started. Select a guide below or ask me anything!";
+    }
+  };
+
+  const [messages, setMessages] = useState([]);
+
+  // Set initial message when role is determined
+  useEffect(() => {
+    if (userRole) {
+      setMessages([{ role: "assistant", content: getWelcomeMessage() }]);
+    }
+  }, [userRole]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
