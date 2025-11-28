@@ -255,27 +255,88 @@ export default function AIAssistant() {
         .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
         .join('\n');
 
+      // Build role-specific context
+      let roleContext = "";
+      let accessibleFeatures = "";
+      
+      switch (userRole) {
+        case 'super_admin':
+          roleContext = "The user is a SUPER ADMIN with full platform access. They can manage all organizations, users, and system settings.";
+          accessibleFeatures = `
+SUPER ADMIN FEATURES:
+- Super Admin Dashboard: Platform-wide analytics and metrics
+- Organizations: Create, edit, delete any organization
+- Admin Approvals: Approve/reject admin access requests
+- All Teams/Games: View and manage across all organizations
+- User Management: Manage all users and their roles`;
+          break;
+        case 'admin':
+          roleContext = "The user is an ORGANIZATION ADMIN. They can manage their organization's teams, players, games, and scorekeepers.";
+          accessibleFeatures = `
+ADMIN FEATURES:
+- Dashboard: Organization overview with stats
+- Divisions: Create and manage divisions by sport
+- Teams: Add/edit teams, upload logos
+- Players: Manage player profiles and rosters
+- Games: Schedule games, use AI schedule generator
+- Scorekeepers: Assign and manage scorekeepers
+- Live Scoring: Start and score games
+- Statistics: View analytics and leaderboards
+- Tournament Brackets: Create playoff brackets
+- Roles & Permissions: Manage user roles
+- Data Backup: Export organization data
+- Organization Settings: Update org details`;
+          break;
+        case 'scorekeeper':
+          roleContext = "The user is a SCOREKEEPER. They can score assigned games using the live scoring interface.";
+          accessibleFeatures = `
+SCOREKEEPER FEATURES:
+- My Games (Scorekeeper Dashboard): View assigned games
+- Live Scoring: Score games in real-time
+- Voice Commands: Hands-free scoring with voice
+- Social Feed: View and post to organization feed
+Note: Scorekeepers cannot manage teams, players, or schedules.`;
+          break;
+        case 'user':
+          roleContext = "The user is a REGULAR USER. They can register teams, view standings, and use the social feed.";
+          accessibleFeatures = `
+USER FEATURES:
+- Home: View standings, schedules, and stats
+- Register Team: Submit a team for admin approval
+- Social Feed: Post and interact with organization
+- Statistics: View public statistics
+Note: Users cannot manage games or access admin features.`;
+          break;
+        default:
+          roleContext = "The user is NOT LOGGED IN. They can view public information and sign up.";
+          accessibleFeatures = `
+PUBLIC FEATURES:
+- View live scores and standings
+- See team and player statistics
+- Get Started: Create an account
+- Request Admin Access: Apply to manage an organization`;
+      }
+
       const prompt = `You are a helpful AI assistant for ALAB Sports, a basketball and volleyball league management platform.
+
+USER ROLE: ${userRole?.toUpperCase() || 'PUBLIC'}
+${roleContext}
+
+ACCESSIBLE FEATURES FOR THIS USER:
+${accessibleFeatures}
 
 Previous conversation:
 ${conversationContext}
 
-User's new question: ${userMessage}
+User's question: ${userMessage}
 
-PLATFORM NAVIGATION GUIDE:
-- Dashboard: Main overview with stats, quick actions. Click "Dashboard" in sidebar.
-- Teams: Add/edit teams. Go to Teams page → Click "Add Team" → Fill details → Save.
-- Players: Manage player profiles. Go to Players page → Click "Add Player" → Enter jersey#, name, position.
-- Games: Schedule matches. Go to Games page → "Schedule Game" → Select teams, date, court → Save.
-- Live Scoring: Real-time scoring. Go to Games → Find scheduled game → Click "Start Game" → Tap players to record stats.
-- Statistics: View analytics. Go to Statistics page → Filter by sport/team → View charts and leaderboards.
-- Divisions: Create divisions. Go to Divisions page → Add division by sport.
-- Scorekeepers: Assign scorekeepers. Go to Scorekeepers page → Add users who can score games.
-- Tournament Brackets: Create playoffs. Go to Tournament Brackets → Create tournament → Seed teams.
-- AI Schedule Generator: Auto-generate schedules. Go to Games → Click "AI Generate Schedule" → Select sport and rounds.
-
-Provide step-by-step instructions when asked about features. Use emojis for friendliness. Be concise but thorough.
-Format steps with numbers (1. 2. 3.) for clarity.`;
+IMPORTANT INSTRUCTIONS:
+1. Only provide guidance for features the user has access to based on their role.
+2. If they ask about a feature they don't have access to, politely explain they need different permissions.
+3. Provide step-by-step instructions when asked about features.
+4. Use emojis for friendliness. Be concise but thorough.
+5. Format steps with numbers (1. 2. 3.) for clarity.
+6. If you're unsure about their access, suggest they contact their admin.`;
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: prompt
