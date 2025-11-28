@@ -27,8 +27,9 @@ export default function TeamRegistration() {
     logo_url: ""
   });
   const [players, setPlayers] = useState([
-    { jersey_number: "", first_name: "", last_name: "", position: "", contact_number: "" }
+    { jersey_number: "", first_name: "", last_name: "", position: "", contact_number: "", photo_url: "" }
   ]);
+  const [uploadingPlayerPhoto, setUploadingPlayerPhoto] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const navigate = useNavigate();
@@ -116,7 +117,21 @@ export default function TeamRegistration() {
       alert("Maximum of 25 players allowed per team");
       return;
     }
-    setPlayers([...players, { jersey_number: "", first_name: "", last_name: "", position: "", contact_number: "" }]);
+    setPlayers([...players, { jersey_number: "", first_name: "", last_name: "", position: "", contact_number: "", photo_url: "" }]);
+  };
+
+  const handlePlayerPhotoUpload = async (index, file) => {
+    if (!file) return;
+    setUploadingPlayerPhoto(index);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      updatePlayer(index, 'photo_url', file_url);
+    } catch (error) {
+      console.error("Error uploading player photo:", error);
+      alert("Failed to upload photo. Please try again.");
+    } finally {
+      setUploadingPlayerPhoto(null);
+    }
   };
 
   const removePlayer = (index) => {
@@ -162,7 +177,8 @@ export default function TeamRegistration() {
             first_name: player.first_name,
             last_name: player.last_name,
             position: player.position,
-            contact_number: player.contact_number
+            contact_number: player.contact_number,
+            photo_url: player.photo_url || ""
           })
         );
 
@@ -211,7 +227,7 @@ export default function TeamRegistration() {
       coach_contact: "",
       logo_url: ""
     });
-    setPlayers([{ jersey_number: "", first_name: "", last_name: "", position: "", contact_number: "" }]);
+    setPlayers([{ jersey_number: "", first_name: "", last_name: "", position: "", contact_number: "", photo_url: "" }]);
   };
 
   const handleSubmit = (e) => {
@@ -419,6 +435,7 @@ export default function TeamRegistration() {
                         <thead>
                           <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
                             <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">#</th>
+                            <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Photo</th>
                             <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Jersey *</th>
                             <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">First Name *</th>
                             <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Last Name *</th>
@@ -432,6 +449,42 @@ export default function TeamRegistration() {
                             <tr key={index} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/50">
                               <td className="py-2 px-3">
                                 <span className="text-sm font-bold text-gray-500 dark:text-gray-400">{index + 1}</span>
+                              </td>
+                              <td className="py-2 px-3">
+                                <div className="flex items-center gap-2">
+                                  {player.photo_url ? (
+                                    <div className="relative group">
+                                      <img 
+                                        src={player.photo_url} 
+                                        alt="Player" 
+                                        className="w-10 h-10 rounded-full object-cover border-2 border-blue-400"
+                                      />
+                                      <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                                        <Upload className="w-4 h-4 text-white" />
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          className="hidden"
+                                          onChange={(e) => handlePlayerPhotoUpload(index, e.target.files[0])}
+                                        />
+                                      </label>
+                                    </div>
+                                  ) : (
+                                    <label className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                                      {uploadingPlayerPhoto === index ? (
+                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                                      ) : (
+                                        <Upload className="w-4 h-4 text-gray-400" />
+                                      )}
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => handlePlayerPhotoUpload(index, e.target.files[0])}
+                                      />
+                                    </label>
+                                  )}
+                                </div>
                               </td>
                               <td className="py-2 px-3">
                                 <Input
