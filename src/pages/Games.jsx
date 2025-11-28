@@ -307,6 +307,7 @@ export default function Games() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+    const weekNumber = formData.get('week_number');
     const data = {
       organization_id: user?.organization_id,
       home_team_id: formData.get('home_team_id'),
@@ -320,6 +321,7 @@ export default function Games() {
       penalty_limit_per_quarter: parseInt(formData.get('penalty_limit_per_quarter')),
       player_foul_limit: parseInt(formData.get('player_foul_limit')),
       assigned_scorekeeper_emails: selectedScorekeeperEmails,
+      week_number: weekNumber ? parseInt(weekNumber) : null,
       status: 'scheduled',
       archived: false,
     };
@@ -347,6 +349,7 @@ export default function Games() {
         form.court_number.value = game.court_number || '';
         form.penalty_limit_per_quarter.value = game.penalty_limit_per_quarter || 5;
         form.player_foul_limit.value = game.player_foul_limit || 5;
+        form.week_number.value = game.week_number || '';
         
         if (game.game_date) {
           const localDate = new Date(game.game_date);
@@ -1122,7 +1125,7 @@ export default function Games() {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                       <div>
                         <Label htmlFor="game_date" className="font-bold text-gray-700 dark:text-gray-300">Date & Time *</Label>
                         <Input
@@ -1146,6 +1149,17 @@ export default function Games() {
                           className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
                         />
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Duration: 1.5 hours</p>
+                      </div>
+                      <div>
+                        <Label htmlFor="week_number" className="font-bold text-gray-700 dark:text-gray-300">Week Number</Label>
+                        <Input
+                          id="week_number"
+                          name="week_number"
+                          type="number"
+                          min="1"
+                          placeholder="e.g., 1, 2, 3"
+                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                        />
                       </div>
                     </div>
 
