@@ -109,7 +109,14 @@ export default function AdminHeader({
         </Button>
 
         <div className="hidden lg:flex items-center gap-3 text-sm">
-          <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
+          <div 
+            className="w-9 h-9 rounded-full flex items-center justify-center shadow-sm"
+            style={{
+              background: organization?.theme?.primary_color 
+                ? `linear-gradient(to bottom right, ${organization.theme.primary_color}, ${organization.theme.accent_color || organization.theme.primary_color})`
+                : 'linear-gradient(to bottom right, #3b82f6, #2563eb)'
+            }}
+          >
             <span className="text-sm font-bold text-white">
               {user?.full_name?.[0] || 'U'}
             </span>
@@ -121,8 +128,13 @@ export default function AdminHeader({
         </div>
         <Button
           onClick={handleLogout}
-          className="bg-gradient-to-r from-red-500 via-red-600 to-pink-600 hover:from-red-600 hover:via-red-700 hover:to-pink-700 text-white font-bold shadow-lg rounded-xl transition-all duration-300 hover:scale-105"
+          className="text-white font-bold shadow-lg rounded-xl transition-all duration-300 hover:scale-105 hover:opacity-90"
           size="sm"
+          style={{
+            background: organization?.theme?.primary_color 
+              ? `linear-gradient(to right, ${organization.theme.primary_color}, ${organization.theme.secondary_color || organization.theme.primary_color})`
+              : 'linear-gradient(to right, #ef4444, #ec4899)'
+          }}
         >
           <LogOut className="w-4 h-4 sm:mr-2" />
           <span className="hidden sm:inline">Logout</span>

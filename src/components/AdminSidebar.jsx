@@ -109,9 +109,14 @@ export default function AdminSidebar({
                     onClick={() => setSidebarOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 group ${
                       isActive
-                        ? 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white shadow-lg neon-glow-blue'
+                        ? 'text-white shadow-lg'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-purple-500/10 dark:hover:from-cyan-500/20 dark:hover:to-purple-500/20'
                     }`}
+                    style={isActive ? {
+                      background: organization?.theme?.primary_color 
+                        ? `linear-gradient(to right, ${organization.theme.primary_color}, ${organization.theme.accent_color || organization.theme.primary_color})`
+                        : 'linear-gradient(to right, #06b6d4, #8b5cf6)'
+                    } : undefined}
                   >
                     <item.icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`} />
                     {item.title}
