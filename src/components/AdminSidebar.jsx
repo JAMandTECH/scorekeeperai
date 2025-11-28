@@ -46,8 +46,6 @@ export default function AdminSidebar({
     { title: "Home", url: createPageUrl("Home"), icon: Home },
     { title: "Register Team", url: createPageUrl("TeamRegistration"), icon: UserPlus },
     { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
-    { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 },
-    { title: "Weekly Summary", url: createPageUrl("WeeklySummary"), icon: Sparkles },
   ];
 
   // Determine which nav array to use
