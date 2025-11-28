@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import AIInsights from "@/components/AIInsights";
+import AIAssistant from "@/components/AIAssistant";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);

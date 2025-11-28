@@ -16,6 +16,7 @@ import AdminSidebar from "@/components/AdminSidebar";
 import GameHistory from "@/components/GameHistory";
 import ConflictResolver from "@/components/ConflictResolver";
 import AIScheduleGenerator from "@/components/AIScheduleGenerator";
+import AIAssistant from "@/components/AIAssistant";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1397,6 +1398,8 @@ export default function Games() {
           </div>
         </main>
       </div>
+      
+      <AIAssistant />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import AIInsights from "@/components/AIInsights";
 import AIGameSummary from "@/components/AIGameSummary";
+import AIAssistant from "@/components/AIAssistant";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
