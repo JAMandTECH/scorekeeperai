@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Menu, X, LogOut, Sun, Moon, Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2 } from "lucide-react";
