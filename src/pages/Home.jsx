@@ -535,7 +535,7 @@ export default function Home() {
               </div>
               
               <h1 className="text-6xl md:text-7xl font-black mb-6 tracking-tight">
-                <span className="text-gradient-primary neon-text-blue">ALAB</span> <span className="text-gradient-warm">SPORTS</span>
+                <span className="text-gradient-primary neon-text-blue">Scorekeeper</span><span className="text-gradient-warm">AI</span>
               </h1>
               <p className="text-xl md:text-2xl text-blue-100 mb-3 max-w-3xl mx-auto font-medium">
                 Professional Basketball & Volleyball League Management
@@ -703,7 +703,7 @@ export default function Home() {
                 teams={teams}
                 players={players}
                 games={games}
-                organizationName={organization?.name || "ALAB Sports"}
+                organizationName={organization?.name || "ScorekeeperAI"}
               />
             </div>
           )}
@@ -1574,7 +1574,7 @@ export default function Home() {
                 <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
               </svg>
               </div>
-              <span className="text-3xl font-black tracking-tight text-gradient-warm">ALAB SPORTS</span>
+              <span className="text-3xl font-black tracking-tight text-gradient-warm">ScorekeeperAI</span>
               </div>
           <p className="text-blue-200 dark:text-blue-300 text-lg mb-2 font-medium">
             Professional League Management System
@@ -1583,7 +1583,7 @@ export default function Home() {
             Basketball • Volleyball • Real-time Scoring
           </p>
           <p className="text-blue-400 dark:text-blue-500 text-sm mt-8">
-            © 2025 ALAB Sports. All rights reserved.
+            © 2025 ScorekeeperAI. All rights reserved.
           </p>
             </div>
           </footer>

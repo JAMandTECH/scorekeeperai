@@ -72,7 +72,7 @@ export default function AdminHeader({
           )}
           <div className="hidden sm:block">
             <span className="font-bold text-xl text-gray-900 dark:text-white tracking-tight">
-              {organization?.name || 'ALAB'}
+              {organization?.name || 'ScorekeeperAI'}
             </span>
             <p className="text-[10px] text-gray-500 dark:text-gray-400 -mt-1 font-medium tracking-wide">
               {organization?.tournament_name || (organization ? 'ORGANIZATION' : 'SPORTS LEAGUE')}
