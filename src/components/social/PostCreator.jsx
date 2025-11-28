@@ -50,6 +50,19 @@ export default function PostCreator({ user, organizationId, onPostCreated }) {
       setContent("");
       setMediaFiles([]);
       
+      // Create notification for all org members
+      await base44.entities.Notification.create({
+        organization_id: organizationId,
+        type: "new_post",
+        title: "New Post",
+        message: `${user.full_name} shared a new post: "${content.trim().substring(0, 50)}${content.length > 50 ? '...' : ''}"`,
+        data: {
+          poster_name: user.full_name,
+          poster_id: user.id
+        },
+        read_by: [user.id] // Mark as read for the poster
+      });
+      
       toast({
         title: "Post Published!",
         description: "Your post has been shared with the community.",
