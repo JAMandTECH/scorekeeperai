@@ -214,7 +214,7 @@ export default function PublicLanding() {
           </Badge>
           
           <h1 className="text-6xl md:text-7xl lg:text-8xl font-black mb-6 tracking-tight">
-            <span className="text-gradient-primary neon-text-blue">ALAB</span> <span className="text-gradient-warm">SPORTS</span>
+            <span className="text-gradient-primary neon-text-blue">Scorekeeper</span><span className="text-gradient-warm">AI</span>
           </h1>
           <p className="text-2xl md:text-3xl text-blue-100 mb-4 max-w-4xl mx-auto font-bold">
             The Complete AI-Powered Solution for Basketball & Volleyball Leagues
@@ -301,7 +301,7 @@ export default function PublicLanding() {
               Sample League <span className="text-gradient-primary">Dashboard</span>
             </h2>
             <p className="text-xl text-blue-200 max-w-3xl mx-auto">
-              See how your league data would look with ALAB Sports
+              See how your league data would look with ScorekeeperAI
             </p>
           </div>
 
@@ -648,7 +648,7 @@ export default function PublicLanding() {
               🎬 SEE IT IN ACTION
             </Badge>
             <h2 className="text-5xl font-black text-gray-900 dark:text-white mb-4">
-              Experience ALAB Sports Live
+              Experience ScorekeeperAI Live
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
               Watch how our platform transforms sports league management with real-time features and intuitive design.
@@ -912,7 +912,7 @@ export default function PublicLanding() {
               🎯 PERFECT FOR
             </Badge>
             <h2 className="text-5xl font-black text-gray-900 dark:text-white mb-4">
-              Who Uses ALAB Sports?
+              Who Uses ScorekeeperAI?
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
               Trusted by leagues and organizations of all sizes.
@@ -958,7 +958,7 @@ export default function PublicLanding() {
             Ready to Transform Your League?
           </h2>
           <p className="text-2xl text-cyan-100/90 mb-12 max-w-2xl mx-auto font-medium">
-            Join hundreds of organizations managing their sports leagues with ALAB Sports.
+            Join hundreds of organizations managing their sports leagues with ScorekeeperAI.
           </p>
           
           <div className="flex gap-6 justify-center flex-wrap">
@@ -1009,13 +1009,13 @@ export default function PublicLanding() {
                     <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
                   </svg>
                 </div>
-                <span className="text-3xl font-black text-gradient-warm">ALAB SPORTS</span>
+                <span className="text-3xl font-black text-gradient-warm">ScorekeeperAI</span>
               </div>
               <p className="text-blue-200 mb-4 max-w-md">
                 Professional sports league management platform for basketball and volleyball leagues.
               </p>
               <p className="text-blue-300 text-sm">
-                © 2025 ALAB Sports. All rights reserved.
+                © 2025 ScorekeeperAI. All rights reserved.
               </p>
             </div>
             

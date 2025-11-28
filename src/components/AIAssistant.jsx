@@ -118,7 +118,7 @@ const USER_GUIDES = [
 
 const PUBLIC_GUIDES = [
   {
-    title: "Explore ALAB Sports",
+    title: "Explore ScorekeeperAI",
     steps: [
       "1. View live scores and standings on the Home page",
       "2. Check team and player statistics",
@@ -207,7 +207,7 @@ export default function AIAssistant() {
       case 'user':
         return "👋 Hi! I can help you register your team, view standings, and use the social feed. Select a guide below or ask me anything!";
       default:
-        return "👋 Welcome to ALAB Sports! I can help you explore the platform and get started. Select a guide below or ask me anything!";
+        return "👋 Welcome to ScorekeeperAI! I can help you explore the platform and get started. Select a guide below or ask me anything!";
     }
   };
 
@@ -317,7 +317,7 @@ PUBLIC FEATURES:
 - Request Admin Access: Apply to manage an organization`;
       }
 
-      const prompt = `You are a helpful AI assistant for ALAB Sports, a basketball and volleyball league management platform.
+      const prompt = `You are a helpful AI assistant for ScorekeeperAI, a basketball and volleyball league management platform.
 
 USER ROLE: ${userRole?.toUpperCase() || 'PUBLIC'}
 ${roleContext}
