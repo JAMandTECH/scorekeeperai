@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import AIAssistant from "@/components/AIAssistant";
 
 export default function PublicLanding() {
   const [darkMode, setDarkMode] = useState(false);
@@ -855,6 +856,8 @@ export default function PublicLanding() {
           </div>
         </div>
       </footer>
+      
+      <AIAssistant />
     </div>
   );
 }
