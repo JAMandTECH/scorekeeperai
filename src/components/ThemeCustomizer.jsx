@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Palette, Save, RotateCcw, Check } from "lucide-react";
+import { Palette, Save, RotateCcw, Check, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const PRESET_THEMES = [
   { name: "Blue & Orange", primary: "#3b82f6", secondary: "#f97316", accent: "#8b5cf6" },
@@ -25,34 +26,34 @@ export default function ThemeCustomizer({ organization, onUpdate }) {
     accent_color: organization?.theme?.accent_color || "#8b5cf6",
   });
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState(null);
 
   const updateThemeMutation = useMutation({
     mutationFn: async (newTheme) => {
-      console.log('Saving theme:', newTheme, 'for org:', organization.id);
+      setError(null);
+      console.log('Saving theme:', newTheme, 'for org:', organization?.id);
+      
+      if (!organization?.id) {
+        throw new Error('No organization ID found');
+      }
+      
       const result = await base44.entities.Organization.update(organization.id, {
         theme: newTheme
       });
       console.log('Theme save result:', result);
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Theme saved successfully:', data);
       queryClient.invalidateQueries(['organization']);
       
-      // Apply theme immediately to CSS variables
-      document.documentElement.style.setProperty('--org-primary', theme.primary_color);
-      document.documentElement.style.setProperty('--org-secondary', theme.secondary_color);
-      document.documentElement.style.setProperty('--org-accent', theme.accent_color);
-      document.documentElement.style.setProperty('--org-primary-light', `${theme.primary_color}20`);
-      document.documentElement.style.setProperty('--org-secondary-light', `${theme.secondary_color}20`);
-      document.documentElement.style.setProperty('--org-accent-light', `${theme.accent_color}20`);
-      
       setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      setTimeout(() => setSaved(false), 3000);
       if (onUpdate) onUpdate();
     },
-    onError: (error) => {
-      console.error('Error saving theme:', error);
-      alert('Failed to save theme. Please try again.');
+    onError: (err) => {
+      console.error('Error saving theme:', err);
+      setError(err.message || 'Failed to save theme. You may not have permission to update this organization.');
     }
   });
 
@@ -88,6 +89,23 @@ export default function ThemeCustomizer({ organization, onUpdate }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6 space-y-6">
+        {error && (
+          <Alert className="bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-800">
+            <AlertCircle className="w-4 h-4" />
+            <AlertDescription className="text-red-800 dark:text-red-300 font-medium">
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {saved && (
+          <Alert className="bg-green-50 dark:bg-green-950/30 border-2 border-green-200 dark:border-green-800">
+            <Check className="w-4 h-4" />
+            <AlertDescription className="text-green-800 dark:text-green-300 font-bold">
+              Theme saved successfully! Refresh the page to see changes across the app.
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Preset Themes */}
         <div>
           <Label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 block">
