@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Image, Video, Send, X } from "lucide-react";
+import { Image, Video, Send, X, CheckCircle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function PostCreator({ user, organizationId, onPostCreated }) {
   const [content, setContent] = useState("");
   const [mediaFiles, setMediaFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
@@ -47,10 +49,22 @@ export default function PostCreator({ user, organizationId, onPostCreated }) {
 
       setContent("");
       setMediaFiles([]);
+      
+      toast({
+        title: "Post Published!",
+        description: "Your post has been shared with the community.",
+        duration: 3000,
+      });
+      
       if (onPostCreated) onPostCreated();
     } catch (error) {
       console.error("Error creating post:", error);
-      alert("Failed to create post. Please try again.");
+      toast({
+        title: "Failed to post",
+        description: "Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
     } finally {
       setUploading(false);
     }
