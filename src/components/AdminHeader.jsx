@@ -21,6 +21,19 @@ export default function AdminHeader({
   
   const userRoleLabel = isSuperAdmin ? 'Super Administrator' : (isAdmin ? 'Administrator' : (isScorekeeper ? 'Scorekeeper' : 'User'));
 
+  // Apply organization theme colors on mount and when organization changes
+  useEffect(() => {
+    if (organization?.theme) {
+      const { primary_color, secondary_color, accent_color } = organization.theme;
+      document.documentElement.style.setProperty('--org-primary', primary_color || '#3b82f6');
+      document.documentElement.style.setProperty('--org-secondary', secondary_color || '#f97316');
+      document.documentElement.style.setProperty('--org-accent', accent_color || '#8b5cf6');
+      document.documentElement.style.setProperty('--org-primary-light', `${primary_color || '#3b82f6'}20`);
+      document.documentElement.style.setProperty('--org-secondary-light', `${secondary_color || '#f97316'}20`);
+      document.documentElement.style.setProperty('--org-accent-light', `${accent_color || '#8b5cf6'}20`);
+    }
+  }, [organization?.theme]);
+
   return (
     <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 h-16 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50 shadow-futuristic">
       <div className="flex items-center gap-4">
