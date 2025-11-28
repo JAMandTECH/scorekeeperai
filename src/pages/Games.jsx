@@ -1090,6 +1090,7 @@ export default function Games() {
                         required
                         className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
                       >
+                        <option value="pre_season">Pre-Season</option>
                         <option value="regular_season">Regular Season</option>
                         <option value="playoffs">Playoffs</option>
                         <option value="semi_finals">Semi Finals</option>
