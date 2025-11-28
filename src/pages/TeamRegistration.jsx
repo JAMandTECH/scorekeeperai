@@ -99,6 +99,10 @@ export default function TeamRegistration() {
   };
 
   const addPlayer = () => {
+    if (players.length >= 25) {
+      alert("Maximum of 25 players allowed per team");
+      return;
+    }
     setPlayers([...players, { jersey_number: "", first_name: "", last_name: "", position: "", contact_number: "" }]);
   };
 
@@ -345,87 +349,99 @@ export default function TeamRegistration() {
                           <Users className="w-6 h-6 text-white" />
                         </div>
                         Player Lineup
+                        <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold text-sm">
+                          {players.length}/25
+                        </Badge>
                       </CardTitle>
                       <Button
                         type="button"
                         onClick={addPlayer}
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                        disabled={players.length >= 25}
+                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold disabled:opacity-50"
                       >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Player
                       </Button>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-4">
-                    {players.map((player, index) => (
-                      <div key={index} className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border-2 border-gray-200 dark:border-gray-700">
-                        <div className="flex justify-between items-center mb-3">
-                          <Badge className="bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold">
-                            Player {index + 1}
-                          </Badge>
-                          {players.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removePlayer(index)}
-                              className="text-red-600 hover:text-red-700 dark:text-red-400"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                        <div className="grid md:grid-cols-3 gap-3">
-                          <div>
-                            <Label className="text-xs font-bold text-gray-700 dark:text-gray-300">Jersey # *</Label>
-                            <Input
-                              value={player.jersey_number}
-                              onChange={(e) => updatePlayer(index, 'jersey_number', e.target.value)}
-                              className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 font-medium"
-                              placeholder="#"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs font-bold text-gray-700 dark:text-gray-300">First Name *</Label>
-                            <Input
-                              value={player.first_name}
-                              onChange={(e) => updatePlayer(index, 'first_name', e.target.value)}
-                              className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 font-medium"
-                              placeholder="First name"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs font-bold text-gray-700 dark:text-gray-300">Last Name *</Label>
-                            <Input
-                              value={player.last_name}
-                              onChange={(e) => updatePlayer(index, 'last_name', e.target.value)}
-                              className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 font-medium"
-                              placeholder="Last name"
-                            />
-                          </div>
-                        </div>
-                        <div className="grid md:grid-cols-2 gap-3 mt-3">
-                          <div>
-                            <Label className="text-xs font-bold text-gray-700 dark:text-gray-300">Position</Label>
-                            <Input
-                              value={player.position}
-                              onChange={(e) => updatePlayer(index, 'position', e.target.value)}
-                              className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 font-medium"
-                              placeholder="e.g., Guard, Forward"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs font-bold text-gray-700 dark:text-gray-300">Contact Number</Label>
-                            <Input
-                              value={player.contact_number}
-                              onChange={(e) => updatePlayer(index, 'contact_number', e.target.value)}
-                              className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 font-medium"
-                              placeholder="Phone number"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                  <CardContent className="p-6">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
+                            <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">#</th>
+                            <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Jersey *</th>
+                            <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">First Name *</th>
+                            <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Last Name *</th>
+                            <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Position</th>
+                            <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Contact</th>
+                            <th className="text-center py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {players.map((player, index) => (
+                            <tr key={index} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/50">
+                              <td className="py-2 px-3">
+                                <span className="text-sm font-bold text-gray-500 dark:text-gray-400">{index + 1}</span>
+                              </td>
+                              <td className="py-2 px-3">
+                                <Input
+                                  value={player.jersey_number}
+                                  onChange={(e) => updatePlayer(index, 'jersey_number', e.target.value)}
+                                  className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 font-medium h-9 w-16"
+                                  placeholder="#"
+                                />
+                              </td>
+                              <td className="py-2 px-3">
+                                <Input
+                                  value={player.first_name}
+                                  onChange={(e) => updatePlayer(index, 'first_name', e.target.value)}
+                                  className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 font-medium h-9"
+                                  placeholder="First name"
+                                />
+                              </td>
+                              <td className="py-2 px-3">
+                                <Input
+                                  value={player.last_name}
+                                  onChange={(e) => updatePlayer(index, 'last_name', e.target.value)}
+                                  className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 font-medium h-9"
+                                  placeholder="Last name"
+                                />
+                              </td>
+                              <td className="py-2 px-3">
+                                <Input
+                                  value={player.position}
+                                  onChange={(e) => updatePlayer(index, 'position', e.target.value)}
+                                  className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 font-medium h-9"
+                                  placeholder="Position"
+                                />
+                              </td>
+                              <td className="py-2 px-3">
+                                <Input
+                                  value={player.contact_number}
+                                  onChange={(e) => updatePlayer(index, 'contact_number', e.target.value)}
+                                  className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 font-medium h-9"
+                                  placeholder="Phone"
+                                />
+                              </td>
+                              <td className="py-2 px-3 text-center">
+                                {players.length > 1 && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removePlayer(index)}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 h-8 w-8 p-0"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </CardContent>
                 </Card>
 
