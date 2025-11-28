@@ -435,10 +435,10 @@ IMPORTANT INSTRUCTIONS:
             ))}
             
             {/* Quick Guide Buttons */}
-            {showGuides && messages.length === 1 && (
+            {showGuides && messages.length === 1 && userRole && (
               <div className="space-y-2 pt-2">
                 <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">📚 Quick Guides</p>
-                {QUICK_GUIDES.map((guide, index) => (
+                {getGuidesForRole().map((guide, index) => (
                   <button
                     key={index}
                     onClick={() => handleGuideSelect(guide)}
