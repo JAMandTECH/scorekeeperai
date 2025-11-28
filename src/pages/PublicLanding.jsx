@@ -180,9 +180,9 @@ export default function PublicLanding() {
         <div className="absolute top-6 right-6 flex items-center gap-3 z-50">
           <button
             onClick={toggleDarkMode}
-            className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-all"
+            className="p-3 glass hover:bg-white/20 rounded-xl transition-all duration-300 hover:scale-110 neon-glow-blue"
           >
-            {darkMode ? <Sun className="w-6 h-6 text-white" /> : <Moon className="w-6 h-6 text-white" />}
+            {darkMode ? <Sun className="w-6 h-6 text-cyan-300" /> : <Moon className="w-6 h-6 text-white" />}
           </button>
           
           {user && user.role === 'admin' && (
@@ -207,26 +207,27 @@ export default function PublicLanding() {
         </div>
 
         <div className="max-w-7xl mx-auto text-center relative z-10">
-          <Badge className="mb-8 bg-orange-500/20 text-orange-300 border border-orange-400/30 text-sm font-bold px-4 py-2 backdrop-blur-sm">
-            🤖 AI-Powered Sports League Management Platform
+          <Badge className="mb-8 glass text-cyan-300 border border-cyan-400/30 text-sm font-bold px-6 py-3 animate-pulse">
+            <Sparkles className="w-4 h-4 inline mr-2" />
+            AI-Powered Sports League Management Platform
           </Badge>
           
           <h1 className="text-6xl md:text-7xl lg:text-8xl font-black mb-6 tracking-tight">
-            ALAB <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">SPORTS</span>
+            <span className="text-gradient-primary neon-text-blue">ALAB</span> <span className="text-gradient-warm">SPORTS</span>
           </h1>
           <p className="text-2xl md:text-3xl text-blue-100 mb-4 max-w-4xl mx-auto font-bold">
             The Complete AI-Powered Solution for Basketball & Volleyball Leagues
           </p>
-          <p className="text-lg text-blue-200 mb-12 max-w-3xl mx-auto">
+          <p className="text-lg text-blue-200/80 mb-12 max-w-3xl mx-auto font-medium">
             Live scoring, AI insights, voice commands, and real-time statistics all in one powerful platform.
           </p>
           
-          <div className="flex gap-4 justify-center flex-wrap mb-16">
+          <div className="flex gap-6 justify-center flex-wrap mb-16">
             {!isAuthenticated ? (
               <>
                 <Button 
                   onClick={handleGetStarted}
-                  className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-12 py-8 font-bold shadow-2xl transform hover:scale-105 transition-all"
+                  className="btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white text-lg px-14 py-8 font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-2xl neon-glow-orange"
                 >
                   Get Started Free
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -234,7 +235,7 @@ export default function PublicLanding() {
                 <Link to={createPageUrl("Home")}>
                   <Button 
                     variant="outline"
-                    className="border-2 border-white text-white hover:bg-white hover:text-blue-900 text-lg px-12 py-8 font-bold backdrop-blur-sm"
+                    className="glass border-2 border-cyan-400/50 text-cyan-100 hover:bg-cyan-500/20 hover:border-cyan-400 text-lg px-14 py-8 font-bold rounded-2xl transition-all duration-300 hover:scale-105 neon-glow-blue"
                   >
                     <Eye className="w-5 h-5 mr-2" />
                     View Live Demo
@@ -244,7 +245,7 @@ export default function PublicLanding() {
             ) : (
               <>
                 <Link to={createPageUrl("Dashboard")}>
-                  <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-12 py-8 font-bold shadow-2xl transform hover:scale-105 transition-all">
+                  <Button className="btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white text-lg px-14 py-8 font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-2xl neon-glow-orange">
                     Go to Dashboard
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
@@ -252,7 +253,7 @@ export default function PublicLanding() {
                 <Link to={createPageUrl("Home")}>
                   <Button 
                     variant="outline"
-                    className="border-2 border-white text-white hover:bg-white hover:text-blue-900 text-lg px-12 py-8 font-bold backdrop-blur-sm"
+                    className="glass border-2 border-cyan-400/50 text-cyan-100 hover:bg-cyan-500/20 hover:border-cyan-400 text-lg px-14 py-8 font-bold rounded-2xl transition-all duration-300 hover:scale-105 neon-glow-blue"
                   >
                     <Eye className="w-5 h-5 mr-2" />
                     View Live Scores
@@ -265,15 +266,17 @@ export default function PublicLanding() {
           {/* Stats Bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {[
-              { label: "AI-Powered", value: "Smart", icon: Brain },
-              { label: "Voice Commands", value: "Hands-free", icon: Mic },
-              { label: "Live Updates", value: "Real-time", icon: PlayCircle },
-              { label: "Easy Setup", value: "Minutes", icon: Zap }
+              { label: "AI-Powered", value: "Smart", icon: Brain, color: "from-purple-500 to-pink-500" },
+              { label: "Voice Commands", value: "Hands-free", icon: Mic, color: "from-cyan-500 to-blue-500" },
+              { label: "Live Updates", value: "Real-time", icon: PlayCircle, color: "from-green-500 to-emerald-500" },
+              { label: "Easy Setup", value: "Minutes", icon: Zap, color: "from-orange-500 to-red-500" }
             ].map((stat, i) => (
-              <div key={i} className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                <stat.icon className="w-8 h-8 text-orange-400 mx-auto mb-2" />
-                <div className="text-3xl font-black text-white">{stat.value}</div>
-                <div className="text-sm text-blue-200 font-medium">{stat.label}</div>
+              <div key={i} className="glass-card rounded-2xl p-6 card-hover group cursor-pointer" style={{animationDelay: `${i * 0.1}s`}}>
+                <div className={`w-14 h-14 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                  <stat.icon className="w-7 h-7 text-white" />
+                </div>
+                <div className="text-3xl font-black text-white mb-1">{stat.value}</div>
+                <div className="text-sm text-cyan-200 font-semibold">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -283,17 +286,19 @@ export default function PublicLanding() {
       </section>
 
       {/* AI Features Highlight Section - NEW */}
-      <section className="py-24 px-4 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-purple-950/20 dark:to-gray-900 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-30"></div>
+      <section className="py-24 px-4 bg-gradient-to-br from-slate-50 via-purple-50/50 to-cyan-50/50 dark:from-gray-900 dark:via-purple-950/20 dark:to-gray-900 relative overflow-hidden">
+        <div className="absolute inset-0 grid-pattern opacity-20"></div>
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-full blur-3xl"></div>
         
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
-            <Badge className="mb-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 text-sm font-bold px-6 py-2 shadow-lg">
-              <Sparkles className="w-4 h-4 mr-2 inline" />
-              🤖 AI-POWERED INTELLIGENCE
+            <Badge className="mb-4 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 text-white border-0 text-sm font-bold px-8 py-3 shadow-xl neon-glow-purple">
+              <Sparkles className="w-4 h-4 mr-2 inline animate-pulse" />
+              AI-POWERED INTELLIGENCE
             </Badge>
             <h2 className="text-5xl md:text-6xl font-black text-gray-900 dark:text-white mb-4">
-              Built with Cutting-Edge <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">AI Technology</span>
+              Built with Cutting-Edge <span className="text-gradient-primary">AI Technology</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
               Experience the future of sports management with AI-driven insights, voice commands, and intelligent analytics.
@@ -302,8 +307,9 @@ export default function PublicLanding() {
 
           <div className="grid lg:grid-cols-3 gap-8 mb-12">
             {/* Voice Assistant Feature */}
-            <Card className="relative overflow-hidden border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-purple-950/30 shadow-2xl hover:shadow-3xl transition-all group">
+            <Card className="relative overflow-hidden border border-purple-300/50 dark:border-purple-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic-lg hover:shadow-2xl transition-all duration-500 group card-hover">
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse"></div>
+              <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <CardHeader className="relative z-10">
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg mb-4 transform group-hover:scale-110 transition-transform">
                   <Mic className="w-8 h-8 text-white" />
@@ -345,8 +351,9 @@ export default function PublicLanding() {
             </Card>
 
             {/* AI Insights Feature */}
-            <Card className="relative overflow-hidden border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-950/30 shadow-2xl hover:shadow-3xl transition-all group">
+            <Card className="relative overflow-hidden border border-blue-300/50 dark:border-blue-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic-lg hover:shadow-2xl transition-all duration-500 group card-hover">
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full blur-3xl"></div>
+              <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <CardHeader className="relative z-10">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg mb-4 transform group-hover:scale-110 transition-transform">
                   <Brain className="w-8 h-8 text-white" />
@@ -386,8 +393,9 @@ export default function PublicLanding() {
             </Card>
 
             {/* AI Game Summaries Feature */}
-            <Card className="relative overflow-hidden border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-white to-orange-50 dark:from-gray-800 dark:to-orange-950/30 shadow-2xl hover:shadow-3xl transition-all group">
+            <Card className="relative overflow-hidden border border-orange-300/50 dark:border-orange-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic-lg hover:shadow-2xl transition-all duration-500 group card-hover">
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-full blur-3xl"></div>
+              <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <CardHeader className="relative z-10">
                 <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg mb-4 transform group-hover:scale-110 transition-transform">
                   <BarChart3 className="w-8 h-8 text-white" />
@@ -428,20 +436,21 @@ export default function PublicLanding() {
           </div>
 
           <div className="text-center">
-            <div className="inline-flex items-center gap-3 bg-white dark:bg-gray-800 rounded-full px-8 py-4 shadow-xl border-2 border-purple-200 dark:border-purple-800">
-              <Sparkles className="w-6 h-6 text-purple-600 animate-pulse" />
-              <span className="text-lg font-black text-gray-900 dark:text-white">
+            <div className="inline-flex items-center gap-3 glass-card rounded-full px-10 py-5 neon-glow-purple">
+              <Sparkles className="w-6 h-6 text-purple-400 animate-pulse" />
+              <span className="text-lg font-black text-gradient-primary">
                 Powered by Advanced AI & Machine Learning
               </span>
-              <Sparkles className="w-6 h-6 text-purple-600 animate-pulse" />
+              <Sparkles className="w-6 h-6 text-cyan-400 animate-pulse" />
             </div>
           </div>
         </div>
       </section>
 
       {/* Video/Visual Showcase Section */}
-      <section className="py-24 px-4 bg-white dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-24 px-4 bg-white dark:bg-gray-900 relative overflow-hidden">
+        <div className="absolute inset-0 mesh-gradient opacity-50"></div>
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 text-sm font-bold px-4 py-2">
               🎬 SEE IT IN ACTION
@@ -610,8 +619,9 @@ export default function PublicLanding() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 px-4 bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-24 px-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 relative overflow-hidden">
+        <div className="absolute inset-0 grid-pattern opacity-30"></div>
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 text-sm font-bold px-4 py-2">
               ⚡ POWERFUL FEATURES
@@ -626,8 +636,9 @@ export default function PublicLanding() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, i) => (
-              <Card key={i} className="relative overflow-hidden border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl hover:shadow-2xl transition-all group hover:-translate-y-1">
-                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${feature.color} opacity-10 rounded-full blur-3xl group-hover:opacity-20 transition-opacity`}></div>
+              <Card key={i} className="relative overflow-hidden border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 group card-hover">
+                <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br ${feature.color} opacity-10 rounded-full blur-3xl group-hover:opacity-30 transition-opacity duration-500`}></div>
+                <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <CardHeader className="relative z-10">
                   <div className="flex items-start justify-between mb-4">
                     <div className={`w-14 h-14 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform`}>
@@ -653,8 +664,9 @@ export default function PublicLanding() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-24 px-4 bg-white dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-24 px-4 bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 relative overflow-hidden">
+        <div className="absolute inset-0 particles opacity-50"></div>
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-green-100 text-green-700 border border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800 text-sm font-bold px-4 py-2">
               🚀 GET STARTED IN 5 STEPS
@@ -669,18 +681,18 @@ export default function PublicLanding() {
 
           <div className="relative">
             {/* Connection Line */}
-            <div className="hidden lg:block absolute top-32 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 opacity-20"></div>
+            <div className="hidden lg:block absolute top-32 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-orange-500 opacity-40 rounded-full"></div>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
               {howItWorks.map((step, i) => (
                 <div key={i} className="relative">
-                  <Card className="relative overflow-hidden border-2 border-gray-200 dark:border-gray-700 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-xl hover:shadow-2xl transition-all text-center">
+                  <Card className="relative overflow-hidden border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 text-center card-hover">
                     <CardContent className="p-6">
                       <div className="relative mb-4">
-                        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-3xl font-black text-white mx-auto shadow-lg">
+                        <div className="w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center text-3xl font-black text-white mx-auto shadow-lg pulse-glow">
                           {step.step}
                         </div>
-                        <div className="absolute -top-2 -right-2 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
+                        <div className="absolute -top-2 -right-2 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center shadow-lg neon-glow-orange">
                           <step.icon className="w-6 h-6 text-white" />
                         </div>
                       </div>
@@ -748,19 +760,19 @@ export default function PublicLanding() {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCI xeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNzeiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvZz48L252Zz4=')] opacity-20"></div>
         
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-5xl md:text-6xl font-black mb-6">
+          <h2 className="text-5xl md:text-6xl font-black mb-6 neon-text-blue">
             Ready to Transform Your League?
           </h2>
-          <p className="text-2xl text-blue-100 mb-12 max-w-2xl mx-auto">
+          <p className="text-2xl text-cyan-100/90 mb-12 max-w-2xl mx-auto font-medium">
             Join hundreds of organizations managing their sports leagues with ALAB Sports.
           </p>
           
-          <div className="flex gap-4 justify-center flex-wrap">
+          <div className="flex gap-6 justify-center flex-wrap">
             {!isAuthenticated ? (
               <>
                 <Button 
                   onClick={handleGetStarted}
-                  className="bg-white text-blue-900 hover:bg-gray-100 text-xl px-12 py-8 font-bold shadow-2xl transform hover:scale-105 transition-all"
+                  className="btn-futuristic bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 hover:from-cyan-500 hover:via-blue-600 hover:to-purple-600 text-white text-xl px-14 py-8 font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-2xl neon-glow-blue"
                 >
                   Start Free Today
                   <ArrowRight className="w-6 h-6 ml-2" />
@@ -768,7 +780,7 @@ export default function PublicLanding() {
                 <Link to={createPageUrl("RequestAdminAccess")}>
                   <Button 
                     variant="outline"
-                    className="border-2 border-white text-white hover:bg-white/10 text-xl px-12 py-8 font-bold backdrop-blur-sm"
+                    className="glass border-2 border-white/50 text-white hover:bg-white/10 text-xl px-14 py-8 font-bold rounded-2xl transition-all duration-300 hover:scale-105"
                   >
                     Request Admin Access
                   </Button>
@@ -776,7 +788,7 @@ export default function PublicLanding() {
               </>
             ) : (
               <Link to={createPageUrl("Dashboard")}>
-                <Button className="bg-white text-blue-900 hover:bg-gray-100 text-xl px-12 py-8 font-bold shadow-2xl transform hover:scale-105 transition-all">
+                <Button className="btn-futuristic bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 hover:from-cyan-500 hover:via-blue-600 hover:to-purple-600 text-white text-xl px-14 py-8 font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-2xl neon-glow-blue">
                   Go to Your Dashboard
                   <ArrowRight className="w-6 h-6 ml-2" />
                 </Button>
@@ -791,17 +803,19 @@ export default function PublicLanding() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-950 dark:to-indigo-950 text-white py-16 px-4">
-        <div className="max-w-7xl mx-auto">
+      <footer className="bg-gradient-to-br from-gray-900 via-gray-900 to-black dark:from-black dark:via-gray-950 dark:to-black text-white py-16 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 grid-pattern opacity-10"></div>
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div className="col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-xl">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 0 0 0 2.5 2.5z"/>
+                <div className="w-14 h-14 bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 rounded-xl flex items-center justify-center shadow-xl neon-glow-orange">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
                   </svg>
                 </div>
-                <span className="text-2xl font-black">ALAB SPORTS</span>
+                <span className="text-3xl font-black text-gradient-warm">ALAB SPORTS</span>
               </div>
               <p className="text-blue-200 mb-4 max-w-md">
                 Professional sports league management platform for basketball and volleyball leagues.
