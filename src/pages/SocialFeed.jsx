@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Users, Home as HomeIcon, MessageCircle, Clipboard, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/toaster";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import PostCreator from "@/components/social/PostCreator";
@@ -201,6 +202,7 @@ export default function SocialFeed() {
           </div>
         </main>
       </div>
+      <Toaster />
     </div>
   );
 }
