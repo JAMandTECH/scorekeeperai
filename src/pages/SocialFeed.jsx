@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Home as HomeIcon, MessageCircle, Clipboard } from "lucide-react";
+import { Users, Home as HomeIcon, MessageCircle, Clipboard, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
@@ -84,6 +84,7 @@ export default function SocialFeed() {
     navigationItems = [
       { title: "Organization Home", url: createPageUrl("Home"), icon: HomeIcon },
       { title: "My Games", url: createPageUrl("ScorekeeperDashboard"), icon: Clipboard },
+      { title: "Team Registration", url: createPageUrl("TeamRegistration"), icon: UserPlus },
       { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
     ];
   } else if (user?.role !== 'admin' && !user?.role_id) {
