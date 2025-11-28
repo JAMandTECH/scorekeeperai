@@ -84,23 +84,23 @@ export default function AdminSidebar({
   return (
     <>
       <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
-        transform transition-transform duration-200 ease-in-out mt-16 shadow-2xl
+        fixed inset-y-0 left-0 z-40 w-72 bg-white/90 dark:bg-gray-900/95 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-700/50
+        transform transition-all duration-300 ease-out mt-16 shadow-futuristic-lg
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="h-full flex flex-col pt-6 pb-6">
           {organization && (
             <div className="px-4 mb-6">
-              <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 rounded-xl border-2 border-orange-200 dark:border-orange-800">
-                <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-lg">
+              <div className="flex items-center gap-3 p-4 bg-gradient-to-br from-cyan-50/50 via-blue-50/50 to-purple-50/50 dark:from-cyan-950/30 dark:via-blue-950/30 dark:to-purple-950/30 rounded-2xl border border-cyan-200/50 dark:border-cyan-800/50 shadow-lg">
+                <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-lg ring-2 ring-cyan-500/20">
                   <AvatarImage src={organization.logo_url} />
-                  <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-sm">
+                  <AvatarFallback className="bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 text-white font-black text-sm">
                     {organization.name?.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-black text-gray-900 dark:text-white truncate">{organization.name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Your Organization</p>
+                  <p className="text-xs text-cyan-600 dark:text-cyan-400 font-semibold">Your Organization</p>
                 </div>
               </div>
             </div>
@@ -123,13 +123,13 @@ export default function AdminSidebar({
                     key={item.title}
                     to={item.url}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 group ${
                       isActive
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        ? 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white shadow-lg neon-glow-blue'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-purple-500/10 dark:hover:from-cyan-500/20 dark:hover:to-purple-500/20'
                     }`}
                   >
-                    <item.icon className="w-5 h-5" />
+                    <item.icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`} />
                     {item.title}
                   </Link>
                 );
@@ -137,22 +137,22 @@ export default function AdminSidebar({
             )}
           </nav>
 
-          <div className="px-4 pt-4 border-t border-gray-200 dark:border-gray-700 mt-auto bg-gray-50 dark:bg-gray-900">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
+          <div className="px-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50 mt-auto bg-gradient-to-br from-gray-50/80 to-white/80 dark:from-gray-900/80 dark:to-gray-800/80 backdrop-blur-sm">
+            <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-gradient-to-r from-cyan-500/5 to-purple-500/5 dark:from-cyan-500/10 dark:to-purple-500/10 border border-cyan-200/30 dark:border-cyan-800/30">
+              <div className="w-11 h-11 bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
                 <span className="text-sm font-bold text-white">
                   {user?.full_name?.[0] || 'U'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{user?.full_name}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user?.full_name}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
               </div>
             </div>
             <Button
               variant="outline"
               size="sm"
-              className="w-full justify-start text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-700 dark:hover:text-red-300 hover:border-red-300 dark:hover:border-red-700 font-semibold"
+              className="w-full justify-start text-red-500 dark:text-red-400 border-red-200/50 dark:border-red-800/50 hover:bg-gradient-to-r hover:from-red-500/10 hover:to-pink-500/10 dark:hover:from-red-500/20 dark:hover:to-pink-500/20 hover:text-red-600 dark:hover:text-red-300 hover:border-red-300 dark:hover:border-red-700 font-bold rounded-xl transition-all duration-300"
               onClick={handleLogout}
             >
               <LogOut className="w-4 h-4 mr-2" />
@@ -164,7 +164,7 @@ export default function AdminSidebar({
 
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-gray-900/50 dark:bg-black/70 z-30 backdrop-blur-sm mt-16"
+          className="fixed inset-0 bg-gradient-to-br from-gray-900/60 via-blue-900/40 to-purple-900/60 dark:from-black/80 dark:via-blue-950/60 dark:to-purple-950/80 z-30 backdrop-blur-md mt-16"
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
