@@ -300,7 +300,7 @@ export default function TeamRegistration() {
 
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label className="font-bold text-gray-700 dark:text-gray-300">Coach Name</Label>
+                        <Label className="font-bold text-gray-700 dark:text-gray-300">Coach/Coordinator</Label>
                         <Input
                           value={teamData.coach_name}
                           onChange={(e) => setTeamData({ ...teamData, coach_name: e.target.value })}
