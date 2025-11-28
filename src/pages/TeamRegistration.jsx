@@ -30,6 +30,7 @@ export default function TeamRegistration() {
     { jersey_number: "", first_name: "", last_name: "", position: "", contact_number: "" }
   ]);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -39,6 +40,18 @@ export default function TeamRegistration() {
     setDarkMode(savedDarkMode);
     if (savedDarkMode) {
       document.documentElement.classList.add('dark');
+    }
+    
+    // Load saved draft from localStorage
+    const savedDraft = localStorage.getItem('teamRegistrationDraft');
+    if (savedDraft) {
+      try {
+        const draft = JSON.parse(savedDraft);
+        if (draft.teamData) setTeamData(draft.teamData);
+        if (draft.players && draft.players.length > 0) setPlayers(draft.players);
+      } catch (e) {
+        console.error("Error loading draft:", e);
+      }
     }
   }, []);
 
@@ -160,7 +173,8 @@ export default function TeamRegistration() {
     onSuccess: () => {
       setSubmitSuccess(true);
       queryClient.invalidateQueries(['teams']);
-      // Reset form
+      // Clear draft and reset form
+      localStorage.removeItem('teamRegistrationDraft');
       setTimeout(() => {
         setTeamData({
           name: "",
@@ -179,6 +193,26 @@ export default function TeamRegistration() {
       alert(`Failed to submit team: ${error.message}`);
     }
   });
+
+  const handleSaveDraft = () => {
+    const draft = { teamData, players };
+    localStorage.setItem('teamRegistrationDraft', JSON.stringify(draft));
+    setDraftSaved(true);
+    setTimeout(() => setDraftSaved(false), 3000);
+  };
+
+  const handleClearDraft = () => {
+    localStorage.removeItem('teamRegistrationDraft');
+    setTeamData({
+      name: "",
+      sport: "basketball",
+      division: "",
+      coach_name: "",
+      coach_contact: "",
+      logo_url: ""
+    });
+    setPlayers([{ jersey_number: "", first_name: "", last_name: "", position: "", contact_number: "" }]);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -243,6 +277,15 @@ export default function TeamRegistration() {
                   <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
                   <AlertDescription className="text-green-800 dark:text-green-300 font-bold">
                     ✅ Team submitted successfully! Your team is pending admin approval.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {draftSaved && (
+                <Alert className="bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-300 dark:border-blue-800">
+                  <Save className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <AlertDescription className="text-blue-800 dark:text-blue-300 font-bold">
+                    ✅ Draft saved! Your progress has been saved locally.
                   </AlertDescription>
                 </Alert>
               )}
@@ -451,33 +494,52 @@ export default function TeamRegistration() {
                   </CardContent>
                 </Card>
 
-                {/* Submit Button */}
-                <div className="flex justify-end gap-3">
+                {/* Action Buttons */}
+                <div className="flex justify-between items-center">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => navigate(createPageUrl("Home"))}
-                    className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
+                    onClick={handleClearDraft}
+                    className="border-2 border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-bold"
                   >
-                    Cancel
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear Form
                   </Button>
-                  <Button
-                    type="submit"
-                    disabled={submitTeamMutation.isLoading}
-                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-xl"
-                  >
-                    {submitTeamMutation.isLoading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4 mr-2" />
-                        Submit for Approval
-                      </>
-                    )}
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => navigate(createPageUrl("Home"))}
+                      className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleSaveDraft}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-lg"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Draft
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={submitTeamMutation.isLoading}
+                      className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-xl"
+                    >
+                      {submitTeamMutation.isLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Submit for Approval
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </form>
             </div>
