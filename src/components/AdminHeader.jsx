@@ -25,17 +25,24 @@ export default function AdminHeader({
   useEffect(() => {
     if (organization?.theme) {
       const { primary_color, secondary_color, accent_color } = organization.theme;
-      document.documentElement.style.setProperty('--org-primary', primary_color || '#3b82f6');
-      document.documentElement.style.setProperty('--org-secondary', secondary_color || '#f97316');
-      document.documentElement.style.setProperty('--org-accent', accent_color || '#8b5cf6');
-      document.documentElement.style.setProperty('--org-primary-light', `${primary_color || '#3b82f6'}20`);
-      document.documentElement.style.setProperty('--org-secondary-light', `${secondary_color || '#f97316'}20`);
-      document.documentElement.style.setProperty('--org-accent-light', `${accent_color || '#8b5cf6'}20`);
+      const primary = primary_color || '#3b82f6';
+      const secondary = secondary_color || '#f97316';
+      const accent = accent_color || '#8b5cf6';
+      
+      // Apply CSS custom properties
+      document.documentElement.style.setProperty('--org-primary', primary);
+      document.documentElement.style.setProperty('--org-secondary', secondary);
+      document.documentElement.style.setProperty('--org-accent', accent);
+      document.documentElement.style.setProperty('--org-primary-light', `${primary}20`);
+      document.documentElement.style.setProperty('--org-secondary-light', `${secondary}20`);
+      document.documentElement.style.setProperty('--org-accent-light', `${accent}20`);
+      
+      console.log('Theme applied:', { primary, secondary, accent });
     }
   }, [organization?.theme]);
 
   return (
-    <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 h-16 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50 shadow-futuristic">
+    <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 h-16 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-50 shadow-futuristic" style={{ borderBottomColor: organization?.theme?.primary_color ? `${organization.theme.primary_color}40` : undefined }}>
       <div className="flex items-center gap-4">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -72,7 +79,14 @@ export default function AdminHeader({
             </p>
           </div>
           {isSuperAdmin && (
-            <span className="hidden lg:inline-block ml-2 text-xs bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white px-3 py-1.5 rounded-full font-bold shadow-lg animate-pulse">
+            <span 
+              className="hidden lg:inline-block ml-2 text-xs text-white px-3 py-1.5 rounded-full font-bold shadow-lg animate-pulse"
+              style={{ 
+                background: organization?.theme?.primary_color 
+                  ? `linear-gradient(to right, ${organization.theme.primary_color}, ${organization.theme.accent_color || organization.theme.primary_color})`
+                  : 'linear-gradient(to right, #06b6d4, #8b5cf6)'
+              }}
+            >
               SUPER ADMIN
             </span>
           )}
