@@ -63,8 +63,13 @@ export default function Players() {
   };
 
   const loadUser = async () => {
-    const currentUser = await base44.auth.me();
-    setUser(currentUser);
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+    } catch (error) {
+      console.error("Error loading user:", error);
+      base44.auth.redirectToLogin(createPageUrl("Players"));
+    }
   };
 
   const handleLogout = () => {
@@ -262,16 +267,31 @@ export default function Players() {
     setDeletingPlayer({ ...player, statsCount: playerStats.length });
   };
 
-  const PlayerCard = ({ player, sport, sportColor, teamLogo }) => (
-    <Card className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 shadow-lg hover:shadow-2xl transition-all group`}>
-      <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-${sportColor}-500/20 to-transparent rounded-full blur-3xl`}></div>
+  const PlayerCard = ({ player, sport, sportColor, teamLogo }) => {
+    const isBasketball = sport === 'basketball';
+    const cardClasses = isBasketball
+      ? "border-orange-100 dark:border-orange-900 bg-gradient-to-br from-white to-orange-50 dark:from-gray-800 dark:to-orange-950/30"
+      : "border-blue-100 dark:border-blue-900 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-950/30";
+    const glowClasses = isBasketball
+      ? "bg-gradient-to-br from-orange-500/20 to-transparent"
+      : "bg-gradient-to-br from-blue-500/20 to-transparent";
+    const avatarClasses = isBasketball
+      ? "bg-gradient-to-br from-orange-600 to-orange-700"
+      : "bg-gradient-to-br from-blue-600 to-blue-700";
+    const statClasses = isBasketball
+      ? "text-orange-600 dark:text-orange-400"
+      : "text-blue-600 dark:text-blue-400";
+
+    return (
+    <Card className={`relative overflow-hidden border-2 ${cardClasses} shadow-lg hover:shadow-2xl transition-all group`}>
+      <div className={`absolute top-0 right-0 w-40 h-40 ${glowClasses} rounded-full blur-3xl`}></div>
       
       <CardHeader className="pb-3 relative z-10">
         <div className="flex justify-between items-start">
           <div className="flex items-start gap-3 flex-1">
             <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
               <AvatarImage src={player.photo_url} />
-              <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-600 to-${sportColor}-700 text-white font-black text-lg`}>
+              <AvatarFallback className={`${avatarClasses} text-white font-black text-lg`}>
                 {player.jersey_number}
               </AvatarFallback>
             </Avatar>
@@ -330,7 +350,7 @@ export default function Players() {
           <div className={`grid ${sport === 'volleyball' ? 'grid-cols-4' : 'grid-cols-5'} gap-2 text-center`}>
             {player.stats.map((stat, idx) => (
               <div key={idx} className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                <div className={`text-${sportColor}-600 dark:text-${sportColor}-400 font-black text-xl`}>
+                <div className={`${statClasses} font-black text-xl`}>
                   {stat.value || 0}
                 </div>
                 <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">{stat.label}</div>
@@ -346,7 +366,8 @@ export default function Players() {
         </div>
       </CardContent>
     </Card>
-  );
+    );
+  };
 
   const PlayerTable = ({ players }) => {
     const allSameSport = players.length > 0 && players.every(p => getTeamSport(p.team_id) === getTeamSport(players[0].team_id));
@@ -389,13 +410,21 @@ export default function Players() {
                   const sportColor = sport === 'basketball' ? 'orange' : 'blue';
                   const teamLogo = getTeamLogo(player.team_id);
                   
+                  const isBasketball = sport === 'basketball';
+                  const rowHoverClass = isBasketball 
+                    ? "hover:bg-orange-50/50 dark:hover:bg-orange-950/20" 
+                    : "hover:bg-blue-50/50 dark:hover:bg-blue-950/20";
+                  const avatarBgClass = isBasketball
+                    ? "bg-gradient-to-br from-orange-500 to-orange-600"
+                    : "bg-gradient-to-br from-blue-500 to-blue-600";
+
                   return (
-                    <tr key={player.id} className={`border-b border-gray-100 dark:border-gray-700 hover:bg-${sportColor}-50/50 dark:hover:bg-${sportColor}-950/20 transition-colors`}>
+                    <tr key={player.id} className={`border-b border-gray-100 dark:border-gray-700 ${rowHoverClass} transition-colors`}>
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
                           <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
                             <AvatarImage src={player.photo_url} />
-                            <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white text-xs font-bold`}>
+                            <AvatarFallback className={`${avatarBgClass} text-white text-xs font-bold`}>
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
