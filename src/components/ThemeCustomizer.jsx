@@ -28,15 +28,31 @@ export default function ThemeCustomizer({ organization, onUpdate }) {
 
   const updateThemeMutation = useMutation({
     mutationFn: async (newTheme) => {
-      await base44.entities.Organization.update(organization.id, {
+      console.log('Saving theme:', newTheme, 'for org:', organization.id);
+      const result = await base44.entities.Organization.update(organization.id, {
         theme: newTheme
       });
+      console.log('Theme save result:', result);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['organization']);
+      
+      // Apply theme immediately to CSS variables
+      document.documentElement.style.setProperty('--org-primary', theme.primary_color);
+      document.documentElement.style.setProperty('--org-secondary', theme.secondary_color);
+      document.documentElement.style.setProperty('--org-accent', theme.accent_color);
+      document.documentElement.style.setProperty('--org-primary-light', `${theme.primary_color}20`);
+      document.documentElement.style.setProperty('--org-secondary-light', `${theme.secondary_color}20`);
+      document.documentElement.style.setProperty('--org-accent-light', `${theme.accent_color}20`);
+      
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       if (onUpdate) onUpdate();
+    },
+    onError: (error) => {
+      console.error('Error saving theme:', error);
+      alert('Failed to save theme. Please try again.');
     }
   });
 
