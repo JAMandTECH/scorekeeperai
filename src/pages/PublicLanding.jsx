@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, 
-  PlayCircle, Users, BarChart3, Trophy, CheckCircle, Eye, Globe, LogOut, LayoutGrid, Sparkles, Mic, Brain
+  PlayCircle, Users, BarChart3, Trophy, CheckCircle, Eye, Globe, LogOut, LayoutGrid, Sparkles, Mic, Brain, ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -233,15 +233,15 @@ export default function PublicLanding() {
                   Get Started Free
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
-                <Link to={createPageUrl("Home")}>
-                  <Button 
-                    variant="outline"
-                    className="glass border-2 border-cyan-400/50 text-cyan-100 hover:bg-cyan-500/20 hover:border-cyan-400 text-lg px-14 py-8 font-bold rounded-2xl transition-all duration-300 hover:scale-105 neon-glow-blue"
-                  >
-                    <Eye className="w-5 h-5 mr-2" />
-                    View Live Demo
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' })}
+                  variant="outline"
+                  className="glass border-2 border-cyan-400/50 text-cyan-100 hover:bg-cyan-500/20 hover:border-cyan-400 text-lg px-14 py-8 font-bold rounded-2xl transition-all duration-300 hover:scale-105 neon-glow-blue"
+                >
+                  <Eye className="w-5 h-5 mr-2" />
+                  View Demo
+                  <ChevronDown className="w-5 h-5 ml-2 animate-bounce" />
+                </Button>
               </>
             ) : (
               <>
@@ -284,6 +284,197 @@ export default function PublicLanding() {
         </div>
         
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white dark:from-gray-800 to-transparent"></div>
+      </section>
+
+      {/* DEMO SECTION - Sample League Data */}
+      <section id="demo-section" className="py-24 px-4 bg-gradient-to-br from-gray-900 via-blue-950 to-indigo-950 relative overflow-hidden">
+        <div className="absolute inset-0 grid-pattern opacity-20"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-purple-500/15 to-pink-500/15 rounded-full blur-3xl"></div>
+        
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 text-sm font-bold px-6 py-2 shadow-lg">
+              🏀 LIVE DEMO DATA
+            </Badge>
+            <h2 className="text-5xl font-black text-white mb-4">
+              Sample League <span className="text-gradient-primary">Dashboard</span>
+            </h2>
+            <p className="text-xl text-blue-200 max-w-3xl mx-auto">
+              See how your league data would look with ALAB Sports
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-6 mb-12">
+            {/* Demo Standings */}
+            <Card className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl col-span-1">
+              <CardHeader className="border-b border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+                    <Trophy className="w-5 h-5 text-white" />
+                  </div>
+                  <CardTitle className="text-xl font-black text-white">Division A Standings</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  {[
+                    { rank: 1, name: "Thunder Hawks", wins: 12, losses: 2, color: "from-yellow-400 to-yellow-500" },
+                    { rank: 2, name: "Storm Eagles", wins: 10, losses: 4, color: "from-gray-300 to-gray-400" },
+                    { rank: 3, name: "Fire Dragons", wins: 8, losses: 6, color: "from-orange-600 to-orange-700" },
+                    { rank: 4, name: "Ice Wolves", wins: 6, losses: 8, color: "from-gray-500 to-gray-600" },
+                    { rank: 5, name: "Sky Lions", wins: 4, losses: 10, color: "from-gray-500 to-gray-600" },
+                  ].map((team) => (
+                    <div key={team.rank} className="flex items-center gap-3 bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors">
+                      <div className={`w-8 h-8 bg-gradient-to-br ${team.color} rounded-lg flex items-center justify-center text-xs font-black text-white shadow-md`}>
+                        {team.rank}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{team.name}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-green-400 font-bold">{team.wins}</span>
+                        <span className="text-gray-400 mx-1">-</span>
+                        <span className="text-red-400 font-bold">{team.losses}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Demo Top Scorers */}
+            <Card className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl col-span-1">
+              <CardHeader className="border-b border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                    <Target className="w-5 h-5 text-white" />
+                  </div>
+                  <CardTitle className="text-xl font-black text-white">Top Scorers</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  {[
+                    { rank: 1, name: "Marcus Chen", team: "Thunder Hawks", pts: 28.5, jersey: "23", color: "from-yellow-400 to-yellow-500" },
+                    { rank: 2, name: "James Rivera", team: "Storm Eagles", pts: 24.8, jersey: "11", color: "from-gray-300 to-gray-400" },
+                    { rank: 3, name: "David Kim", team: "Fire Dragons", pts: 22.3, jersey: "7", color: "from-orange-600 to-orange-700" },
+                    { rank: 4, name: "Chris Santos", team: "Ice Wolves", pts: 20.1, jersey: "15", color: "from-gray-500 to-gray-600" },
+                    { rank: 5, name: "Mike Torres", team: "Sky Lions", pts: 18.9, jersey: "32", color: "from-gray-500 to-gray-600" },
+                  ].map((player) => (
+                    <div key={player.rank} className="flex items-center gap-3 bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors">
+                      <div className={`w-8 h-8 bg-gradient-to-br ${player.color} rounded-lg flex items-center justify-center text-xs font-black text-white shadow-md`}>
+                        {player.rank}
+                      </div>
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                        #{player.jersey}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{player.name}</p>
+                        <p className="text-xs text-gray-400">{player.team}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-black text-blue-400">{player.pts}</p>
+                        <p className="text-[10px] text-gray-400">PPG</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Demo Live Game */}
+            <Card className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl col-span-1">
+              <CardHeader className="border-b border-white/10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
+                      <PlayCircle className="w-5 h-5 text-white" />
+                    </div>
+                    <CardTitle className="text-xl font-black text-white">Live Game</CardTitle>
+                  </div>
+                  <Badge className="bg-red-500 text-white font-bold animate-pulse">
+                    LIVE
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="text-center mb-4">
+                  <p className="text-xs text-gray-400 font-bold mb-2">Q3 • 8:24</p>
+                </div>
+                <div className="grid grid-cols-3 gap-4 items-center mb-6">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
+                      <span className="text-xl font-black text-white">TH</span>
+                    </div>
+                    <p className="text-xs font-bold text-white mb-1">Thunder Hawks</p>
+                    <p className="text-4xl font-black text-white">67</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-black text-gray-500">VS</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
+                      <span className="text-xl font-black text-white">SE</span>
+                    </div>
+                    <p className="text-xs font-bold text-white mb-1">Storm Eagles</p>
+                    <p className="text-4xl font-black text-white">62</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 gap-2 text-center text-xs text-gray-400 bg-white/5 rounded-lg p-2">
+                  <div><span className="font-bold text-white">Q1:</span> 18-16</div>
+                  <div><span className="font-bold text-white">Q2:</span> 22-24</div>
+                  <div><span className="font-bold text-white">Q3:</span> 27-22</div>
+                  <div><span className="font-bold text-gray-500">Q4:</span> -</div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Demo Upcoming Games */}
+          <Card className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
+            <CardHeader className="border-b border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-white" />
+                </div>
+                <CardTitle className="text-xl font-black text-white">Upcoming Games</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="grid md:grid-cols-3 gap-4">
+                {[
+                  { home: "Fire Dragons", away: "Ice Wolves", date: "Nov 29", time: "7:00 PM", court: "Court 1" },
+                  { home: "Sky Lions", away: "Thunder Hawks", date: "Nov 30", time: "6:00 PM", court: "Court 2" },
+                  { home: "Storm Eagles", away: "Fire Dragons", date: "Dec 1", time: "8:00 PM", court: "Court 1" },
+                ].map((game, i) => (
+                  <div key={i} className="bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors">
+                    <div className="flex justify-between items-center mb-3">
+                      <Badge variant="outline" className="text-cyan-400 border-cyan-400/50 text-xs font-bold">
+                        {game.date}
+                      </Badge>
+                      <span className="text-xs text-gray-400">{game.time}</span>
+                    </div>
+                    <p className="text-sm font-bold text-white mb-1">
+                      {game.home} vs {game.away}
+                    </p>
+                    <p className="text-xs text-gray-400">📍 {game.court}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="text-center mt-12">
+            <Button 
+              onClick={handleGetStarted}
+              className="btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white text-lg px-12 py-7 font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-2xl neon-glow-orange"
+            >
+              Start Your League Now
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
+        </div>
       </section>
 
       {/* AI Features Highlight Section - NEW */}
