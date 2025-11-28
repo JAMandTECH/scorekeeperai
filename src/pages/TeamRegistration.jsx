@@ -183,8 +183,8 @@ export default function TeamRegistration() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!teamData.name || !teamData.sport) {
-      alert("Please fill in team name and sport");
+    if (!teamData.name || !teamData.sport || !teamData.division) {
+      alert("Please fill in team name, sport, and division");
       return;
     }
 
@@ -285,13 +285,14 @@ export default function TeamRegistration() {
                     </div>
 
                     <div>
-                      <Label className="font-bold text-gray-700 dark:text-gray-300">Division</Label>
+                      <Label className="font-bold text-gray-700 dark:text-gray-300">Division *</Label>
                       <select
                         value={teamData.division}
                         onChange={(e) => setTeamData({ ...teamData, division: e.target.value })}
+                        required
                         className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
                       >
-                        <option value="">Select division (optional)</option>
+                        <option value="">Select division</option>
                         {sportDivisions.map(div => (
                           <option key={div.id} value={div.name}>{div.name}</option>
                         ))}
