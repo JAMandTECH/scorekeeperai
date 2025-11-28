@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building2, Upload, Image, Save, AlertCircle, Users, Shield, UserCheck, UserCog } from "lucide-react";
+import { Building2, Upload, Image, Save, AlertCircle, Users, Shield, UserCheck, UserCog, Palette } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { createPageUrl } from "@/utils";
@@ -13,6 +13,7 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "react-router-dom";
+import ThemeCustomizer from "@/components/ThemeCustomizer";
 
 export default function OrganizationSettings() {
   const [user, setUser] = useState(null);
@@ -443,6 +444,14 @@ export default function OrganizationSettings() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Theme Customization - Only for Org Admins */}
+              {user?.role === 'admin' && (
+                <ThemeCustomizer 
+                  organization={organization} 
+                  onUpdate={refetchOrganization}
+                />
+              )}
 
               {/* Organization Info Card */}
               <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 border-2 border-purple-200 dark:border-purple-800">
