@@ -712,8 +712,9 @@ export default function PublicLanding() {
       </section>
 
       {/* Use Cases Section */}
-      <section className="py-24 px-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-24 px-4 bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 relative overflow-hidden">
+        <div className="absolute inset-0 mesh-gradient opacity-30"></div>
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800 text-sm font-bold px-4 py-2">
               🎯 PERFECT FOR
@@ -728,8 +729,9 @@ export default function PublicLanding() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {useCases.map((useCase, i) => (
-              <Card key={i} className="relative overflow-hidden border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl hover:shadow-2xl transition-all group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/20 to-transparent rounded-full blur-3xl"></div>
+              <Card key={i} className="relative overflow-hidden border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 group card-hover">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-500/20 to-cyan-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
+                <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <CardHeader className="relative z-10">
                   <div className="text-6xl mb-4 text-center">{useCase.icon}</div>
                   <CardTitle className="text-2xl font-black text-gray-900 dark:text-white text-center">
