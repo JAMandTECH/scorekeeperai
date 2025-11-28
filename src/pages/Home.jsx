@@ -462,29 +462,29 @@ export default function Home() {
 
               {/* Quick Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                  <div className="text-4xl font-black text-white">{teams.length}</div>
-                  <div className="text-sm text-blue-200 font-semibold">Teams</div>
+                <div className="glass-card rounded-2xl p-5 card-hover cursor-pointer group">
+                  <div className="text-4xl font-black text-gradient-primary group-hover:scale-110 transition-transform inline-block">{teams.length}</div>
+                  <div className="text-sm text-cyan-200 font-semibold mt-1">Teams</div>
                 </div>
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                  <div className="text-4xl font-black text-white">{players.length}</div>
-                  <div className="text-sm text-blue-200 font-semibold">Players</div>
+                <div className="glass-card rounded-2xl p-5 card-hover cursor-pointer group">
+                  <div className="text-4xl font-black text-gradient-warm group-hover:scale-110 transition-transform inline-block">{players.length}</div>
+                  <div className="text-sm text-cyan-200 font-semibold mt-1">Players</div>
                 </div>
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                  <div className="text-4xl font-black text-white">{games.length}</div>
-                  <div className="text-sm text-blue-200 font-semibold">Games</div>
+                <div className="glass-card rounded-2xl p-5 card-hover cursor-pointer group">
+                  <div className="text-4xl font-black bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent group-hover:scale-110 transition-transform inline-block">{games.length}</div>
+                  <div className="text-sm text-cyan-200 font-semibold mt-1">Games</div>
                 </div>
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                  <div className="text-4xl font-black text-white">{games.filter(g => g.status === 'completed').length}</div>
-                  <div className="text-sm text-blue-200 font-semibold">Completed</div>
+                <div className="glass-card rounded-2xl p-5 card-hover cursor-pointer group">
+                  <div className="text-4xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent group-hover:scale-110 transition-transform inline-block">{games.filter(g => g.status === 'completed').length}</div>
+                  <div className="text-sm text-cyan-200 font-semibold mt-1">Completed</div>
                 </div>
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex gap-4 justify-center flex-wrap">
+              <div className="flex gap-6 justify-center flex-wrap">
                 {isAdmin && (
                   <Link to={createPageUrl("Dashboard")}>
-                    <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all">
+                    <Button className="btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white text-lg px-12 py-7 font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-2xl neon-glow-orange">
                       Go to Dashboard
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
@@ -492,7 +492,7 @@ export default function Home() {
                 )}
                 {!isAdmin && isAuthenticated && (
                   <Link to={createPageUrl("TeamRegistration")}>
-                    <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all">
+                    <Button className="btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white text-lg px-12 py-7 font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-2xl neon-glow-orange">
                       <UserPlus className="w-5 h-5 mr-2" />
                       Register Your Team
                     </Button>
@@ -501,7 +501,7 @@ export default function Home() {
                 <Button 
                   onClick={() => setViewMode(viewMode === 'my-org' ? 'all' : 'my-org')}
                   variant="outline"
-                  className="border-2 border-white text-white hover:bg-white hover:text-blue-900 text-lg px-10 py-7 font-bold backdrop-blur-sm"
+                  className="glass border-2 border-cyan-400/50 text-cyan-100 hover:bg-cyan-500/20 hover:border-cyan-400 text-lg px-12 py-7 font-bold rounded-2xl transition-all duration-300 hover:scale-105 neon-glow-blue"
                 >
                   {viewMode === 'my-org' ? (
                     <>
@@ -533,7 +533,7 @@ export default function Home() {
               </div>
               
               <h1 className="text-6xl md:text-7xl font-black mb-6 tracking-tight">
-                ALAB <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">SPORTS</span>
+                <span className="text-gradient-primary neon-text-blue">ALAB</span> <span className="text-gradient-warm">SPORTS</span>
               </h1>
               <p className="text-xl md:text-2xl text-blue-100 mb-3 max-w-3xl mx-auto font-medium">
                 Professional Basketball & Volleyball League Management
@@ -544,10 +544,10 @@ export default function Home() {
               
               {/* Only show buttons if NOT authenticated */}
               {!isAuthenticated && (
-                <div className="flex gap-4 justify-center flex-wrap">
+                <div className="flex gap-6 justify-center flex-wrap">
                   <Button 
                     onClick={() => base44.auth.redirectToLogin(createPageUrl("Dashboard"))}
-                    className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white text-lg px-10 py-7 font-bold shadow-xl transform hover:scale-105 transition-all"
+                    className="btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white text-lg px-12 py-7 font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-2xl neon-glow-orange"
                   >
                     Get Started
                     <ArrowRight className="w-5 h-5 ml-2" />
@@ -555,7 +555,7 @@ export default function Home() {
                   <Link to={createPageUrl("RequestAdminAccess")}>
                     <Button 
                       variant="outline"
-                      className="border-2 border-white text-white hover:bg-white hover:text-blue-900 text-lg px-10 py-7 font-bold backdrop-blur-sm"
+                      className="glass border-2 border-cyan-400/50 text-cyan-100 hover:bg-cyan-500/20 hover:border-cyan-400 text-lg px-12 py-7 font-bold rounded-2xl transition-all duration-300 hover:scale-105 neon-glow-blue"
                     >
                       Request Admin Access
                     </Button>
@@ -1562,16 +1562,18 @@ export default function Home() {
               )}
 
               {/* Footer - ALWAYS SHOW */}
-              <footer className="bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-950 dark:to-indigo-950 text-white py-16 px-4 mt-20">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-2xl">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+              <footer className="bg-gradient-to-br from-gray-900 via-gray-900 to-black dark:from-black dark:via-gray-950 dark:to-black text-white py-16 px-4 mt-20 relative overflow-hidden">
+              <div className="absolute inset-0 grid-pattern opacity-10"></div>
+              <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+              <div className="max-w-7xl mx-auto text-center relative z-10">
+              <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 rounded-xl flex items-center justify-center shadow-2xl neon-glow-orange">
+              <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
                 <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
               </svg>
-            </div>
-            <span className="text-3xl font-black tracking-tight">ALAB SPORTS</span>
-          </div>
+              </div>
+              <span className="text-3xl font-black tracking-tight text-gradient-warm">ALAB SPORTS</span>
+              </div>
           <p className="text-blue-200 dark:text-blue-300 text-lg mb-2 font-medium">
             Professional League Management System
           </p>
