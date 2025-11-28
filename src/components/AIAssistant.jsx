@@ -5,45 +5,136 @@ import { Input } from "@/components/ui/input";
 import { MessageCircle, X, Send, Sparkles, ChevronRight, HelpCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const QUICK_GUIDES = [
+// Role-based quick guides
+const ADMIN_GUIDES = [
   { 
-    title: "Getting Started",
+    title: "Getting Started (Admin)",
     steps: [
       "1. Go to Dashboard to see your organization overview",
-      "2. Add Teams in the Teams section",
-      "3. Add Players to each team in the Players section",
-      "4. Schedule games in the Games section",
-      "5. Start live scoring when games begin!"
+      "2. Create Divisions in the Divisions section",
+      "3. Add Teams in the Teams section",
+      "4. Add Players to each team in the Players section",
+      "5. Schedule games in the Games section",
+      "6. Assign Scorekeepers to manage live scoring"
     ]
   },
   {
     title: "How to Schedule Games",
     steps: [
       "1. Click 'Games' in the sidebar",
-      "2. Click 'Schedule Game' button",
+      "2. Click 'Schedule Game' or 'AI Generate Schedule'",
       "3. Select sport, teams, date/time, and court",
       "4. Assign scorekeepers (optional)",
       "5. Click 'Schedule Game' to save"
     ]
   },
   {
-    title: "How to Do Live Scoring",
+    title: "Managing Scorekeepers",
     steps: [
-      "1. Go to Games or Live Scoring page",
-      "2. Find your scheduled game",
-      "3. Click 'Start Game' button",
-      "4. Tap players to record points, rebounds, assists",
-      "5. Game auto-saves after each action"
+      "1. Go to Scorekeepers page in sidebar",
+      "2. Click 'Add Scorekeeper' button",
+      "3. Enter the user's email address",
+      "4. Select which sports they can score",
+      "5. They will receive access to score assigned games"
     ]
   },
   {
-    title: "Managing Teams & Players",
+    title: "Tournament Brackets",
     steps: [
-      "1. Go to Teams page to add/edit teams",
-      "2. Set team name, sport, and division",
-      "3. Go to Players page to add players",
-      "4. Enter jersey number, name, and position",
-      "5. Players are now available for game stats"
+      "1. Go to Tournament Brackets page",
+      "2. Click 'Create Tournament' button",
+      "3. Select sport, division, and number of teams",
+      "4. Seed teams in order of ranking",
+      "5. Games will be auto-generated for each round"
+    ]
+  }
+];
+
+const SCOREKEEPER_GUIDES = [
+  {
+    title: "How to Score a Game",
+    steps: [
+      "1. Go to 'My Games' in the sidebar",
+      "2. Find your assigned game",
+      "3. Click 'Start Game' when ready",
+      "4. Tap players to record points, rebounds, assists",
+      "5. Use voice commands for hands-free scoring"
+    ]
+  },
+  {
+    title: "Using Voice Commands",
+    steps: [
+      "1. Click the microphone button during live scoring",
+      "2. Say commands like 'Number 23, three pointer'",
+      "3. The system will auto-record the stat",
+      "4. Confirm the action was recorded correctly",
+      "5. Continue scoring with voice or tap"
+    ]
+  },
+  {
+    title: "Managing Game Flow",
+    steps: [
+      "1. Use 'End Quarter' to advance periods",
+      "2. Track timeouts using the timeout buttons",
+      "3. Record fouls for each player",
+      "4. Add notes about the game if needed",
+      "5. Click 'End Game' when finished"
+    ]
+  }
+];
+
+const USER_GUIDES = [
+  {
+    title: "Register Your Team",
+    steps: [
+      "1. Click 'Register Team' in the sidebar",
+      "2. Select your organization and sport",
+      "3. Enter team name and coach details",
+      "4. Add your player roster with jersey numbers",
+      "5. Submit for admin approval"
+    ]
+  },
+  {
+    title: "View Standings & Stats",
+    steps: [
+      "1. Go to the Home page",
+      "2. View team standings by division",
+      "3. Check player leaderboards for top performers",
+      "4. See upcoming and completed game schedules",
+      "5. Filter by basketball or volleyball"
+    ]
+  },
+  {
+    title: "Social Feed",
+    steps: [
+      "1. Click 'Social Feed' in the sidebar",
+      "2. View posts from your organization",
+      "3. Create new posts with photos or videos",
+      "4. Like and comment on posts",
+      "5. Stay connected with your league community"
+    ]
+  }
+];
+
+const PUBLIC_GUIDES = [
+  {
+    title: "Explore ALAB Sports",
+    steps: [
+      "1. View live scores and standings on the Home page",
+      "2. Check team and player statistics",
+      "3. See upcoming game schedules",
+      "4. Sign up to register a team or join a league",
+      "5. Request admin access to manage your own organization"
+    ]
+  },
+  {
+    title: "How to Sign Up",
+    steps: [
+      "1. Click 'Get Started' on the landing page",
+      "2. Create your account with email",
+      "3. Choose your role (fan, player, or admin)",
+      "4. Join an existing organization or request to create one",
+      "5. Start exploring the platform!"
     ]
   }
 ];
