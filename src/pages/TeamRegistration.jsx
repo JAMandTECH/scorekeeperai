@@ -315,7 +315,7 @@ export default function TeamRegistration() {
                         />
                       </div>
                       <div>
-                        <Label className="font-bold text-gray-700 dark:text-gray-300">Coach Contact</Label>
+                        <Label className="font-bold text-gray-700 dark:text-gray-300">Coach/Coordinator Contact</Label>
                         <Input
                           value={teamData.coach_contact}
                           onChange={(e) => setTeamData({ ...teamData, coach_contact: e.target.value })}
