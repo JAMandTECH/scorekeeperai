@@ -411,6 +411,45 @@ export default function LiveScoringVolleyball() {
       }
     }
 
+    // Find best player (highest total points = attacks + blocks + aces)
+    const allPlayersInGame = [...homePlayers, ...awayPlayers];
+    let bestPlayer = null;
+    let bestPoints = 0;
+    
+    allPlayersInGame.forEach(player => {
+      const attacks = getPlayerStat(player.id, 'field_goals_made');
+      const blocks = getPlayerStat(player.id, 'blocks');
+      const aces = getPlayerStat(player.id, 'three_pointers');
+      const points = attacks + blocks + aces;
+      if (points > bestPoints) {
+        bestPoints = points;
+        bestPlayer = player;
+      }
+    });
+
+    const winningTeam = homeSetsWon > awaySetsWon ? homeTeam : awayTeam;
+
+    // Create notification for all org members
+    await base44.entities.Notification.create({
+      organization_id: game.organization_id,
+      type: "game_completed",
+      title: "Game Completed! 🏐",
+      message: `${homeTeam.name} vs ${awayTeam.name} - Final: ${homeScore}-${awayScore} (${homeSetsWon}-${awaySetsWon} sets). ${winningTeam.name} wins!`,
+      data: {
+        game_id: game.id,
+        homeTeam: homeTeam.name,
+        awayTeam: awayTeam.name,
+        homeScore: homeScore,
+        awayScore: awayScore,
+        homeSetsWon: homeSetsWon,
+        awaySetsWon: awaySetsWon,
+        score: true,
+        winner: winningTeam.name,
+        bestPlayer: bestPlayer ? `${bestPlayer.first_name} ${bestPlayer.last_name} (${bestPoints} PTS)` : null
+      },
+      read_by: []
+    });
+
     navigate(createPageUrl("Games"));
   };
 
