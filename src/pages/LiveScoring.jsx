@@ -474,6 +474,40 @@ export default function LiveScoring() {
       });
     }
 
+    // Find best player (highest points)
+    const allPlayersInGame = [...homePlayers, ...awayPlayers];
+    let bestPlayer = null;
+    let bestPoints = 0;
+    
+    allPlayersInGame.forEach(player => {
+      const points = getPlayerStat(player.id, 'points');
+      if (points > bestPoints) {
+        bestPoints = points;
+        bestPlayer = player;
+      }
+    });
+
+    const winningTeam = homeScore > awayScore ? homeTeam : awayTeam;
+
+    // Create notification for all org members
+    await base44.entities.Notification.create({
+      organization_id: game.organization_id,
+      type: "game_completed",
+      title: "Game Completed! 🏀",
+      message: `${homeTeam.name} vs ${awayTeam.name} - Final Score: ${homeScore}-${awayScore}. ${winningTeam.name} wins!`,
+      data: {
+        game_id: game.id,
+        homeTeam: homeTeam.name,
+        awayTeam: awayTeam.name,
+        homeScore: homeScore,
+        awayScore: awayScore,
+        score: true,
+        winner: winningTeam.name,
+        bestPlayer: bestPlayer ? `${bestPlayer.first_name} ${bestPlayer.last_name} (${bestPoints} PTS)` : null
+      },
+      read_by: []
+    });
+
     navigate(createPageUrl("Games"));
   };
 
