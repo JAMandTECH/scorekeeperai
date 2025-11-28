@@ -58,28 +58,14 @@ export default function AdminSidebar({
     baseNavItems = superAdminNav;
   } else if (isAdmin) {
     baseNavItems = adminNav;
-  } else if (user?.role_id) {
-    // Users with assigned roles get admin nav, but filtered by permissions
-    baseNavItems = adminNav;
   } else {
+    // All regular users (with or without role_id) get userNav by default
+    // This ensures they always have access to basic features like Social Feed
     baseNavItems = userNav;
   }
   
   // Filter nav items based on permissions for non-super-admin users
   let navItems = baseNavItems;
-  
-  // While loading permissions, show nothing for role-based users (prevent flash of wrong items)
-  if (permissionsLoading && user?.role_id && !isAdmin && !isSuperAdmin) {
-    navItems = [];
-  } else if (!isSuperAdmin && !navigationItems && !isAdmin) {
-    // Filter items based on permissions for non-admin users
-    navItems = baseNavItems.filter(item => {
-      // Items without permission requirement are always shown
-      if (!item.permission) return true;
-      // Check if user has the required permission
-      return hasPermission(item.permission);
-    });
-  }
 
   return (
     <>
