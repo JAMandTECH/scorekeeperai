@@ -297,6 +297,11 @@ export default function TeamRegistration() {
                           <option key={div.id} value={div.name}>{div.name}</option>
                         ))}
                       </select>
+                      {sportDivisions.length === 0 && (
+                        <p className="text-sm text-amber-600 dark:text-amber-400 mt-1 font-medium">
+                          No divisions available for {teamData.sport}. Please contact an administrator.
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-4">
