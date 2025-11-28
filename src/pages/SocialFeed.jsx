@@ -127,7 +127,7 @@ export default function SocialFeed() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900 mesh-gradient">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -153,7 +153,7 @@ export default function SocialFeed() {
             <div className="max-w-3xl mx-auto space-y-6">
               <div className="flex justify-between items-center">
                 <div>
-                  <h1 className="text-4xl font-black text-gray-900 dark:text-white">Social Feed</h1>
+                  <h1 className="text-4xl font-black text-gradient-primary">Social Feed</h1>
                   <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">
                     Share updates, photos, and videos with {organization.name}
                   </p>
@@ -161,7 +161,7 @@ export default function SocialFeed() {
                 <Button
                   onClick={() => navigate(createPageUrl("Home"))}
                   variant="outline"
-                  className="font-bold"
+                  className="font-bold rounded-xl hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-purple-500/10 transition-all duration-300"
                 >
                   <HomeIcon className="w-4 h-4 mr-2" />
                   Home
@@ -177,10 +177,10 @@ export default function SocialFeed() {
               <div className="space-y-4">
                 {posts.length === 0 && (
                   <div className="text-center py-20">
-                    <div className="w-24 h-24 bg-gradient-to-br from-blue-200 to-indigo-300 dark:from-blue-800 dark:to-indigo-900 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <Users className="w-12 h-12 text-blue-600 dark:text-blue-400" />
+                    <div className="w-28 h-28 bg-gradient-to-br from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6 pulse-glow">
+                      <Users className="w-14 h-14 text-cyan-600 dark:text-cyan-400" />
                     </div>
-                    <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">No posts yet</h3>
+                    <h3 className="text-2xl font-black text-gradient-primary mb-2">No posts yet</h3>
                     <p className="text-gray-600 dark:text-gray-400 font-medium">
                       Be the first to share something with your organization!
                     </p>
