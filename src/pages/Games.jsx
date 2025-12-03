@@ -322,6 +322,9 @@ export default function Games() {
       penalty_limit_per_quarter: parseInt(formData.get('penalty_limit_per_quarter')),
       player_foul_limit: parseInt(formData.get('player_foul_limit')),
       assigned_scorekeeper_emails: selectedScorekeeperEmails,
+      overall_scorekeeper_email: formData.get('overall_scorekeeper_email') || null,
+      home_statistician_email: formData.get('home_statistician_email') || null,
+      away_statistician_email: formData.get('away_statistician_email') || null,
       week_number: weekNumber ? parseInt(weekNumber) : null,
       status: 'scheduled',
       archived: false,
@@ -350,6 +353,9 @@ export default function Games() {
         form.court_number.value = game.court_number || '';
         form.penalty_limit_per_quarter.value = game.penalty_limit_per_quarter || 5;
         form.player_foul_limit.value = game.player_foul_limit || 5;
+        form.overall_scorekeeper_email.value = game.overall_scorekeeper_email || '';
+        form.home_statistician_email.value = game.home_statistician_email || '';
+        form.away_statistician_email.value = game.away_statistician_email || '';
         form.week_number.value = game.week_number || '';
         
         if (game.game_date) {
@@ -1099,32 +1105,60 @@ export default function Games() {
                       </select>
                     </div>
 
-                    <div>
-                      <Label className="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        Assign Scorekeepers (Multiple)
-                      </Label>
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        {scorekeepers.map(scorekeeper => (
-                          <div key={scorekeeper.email} className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              id={`sk-${scorekeeper.email}`}
-                              checked={selectedScorekeeperEmails.includes(scorekeeper.email)}
-                              onChange={() => toggleScorekeeperSelection(scorekeeper.email)}
-                              className="rounded border-gray-300"
-                            />
-                            <label htmlFor={`sk-${scorekeeper.email}`} className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              {scorekeeper.full_name}
-                            </label>
-                          </div>
-                        ))}
+                    {/* Scorekeeper Role Assignments (Basketball Only) */}
+                    <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-xl border-2 border-blue-200 dark:border-blue-800 space-y-4">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <Users className="w-5 h-5 text-blue-600" />
+                        Scorekeeper & Statistician Assignments
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        For basketball: Assign specific roles. The Overall Scorekeeper handles points, fouls, timeouts, and game flow. Statisticians only record non-point stats for their assigned team.
+                      </p>
+                      
+                      <div>
+                        <Label htmlFor="overall_scorekeeper_email" className="font-bold text-gray-700 dark:text-gray-300">Overall Scorekeeper</Label>
+                        <select
+                          id="overall_scorekeeper_email"
+                          name="overall_scorekeeper_email"
+                          className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                        >
+                          <option value="">-- None --</option>
+                          {scorekeepers.map(sk => (
+                            <option key={sk.email} value={sk.email}>{sk.full_name} ({sk.email})</option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Controls score, fouls, timeouts, game flow, and all player stats.</p>
                       </div>
-                      {selectedScorekeeperEmails.length > 0 && (
-                        <p className="text-xs text-green-600 dark:text-green-400 mt-2 font-semibold">
-                          ✓ {selectedScorekeeperEmails.length} scorekeeper(s) selected
-                        </p>
-                      )}
+
+                      <div>
+                        <Label htmlFor="home_statistician_email" className="font-bold text-gray-700 dark:text-gray-300">Home Team Statistician</Label>
+                        <select
+                          id="home_statistician_email"
+                          name="home_statistician_email"
+                          className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                        >
+                          <option value="">-- None --</option>
+                          {scorekeepers.map(sk => (
+                            <option key={sk.email} value={sk.email}>{sk.full_name} ({sk.email})</option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Records non-point stats (rebounds, assists, etc.) for Home team only.</p>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="away_statistician_email" className="font-bold text-gray-700 dark:text-gray-300">Away Team Statistician</Label>
+                        <select
+                          id="away_statistician_email"
+                          name="away_statistician_email"
+                          className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                        >
+                          <option value="">-- None --</option>
+                          {scorekeepers.map(sk => (
+                            <option key={sk.email} value={sk.email}>{sk.full_name} ({sk.email})</option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Records non-point stats (rebounds, assists, etc.) for Away team only.</p>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-3 gap-4">

@@ -38,6 +38,7 @@ export default function LiveScoring() {
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(true);
   const [user, setUser] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
+  const [userRole, setUserRole] = useState('viewer'); // 'overall', 'home_stat', 'away_stat', 'viewer'
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -62,6 +63,25 @@ export default function LiveScoring() {
       console.error("Error loading user:", error);
     }
   };
+
+  // Determine user role for basketball games
+  useEffect(() => {
+    if (user && game && game.sport === 'basketball') {
+      if (game.overall_scorekeeper_email === user.email) {
+        setUserRole('overall');
+      } else if (game.home_statistician_email === user.email) {
+        setUserRole('home_stat');
+      } else if (game.away_statistician_email === user.email) {
+        setUserRole('away_stat');
+      } else if (user.role === 'admin') {
+        setUserRole('overall'); // Admins get full access
+      } else {
+        setUserRole('viewer');
+      }
+    } else if (user?.role === 'admin') {
+      setUserRole('overall'); // Admins always have full access
+    }
+  }, [user, game]);
 
   const loadGame = async () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -214,6 +234,11 @@ export default function LiveScoring() {
 
   // Updated addPoints to accept playerId and teamId
   const addPoints = async (playerId, teamId, points) => {
+    // Only overall scorekeeper can add points for basketball
+    if (game.sport === 'basketball' && userRole !== 'overall') {
+      alert("Only the Overall Scorekeeper can add points.");
+      return;
+    }
     const oldHomeScore = homeScore;
     const oldAwayScore = awayScore;
 
@@ -267,6 +292,22 @@ export default function LiveScoring() {
 
   // Updated addPlayerStat to accept playerId and teamId
   const addPlayerStat = async (playerId, teamId, statType, value) => {
+    // Permission checks for basketball
+    if (game.sport === 'basketball') {
+      const isHomeTeam = teamId === game.home_team_id;
+      if (userRole === 'viewer') {
+        alert("You don't have permission to record stats.");
+        return;
+      }
+      if (userRole === 'home_stat' && !isHomeTeam) {
+        alert("Home Team Statistician can only record stats for Home team players.");
+        return;
+      }
+      if (userRole === 'away_stat' && isHomeTeam) {
+        alert("Away Team Statistician can only record stats for Away team players.");
+        return;
+      }
+    }
     const statUpdates = [{ statType, value }];
     await updatePlayerStats(playerId, teamId, statUpdates);
     
@@ -282,6 +323,11 @@ export default function LiveScoring() {
 
   // Updated handleFoul to accept playerId and teamId
   const handleFoul = async (playerId, teamId) => {
+    // Only overall scorekeeper can manage fouls for basketball
+    if (game.sport === 'basketball' && userRole !== 'overall') {
+      alert("Only the Overall Scorekeeper can manage fouls.");
+      return;
+    }
     const isHomeTeam = teamId === game.home_team_id;
     const currentTeam = isHomeTeam ? 'home' : 'away';
     const oldTeamFouls = isHomeTeam ? homeTeamFouls : awayTeamFouls;
@@ -318,6 +364,11 @@ export default function LiveScoring() {
   };
 
   const useTimeout = async (team) => {
+    // Only overall scorekeeper can manage timeouts for basketball
+    if (game.sport === 'basketball' && userRole !== 'overall') {
+      alert("Only the Overall Scorekeeper can manage timeouts.");
+      return;
+    }
     const oldHomeTimeouts = homeTimeouts;
     const oldAwayTimeouts = awayTimeouts;
 
@@ -345,6 +396,11 @@ export default function LiveScoring() {
   };
 
   const handleUndo = async () => {
+    // Only overall scorekeeper can undo for basketball
+    if (game.sport === 'basketball' && userRole !== 'overall') {
+      alert("Only the Overall Scorekeeper can undo actions.");
+      return;
+    }
     if (actionHistory.length === 0) return;
 
     const lastAction = actionHistory[actionHistory.length - 1];
@@ -404,6 +460,11 @@ export default function LiveScoring() {
   };
 
   const endQuarter = async () => {
+    // Only overall scorekeeper can end quarters for basketball
+    if (game.sport === 'basketball' && userRole !== 'overall') {
+      alert("Only the Overall Scorekeeper can end quarters.");
+      return;
+    }
     // Calculate the score for THIS QUARTER ONLY by subtracting previous quarters' scores
     const previousHomeTotalScore = quarterScores.reduce((sum, q) => sum + q.home, 0);
     const previousAwayTotalScore = quarterScores.reduce((sum, q) => sum + q.away, 0);
@@ -439,6 +500,11 @@ export default function LiveScoring() {
   };
 
   const endGame = async () => {
+    // Only overall scorekeeper can end game for basketball
+    if (game.sport === 'basketball' && userRole !== 'overall') {
+      alert("Only the Overall Scorekeeper can end the game.");
+      return;
+    }
     if (homeScore === awayScore && currentQuarter >= 4) {
       alert("Game is tied! Please play overtime period.");
       return;
@@ -512,6 +578,11 @@ export default function LiveScoring() {
   };
 
   const handleDeclareDefault = async (defaultedTeamId) => {
+    // Only overall scorekeeper can declare default for basketball
+    if (game.sport === 'basketball' && userRole !== 'overall') {
+      alert("Only the Overall Scorekeeper can declare a default.");
+      return;
+    }
     const winningTeamId = defaultedTeamId === game.home_team_id ? game.away_team_id : game.home_team_id;
     const newHomeScore = defaultedTeamId === game.home_team_id ? 0 : 20;
     const newAwayScore = defaultedTeamId === game.away_team_id ? 0 : 20;
@@ -553,6 +624,11 @@ export default function LiveScoring() {
   };
 
   const handleUndoDefault = async () => {
+    // Only overall scorekeeper can undo default for basketball
+    if (game.sport === 'basketball' && userRole !== 'overall') {
+      alert("Only the Overall Scorekeeper can undo a default.");
+      return;
+    }
     if (!game.is_default) return;
 
     const allTeams = await base44.entities.Team.list();
@@ -657,21 +733,29 @@ export default function LiveScoring() {
     const blocks = getPlayerStat(player.id, 'blocks');
     const isFouledOut = totalFouls >= game.player_foul_limit;
     const isSelected = selectedPlayer?.id === player.id;
+    
+    // Determine if player can be selected based on role
+    const isHomePlayer = teamId === game.home_team_id;
+    const canSelectPlayer = game.sport !== 'basketball' || 
+      userRole === 'overall' || 
+      (userRole === 'home_stat' && isHomePlayer) || 
+      (userRole === 'away_stat' && !isHomePlayer);
+    const isDisabledByRole = !canSelectPlayer;
 
     return (
       <button
         onClick={() => {
-          if (isFouledOut) return;
+          if (isFouledOut || isDisabledByRole) return;
           onSelect(player, team);
         }}
         className={`w-full text-left border-2 rounded-lg p-3 mb-2 transition-all ${
-          isFouledOut 
-            ? 'bg-red-50 dark:bg-red-950/30 opacity-50 cursor-not-allowed border-red-300 dark:border-red-800' 
+          isFouledOut || isDisabledByRole
+            ? 'bg-gray-100 dark:bg-gray-900/50 opacity-50 cursor-not-allowed border-gray-300 dark:border-gray-700' 
             : isSelected
               ? 'bg-gradient-to-r from-orange-500 to-orange-600 border-orange-400 ring-2 ring-orange-300 shadow-lg scale-105'
               : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600 hover:shadow-md'
         }`}
-        disabled={isFouledOut}
+        disabled={isFouledOut || isDisabledByRole}
       >
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
@@ -804,7 +888,7 @@ export default function LiveScoring() {
       {/* Main Scoreboard */}
       <div className="sticky z-40 bg-gradient-to-r from-orange-100 via-orange-200 to-orange-100 dark:from-gray-900 dark:via-orange-900 dark:to-gray-900 border-b-4 border-orange-500 shadow-2xl" style={{ top: game.is_default ? '164px' : '64px' }}>
         <div className="max-w-7xl mx-auto p-4">
-          <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="flex items-center justify-center gap-3 mb-4 flex-wrap">
             <Badge className="bg-red-600 text-white border-2 border-red-400 px-6 py-2 text-base font-black shadow-lg">
               <PlayCircle className="w-5 h-5 mr-2 animate-pulse" />
               LIVE - {quarterLabel}
@@ -815,6 +899,19 @@ export default function LiveScoring() {
             <Badge className="bg-purple-600 text-white border-2 border-purple-400 px-4 py-2 text-sm font-black">
               {game.game_type?.replace('_', ' ').toUpperCase() || 'REGULAR SEASON'}
             </Badge>
+            {game.sport === 'basketball' && (
+              <Badge className={`px-4 py-2 text-sm font-black border-2 ${
+                userRole === 'overall' ? 'bg-green-600 text-white border-green-400' :
+                userRole === 'home_stat' ? 'bg-orange-600 text-white border-orange-400' :
+                userRole === 'away_stat' ? 'bg-blue-600 text-white border-blue-400' :
+                'bg-gray-600 text-white border-gray-400'
+              }`}>
+                {userRole === 'overall' ? '🎮 OVERALL SCOREKEEPER' :
+                 userRole === 'home_stat' ? '📊 HOME STATISTICIAN' :
+                 userRole === 'away_stat' ? '📊 AWAY STATISTICIAN' :
+                 '👁 VIEWER'}
+              </Badge>
+            )}
           </div>
 
           <div className="grid grid-cols-3 gap-4 items-center mb-4">
@@ -862,6 +959,7 @@ export default function LiveScoring() {
                     onClick={() => setShowDefaultDialog(true)}
                     size="sm"
                     className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-xs px-4 py-2"
+                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
                   >
                     <Flag className="w-4 h-4 mr-1" />
                     DEFAULT
@@ -872,6 +970,7 @@ export default function LiveScoring() {
                     onClick={() => setShowQuarterEnd(true)}
                     size="sm"
                     className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-black text-xs px-4 py-2"
+                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
                   >
                     END {quarterLabel}
                     <ChevronRight className="w-4 h-4 ml-1" />
@@ -882,6 +981,7 @@ export default function LiveScoring() {
                     onClick={() => setShowQuarterEnd(true)}
                     size="sm"
                     className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-black text-xs px-4 py-2"
+                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
                   >
                     END {quarterLabel}
                     <ChevronRight className="w-4 h-4 ml-1" />
@@ -892,6 +992,7 @@ export default function LiveScoring() {
                     onClick={endGame}
                     size="sm"
                     className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-black text-xs px-4 py-2"
+                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
                   >
                     <CheckCircle className="w-4 h-4 mr-1" />
                     END GAME
@@ -902,6 +1003,7 @@ export default function LiveScoring() {
                     onClick={() => setShowQuarterEnd(true)}
                     size="sm"
                     className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-black text-xs px-4 py-2"
+                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
                   >
                     START OT
                     <ChevronRight className="w-4 h-4 ml-1" />
@@ -1030,60 +1132,68 @@ export default function LiveScoring() {
                 <div className="flex flex-wrap gap-2">
                   <Button
                     onClick={() => addPoints(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
+                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
                   >
                     +1 PT
                   </Button>
                   <Button
                     onClick={() => addPoints(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 2)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
+                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
                   >
                     +2 PTS
                   </Button>
                   <Button
                     onClick={() => addPoints(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 3)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl"
+                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
                   >
                     +3 PTS
                   </Button>
                   <Button
                     onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'rebounds', 1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    disabled={game.sport === 'basketball' && userRole === 'viewer'}
                   >
                     <TrendingUp className="w-4 h-4 mr-1" />
                     REB
                   </Button>
                   <Button
                     onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'assists', 1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    disabled={game.sport === 'basketball' && userRole === 'viewer'}
                   >
                     <Target className="w-4 h-4 mr-1" />
                     AST
                   </Button>
                   <Button
                     onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'steals', 1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    disabled={game.sport === 'basketball' && userRole === 'viewer'}
                   >
                     <Zap className="w-4 h-4 mr-1" />
                     STL
                   </Button>
                   <Button
                     onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'blocks', 1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    disabled={game.sport === 'basketball' && userRole === 'viewer'}
                   >
                     <Shield className="w-4 h-4 mr-1" />
                     BLK
                   </Button>
                   <Button
                     onClick={() => handleFoul(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
                   >
                     <AlertTriangle className="w-4 h-4 mr-1" />
                     FOUL
                   </Button>
                   <Button
                     onClick={handleUndo}
-                    disabled={actionHistory.length === 0}
+                    disabled={actionHistory.length === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <RotateCcw className="w-4 h-4 mr-1" />
@@ -1172,7 +1282,7 @@ export default function LiveScoring() {
                 </h2>
                 <Button
                   onClick={() => useTimeout('home')}
-                  disabled={homeTimeouts === 0}
+                  disabled={homeTimeouts === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
                   className="bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
                 >
                   <Clock className="w-3 h-3 mr-1" />
@@ -1196,7 +1306,7 @@ export default function LiveScoring() {
                 </h2>
                 <Button
                   onClick={() => useTimeout('away')}
-                  disabled={awayTimeouts === 0}
+                  disabled={awayTimeouts === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
                 >
                   <Clock className="w-3 h-3 mr-1" />
