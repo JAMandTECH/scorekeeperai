@@ -406,6 +406,22 @@ export default function TeamRegistration() {
                   </CardContent>
                 </Card>
 
+                {/* AI Player Scanner */}
+                <PlayerFileScanner 
+                  sport={teamData.sport}
+                  onPlayersExtracted={(extractedPlayers) => {
+                    // Merge extracted players with existing ones (or replace if empty)
+                    const hasExistingData = players.some(p => p.first_name || p.last_name || p.jersey_number);
+                    if (!hasExistingData) {
+                      setPlayers(extractedPlayers.slice(0, 25));
+                    } else {
+                      // Append to existing players up to 25 max
+                      const combined = [...players, ...extractedPlayers].slice(0, 25);
+                      setPlayers(combined);
+                    }
+                  }}
+                />
+
                 {/* Player Lineup */}
                 <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
                   <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-orange-50 to-white dark:from-gray-800 dark:to-gray-900">
