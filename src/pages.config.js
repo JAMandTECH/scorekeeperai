@@ -32,6 +32,8 @@ import PendingTeams from './pages/PendingTeams';
 import OrganizationMembers from './pages/OrganizationMembers';
 import RolesPermissions from './pages/RolesPermissions';
 import ManualGameEntry from './pages/ManualGameEntry';
+import JoinOrganization from './pages/JoinOrganization';
+import OrganizationJoinRequests from './pages/OrganizationJoinRequests';
 
 
 export const PAGES = {
@@ -69,6 +71,8 @@ export const PAGES = {
     "OrganizationMembers": OrganizationMembers,
     "RolesPermissions": RolesPermissions,
     "ManualGameEntry": ManualGameEntry,
+    "JoinOrganization": JoinOrganization,
+    "OrganizationJoinRequests": OrganizationJoinRequests,
 }
 
 export const pagesConfig = {
