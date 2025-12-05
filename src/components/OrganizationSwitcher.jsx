@@ -133,10 +133,12 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
         <DropdownMenuSeparator />
         
         {organizations.map(org => {
-          // Priority: currentOrganization (passed from parent, already resolved) > active_organization_id > organization_id
-          const currentActiveOrgId = currentOrganization?.id || user?.active_organization_id || user?.organization_id;
-          const isActive = org.id === currentActiveOrgId;
+          // The actual current org is determined by what's displayed in the header
+          // This should match currentOrganization which is already the resolved org
+          const isActive = org.id === currentOrganization?.id;
           const role = getMembershipRole(org.id);
+          
+          console.log('Rendering org:', org.name, 'isActive:', isActive, 'org.id:', org.id, 'currentOrg.id:', currentOrganization?.id);
           
           return (
             <DropdownMenuItem
@@ -145,7 +147,10 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                handleSwitchOrg(org.id);
+                if (!isActive) {
+                  console.log('Switching to org:', org.id, org.name);
+                  switchOrgMutation.mutate(org.id);
+                }
               }}
               disabled={switchOrgMutation.isPending}
             >
