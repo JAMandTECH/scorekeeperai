@@ -74,8 +74,14 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
     return membership?.role_in_org || 'member';
   };
 
+  console.log('OrganizationSwitcher - Final organizations:', organizations.length, organizations.map(o => o.name));
+  console.log('OrganizationSwitcher - Memberships count:', memberships.length);
+  console.log('OrganizationSwitcher - User org_id:', user?.organization_id);
+  console.log('OrganizationSwitcher - User active_org_id:', user?.active_organization_id);
+  
   // Don't show if user has no memberships and no primary org
   if (organizations.length === 0 && !user?.organization_id && !user?.active_organization_id) {
+    console.log('OrganizationSwitcher - Not showing: no orgs');
     return null;
   }
 
@@ -83,8 +89,11 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
   const hasMultipleOrgs = organizations.length > 1;
 
   if (!hasMultipleOrgs) {
+    console.log('OrganizationSwitcher - Not showing: only 1 org');
     return null;
   }
+  
+  console.log('OrganizationSwitcher - Showing switcher!');
 
   return (
     <DropdownMenu>
