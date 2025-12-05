@@ -99,7 +99,25 @@ export default function JoinOrganization() {
 
   // Submit join request mutation
   const submitRequestMutation = useMutation({
-    mutationFn: (data) => base44.entities.OrganizationJoinRequest.create(data),
+    mutationFn: async (data) => {
+      const request = await base44.entities.OrganizationJoinRequest.create(data);
+      
+      // Create notification for organization admins
+      await base44.entities.Notification.create({
+        organization_id: data.organization_id,
+        type: 'join_request',
+        title: 'New Join Request',
+        message: `${data.user_name || data.user_email} wants to join as a ${data.requested_role_in_org}`,
+        data: {
+          request_id: request.id,
+          user_name: data.user_name,
+          user_email: data.user_email,
+          role: data.requested_role_in_org
+        }
+      });
+      
+      return request;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-join-requests'] });
       setShowRequestDialog(false);

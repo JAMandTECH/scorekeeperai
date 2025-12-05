@@ -95,6 +95,19 @@ export default function OrganizationJoinRequests() {
       // Update request status
       await base44.entities.OrganizationJoinRequest.update(request.id, { status: "approved" });
       
+      // Create in-app notification for the user
+      await base44.entities.Notification.create({
+        organization_id: request.organization_id,
+        type: 'join_approved',
+        title: 'Join Request Approved!',
+        message: `You are now a ${request.requested_role_in_org} of ${request.organization_name}`,
+        data: {
+          organization_name: request.organization_name,
+          role: request.requested_role_in_org,
+          user_id: request.user_id
+        }
+      });
+      
       // Send notification email
       await base44.integrations.Core.SendEmail({
         to: request.user_email,
@@ -113,6 +126,18 @@ export default function OrganizationJoinRequests() {
   const rejectMutation = useMutation({
     mutationFn: async (request) => {
       await base44.entities.OrganizationJoinRequest.update(request.id, { status: "rejected" });
+      
+      // Create in-app notification for the user
+      await base44.entities.Notification.create({
+        organization_id: request.organization_id,
+        type: 'join_rejected',
+        title: 'Join Request Update',
+        message: `Your request to join ${request.organization_name} was not approved`,
+        data: {
+          organization_name: request.organization_name,
+          user_id: request.user_id
+        }
+      });
       
       // Send notification email
       await base44.integrations.Core.SendEmail({
