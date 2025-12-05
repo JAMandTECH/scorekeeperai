@@ -132,14 +132,19 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
         <DropdownMenuSeparator />
         
         {organizations.map(org => {
-          const isActive = org.id === currentOrganization?.id || org.id === user?.active_organization_id;
+          const currentActiveOrgId = user?.active_organization_id || user?.organization_id || currentOrganization?.id;
+          const isActive = org.id === currentActiveOrgId;
           const role = getMembershipRole(org.id);
           
           return (
             <DropdownMenuItem
               key={org.id}
               className={`flex items-center gap-3 p-3 cursor-pointer ${isActive ? 'bg-blue-50 dark:bg-blue-950/30' : ''}`}
-              onClick={() => handleSwitchOrg(org.id)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSwitchOrg(org.id);
+              }}
               disabled={switchOrgMutation.isPending}
             >
               <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-sm">
