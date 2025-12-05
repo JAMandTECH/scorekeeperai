@@ -143,6 +143,8 @@ export default function Home() {
   // Navigation for non-admin users (ordinary users)
   const userNav = [
     { title: "Home", url: createPageUrl("Home"), icon: HomeIcon },
+    { title: "Register Team", url: createPageUrl("TeamRegistration"), icon: UserPlus },
+    { title: "Join Organization", url: createPageUrl("JoinOrganization"), icon: Building2 },
     { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
   ];
   
