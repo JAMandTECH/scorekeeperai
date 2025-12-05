@@ -61,8 +61,18 @@ export default function AdminApprovals() {
 
   const { data: requests = [] } = useQuery({
     queryKey: ['adminRequests'],
-    queryFn: () => base44.entities.AdminRequest.list('-created_date'),
+    queryFn: async () => {
+      try {
+        const allRequests = await base44.entities.AdminRequest.list('-created_date');
+        console.log("AdminApprovals - All requests fetched:", allRequests);
+        return allRequests;
+      } catch (error) {
+        console.error("AdminApprovals - Error fetching requests:", error);
+        return [];
+      }
+    },
     enabled: !!user,
+    refetchInterval: 10000,
   });
 
   const { data: allUsers = [] } = useQuery({
