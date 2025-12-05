@@ -75,7 +75,8 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
   });
 
   const handleSwitchOrg = (orgId) => {
-    const currentActiveOrgId = user?.active_organization_id || user?.organization_id || currentOrganization?.id;
+    // Priority: currentOrganization (passed from parent) > active_organization_id > organization_id
+    const currentActiveOrgId = currentOrganization?.id || user?.active_organization_id || user?.organization_id;
     console.log('OrganizationSwitcher - handleSwitchOrg called with:', orgId, 'currentActive:', currentActiveOrgId);
     if (orgId === currentActiveOrgId) {
       console.log('OrganizationSwitcher - Same org, skipping');
@@ -132,7 +133,8 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
         <DropdownMenuSeparator />
         
         {organizations.map(org => {
-          const currentActiveOrgId = user?.active_organization_id || user?.organization_id || currentOrganization?.id;
+          // Priority: currentOrganization (passed from parent, already resolved) > active_organization_id > organization_id
+          const currentActiveOrgId = currentOrganization?.id || user?.active_organization_id || user?.organization_id;
           const isActive = org.id === currentActiveOrgId;
           const role = getMembershipRole(org.id);
           
