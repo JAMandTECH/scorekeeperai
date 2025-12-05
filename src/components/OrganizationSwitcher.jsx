@@ -20,16 +20,16 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
   const queryClient = useQueryClient();
 
   // Fetch user's organization memberships
-  const { data: memberships = [] } = useQuery({
+  const { data: memberships = [], isLoading: membershipsLoading } = useQuery({
     queryKey: ['user-memberships', user?.id],
     queryFn: () => base44.entities.UserOrganization.filter({ user_id: user?.id, status: 'active' }),
     enabled: !!user?.id,
-    refetchInterval: 30000, // Refresh every 30 seconds to catch new approvals
+    refetchInterval: 15000, // Refresh every 15 seconds to catch new approvals
   });
 
   // Fetch all organizations for the memberships
-  const { data: organizations = [] } = useQuery({
-    queryKey: ['membership-organizations', memberships.map(m => m.organization_id), user?.organization_id],
+  const { data: organizations = [], isLoading: orgsLoading } = useQuery({
+    queryKey: ['membership-organizations', memberships.map(m => m.organization_id), user?.organization_id, user?.active_organization_id],
     queryFn: async () => {
       const allOrgs = await base44.entities.Organization.list();
       const orgIds = new Set(memberships.map(m => m.organization_id));
@@ -38,7 +38,14 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
       if (user?.organization_id) orgIds.add(user.organization_id);
       if (user?.active_organization_id) orgIds.add(user.active_organization_id);
       
-      return allOrgs.filter(org => orgIds.has(org.id));
+      console.log('OrganizationSwitcher - Memberships:', memberships);
+      console.log('OrganizationSwitcher - Org IDs to fetch:', [...orgIds]);
+      console.log('OrganizationSwitcher - All orgs:', allOrgs.map(o => ({ id: o.id, name: o.name })));
+      
+      const filtered = allOrgs.filter(org => orgIds.has(org.id));
+      console.log('OrganizationSwitcher - Filtered orgs:', filtered.map(o => ({ id: o.id, name: o.name })));
+      
+      return filtered;
     },
     enabled: memberships.length > 0 || !!user?.organization_id || !!user?.active_organization_id,
   });
