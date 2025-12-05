@@ -98,6 +98,7 @@ export default function AdminHeader({
         <OrganizationSwitcher 
           user={user} 
           currentOrganization={organization}
+          onSwitch={() => window.location.reload()}
         />
         
         <NotificationBell 
