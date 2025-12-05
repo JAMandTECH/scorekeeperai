@@ -712,7 +712,7 @@ export default function Home() {
                         )}
                         
                         <div className="flex gap-2">
-                          <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}`} className="flex-1">
+                          <Link to={createPageUrl("PublicGameView") + `?game_id=${game.id}`} className="flex-1">
                             <Button className={`w-full bg-gradient-to-r from-${sportColor}-600 to-${sportColor}-700 hover:from-${sportColor}-700 hover:to-${sportColor}-800 text-white font-bold shadow-md`}>
                               <PlayCircle className="w-4 h-4 mr-2" />
                               View Live
