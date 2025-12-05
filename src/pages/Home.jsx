@@ -66,10 +66,11 @@ export default function Home() {
           
           setUser(currentUser);
           
-          // Load organization if user has organization_id OR active_organization_id
-          if (hasOrg) {
+          // Load organization - prioritize active_organization_id over organization_id
+          const activeOrgId = currentUser?.active_organization_id || currentUser?.organization_id;
+          if (activeOrgId) {
             const orgs = await base44.entities.Organization.list();
-            const userOrg = orgs.find(o => o.id === hasOrg);
+            const userOrg = orgs.find(o => o.id === activeOrgId);
             setOrganization(userOrg);
           }
         } catch (error) {
