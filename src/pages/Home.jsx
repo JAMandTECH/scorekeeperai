@@ -20,7 +20,7 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
   const [user, setUser] = useState(null);
   const [organization, setOrganization] = useState(null);
-  const [viewMode, setViewMode] = useState('all'); // 'all' or 'my-org'
+
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
@@ -61,7 +61,6 @@ export default function Home() {
             const orgs = await base44.entities.Organization.list();
             const userOrg = orgs.find(o => o.id === orgId);
             setOrganization(userOrg);
-            setViewMode('my-org');
           }
         } catch (error) {
           console.log("Error loading user data after authentication:", error);
@@ -73,14 +72,12 @@ export default function Home() {
         // If not authenticated, ensure user and organization are null
         setUser(null);
         setOrganization(null);
-        setViewMode('all');
       }
     } catch (error) {
       console.log("Error during authentication check:", error);
       setIsAuthenticated(false);
       setUser(null);
       setOrganization(null);
-      setViewMode('all');
     } finally {
       setLoading(false);
     }
@@ -169,14 +166,10 @@ export default function Home() {
     enabled: isAuthenticated === true,
   });
 
-  // Filter data based on view mode
-  const teams = viewMode === 'my-org' && user?.organization_id
-    ? allTeams.filter(t => t.organization_id === user.organization_id)
-    : allTeams;
-
-  const games = viewMode === 'my-org' && user?.organization_id
-    ? allGames.filter(g => g.organization_id === user.organization_id)
-    : allGames;
+  // Filter data based on user's organization
+  const orgId = user?.organization_id || user?.active_organization_id;
+  const teams = orgId ? allTeams.filter(t => t.organization_id === orgId) : allTeams;
+  const games = orgId ? allGames.filter(g => g.organization_id === orgId) : allGames;
 
   const teamIds = teams.map(t => t.id);
   const players = allPlayers.filter(p => teamIds.includes(p.team_id));
@@ -500,27 +493,6 @@ export default function Home() {
                     </Button>
                   </Link>
                 )}
-                <Button 
-                  onClick={() => setViewMode(viewMode === 'my-org' ? 'all' : 'my-org')}
-                  variant="outline"
-                  className="glass border-2 border-cyan-400/50 text-cyan-100 hover:bg-cyan-500/20 hover:border-cyan-400 text-lg px-12 py-7 font-bold rounded-2xl transition-all duration-300 hover:scale-105 neon-glow-blue"
-                >
-                  {viewMode === 'my-org' ? (
-                    <>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-                        <path d="M2 12h20"/>
-                      </svg>
-                      View All Leagues
-                    </>
-                  ) : (
-                    <>
-                      <Building2 className="w-5 h-5 mr-2" />
-                      View My Organization
-                    </>
-                  )}
-                </Button>
               </div>
             </div>
           ) : (
@@ -575,7 +547,7 @@ export default function Home() {
           {user && (
             <div className="max-w-7xl mx-auto px-4 py-16">
           {/* Organization Info Banner - Below Hero */}
-          {organization && viewMode === 'my-org' && (
+          {organization && (
             <div className="mb-12">
               <Card className="relative overflow-hidden border-2 border-blue-200 dark:border-blue-800 shadow-2xl">
                 <div className="absolute inset-0 bg-gradient-to-br from-white via-blue-50/50 to-purple-50/50 dark:from-gray-800 dark:via-blue-950/30 dark:to-purple-950/30"></div>
@@ -642,59 +614,14 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Right: Action Button */}
-                    <div className="flex-shrink-0">
-                      <Button
-                        onClick={() => setViewMode('all')}
-                        size="lg"
-                        variant="outline"
-                        className="border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <circle cx="12" cy="12" r="10"/>
-                          <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-                          <path d="M2 12h20"/>
-                        </svg>
-                        View All Leagues
-                      </Button>
-                    </div>
+
                   </div>
                 </CardContent>
               </Card>
             </div>
           )}
 
-          {/* "Viewing All Leagues" Banner */}
-          {organization && viewMode === 'all' && (
-            <div className="mb-12">
-              <Card className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 border-0 shadow-2xl">
-                <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-white">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="10"/>
-                          <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-                          <path d="M2 12h20"/>
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-black">Viewing All Leagues</h3>
-                        <p className="text-sm text-blue-100">Showing data from all organizations</p>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => setViewMode('my-org')}
-                      className="bg-white text-indigo-600 hover:bg-gray-100 font-bold"
-                    >
-                      <Building2 className="w-4 h-4 mr-2" />
-                      Back to {organization.name}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+
 
           {/* AI Insights Section - ONLY FOR ADMINS */}
           {isAdmin && (teams.length > 0 || games.length > 0) && (
