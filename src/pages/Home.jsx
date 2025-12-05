@@ -48,7 +48,6 @@ export default function Home() {
       if (authenticated) {
         try {
           const currentUser = await base44.auth.me();
-          setUser(currentUser);
           
           // Redirect super admins to SuperAdminHome
           if (currentUser?.role === 'admin' && currentUser?.is_super_admin === true) {
@@ -56,11 +55,21 @@ export default function Home() {
             return;
           }
           
+          // Check if user has NOT completed onboarding AND has no organization
+          // Redirect to RoleSelection for new users
+          const hasOrg = currentUser?.organization_id || currentUser?.active_organization_id;
+          if (!currentUser?.onboarding_completed && !hasOrg && currentUser?.role !== 'admin') {
+            console.log("New user without org, redirecting to RoleSelection");
+            navigate(createPageUrl("RoleSelection"));
+            return;
+          }
+          
+          setUser(currentUser);
+          
           // Load organization if user has organization_id OR active_organization_id
-          const orgId = currentUser?.organization_id || currentUser?.active_organization_id;
-          if (orgId) {
+          if (hasOrg) {
             const orgs = await base44.entities.Organization.list();
-            const userOrg = orgs.find(o => o.id === orgId);
+            const userOrg = orgs.find(o => o.id === hasOrg);
             setOrganization(userOrg);
           }
         } catch (error) {
