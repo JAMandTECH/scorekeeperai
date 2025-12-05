@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles, Clock, UserPlus, UserCog, FileEdit } from "lucide-react";
+import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles, Clock, UserPlus, UserCog, FileEdit, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePermissions } from "@/components/hooks/usePermissions";
@@ -39,6 +39,7 @@ export default function AdminSidebar({
     { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3, permission: "view_statistics" },
     { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle, permission: "manage_social" },
     { title: "Roles & Permissions", url: createPageUrl("RolesPermissions"), icon: UserCog, permission: "manage_roles" },
+    { title: "Join Requests", url: createPageUrl("OrganizationJoinRequests"), icon: UserCheck, permission: "manage_members" },
     { title: "Data Backup", url: createPageUrl("DataBackup"), icon: Database, permission: "data_backup" },
     { title: "Organization Settings", url: createPageUrl("OrganizationSettings"), icon: Settings, permission: "manage_organization" },
   ];
@@ -46,6 +47,7 @@ export default function AdminSidebar({
   const userNav = [
     { title: "Home", url: createPageUrl("Home"), icon: Home },
     { title: "Register Team", url: createPageUrl("TeamRegistration"), icon: UserPlus },
+    { title: "Join Organization", url: createPageUrl("JoinOrganization"), icon: Building2 },
     { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
   ];
 
