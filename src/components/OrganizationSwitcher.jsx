@@ -19,18 +19,19 @@ import { createPageUrl } from "@/utils";
 export default function OrganizationSwitcher({ user, currentOrganization, onSwitch }) {
   const queryClient = useQueryClient();
 
-  // Fetch user's organization memberships using filter by email
+  // Fetch user's organization memberships using filter by user_id
   const { data: memberships = [], isLoading: membershipsLoading } = useQuery({
-    queryKey: ['user-memberships', user?.email],
+    queryKey: ['user-org-memberships', user?.id],
     queryFn: async () => {
       const userMemberships = await base44.entities.UserOrganization.filter({ 
-        user_email: user?.email 
+        user_id: user?.id 
       });
-      console.log('OrganizationSwitcher - User memberships by email:', userMemberships);
+      console.log('OrganizationSwitcher - User memberships:', userMemberships);
       return userMemberships;
     },
-    enabled: !!user?.email,
-    refetchInterval: 15000,
+    enabled: !!user?.id,
+    staleTime: 60000, // Cache for 1 minute to reduce API calls
+    refetchInterval: 60000,
   });
 
   // Fetch all organizations for the memberships
