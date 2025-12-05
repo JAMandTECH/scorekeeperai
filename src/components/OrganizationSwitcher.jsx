@@ -24,22 +24,23 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
     queryKey: ['user-memberships', user?.id],
     queryFn: () => base44.entities.UserOrganization.filter({ user_id: user?.id, status: 'active' }),
     enabled: !!user?.id,
+    refetchInterval: 30000, // Refresh every 30 seconds to catch new approvals
   });
 
   // Fetch all organizations for the memberships
   const { data: organizations = [] } = useQuery({
-    queryKey: ['membership-organizations', memberships.map(m => m.organization_id)],
+    queryKey: ['membership-organizations', memberships.map(m => m.organization_id), user?.organization_id],
     queryFn: async () => {
-      if (memberships.length === 0) return [];
       const allOrgs = await base44.entities.Organization.list();
-      const orgIds = memberships.map(m => m.organization_id);
-      // Include current org if not in memberships
-      if (user?.organization_id && !orgIds.includes(user.organization_id)) {
-        orgIds.push(user.organization_id);
-      }
-      return allOrgs.filter(org => orgIds.includes(org.id));
+      const orgIds = new Set(memberships.map(m => m.organization_id));
+      
+      // Include current org and active org if not in memberships
+      if (user?.organization_id) orgIds.add(user.organization_id);
+      if (user?.active_organization_id) orgIds.add(user.active_organization_id);
+      
+      return allOrgs.filter(org => orgIds.has(org.id));
     },
-    enabled: memberships.length > 0 || !!user?.organization_id,
+    enabled: memberships.length > 0 || !!user?.organization_id || !!user?.active_organization_id,
   });
 
   // Switch organization mutation
@@ -67,14 +68,14 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
   };
 
   // Don't show if user has no memberships and no primary org
-  if (organizations.length === 0 && !user?.organization_id) {
+  if (organizations.length === 0 && !user?.organization_id && !user?.active_organization_id) {
     return null;
   }
 
   // Only show dropdown if user has multiple organizations
-  const hasMultipleOrgs = organizations.length > 1 || (organizations.length === 1 && user?.organization_id && organizations[0]?.id !== user?.organization_id);
+  const hasMultipleOrgs = organizations.length > 1;
 
-  if (!hasMultipleOrgs && organizations.length <= 1) {
+  if (!hasMultipleOrgs) {
     return null;
   }
 

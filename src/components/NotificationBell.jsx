@@ -16,15 +16,33 @@ export default function NotificationBell({ user, organizationId }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
 
+  // Fetch notifications for user's organizations
+  const { data: userMemberships = [] } = useQuery({
+    queryKey: ['user-org-memberships-for-notifications', user?.id],
+    queryFn: () => base44.entities.UserOrganization.filter({ user_id: user?.id, status: 'active' }),
+    enabled: !!user?.id,
+  });
+
   const { data: notifications = [] } = useQuery({
-    queryKey: ['notifications', organizationId],
-    queryFn: () => base44.entities.Notification.filter(
-      { organization_id: organizationId },
-      '-created_date',
-      50
-    ),
-    enabled: !!organizationId,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    queryKey: ['notifications', organizationId, userMemberships.map(m => m.organization_id)],
+    queryFn: async () => {
+      // Get notifications from all user's organizations
+      const orgIds = new Set([organizationId]);
+      userMemberships.forEach(m => orgIds.add(m.organization_id));
+      if (user?.organization_id) orgIds.add(user.organization_id);
+      if (user?.active_organization_id) orgIds.add(user.active_organization_id);
+      
+      const allNotifications = await base44.entities.Notification.list('-created_date', 100);
+      
+      // Filter notifications that belong to user's organizations
+      // or are specifically for this user (join request notifications)
+      return allNotifications.filter(n => 
+        orgIds.has(n.organization_id) || 
+        n.data?.user_id === user?.id
+      ).slice(0, 50);
+    },
+    enabled: !!user?.id,
+    refetchInterval: 15000, // Refetch every 15 seconds
   });
 
   const unreadCount = notifications.filter(
