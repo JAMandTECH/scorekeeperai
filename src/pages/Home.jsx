@@ -170,6 +170,7 @@ export default function Home() {
     queryKey: ['all-games-home'],
     queryFn: () => base44.entities.Game.list('-game_date'),
     enabled: isAuthenticated === true,
+    refetchInterval: 10000, // Auto-refresh every 10 seconds for live scores
   });
 
   const { data: allPlayerStats = [] } = useQuery({
