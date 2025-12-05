@@ -75,8 +75,13 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
   });
 
   const handleSwitchOrg = (orgId) => {
-    console.log('OrganizationSwitcher - handleSwitchOrg called with:', orgId, 'current:', currentOrganization?.id);
-    if (orgId === currentOrganization?.id || orgId === user?.active_organization_id) return;
+    const currentActiveOrgId = user?.active_organization_id || user?.organization_id || currentOrganization?.id;
+    console.log('OrganizationSwitcher - handleSwitchOrg called with:', orgId, 'currentActive:', currentActiveOrgId);
+    if (orgId === currentActiveOrgId) {
+      console.log('OrganizationSwitcher - Same org, skipping');
+      return;
+    }
+    console.log('OrganizationSwitcher - Proceeding with switch');
     switchOrgMutation.mutate(orgId);
   };
 
