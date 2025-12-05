@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, BarChart3, Home as HomeIcon, PlayCircle, MessageCircle, UserPlus } from "lucide-react";
+import { Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, BarChart3, Home as HomeIcon, PlayCircle, MessageCircle, UserPlus, Video } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -67,7 +67,6 @@ export default function Home() {
           console.log("Error loading user data after authentication:", error);
           setUser(null); 
           setOrganization(null);
-          setViewMode('all'); 
         }
       } else {
         // If not authenticated, ensure user and organization are null
@@ -634,6 +633,95 @@ export default function Home() {
                 organizationName={organization?.name || "ScorekeeperAI"}
               />
             </div>
+          )}
+
+          {/* LIVE GAMES IN PROGRESS */}
+          {games.filter(g => g.status === 'in_progress').length > 0 && (
+            <section className="mb-12">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <PlayCircle className="w-5 h-5 text-white animate-pulse" />
+                </div>
+                <h2 className="text-3xl font-black text-gray-900 dark:text-white">Games In Progress</h2>
+                <Badge className="bg-red-500 text-white font-bold animate-pulse">LIVE</Badge>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {games.filter(g => g.status === 'in_progress').map(game => {
+                  const homeTeamData = allTeams.find(t => t.id === game.home_team_id);
+                  const awayTeamData = allTeams.find(t => t.id === game.away_team_id);
+                  if (!homeTeamData || !awayTeamData) return null;
+
+                  const quarterLabel = game.sport === 'basketball' 
+                    ? (game.current_quarter <= 4 ? `Q${game.current_quarter}` : `OT${game.current_quarter - 4}`)
+                    : `Set ${game.current_quarter}`;
+                  const sportColor = game.sport === 'basketball' ? 'orange' : 'blue';
+
+                  return (
+                    <Card key={game.id} className={`glass-card border-2 border-${sportColor}-400/50 shadow-lg hover:shadow-xl transition-shadow overflow-hidden`}>
+                      <CardHeader className={`bg-gradient-to-r from-${sportColor}-600 to-${sportColor}-700 py-3 px-4`}>
+                        <CardTitle className="text-white text-lg font-bold flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                            LIVE
+                          </div>
+                          <Badge className="bg-white/20 text-white font-bold border-0">{game.sport.toUpperCase()}</Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex-1 text-center">
+                            <Avatar className="w-14 h-14 mx-auto mb-2 border-4 border-white dark:border-gray-700 shadow-lg">
+                              <AvatarImage src={homeTeamData.logo_url} />
+                              <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white text-sm font-bold`}>{homeTeamData.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm truncate">{homeTeamData.name}</p>
+                          </div>
+                          <div className="flex flex-col items-center mx-4">
+                            <span className="text-4xl font-black text-gray-900 dark:text-white">{game.home_score} - {game.away_score}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-bold mt-1">{quarterLabel}</span>
+                          </div>
+                          <div className="flex-1 text-center">
+                            <Avatar className="w-14 h-14 mx-auto mb-2 border-4 border-white dark:border-gray-700 shadow-lg">
+                              <AvatarImage src={awayTeamData.logo_url} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-bold">{awayTeamData.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm truncate">{awayTeamData.name}</p>
+                          </div>
+                        </div>
+                        
+                        {/* Live Stream Embed */}
+                        {game.stream_url && (
+                          <div className="mb-4">
+                            <LiveStreamEmbed 
+                              streamUrl={game.stream_url} 
+                              gameTitle={`${homeTeamData.name} vs ${awayTeamData.name}`}
+                            />
+                          </div>
+                        )}
+                        
+                        <div className="flex gap-2">
+                          <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}`} className="flex-1">
+                            <Button className={`w-full bg-gradient-to-r from-${sportColor}-600 to-${sportColor}-700 hover:from-${sportColor}-700 hover:to-${sportColor}-800 text-white font-bold shadow-md`}>
+                              <PlayCircle className="w-4 h-4 mr-2" />
+                              View Live
+                            </Button>
+                          </Link>
+                          {game.stream_url && (
+                            <Button 
+                              variant="outline" 
+                              className="border-2 border-red-400 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                              onClick={() => window.open(game.stream_url, '_blank')}
+                            >
+                              <Video className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </section>
           )}
 
           {/* BASKETBALL SECTION */}
