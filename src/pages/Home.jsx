@@ -178,8 +178,8 @@ export default function Home() {
     enabled: isAuthenticated === true,
   });
 
-  // Filter data based on user's organization
-  const orgId = user?.organization_id || user?.active_organization_id;
+  // Filter data based on user's ACTIVE organization (prioritize active_organization_id)
+  const orgId = user?.active_organization_id || user?.organization_id;
   const teams = orgId ? allTeams.filter(t => t.organization_id === orgId) : allTeams;
   const games = orgId ? allGames.filter(g => g.organization_id === orgId) : allGames;
 
