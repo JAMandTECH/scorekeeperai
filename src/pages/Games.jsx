@@ -310,25 +310,26 @@ export default function Games() {
     const formData = new FormData(e.target);
     const weekNumber = formData.get('week_number');
     const data = {
-      organization_id: user?.organization_id,
-      home_team_id: formData.get('home_team_id'),
-      away_team_id: formData.get('away_team_id'),
-      sport: formData.get('sport'),
-      game_type: formData.get('game_type'),
-      game_date: new Date(formData.get('game_date')).toISOString(),
-      court_number: formData.get('court_number'),
-      duration_hours: 1.5,
-      location: formData.get('location'),
-      penalty_limit_per_quarter: parseInt(formData.get('penalty_limit_per_quarter')),
-      player_foul_limit: parseInt(formData.get('player_foul_limit')),
-      assigned_scorekeeper_emails: selectedScorekeeperEmails,
-      overall_scorekeeper_email: formData.get('overall_scorekeeper_email') || null,
-      home_statistician_email: formData.get('home_statistician_email') || null,
-      away_statistician_email: formData.get('away_statistician_email') || null,
-      week_number: weekNumber ? parseInt(weekNumber) : null,
-      status: 'scheduled',
-      archived: false,
-    };
+                organization_id: user?.organization_id,
+                home_team_id: formData.get('home_team_id'),
+                away_team_id: formData.get('away_team_id'),
+                sport: formData.get('sport'),
+                game_type: formData.get('game_type'),
+                game_date: new Date(formData.get('game_date')).toISOString(),
+                court_number: formData.get('court_number'),
+                duration_hours: 1.5,
+                location: formData.get('location'),
+                stream_url: formData.get('stream_url') || null,
+                penalty_limit_per_quarter: parseInt(formData.get('penalty_limit_per_quarter')),
+                player_foul_limit: parseInt(formData.get('player_foul_limit')),
+                assigned_scorekeeper_emails: selectedScorekeeperEmails,
+                overall_scorekeeper_email: formData.get('overall_scorekeeper_email') || null,
+                home_statistician_email: formData.get('home_statistician_email') || null,
+                away_statistician_email: formData.get('away_statistician_email') || null,
+                week_number: weekNumber ? parseInt(weekNumber) : null,
+                status: 'scheduled',
+                archived: false,
+              };
 
     if (editingGame) {
       updateMutation.mutate({ id: editingGame.id, data });
@@ -357,8 +358,9 @@ export default function Games() {
         form.home_statistician_email.value = game.home_statistician_email || '';
         form.away_statistician_email.value = game.away_statistician_email || '';
         form.week_number.value = game.week_number || '';
-        
-        if (game.game_date) {
+                      form.stream_url.value = game.stream_url || '';
+
+                      if (game.game_date) {
           const localDate = new Date(game.game_date);
           const offset = localDate.getTimezoneOffset();
           const adjustedDate = new Date(localDate.getTime() - (offset * 60 * 1000));
@@ -1265,14 +1267,24 @@ export default function Games() {
                       </select>
                     </div>
                     <div>
-                      <Label htmlFor="location" className="font-bold text-gray-700 dark:text-gray-300">Location</Label>
-                      <Input
-                        id="location"
-                        name="location"
-                        placeholder="e.g., Main Gym, Sports Complex"
-                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
-                      />
-                    </div>
+                                                <Label htmlFor="location" className="font-bold text-gray-700 dark:text-gray-300">Location</Label>
+                                                <Input
+                                                  id="location"
+                                                  name="location"
+                                                  placeholder="e.g., Main Gym, Sports Complex"
+                                                  className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                                                />
+                                              </div>
+                                              <div>
+                                                <Label htmlFor="stream_url" className="font-bold text-gray-700 dark:text-gray-300">Live Stream URL (Optional)</Label>
+                                                <Input
+                                                  id="stream_url"
+                                                  name="stream_url"
+                                                  placeholder="e.g., https://youtube.com/live/... or https://twitch.tv/..."
+                                                  className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                                                />
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Paste a YouTube Live, Twitch, or other embed URL for live streaming.</p>
+                                              </div>
                     <div className="flex justify-end gap-3 pt-4">
                       <Button type="button" variant="outline" onClick={() => { 
                         setShowForm(false); 

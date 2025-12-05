@@ -14,6 +14,7 @@ import AdminSidebar from "@/components/AdminSidebar";
 import AIInsights from "@/components/AIInsights";
 import AIGameSummary from "@/components/AIGameSummary";
 import AIAssistant from "@/components/AIAssistant";
+import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
