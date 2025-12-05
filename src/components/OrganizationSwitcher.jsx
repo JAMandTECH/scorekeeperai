@@ -57,17 +57,26 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
   // Switch organization mutation
   const switchOrgMutation = useMutation({
     mutationFn: async (orgId) => {
+      console.log('OrganizationSwitcher - Switching to org:', orgId);
       await base44.auth.updateMe({ active_organization_id: orgId });
+      console.log('OrganizationSwitcher - Switch complete');
     },
     onSuccess: () => {
+      console.log('OrganizationSwitcher - Mutation success, reloading...');
       queryClient.invalidateQueries();
       if (onSwitch) onSwitch();
-      window.location.reload(); // Reload to refresh all org-specific data
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    },
+    onError: (error) => {
+      console.error('OrganizationSwitcher - Switch error:', error);
     },
   });
 
   const handleSwitchOrg = (orgId) => {
-    if (orgId === currentOrganization?.id) return;
+    console.log('OrganizationSwitcher - handleSwitchOrg called with:', orgId, 'current:', currentOrganization?.id);
+    if (orgId === currentOrganization?.id || orgId === user?.active_organization_id) return;
     switchOrgMutation.mutate(orgId);
   };
 
