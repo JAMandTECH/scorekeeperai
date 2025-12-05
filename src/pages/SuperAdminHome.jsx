@@ -83,9 +83,18 @@ export default function SuperAdminHome() {
     refetchInterval: 30000,
   });
 
-  const { data: pendingAdminRequests = [] } = useQuery({
+  const { data: pendingAdminRequests = [], isError: adminRequestsError } = useQuery({
     queryKey: ['pending-admin-requests'],
-    queryFn: () => base44.entities.AdminRequest.filter({ status: 'pending' }),
+    queryFn: async () => {
+      try {
+        const requests = await base44.entities.AdminRequest.list();
+        console.log("All AdminRequests fetched:", requests);
+        return requests.filter(r => r.status === 'pending');
+      } catch (error) {
+        console.error("Error fetching admin requests:", error);
+        return [];
+      }
+    },
     enabled: !!user,
     refetchInterval: 30000,
   });
