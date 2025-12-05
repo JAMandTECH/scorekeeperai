@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Users, Trophy, Calendar, TrendingUp, Activity, Loader2, ChevronRight } from "lucide-react";
+import { Building2, Users, Trophy, Calendar, TrendingUp, Activity, Loader2, ChevronRight, Shield, Clock } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
@@ -52,30 +52,42 @@ export default function SuperAdminHome() {
     queryKey: ['all-organizations'],
     queryFn: () => base44.entities.Organization.list(),
     enabled: !!user,
+    refetchInterval: 30000,
   });
 
   const { data: allTeams = [] } = useQuery({
     queryKey: ['all-teams'],
     queryFn: () => base44.entities.Team.list(),
     enabled: !!user,
+    refetchInterval: 30000,
   });
 
   const { data: allPlayers = [] } = useQuery({
     queryKey: ['all-players'],
     queryFn: () => base44.entities.Player.list(),
     enabled: !!user,
+    refetchInterval: 30000,
   });
 
   const { data: allGames = [] } = useQuery({
     queryKey: ['all-games'],
     queryFn: () => base44.entities.Game.list('-game_date'),
     enabled: !!user,
+    refetchInterval: 30000,
   });
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['all-users'],
     queryFn: () => base44.entities.User.list(),
     enabled: !!user,
+    refetchInterval: 30000,
+  });
+
+  const { data: pendingAdminRequests = [] } = useQuery({
+    queryKey: ['pending-admin-requests'],
+    queryFn: () => base44.entities.AdminRequest.filter({ status: 'pending' }),
+    enabled: !!user,
+    refetchInterval: 30000,
   });
 
   const activeOrganizations = allOrganizations.filter(org => org.status === 'active');
@@ -282,16 +294,23 @@ export default function SuperAdminHome() {
                 </Link>
 
                 <Link to={createPageUrl("AdminApprovals")}>
-                  <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all cursor-pointer group">
+                  <Card className={`bg-white dark:bg-gray-800 border-2 shadow-lg hover:shadow-xl transition-all cursor-pointer group ${pendingAdminRequests.length > 0 ? 'border-red-400 dark:border-red-600' : 'border-gray-200 dark:border-gray-700'}`}>
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <Users className="w-6 h-6 text-white" />
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg relative ${pendingAdminRequests.length > 0 ? 'bg-gradient-to-br from-red-500 to-red-600' : 'bg-gradient-to-br from-purple-500 to-purple-600'}`}>
+                            <Shield className="w-6 h-6 text-white" />
+                            {pendingAdminRequests.length > 0 && (
+                              <span className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse border-2 border-white">
+                                {pendingAdminRequests.length}
+                              </span>
+                            )}
                           </div>
                           <div>
                             <h3 className="font-black text-gray-900 dark:text-white">Admin Approvals</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Review requests</p>
+                            <p className={`text-sm ${pendingAdminRequests.length > 0 ? 'text-red-600 dark:text-red-400 font-bold' : 'text-gray-500 dark:text-gray-400'}`}>
+                              {pendingAdminRequests.length > 0 ? `${pendingAdminRequests.length} pending request(s)!` : 'Review requests'}
+                            </p>
                           </div>
                         </div>
                         <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
