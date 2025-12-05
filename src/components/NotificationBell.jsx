@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Bell, Trophy, MessageCircle, CheckCircle, X } from "lucide-react";
+import { Bell, Trophy, MessageCircle, CheckCircle, X, UserPlus, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -77,6 +77,12 @@ export default function NotificationBell({ user, organizationId }) {
         return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'team_rejected':
         return <X className="w-4 h-4 text-red-500" />;
+      case 'join_request':
+        return <UserPlus className="w-4 h-4 text-purple-500" />;
+      case 'join_approved':
+        return <UserCheck className="w-4 h-4 text-green-500" />;
+      case 'join_rejected':
+        return <X className="w-4 h-4 text-red-500" />;
       default:
         return <Bell className="w-4 h-4 text-gray-500" />;
     }
@@ -89,9 +95,13 @@ export default function NotificationBell({ user, organizationId }) {
       case 'game_completed':
         return 'bg-orange-100 dark:bg-orange-950 border-orange-200 dark:border-orange-800';
       case 'team_approved':
+      case 'join_approved':
         return 'bg-green-100 dark:bg-green-950 border-green-200 dark:border-green-800';
       case 'team_rejected':
+      case 'join_rejected':
         return 'bg-red-100 dark:bg-red-950 border-red-200 dark:border-red-800';
+      case 'join_request':
+        return 'bg-purple-100 dark:bg-purple-950 border-purple-200 dark:border-purple-800';
       default:
         return 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700';
     }

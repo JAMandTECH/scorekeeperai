@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Menu, X, LogOut, Sun, Moon, Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2 } from "lucide-react";
+import { Menu, X, LogOut, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NotificationBell from "@/components/NotificationBell";
+import OrganizationSwitcher from "@/components/OrganizationSwitcher";
 
 export default function AdminHeader({ 
   user, 
@@ -94,6 +95,11 @@ export default function AdminHeader({
       </div>
 
       <div className="flex items-center gap-2">
+        <OrganizationSwitcher 
+          user={user} 
+          currentOrganization={organization}
+        />
+        
         <NotificationBell 
           user={user} 
           organizationId={organization?.id || user?.organization_id || user?.active_organization_id} 
