@@ -19,17 +19,19 @@ import { createPageUrl } from "@/utils";
 export default function OrganizationSwitcher({ user, currentOrganization, onSwitch }) {
   const queryClient = useQueryClient();
 
-  // Fetch user's organization memberships - try both user_id and user_email
+  // Fetch user's organization memberships
   const { data: memberships = [], isLoading: membershipsLoading } = useQuery({
-    queryKey: ['user-memberships', user?.id, user?.email],
+    queryKey: ['user-memberships', user?.id],
     queryFn: async () => {
-      // Try fetching by user_email since that's more reliable
-      const byEmail = await base44.entities.UserOrganization.filter({ user_email: user?.email, status: 'active' });
-      console.log('OrganizationSwitcher - Memberships by email:', byEmail);
-      return byEmail;
+      // Use list with no filter to get all accessible memberships, then filter client-side
+      const all = await base44.entities.UserOrganization.list();
+      const userMemberships = all.filter(m => m.user_id === user?.id || m.user_email === user?.email);
+      console.log('OrganizationSwitcher - All UserOrganizations:', all);
+      console.log('OrganizationSwitcher - User memberships:', userMemberships);
+      return userMemberships;
     },
-    enabled: !!user?.email,
-    refetchInterval: 15000, // Refresh every 15 seconds to catch new approvals
+    enabled: !!user?.id,
+    refetchInterval: 15000,
   });
 
   // Fetch all organizations for the memberships
@@ -43,12 +45,9 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
       if (user?.organization_id) orgIds.add(user.organization_id);
       if (user?.active_organization_id) orgIds.add(user.active_organization_id);
       
-      console.log('OrganizationSwitcher - Memberships:', memberships);
-      console.log('OrganizationSwitcher - Org IDs to fetch:', [...orgIds]);
-      console.log('OrganizationSwitcher - All orgs:', allOrgs.map(o => ({ id: o.id, name: o.name })));
-      
       const filtered = allOrgs.filter(org => orgIds.has(org.id));
-      console.log('OrganizationSwitcher - Filtered orgs:', filtered.map(o => ({ id: o.id, name: o.name })));
+      console.log('OrganizationSwitcher - Org IDs:', [...orgIds]);
+      console.log('OrganizationSwitcher - Filtered orgs:', filtered.map(o => o.name));
       
       return filtered;
     },
