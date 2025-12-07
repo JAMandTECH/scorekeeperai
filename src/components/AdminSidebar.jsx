@@ -45,6 +45,7 @@ export default function AdminSidebar({
     main: [
       { title: "Home", url: createPageUrl("Home"), icon: Home },
       { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
+      { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle, permission: "manage_social" },
     ],
     groups: [
       {
