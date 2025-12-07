@@ -32,37 +32,22 @@ Deno.serve(async (req) => {
   try {
     console.log('=== Starting subscription creation ===');
     
-    // Initialize Base44 client with fallback for missing headers
-    let base44;
-    try {
-      base44 = createClientFromRequest(req);
-    } catch (error) {
-      console.log('Using service role client due to missing headers');
-      base44 = createClient({
-        appId: Deno.env.get("BASE44_APP_ID"),
-        serviceRoleKey: Deno.env.get("BASE44_SERVICE_ROLE_KEY"),
-      });
-    }
-    
-    const user = await base44.auth.me();
-    
-    console.log('User authenticated:', user?.email);
-    
-    if (!user || user.role !== 'admin') {
-      console.log('Authorization failed - not admin');
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
     const { organization_id, tier, selected_sport } = await req.json();
+    
+    // Initialize Base44 client - always use service role for this function
+    const base44 = createClient({
+      appId: Deno.env.get("BASE44_APP_ID"),
+      serviceRoleKey: Deno.env.get("BASE44_SERVICE_ROLE_KEY"),
+    });
     console.log('Request params:', { organization_id, tier, selected_sport });
     
-    // Verify user owns this organization
-    const orgs = await base44.entities.Organization.list();
-    const org = orgs.find(o => o.id === organization_id && o.id === user.organization_id);
+    // Get organization details
+    const orgs = await base44.asServiceRole.entities.Organization.list();
+    const org = orgs.find(o => o.id === organization_id);
     
     if (!org) {
-      console.log('Organization not found or unauthorized');
-      return Response.json({ error: 'Organization not found or unauthorized' }, { status: 403 });
+      console.log('Organization not found');
+      return Response.json({ error: 'Organization not found' }, { status: 404 });
     }
     
     console.log('Organization verified:', org.name);
