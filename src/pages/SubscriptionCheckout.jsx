@@ -96,12 +96,16 @@ export default function SubscriptionCheckout() {
       // Redirect to PayPal checkout
       window.location.href = response.data.approval_url;
     } catch (error) {
-      console.error('Subscription error:', error);
-      console.error('Error details:', error.response?.data || error.message);
-      const errorMsg = error.response?.data?.details ? 
-        JSON.stringify(error.response.data.details, null, 2) : 
-        error.message;
-      alert(`Failed to create subscription:\n\n${errorMsg}\n\nCheck the browser console and backend function logs for more details.`);
+      console.error('=== SUBSCRIPTION ERROR ===');
+      console.error('Full error object:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error message:', error.message);
+
+      const errorDetails = error.response?.data || {};
+      const errorMsg = JSON.stringify(errorDetails, null, 2) || error.message;
+
+      alert(`Failed to create subscription:\n\n${errorMsg}\n\nCheck the browser console for full error details and Dashboard → Code → Functions → createPayPalSubscription logs for backend errors.`);
       setProcessingPayment(false);
     }
   };
