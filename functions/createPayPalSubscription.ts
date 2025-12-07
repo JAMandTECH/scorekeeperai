@@ -30,22 +30,30 @@ async function getPayPalAccessToken() {
 
 Deno.serve(async (req) => {
   try {
+    console.log('=== Starting subscription creation ===');
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     
+    console.log('User authenticated:', user?.email);
+    
     if (!user || user.role !== 'admin') {
+      console.log('Authorization failed - not admin');
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     const { organization_id, tier, selected_sport } = await req.json();
+    console.log('Request params:', { organization_id, tier, selected_sport });
     
     // Verify user owns this organization
     const orgs = await base44.entities.Organization.list();
     const org = orgs.find(o => o.id === organization_id && o.id === user.organization_id);
     
     if (!org) {
+      console.log('Organization not found or unauthorized');
       return Response.json({ error: 'Organization not found or unauthorized' }, { status: 403 });
     }
+    
+    console.log('Organization verified:', org.name);
     
     // Get PayPal plan ID based on tier
     const planIds = {
@@ -54,8 +62,11 @@ Deno.serve(async (req) => {
     };
     
     if (!planIds[tier]) {
+      console.log('Invalid tier:', tier);
       return Response.json({ error: 'Invalid tier' }, { status: 400 });
     }
+    
+    console.log('Using plan ID:', planIds[tier]);
     
     const accessToken = await getPayPalAccessToken();
     
@@ -87,14 +98,17 @@ Deno.serve(async (req) => {
     const subscription = await subscriptionResponse.json();
     
     if (!subscriptionResponse.ok) {
-      console.error('PayPal subscription error:', subscription);
-      console.error('Response status:', subscriptionResponse.status);
+      console.error('=== PayPal API Error ===');
+      console.error('Status:', subscriptionResponse.status);
+      console.error('Error details:', JSON.stringify(subscription, null, 2));
       return Response.json({ 
         error: 'Failed to create subscription', 
         details: subscription,
         status: subscriptionResponse.status 
       }, { status: 500 });
     }
+    
+    console.log('Subscription created successfully:', subscription.id);
     
     // Store subscription ID in organization
     await base44.asServiceRole.entities.Organization.update(organization_id, {
@@ -103,8 +117,19 @@ Deno.serve(async (req) => {
       selected_sport: tier === 'basic' ? selected_sport : null,
     });
     
+    console.log('Organization updated with subscription ID');
+    
     // Get approval URL
     const approvalLink = subscription.links.find(link => link.rel === 'approve');
+    
+    if (!approvalLink) {
+      console.error('No approval link found in subscription response');
+      console.error('Links:', JSON.stringify(subscription.links, null, 2));
+      return Response.json({ error: 'No approval URL returned from PayPal' }, { status: 500 });
+    }
+    
+    console.log('Approval URL:', approvalLink.href);
+    console.log('=== Subscription creation complete ===');
     
     return Response.json({
       subscription_id: subscription.id,
@@ -112,7 +137,10 @@ Deno.serve(async (req) => {
     });
     
   } catch (error) {
-    console.error('Error creating PayPal subscription:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('=== Fatal Error ===');
+    console.error('Error type:', error.constructor.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    return Response.json({ error: error.message, stack: error.stack }, { status: 500 });
   }
 });
