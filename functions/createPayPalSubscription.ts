@@ -4,6 +4,8 @@ async function getPayPalAccessToken() {
   const clientId = Deno.env.get("PAYPAL_CLIENT_ID");
   const clientSecret = Deno.env.get("PAYPAL_CLIENT_SECRET");
   
+  console.log('Getting PayPal access token...');
+  
   const auth = btoa(`${clientId}:${clientSecret}`);
   
   const response = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
@@ -16,6 +18,13 @@ async function getPayPalAccessToken() {
   });
   
   const data = await response.json();
+  
+  if (!response.ok) {
+    console.error('PayPal auth error:', data);
+    throw new Error(`PayPal auth failed: ${JSON.stringify(data)}`);
+  }
+  
+  console.log('PayPal access token obtained');
   return data.access_token;
 }
 
@@ -50,6 +59,21 @@ Deno.serve(async (req) => {
     
     const accessToken = await getPayPalAccessToken();
     
+    const subscriptionPayload = {
+      plan_id: planIds[tier],
+      custom_id: organization_id,
+      application_context: {
+        brand_name: 'ScorekeeperAI',
+        locale: 'en-AU',
+        shipping_preference: 'NO_SHIPPING',
+        user_action: 'SUBSCRIBE_NOW',
+        return_url: `${new URL(req.url).origin}/subscription-success`,
+        cancel_url: `${new URL(req.url).origin}/subscription-cancelled`,
+      },
+    };
+    
+    console.log('Creating PayPal subscription with payload:', JSON.stringify(subscriptionPayload, null, 2));
+    
     // Create PayPal subscription
     const subscriptionResponse = await fetch('https://api-m.paypal.com/v1/billing/subscriptions', {
       method: 'POST',
@@ -57,18 +81,7 @@ Deno.serve(async (req) => {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        plan_id: planIds[tier],
-        custom_id: organization_id,
-        application_context: {
-          brand_name: 'ScorekeeperAI',
-          locale: 'en-AU',
-          shipping_preference: 'NO_SHIPPING',
-          user_action: 'SUBSCRIBE_NOW',
-          return_url: `${new URL(req.url).origin}/subscription-success`,
-          cancel_url: `${new URL(req.url).origin}/subscription-cancelled`,
-        },
-      }),
+      body: JSON.stringify(subscriptionPayload),
     });
     
     const subscription = await subscriptionResponse.json();
