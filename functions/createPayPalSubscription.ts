@@ -101,8 +101,8 @@ Deno.serve(async (req) => {
         locale: 'en-AU',
         shipping_preference: 'NO_SHIPPING',
         user_action: 'SUBSCRIBE_NOW',
-        return_url: `${new URL(req.url).origin}/subscription-success`,
-        cancel_url: `${new URL(req.url).origin}/subscription-cancelled`,
+        return_url: `${new URL(req.url).origin}/SubscriptionSuccess`,
+        cancel_url: `${new URL(req.url).origin}/SubscriptionCancelled`,
       },
     };
     
