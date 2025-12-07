@@ -770,7 +770,20 @@ export default function Home() {
                 {basketballStandings.map((divisionData, idx) => (
                   <Card key={idx} className="mb-6 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
                     <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
-                      <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">{divisionData.division}</CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">{divisionData.division}</CardTitle>
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-gray-700 dark:text-gray-300">{organization?.name}</span>
+                          {organization?.logo_url && (
+                            <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
+                              <AvatarImage src={organization.logo_url} />
+                              <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black">
+                                {organization.name?.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
+                      </div>
                     </CardHeader>
                     <CardContent className="p-0">
                       <div className="overflow-x-auto">
@@ -1182,7 +1195,20 @@ export default function Home() {
                 {volleyballStandings.map((divisionData, idx) => (
                   <Card key={idx} className="mb-6 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
                     <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
-                      <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">{divisionData.division}</CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">{divisionData.division}</CardTitle>
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-gray-700 dark:text-gray-300">{organization?.name}</span>
+                          {organization?.logo_url && (
+                            <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
+                              <AvatarImage src={organization.logo_url} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black">
+                                {organization.name?.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
+                      </div>
                     </CardHeader>
                     <CardContent className="p-0">
                       <div className="overflow-x-auto">
