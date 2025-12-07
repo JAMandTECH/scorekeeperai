@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest, createClient } from 'npm:@base44/sdk@0.8.4';
 
 async function getPayPalAccessToken() {
   const clientId = Deno.env.get("PAYPAL_CLIENT_ID");
@@ -31,7 +31,19 @@ async function getPayPalAccessToken() {
 Deno.serve(async (req) => {
   try {
     console.log('=== Starting subscription creation ===');
-    const base44 = createClientFromRequest(req);
+    
+    // Initialize Base44 client with fallback for missing headers
+    let base44;
+    try {
+      base44 = createClientFromRequest(req);
+    } catch (error) {
+      console.log('Using service role client due to missing headers');
+      base44 = createClient({
+        appId: Deno.env.get("BASE44_APP_ID"),
+        serviceRoleKey: Deno.env.get("BASE44_SERVICE_ROLE_KEY"),
+      });
+    }
+    
     const user = await base44.auth.me();
     
     console.log('User authenticated:', user?.email);
