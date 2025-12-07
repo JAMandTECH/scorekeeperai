@@ -68,20 +68,38 @@ export default function SubscriptionCheckout() {
   };
 
   const handleSubscribe = async (tier) => {
+    if (tier === 'free') {
+      // Downgrade to free - cancel subscription
+      if (window.confirm('Downgrade to Free? This will cancel your paid subscription.')) {
+        try {
+          await base44.functions.invoke('cancelPayPalSubscription', {
+            organization_id: organization.id,
+          });
+          window.location.reload();
+        } catch (error) {
+          alert('Failed to cancel subscription: ' + error.message);
+        }
+      }
+      return;
+    }
+
     setSelectedTier(tier);
     setProcessingPayment(true);
 
-    // TODO: Backend function required - Create PayPal subscription
-    // This would call a backend function like:
-    // const response = await base44.functions.CreatePayPalSubscription({
-    //   organization_id: organization.id,
-    //   tier: tier,
-    //   selected_sport: tier === 'basic' ? selectedSport : null,
-    // });
-    // Then redirect to PayPal checkout: window.location.href = response.approval_url;
+    try {
+      const response = await base44.functions.invoke('createPayPalSubscription', {
+        organization_id: organization.id,
+        tier: tier,
+        selected_sport: tier === 'basic' ? selectedSport : null,
+      });
 
-    alert('Backend functions required! Enable backend functions in your app settings to integrate PayPal payments.');
-    setProcessingPayment(false);
+      // Redirect to PayPal checkout
+      window.location.href = response.data.approval_url;
+    } catch (error) {
+      console.error('Subscription error:', error);
+      alert('Failed to create subscription. Please ensure backend functions are enabled and PayPal credentials are set.');
+      setProcessingPayment(false);
+    }
   };
 
   if (loading) {
@@ -193,11 +211,11 @@ export default function SubscriptionCheckout() {
                 </Alert>
               )}
 
-              {/* Backend Functions Warning */}
-              <Alert className="border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/30">
-                <AlertCircle className="w-4 h-4 text-orange-600" />
-                <AlertDescription className="text-orange-900 dark:text-orange-300">
-                  <strong>Backend Functions Required:</strong> To enable PayPal payments, you must first enable backend functions in your app settings (Dashboard → Settings → Enable Backend Functions).
+              {/* Setup Instructions */}
+              <Alert className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30">
+                <AlertCircle className="w-4 h-4 text-blue-600" />
+                <AlertDescription className="text-blue-900 dark:text-blue-300">
+                  <strong>Setup Complete:</strong> PayPal integration is ready. Make sure to create PayPal billing plans and update the plan IDs in createPayPalSubscription.js
                 </AlertDescription>
               </Alert>
 
