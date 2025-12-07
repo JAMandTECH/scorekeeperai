@@ -40,8 +40,8 @@ Deno.serve(async (req) => {
     
     // Get PayPal plan ID based on tier
     const planIds = {
-      basic: 'P-BASIC-PLAN-ID', // Replace with actual PayPal plan ID
-      premium: 'P-PREMIUM-PLAN-ID', // Replace with actual PayPal plan ID
+      basic: 'P-6JT0173942275641PNE2QVQI',
+      premium: 'P-9TX62969RS691692LNE2Q3NI',
     };
     
     if (!planIds[tier]) {
