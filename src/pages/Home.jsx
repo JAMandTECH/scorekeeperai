@@ -882,11 +882,24 @@ export default function Home() {
                   {/* Top Rebounders */}
                   <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
                     <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-green-50 to-white dark:from-gray-800 dark:to-gray-900">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-                          <TrendingUp className="w-6 h-6 text-white" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                            <TrendingUp className="w-6 h-6 text-white" />
+                          </div>
+                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Rebounders</CardTitle>
                         </div>
-                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Rebounders</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{organization?.name}</span>
+                          {organization?.logo_url && (
+                            <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+                              <AvatarImage src={organization.logo_url} />
+                              <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-xs">
+                                {organization.name?.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="p-4">
@@ -970,11 +983,24 @@ export default function Home() {
                   {/* Top 3-Pointer Leaders */}
                   <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
                     <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-yellow-50 to-white dark:from-gray-800 dark:to-gray-900">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
-                          <Zap className="w-6 h-6 text-white" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
+                            <Zap className="w-6 h-6 text-white" />
+                          </div>
+                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 3-Pointer Leaders</CardTitle>
                         </div>
-                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 3-Pointer Leaders</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{organization?.name}</span>
+                          {organization?.logo_url && (
+                            <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+                              <AvatarImage src={organization.logo_url} />
+                              <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-xs">
+                                {organization.name?.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="p-4">
@@ -1263,11 +1289,24 @@ export default function Home() {
                   {/* Top Scorers */}
                   <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
                     <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                          <Target className="w-6 h-6 text-white" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                            <Target className="w-6 h-6 text-white" />
+                          </div>
+                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Scorers</CardTitle>
                         </div>
-                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Scorers</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{organization?.name}</span>
+                          {organization?.logo_url && (
+                            <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+                              <AvatarImage src={organization.logo_url} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-xs">
+                                {organization.name?.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="p-4">
@@ -1307,11 +1346,24 @@ export default function Home() {
                   {/* Top Attackers */}
                   <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
                     <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-orange-50 to-white dark:from-gray-800 dark:to-gray-900">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                          <Zap className="w-6 h-6 text-white" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+                            <Zap className="w-6 h-6 text-white" />
+                          </div>
+                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Attackers</CardTitle>
                         </div>
-                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Attackers</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{organization?.name}</span>
+                          {organization?.logo_url && (
+                            <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+                              <AvatarImage src={organization.logo_url} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-xs">
+                                {organization.name?.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="p-4">
@@ -1351,11 +1403,24 @@ export default function Home() {
                   {/* Top Blockers */}
                   <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
                     <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-red-50 to-white dark:from-gray-800 dark:to-gray-900">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
-                          <Shield className="w-6 h-6 text-white" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
+                            <Shield className="w-6 h-6 text-white" />
+                          </div>
+                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Blockers</CardTitle>
                         </div>
-                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Blockers</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{organization?.name}</span>
+                          {organization?.logo_url && (
+                            <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+                              <AvatarImage src={organization.logo_url} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-xs">
+                                {organization.name?.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="p-4">
@@ -1395,11 +1460,24 @@ export default function Home() {
                   {/* Top Ace Leaders */}
                   <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
                     <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-yellow-50 to-white dark:from-gray-800 dark:to-gray-900">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
-                          <Zap className="w-6 h-6 text-white" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
+                            <Zap className="w-6 h-6 text-white" />
+                          </div>
+                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Ace Leaders</CardTitle>
                         </div>
-                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Top 10 Ace Leaders</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{organization?.name}</span>
+                          {organization?.logo_url && (
+                            <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+                              <AvatarImage src={organization.logo_url} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-xs">
+                                {organization.name?.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="p-4">
@@ -1443,7 +1521,20 @@ export default function Home() {
                   {/* Upcoming Games */}
                   <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">
                     <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
-                      <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Upcoming Games</CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Upcoming Games</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{organization?.name}</span>
+                          {organization?.logo_url && (
+                            <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+                              <AvatarImage src={organization.logo_url} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-xs">
+                                {organization.name?.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
+                      </div>
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-3">
@@ -1473,7 +1564,20 @@ export default function Home() {
                   {/* Recent Results */}
                   <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">
                     <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-green-50 to-white dark:from-gray-800 dark:to-gray-900">
-                      <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Recent Results</CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Recent Results</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{organization?.name}</span>
+                          {organization?.logo_url && (
+                            <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+                              <AvatarImage src={organization.logo_url} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-xs">
+                                {organization.name?.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
+                      </div>
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-3">
