@@ -133,14 +133,13 @@ Deno.serve(async (req) => {
     
     console.log('Subscription created successfully:', subscription.id);
     
-    // Store subscription ID in organization
+    // DO NOT upgrade tier here - only store subscription ID
+    // Tier will be upgraded by webhook after payment confirmation
     await base44.asServiceRole.entities.Organization.update(organization_id, {
       paypal_subscription_id: subscription.id,
-      subscription_tier: tier,
-      selected_sport: tier === 'basic' ? selected_sport : null,
     });
     
-    console.log('Organization updated with subscription ID');
+    console.log('Organization updated with pending subscription ID (tier will upgrade after payment)');
     
     // Get approval URL
     const approvalLink = subscription.links.find(link => link.rel === 'approve');
