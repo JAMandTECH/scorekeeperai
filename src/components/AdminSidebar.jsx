@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles, Clock, UserPlus, UserCog, FileEdit, UserCheck } from "lucide-react";
+import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles, Clock, UserPlus, UserCog, FileEdit, UserCheck, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePermissions } from "@/components/hooks/usePermissions";
@@ -21,6 +21,7 @@ export default function AdminSidebar({
   const superAdminNav = [
     { title: "Super Admin Home", url: createPageUrl("SuperAdminHome"), icon: Home },
     { title: "Analytics Dashboard", url: createPageUrl("SuperAdminDashboard"), icon: Gauge },
+    { title: "Subscriptions", url: createPageUrl("SubscriptionManagement"), icon: CreditCard },
   ];
 
   const adminNav = [
