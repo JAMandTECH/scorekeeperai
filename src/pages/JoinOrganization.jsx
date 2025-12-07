@@ -115,6 +115,35 @@ export default function JoinOrganization() {
           role: data.requested_role_in_org
         }
       });
+
+      // Send email notification to organization admins
+      try {
+        const orgUsers = await base44.entities.User.filter({ 
+          organization_id: data.organization_id, 
+          role: 'admin' 
+        });
+        
+        for (const admin of orgUsers) {
+          await base44.integrations.Core.SendEmail({
+            to: admin.email,
+            subject: `New Organization Join Request`,
+            body: `
+              <h2>New Join Request</h2>
+              <p>A user has requested to join your organization:</p>
+              <ul>
+                <li><strong>Name:</strong> ${data.user_name || 'N/A'}</li>
+                <li><strong>Email:</strong> ${data.user_email}</li>
+                <li><strong>Requested Role:</strong> ${data.requested_role_in_org}</li>
+                <li><strong>Organization:</strong> ${data.organization_name}</li>
+                ${data.message ? `<li><strong>Message:</strong> ${data.message}</li>` : ''}
+              </ul>
+              <p>Please review this request in the Join Requests section of your admin dashboard.</p>
+            `
+          });
+        }
+      } catch (emailError) {
+        console.error('Failed to send email notifications:', emailError);
+      }
       
       return request;
     },

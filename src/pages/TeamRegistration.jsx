@@ -185,6 +185,35 @@ export default function TeamRegistration() {
 
       await Promise.all(playerPromises);
 
+      // Send email notification to organization admins
+      try {
+        const orgUsers = await base44.entities.User.filter({ 
+          organization_id: organization.id, 
+          role: 'admin' 
+        });
+        
+        for (const admin of orgUsers) {
+          await base44.integrations.Core.SendEmail({
+            to: admin.email,
+            subject: `New Team Registration: ${teamData.name}`,
+            body: `
+              <h2>New Team Registration Submitted</h2>
+              <p>A new team has been submitted for approval:</p>
+              <ul>
+                <li><strong>Team Name:</strong> ${teamData.name}</li>
+                <li><strong>Sport:</strong> ${teamData.sport}</li>
+                <li><strong>Division:</strong> ${teamData.division}</li>
+                <li><strong>Submitted by:</strong> ${user.email}</li>
+                <li><strong>Players:</strong> ${players.filter(p => p.first_name && p.last_name).length}</li>
+              </ul>
+              <p>Please review and approve this team in the Pending Teams section.</p>
+            `
+          });
+        }
+      } catch (emailError) {
+        console.error('Failed to send email notifications:', emailError);
+      }
+
       return team;
     },
     onSuccess: () => {
