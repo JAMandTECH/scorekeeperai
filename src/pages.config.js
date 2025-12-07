@@ -35,6 +35,7 @@ import ManualGameEntry from './pages/ManualGameEntry';
 import JoinOrganization from './pages/JoinOrganization';
 import OrganizationJoinRequests from './pages/OrganizationJoinRequests';
 import PublicGameView from './pages/PublicGameView';
+import SubscriptionManagement from './pages/SubscriptionManagement';
 
 
 export const PAGES = {
@@ -75,6 +76,7 @@ export const PAGES = {
     "JoinOrganization": JoinOrganization,
     "OrganizationJoinRequests": OrganizationJoinRequests,
     "PublicGameView": PublicGameView,
+    "SubscriptionManagement": SubscriptionManagement,
 }
 
 export const pagesConfig = {
