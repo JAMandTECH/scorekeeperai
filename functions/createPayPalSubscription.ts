@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     // Initialize Base44 client - always use service role for this function
     const base44 = createClient({
       appId: Deno.env.get("BASE44_APP_ID"),
-      serviceRoleKey: Deno.env.get("BASE44_SERVICE_ROLE_KEY"),
+      serviceToken: Deno.env.get("BASE44_SERVICE_ROLE_KEY"),
     });
     console.log('Request params:', { organization_id, tier, selected_sport });
     
