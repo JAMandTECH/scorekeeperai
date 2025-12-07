@@ -97,7 +97,11 @@ export default function SubscriptionCheckout() {
       window.location.href = response.data.approval_url;
     } catch (error) {
       console.error('Subscription error:', error);
-      alert('Failed to create subscription. Please ensure backend functions are enabled and PayPal credentials are set.');
+      console.error('Error details:', error.response?.data || error.message);
+      const errorMsg = error.response?.data?.details ? 
+        JSON.stringify(error.response.data.details, null, 2) : 
+        error.message;
+      alert(`Failed to create subscription:\n\n${errorMsg}\n\nCheck the browser console and backend function logs for more details.`);
       setProcessingPayment(false);
     }
   };
