@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles, Clock, UserPlus, UserCog, FileEdit, UserCheck, CreditCard } from "lucide-react";
+import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles, Clock, UserPlus, UserCog, FileEdit, UserCheck, CreditCard, ChevronDown, ChevronRight, Layers, Gamepad2, UsersRound, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePermissions } from "@/components/hooks/usePermissions";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function AdminSidebar({ 
   user, 
@@ -18,57 +19,120 @@ export default function AdminSidebar({
   const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
   const isAdmin = user?.role === 'admin';
 
-  const superAdminNav = [
-    { title: "Super Admin Home", url: createPageUrl("SuperAdminHome"), icon: Home },
-    { title: "Analytics Dashboard", url: createPageUrl("SuperAdminDashboard"), icon: Gauge },
-    { title: "Subscriptions", url: createPageUrl("SubscriptionManagement"), icon: CreditCard },
-  ];
+  const [openSections, setOpenSections] = useState({
+    leagueSetup: true,
+    gameManagement: true,
+    personnel: true,
+    organization: true,
+    reporting: true,
+  });
 
-  const adminNav = [
-    { title: "Home", url: createPageUrl("Home"), icon: Home },
-    { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
-    { title: "Manage Subscription", url: createPageUrl("SubscriptionCheckout"), icon: CreditCard },
-    { title: "Divisions", url: createPageUrl("Divisions"), icon: Trophy, permission: "manage_divisions" },
-    { title: "Teams", url: createPageUrl("Teams"), icon: Users, permission: "manage_teams" },
-    { title: "Players", url: createPageUrl("Players"), icon: Trophy, permission: "manage_players" },
-    { title: "Pending Teams", url: createPageUrl("PendingTeams"), icon: Clock, permission: "manage_teams" },
-    { title: "Games", url: createPageUrl("Games"), icon: Calendar, permission: "manage_games" },
-    { title: "Manual Entry", url: createPageUrl("ManualGameEntry"), icon: FileEdit, permission: "manage_games" },
-    { title: "Weekly Summary", url: createPageUrl("WeeklySummary"), icon: Sparkles, permission: "view_statistics" },
-    { title: "Tournament Brackets", url: createPageUrl("TournamentBracket"), icon: Award, permission: "manage_tournaments" },
-    { title: "Scorekeepers", url: createPageUrl("Scorekeepers"), icon: Shield, permission: "manage_scorekeepers" },
-    { title: "Live Scoring", url: createPageUrl("LiveScoring"), icon: PlayCircle, permission: "live_scoring" },
-    { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3, permission: "view_statistics" },
-    { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle, permission: "manage_social" },
-    { title: "Roles & Permissions", url: createPageUrl("RolesPermissions"), icon: UserCog, permission: "manage_roles" },
-    { title: "Join Requests", url: createPageUrl("OrganizationJoinRequests"), icon: UserCheck, permission: "manage_members" },
-    { title: "Data Backup", url: createPageUrl("DataBackup"), icon: Database, permission: "data_backup" },
-    { title: "Organization Settings", url: createPageUrl("OrganizationSettings"), icon: Settings, permission: "manage_organization" },
-  ];
+  const toggleSection = (section) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
 
-  const userNav = [
-    { title: "Home", url: createPageUrl("Home"), icon: Home },
-    { title: "Register Team", url: createPageUrl("TeamRegistration"), icon: UserPlus },
-    { title: "Join Organization", url: createPageUrl("JoinOrganization"), icon: Building2 },
-    { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
-  ];
+  const superAdminNav = {
+    main: [
+      { title: "Home", url: createPageUrl("Home"), icon: Home },
+      { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
+    ],
+    groups: [
+      {
+        title: "Super Admin",
+        key: "superAdmin",
+        icon: Shield,
+        items: [
+          { title: "Organizations", url: createPageUrl("Organizations"), icon: Building2 },
+          { title: "All Teams", url: createPageUrl("AllTeams"), icon: Users },
+          { title: "All Games", url: createPageUrl("AllGames"), icon: Calendar },
+          { title: "Admin Approvals", url: createPageUrl("AdminApprovals"), icon: UserCheck },
+        ]
+      }
+    ]
+  };
 
-  // Determine which nav array to use
-  let baseNavItems;
+  const adminNav = {
+    main: [
+      { title: "Home", url: createPageUrl("Home"), icon: Home },
+      { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
+    ],
+    groups: [
+      {
+        title: "League Setup",
+        key: "leagueSetup",
+        icon: Layers,
+        items: [
+          { title: "Divisions", url: createPageUrl("Divisions"), icon: Trophy, permission: "manage_divisions" },
+          { title: "Teams", url: createPageUrl("Teams"), icon: Users, permission: "manage_teams" },
+          { title: "Players", url: createPageUrl("Players"), icon: Trophy, permission: "manage_players" },
+        ]
+      },
+      {
+        title: "Game Management",
+        key: "gameManagement",
+        icon: Gamepad2,
+        items: [
+          { title: "Games", url: createPageUrl("Games"), icon: Calendar, permission: "manage_games" },
+          { title: "Live Scoring", url: createPageUrl("LiveScoring"), icon: PlayCircle, permission: "live_scoring" },
+        ]
+      },
+      {
+        title: "Personnel",
+        key: "personnel",
+        icon: UsersRound,
+        items: [
+          { title: "Scorekeepers", url: createPageUrl("Scorekeepers"), icon: Shield, permission: "manage_scorekeepers" },
+        ]
+      },
+      {
+        title: "Organization & Billing",
+        key: "organization",
+        icon: Settings,
+        items: [
+          { title: "Manage Subscription", url: createPageUrl("SubscriptionCheckout"), icon: CreditCard },
+          { title: "Organization Settings", url: createPageUrl("OrganizationSettings"), icon: Settings, permission: "manage_organization" },
+          { title: "Pending Teams", url: createPageUrl("PendingTeams"), icon: Clock, permission: "manage_teams" },
+          { title: "Manual Game Entry", url: createPageUrl("ManualGameEntry"), icon: FileEdit, permission: "manage_games" },
+          { title: "Roles & Permissions", url: createPageUrl("RolesPermissions"), icon: UserCog, permission: "manage_roles" },
+          { title: "Join Requests", url: createPageUrl("OrganizationJoinRequests"), icon: UserCheck, permission: "manage_members" },
+          { title: "Tournament Brackets", url: createPageUrl("TournamentBracket"), icon: Award, permission: "manage_tournaments" },
+          { title: "Data Backup", url: createPageUrl("DataBackup"), icon: Database, permission: "data_backup" },
+        ]
+      },
+      {
+        title: "Reporting",
+        key: "reporting",
+        icon: FileText,
+        items: [
+          { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3, permission: "view_statistics" },
+          { title: "Weekly Summary", url: createPageUrl("WeeklySummary"), icon: Sparkles, permission: "view_statistics" },
+        ]
+      },
+    ]
+  };
+
+  const userNav = {
+    main: [
+      { title: "Home", url: createPageUrl("Home"), icon: Home },
+      { title: "Register Team", url: createPageUrl("TeamRegistration"), icon: UserPlus },
+      { title: "Join Organization", url: createPageUrl("JoinOrganization"), icon: Building2 },
+      { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
+    ],
+    groups: []
+  };
+
+  // Determine which nav structure to use
+  let navStructure;
   if (navigationItems) {
-    baseNavItems = navigationItems;
+    // If navigationItems prop is passed, use flat structure for backwards compatibility
+    navStructure = { main: navigationItems, groups: [] };
   } else if (isSuperAdmin) {
-    baseNavItems = superAdminNav;
+    navStructure = superAdminNav;
   } else if (isAdmin) {
-    baseNavItems = adminNav;
+    navStructure = adminNav;
   } else {
-    // All regular users (with or without role_id) get userNav by default
-    // This ensures they always have access to basic features like Social Feed
-    baseNavItems = userNav;
+    navStructure = userNav;
   }
-  
-  // Filter nav items based on permissions for non-super-admin users
-  let navItems = baseNavItems;
 
   return (
     <>
@@ -100,34 +164,86 @@ export default function AdminSidebar({
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
               </div>
-            ) : navItems.length === 0 && user?.role_id ? (
-              <div className="px-4 py-6 text-center">
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">No menu items available. Contact admin to assign permissions to your role.</p>
-              </div>
             ) : (
-              navItems.map((item) => {
-                const isActive = window.location.pathname === item.url;
-                return (
-                  <Link
-                    key={item.title}
-                    to={item.url}
-                    onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 group ${
-                      isActive
-                        ? 'text-white shadow-lg'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-purple-500/10 dark:hover:from-cyan-500/20 dark:hover:to-purple-500/20'
-                    }`}
-                    style={isActive ? {
-                      background: organization?.theme?.primary_color 
-                        ? `linear-gradient(to right, ${organization.theme.primary_color}, ${organization.theme.accent_color || organization.theme.primary_color})`
-                        : 'linear-gradient(to right, #06b6d4, #8b5cf6)'
-                    } : undefined}
-                  >
-                    <item.icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`} />
-                    {item.title}
-                  </Link>
-                );
-              })
+              <>
+                {/* Main Navigation Items */}
+                {navStructure.main.map((item) => {
+                  if (item.permission && !hasPermission(item.permission)) return null;
+                  const isActive = window.location.pathname === item.url;
+                  return (
+                    <Link
+                      key={item.title}
+                      to={item.url}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 group ${
+                        isActive
+                          ? 'text-white shadow-lg'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-purple-500/10 dark:hover:from-cyan-500/20 dark:hover:to-purple-500/20'
+                      }`}
+                      style={isActive ? {
+                        background: organization?.theme?.primary_color 
+                          ? `linear-gradient(to right, ${organization.theme.primary_color}, ${organization.theme.accent_color || organization.theme.primary_color})`
+                          : 'linear-gradient(to right, #06b6d4, #8b5cf6)'
+                      } : undefined}
+                    >
+                      <item.icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`} />
+                      {item.title}
+                    </Link>
+                  );
+                })}
+
+                {/* Grouped Navigation Items */}
+                {navStructure.groups.map((group) => {
+                  const visibleItems = group.items.filter(item => !item.permission || hasPermission(item.permission));
+                  if (visibleItems.length === 0) return null;
+
+                  return (
+                    <Collapsible
+                      key={group.key}
+                      open={openSections[group.key]}
+                      onOpenChange={() => toggleSection(group.key)}
+                      className="space-y-1"
+                    >
+                      <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-400 hover:bg-gradient-to-r hover:from-cyan-500/5 hover:to-purple-500/5 dark:hover:from-cyan-500/10 dark:hover:to-purple-500/10 transition-all duration-300 group mt-4">
+                        <div className="flex items-center gap-3">
+                          <group.icon className="w-5 h-5" />
+                          <span>{group.title}</span>
+                        </div>
+                        {openSections[group.key] ? (
+                          <ChevronDown className="w-4 h-4 transition-transform duration-300" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 transition-transform duration-300" />
+                        )}
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-1 pl-4">
+                        {visibleItems.map((item) => {
+                          const isActive = window.location.pathname === item.url;
+                          return (
+                            <Link
+                              key={item.title}
+                              to={item.url}
+                              onClick={() => setSidebarOpen(false)}
+                              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group ${
+                                isActive
+                                  ? 'text-white shadow-lg'
+                                  : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-purple-500/10 dark:hover:from-cyan-500/20 dark:hover:to-purple-500/20'
+                              }`}
+                              style={isActive ? {
+                                background: organization?.theme?.primary_color 
+                                  ? `linear-gradient(to right, ${organization.theme.primary_color}, ${organization.theme.accent_color || organization.theme.primary_color})`
+                                  : 'linear-gradient(to right, #06b6d4, #8b5cf6)'
+                              } : undefined}
+                            >
+                              <item.icon className={`w-4 h-4 transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`} />
+                              {item.title}
+                            </Link>
+                          );
+                        })}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                })}
+              </>
             )}
           </nav>
 
