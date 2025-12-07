@@ -27,6 +27,7 @@ export default function AdminSidebar({
   const adminNav = [
     { title: "Home", url: createPageUrl("Home"), icon: Home },
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
+    { title: "Manage Subscription", url: createPageUrl("SubscriptionCheckout"), icon: CreditCard },
     { title: "Divisions", url: createPageUrl("Divisions"), icon: Trophy, permission: "manage_divisions" },
     { title: "Teams", url: createPageUrl("Teams"), icon: Users, permission: "manage_teams" },
     { title: "Players", url: createPageUrl("Players"), icon: Trophy, permission: "manage_players" },
