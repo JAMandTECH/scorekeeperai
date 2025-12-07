@@ -96,14 +96,39 @@ Deno.serve(async (req) => {
           subscription_status: 'active',
           paypal_subscription_id: resource.id,
         };
-        
+
         if (tier) {
           updateData.subscription_tier = tier;
           console.log(`Upgrading organization to ${tier} tier`);
         }
-        
+
         await base44.entities.Organization.update(organizationId, updateData);
         console.log(`Subscription activated for org: ${organizationId}`);
+
+        // Send email notification to super admins
+        try {
+          const org = await base44.entities.Organization.filter({ id: organizationId });
+          const allUsers = await base44.entities.User.list();
+          const superAdmins = allUsers.filter(u => u.role === 'admin' && u.is_super_admin === true);
+
+          for (const superAdmin of superAdmins) {
+            await base44.integrations.Core.SendEmail({
+              to: superAdmin.email,
+              subject: `Organization Subscription Activated: ${org[0]?.name}`,
+              body: `
+                <h2>Organization Subscription Activated</h2>
+                <p>An organization has successfully subscribed:</p>
+                <ul>
+                  <li><strong>Organization:</strong> ${org[0]?.name}</li>
+                  <li><strong>Subscription Tier:</strong> ${tier || 'N/A'}</li>
+                  <li><strong>Subscription ID:</strong> ${resource.id}</li>
+                </ul>
+              `
+            });
+          }
+        } catch (emailError) {
+          console.error('Failed to send super admin notification:', emailError);
+        }
         break;
         
       case 'BILLING.SUBSCRIPTION.CANCELLED':

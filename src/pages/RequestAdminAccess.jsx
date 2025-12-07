@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -51,9 +50,31 @@ export default function RequestAdminAccess() {
       const request = await base44.entities.AdminRequest.create(data);
       console.log("Admin request created:", request);
       
-      // NOTE: We don't send emails to super admins from the frontend anymore
-      // because regular users don't have permission to list all users.
-      // Super admins will see the request in their Admin Approvals dashboard.
+      // Step 2: Send email notification to all super admins
+      try {
+        const allUsers = await base44.entities.User.list();
+        const superAdmins = allUsers.filter(u => u.role === 'admin' && u.is_super_admin === true);
+        
+        for (const superAdmin of superAdmins) {
+          await base44.integrations.Core.SendEmail({
+            to: superAdmin.email,
+            subject: `New Admin Access Request: ${data.organization_name}`,
+            body: `
+              <h2>New Organization Admin Request</h2>
+              <p>A new admin access request has been submitted:</p>
+              <ul>
+                <li><strong>Organization Name:</strong> ${data.organization_name}</li>
+                <li><strong>Requested by:</strong> ${data.user_name} (${data.user_email})</li>
+                <li><strong>Phone:</strong> ${data.phone_number}</li>
+                <li><strong>Reason:</strong> ${data.reason}</li>
+              </ul>
+              <p>Please review this request in the Admin Approvals section of your dashboard.</p>
+            `
+          });
+        }
+      } catch (emailError) {
+        console.error('Failed to send email notifications to super admins:', emailError);
+      }
       
       return request;
     },
