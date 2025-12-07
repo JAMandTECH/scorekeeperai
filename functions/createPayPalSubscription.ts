@@ -71,17 +71,17 @@ Deno.serve(async (req) => {
       }),
     });
     
+    const subscription = await subscriptionResponse.json();
+    
     if (!subscriptionResponse.ok) {
-      const errorData = await subscriptionResponse.json();
-      console.error('PayPal subscription error:', errorData);
+      console.error('PayPal subscription error:', subscription);
+      console.error('Response status:', subscriptionResponse.status);
       return Response.json({ 
         error: 'Failed to create subscription', 
-        details: errorData,
+        details: subscription,
         status: subscriptionResponse.status 
       }, { status: 500 });
     }
-    
-    const subscription = await subscriptionResponse.json();
     
     // Store subscription ID in organization
     await base44.asServiceRole.entities.Organization.update(organization_id, {
