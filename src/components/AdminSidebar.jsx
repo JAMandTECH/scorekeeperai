@@ -31,25 +31,15 @@ export default function AdminSidebar({
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const superAdminNav = {
-    main: [
-      { title: "Home", url: createPageUrl("Home"), icon: Home },
-      { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
-    ],
-    groups: [
-      {
-        title: "Super Admin",
-        key: "superAdmin",
-        icon: Shield,
-        items: [
-          { title: "Organizations", url: createPageUrl("Organizations"), icon: Building2 },
-          { title: "All Teams", url: createPageUrl("AllTeams"), icon: Users },
-          { title: "All Games", url: createPageUrl("AllGames"), icon: Calendar },
-          { title: "Admin Approvals", url: createPageUrl("AdminApprovals"), icon: UserCheck },
-        ]
-      }
-    ]
-  };
+  const superAdminNav = [
+    { title: "Super Admin Home", url: createPageUrl("SuperAdminHome"), icon: Home },
+    { title: "Analytics Dashboard", url: createPageUrl("SuperAdminDashboard"), icon: Gauge },
+    { title: "Subscriptions", url: createPageUrl("SubscriptionManagement"), icon: CreditCard },
+    { title: "Organizations", url: createPageUrl("Organizations"), icon: Building2 },
+    { title: "All Teams", url: createPageUrl("AllTeams"), icon: Users },
+    { title: "All Games", url: createPageUrl("AllGames"), icon: Calendar },
+    { title: "Admin Approvals", url: createPageUrl("AdminApprovals"), icon: Shield },
+  ];
 
   const adminNav = {
     main: [
@@ -123,11 +113,16 @@ export default function AdminSidebar({
 
   // Determine which nav structure to use
   let navStructure;
+  let useFlatStructure = false;
+  
   if (navigationItems) {
-    // If navigationItems prop is passed, use flat structure for backwards compatibility
+    // If navigationItems prop is passed, use flat structure
     navStructure = { main: navigationItems, groups: [] };
+    useFlatStructure = true;
   } else if (isSuperAdmin) {
-    navStructure = superAdminNav;
+    // Super admin uses flat structure
+    navStructure = { main: superAdminNav, groups: [] };
+    useFlatStructure = true;
   } else if (isAdmin) {
     navStructure = adminNav;
   } else {
