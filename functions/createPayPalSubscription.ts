@@ -67,8 +67,31 @@ Deno.serve(async (req) => {
     }
     
     console.log('Using plan ID:', planIds[tier]);
-    
+
     const accessToken = await getPayPalAccessToken();
+
+    // Verify plan status before creating subscription
+    console.log('Verifying plan status...');
+    const planCheckResponse = await fetch(`https://api-m.paypal.com/v1/billing/plans/${planIds[tier]}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const planDetails = await planCheckResponse.json();
+    console.log('Plan details from PayPal:', JSON.stringify(planDetails, null, 2));
+    console.log('Plan status:', planDetails.status);
+
+    if (planDetails.status !== 'ACTIVE') {
+      console.error('Plan is not active! Current status:', planDetails.status);
+      return Response.json({ 
+        error: 'Plan is not active in PayPal', 
+        plan_status: planDetails.status,
+        plan_id: planIds[tier]
+      }, { status: 400 });
+    }
     
     const subscriptionPayload = {
       plan_id: planIds[tier],
