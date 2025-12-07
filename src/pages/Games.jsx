@@ -447,8 +447,6 @@ export default function Games() {
       const allGeneratedGames = [];
       for (let weekIndex = 0; weekIndex < maxWeeks; weekIndex++) {
         const weekNumber = weekIndex + 1;
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() + (weekIndex * 7));
         
         // Add games from each division for this week
         for (const [division, schedule] of Object.entries(divisionSchedules)) {
@@ -460,7 +458,7 @@ export default function Games() {
                 home_team_id: game.home_team_id,
                 away_team_id: game.away_team_id,
                 sport: sport,
-                game_date: startDate.toISOString(),
+                game_date: null,
                 court_number: null,
                 location: null,
                 assigned_scorekeeper_emails: [],
