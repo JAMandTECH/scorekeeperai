@@ -53,7 +53,37 @@ export default function LiveScoring() {
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Set up periodic game state refresh for real-time sync
+    const intervalId = setInterval(() => {
+      if (game?.id) {
+        refreshGameState();
+      }
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [game?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const refreshGameState = async () => {
+    if (!game?.id) return;
+    try {
+      const games = await base44.entities.Game.list();
+      const currentGame = games.find(g => g.id === game.id);
+      if (currentGame && currentGame.status !== game.status) {
+        setGame(currentGame);
+        setHomeScore(currentGame.home_score || 0);
+        setAwayScore(currentGame.away_score || 0);
+        setCurrentQuarter(currentGame.current_quarter || 1);
+        setQuarterScores(currentGame.quarter_scores || []);
+        setHomeTimeouts(currentGame.home_timeouts ?? 5);
+        setAwayTimeouts(currentGame.away_timeouts ?? 5);
+        setHomeTeamFouls(currentGame.home_team_fouls || 0);
+        setAwayTeamFouls(currentGame.away_team_fouls || 0);
+      }
+    } catch (error) {
+      console.error("Error refreshing game state:", error);
+    }
+  };
 
   const loadUser = async () => {
     try {
@@ -128,6 +158,7 @@ export default function LiveScoring() {
       return teams.find(t => t.id === game?.home_team_id);
     },
     enabled: !!game?.home_team_id,
+    refetchInterval: 5000,
   });
 
   const { data: awayTeam } = useQuery({
@@ -137,6 +168,7 @@ export default function LiveScoring() {
       return teams.find(t => t.id === game?.away_team_id);
     },
     enabled: !!game?.away_team_id,
+    refetchInterval: 5000,
   });
 
   const { data: homePlayers = [] } = useQuery({
@@ -146,6 +178,7 @@ export default function LiveScoring() {
       return allPlayers.filter(p => p.team_id === game?.home_team_id);
     },
     enabled: !!game?.home_team_id,
+    refetchInterval: 10000,
   });
 
   const { data: awayPlayers = [] } = useQuery({
@@ -155,6 +188,7 @@ export default function LiveScoring() {
       return allPlayers.filter(p => p.team_id === game?.away_team_id);
     },
     enabled: !!game?.away_team_id,
+    refetchInterval: 10000,
   });
 
   const { data: organization } = useQuery({
@@ -510,6 +544,16 @@ export default function LiveScoring() {
       return;
     }
 
+    // Fetch fresh team data to ensure we have latest wins/losses
+    const allTeams = await base44.entities.Team.list();
+    const home = allTeams.find(t => t.id === game.home_team_id);
+    const away = allTeams.find(t => t.id === game.away_team_id);
+
+    if (!home || !away) {
+      alert("Error: Unable to find team data. Please try again.");
+      return;
+    }
+
     await base44.entities.Game.update(game.id, {
       status: 'completed',
       home_score: homeScore,
@@ -517,24 +561,18 @@ export default function LiveScoring() {
     });
 
     if (homeScore > awayScore) {
-      const allTeams = await base44.entities.Team.list();
-      const home = allTeams.find(t => t.id === game.home_team_id);
       await base44.entities.Team.update(game.home_team_id, {
         wins: (home.wins || 0) + 1
       });
       
-      const away = allTeams.find(t => t.id === game.away_team_id);
       await base44.entities.Team.update(game.away_team_id, {
         losses: (away.losses || 0) + 1
       });
     } else {
-      const allTeams = await base44.entities.Team.list();
-      const home = allTeams.find(t => t.id === game.home_team_id);
       await base44.entities.Team.update(game.home_team_id, {
         losses: (home.losses || 0) + 1
       });
       
-      const away = allTeams.find(t => t.id === game.away_team_id);
       await base44.entities.Team.update(game.away_team_id, {
         wins: (away.wins || 0) + 1
       });

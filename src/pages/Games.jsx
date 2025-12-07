@@ -114,6 +114,7 @@ export default function Games() {
     queryKey: ['games', user?.organization_id],
     queryFn: () => base44.entities.Game.filter({ organization_id: user?.organization_id }, '-game_date'),
     enabled: !!user?.organization_id,
+    refetchInterval: 15000,
   });
 
   const { data: allPlayers = [] } = useQuery({

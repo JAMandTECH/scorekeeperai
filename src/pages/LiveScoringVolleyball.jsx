@@ -44,7 +44,35 @@ export default function LiveScoringVolleyball() {
   useEffect(() => {
     loadGame();
     loadUser();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Set up periodic game state refresh for real-time sync
+    const intervalId = setInterval(() => {
+      if (game?.id) {
+        refreshGameState();
+      }
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [game?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const refreshGameState = async () => {
+    if (!game?.id) return;
+    try {
+      const games = await base44.entities.Game.list();
+      const currentGame = games.find(g => g.id === game.id);
+      if (currentGame && currentGame.status !== game.status) {
+        setGame(currentGame);
+        setHomeScore(currentGame.home_score || 0);
+        setAwayScore(currentGame.away_score || 0);
+        setCurrentSet(currentGame.current_quarter || 1);
+        setSetScores(currentGame.quarter_scores || []);
+        setHomeTimeouts(currentGame.home_timeouts ?? 5);
+        setAwayTimeouts(currentGame.away_timeouts ?? 5);
+      }
+    } catch (error) {
+      console.error("Error refreshing game state:", error);
+    }
+  };
 
   const loadUser = async () => {
     try {
@@ -98,6 +126,7 @@ export default function LiveScoringVolleyball() {
       return teams.find(t => t.id === game?.home_team_id);
     },
     enabled: !!game?.home_team_id,
+    refetchInterval: 5000,
   });
 
   const { data: awayTeam } = useQuery({
@@ -107,6 +136,7 @@ export default function LiveScoringVolleyball() {
       return teams.find(t => t.id === game?.away_team_id);
     },
     enabled: !!game?.away_team_id,
+    refetchInterval: 5000,
   });
 
   const { data: homePlayers = [] } = useQuery({
@@ -116,6 +146,7 @@ export default function LiveScoringVolleyball() {
       return allPlayers.filter(p => p.team_id === game?.home_team_id);
     },
     enabled: !!game?.home_team_id,
+    refetchInterval: 10000,
   });
 
   const { data: awayPlayers = [] } = useQuery({
@@ -125,6 +156,7 @@ export default function LiveScoringVolleyball() {
       return allPlayers.filter(p => p.team_id === game?.away_team_id);
     },
     enabled: !!game?.away_team_id,
+    refetchInterval: 10000,
   });
 
   const { data: organization } = useQuery({
@@ -377,38 +409,36 @@ export default function LiveScoringVolleyball() {
     if (currentSetHomeScore > currentSetAwayScore) homeSetsWon++;
     else if (currentSetAwayScore > currentSetHomeScore) awaySetsWon++;
 
+    // Fetch fresh team data to ensure we have latest wins/losses
+    const allTeams = await base44.entities.Team.list();
+    const homeTeamToUpdate = allTeams.find(t => t.id === game.home_team_id);
+    const awayTeamToUpdate = allTeams.find(t => t.id === game.away_team_id);
+
+    if (!homeTeamToUpdate || !awayTeamToUpdate) {
+      alert("Error: Unable to find team data. Please try again.");
+      return;
+    }
+
     await base44.entities.Game.update(game.id, {
       status: 'completed',
       home_score: homeScore,
       away_score: awayScore,
     });
 
-    const allTeams = await base44.entities.Team.list();
-    const homeTeamToUpdate = allTeams.find(t => t.id === game.home_team_id);
-    const awayTeamToUpdate = allTeams.find(t => t.id === game.away_team_id);
-
     if (homeSetsWon > awaySetsWon) {
-      if (homeTeamToUpdate) {
-        await base44.entities.Team.update(game.home_team_id, {
-          wins: (homeTeamToUpdate.wins || 0) + 1
-        });
-      }
-      if (awayTeamToUpdate) {
-        await base44.entities.Team.update(game.away_team_id, {
-          losses: (awayTeamToUpdate.losses || 0) + 1
-        });
-      }
+      await base44.entities.Team.update(game.home_team_id, {
+        wins: (homeTeamToUpdate.wins || 0) + 1
+      });
+      await base44.entities.Team.update(game.away_team_id, {
+        losses: (awayTeamToUpdate.losses || 0) + 1
+      });
     } else if (awaySetsWon > homeSetsWon) {
-      if (homeTeamToUpdate) {
-        await base44.entities.Team.update(game.home_team_id, {
-          losses: (homeTeamToUpdate.losses || 0) + 1
-        });
-      }
-      if (awayTeamToUpdate) {
-        await base44.entities.Team.update(game.away_team_id, {
-          wins: (awayTeamToUpdate.wins || 0) + 1
-        });
-      }
+      await base44.entities.Team.update(game.home_team_id, {
+        losses: (homeTeamToUpdate.losses || 0) + 1
+      });
+      await base44.entities.Team.update(game.away_team_id, {
+        wins: (awayTeamToUpdate.wins || 0) + 1
+      });
     }
 
     // Find best player (highest total points = attacks + blocks + aces)

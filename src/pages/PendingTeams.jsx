@@ -75,26 +75,76 @@ export default function PendingTeams() {
       return teams;
     },
     enabled: !!user?.organization_id,
+    refetchInterval: 10000,
   });
 
   const { data: allPlayers = [] } = useQuery({
     queryKey: ['all-players'],
     queryFn: () => base44.entities.Player.list(),
     enabled: true,
+    refetchInterval: 15000,
   });
 
   const approveTeamMutation = useMutation({
-    mutationFn: (teamId) => base44.entities.Team.update(teamId, { status: 'approved' }),
+    mutationFn: async (teamId) => {
+      const teams = await base44.entities.Team.list();
+      const team = teams.find(t => t.id === teamId);
+      
+      await base44.entities.Team.update(teamId, { status: 'approved' });
+      
+      // Send email notification to team submitter
+      if (team?.submitted_by) {
+        await base44.integrations.Core.SendEmail({
+          to: team.submitted_by,
+          subject: `Team Approved: ${team.name}`,
+          body: `
+            <h2>Team Registration Approved!</h2>
+            <p>Your team registration has been approved:</p>
+            <ul>
+              <li><strong>Team Name:</strong> ${team.name}</li>
+              <li><strong>Sport:</strong> ${team.sport}</li>
+              <li><strong>Division:</strong> ${team.division}</li>
+            </ul>
+            <p>Your team is now active and can participate in games.</p>
+          `
+        });
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['pending-teams']);
       queryClient.invalidateQueries(['teams']);
+      queryClient.invalidateQueries(['all-teams']);
     },
   });
 
   const rejectTeamMutation = useMutation({
-    mutationFn: (teamId) => base44.entities.Team.update(teamId, { status: 'rejected' }),
+    mutationFn: async (teamId) => {
+      const teams = await base44.entities.Team.list();
+      const team = teams.find(t => t.id === teamId);
+      
+      await base44.entities.Team.update(teamId, { status: 'rejected' });
+      
+      // Send email notification to team submitter
+      if (team?.submitted_by) {
+        await base44.integrations.Core.SendEmail({
+          to: team.submitted_by,
+          subject: `Team Registration Update: ${team.name}`,
+          body: `
+            <h2>Team Registration Status Update</h2>
+            <p>Your team registration was not approved:</p>
+            <ul>
+              <li><strong>Team Name:</strong> ${team.name}</li>
+              <li><strong>Sport:</strong> ${team.sport}</li>
+              <li><strong>Division:</strong> ${team.division}</li>
+            </ul>
+            <p>Please contact the organization administrator for more details.</p>
+          `
+        });
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['pending-teams']);
+      queryClient.invalidateQueries(['teams']);
     },
   });
 

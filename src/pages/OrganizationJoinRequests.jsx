@@ -78,6 +78,7 @@ export default function OrganizationJoinRequests() {
     queryKey: ['join-requests', user?.organization_id],
     queryFn: () => base44.entities.OrganizationJoinRequest.filter({ organization_id: user?.organization_id }),
     enabled: !!user?.organization_id,
+    refetchInterval: 10000,
   });
 
   // Approve mutation

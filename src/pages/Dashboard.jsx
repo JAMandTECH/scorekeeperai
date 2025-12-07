@@ -87,6 +87,7 @@ export default function Dashboard() {
     queryKey: ['teams', user?.organization_id],
     queryFn: () => base44.entities.Team.filter({ organization_id: user?.organization_id }),
     enabled: !!user?.organization_id,
+    refetchInterval: 15000,
   });
 
   const { data: players = [] } = useQuery({
@@ -99,6 +100,7 @@ export default function Dashboard() {
       return allPlayers.filter(p => teamIds.includes(p.team_id));
     },
     enabled: !!user?.organization_id,
+    refetchInterval: 15000,
   });
 
   if (loading) {
