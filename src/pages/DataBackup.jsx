@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Download, Upload, AlertTriangle, Database, Trash2, CheckCircle, FileDown, Clock, RefreshCw, Archive } from "lucide-react";
+import { Download, Upload, AlertTriangle, Database, Trash2, CheckCircle, FileDown, Clock, RefreshCw, Archive, AlertCircle } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
@@ -116,6 +116,15 @@ export default function DataBackup() {
     enabled: isSuperAdmin,
     refetchInterval: 30000,
   });
+
+  // Fetch backup schedule
+  const { data: backupSchedules = [], refetch: refetchSchedule } = useQuery({
+    queryKey: ['backup-schedule'],
+    queryFn: () => base44.entities.BackupSchedule.list(),
+    enabled: isSuperAdmin,
+  });
+
+  const backupSchedule = backupSchedules[0] || null;
 
   const entities = [
     {
@@ -359,6 +368,22 @@ export default function DataBackup() {
     }
   });
 
+  // Update schedule mutation
+  const updateScheduleMutation = useMutation({
+    mutationFn: async (scheduleData) => {
+      if (backupSchedule) {
+        return await base44.entities.BackupSchedule.update(backupSchedule.id, scheduleData);
+      } else {
+        return await base44.entities.BackupSchedule.create(scheduleData);
+      }
+    },
+    onSuccess: () => {
+      refetchSchedule();
+      setStatusMessage({ type: 'success', text: 'Schedule updated successfully' });
+      setTimeout(() => setStatusMessage(null), 3000);
+    },
+  });
+
   // Download backup file
   const handleDownloadBackup = async (backup) => {
     try {
@@ -446,15 +471,18 @@ export default function DataBackup() {
               {/* SUPER ADMIN VIEW */}
               {isSuperAdmin ? (
                 <Tabs defaultValue="backups" className="space-y-6">
-                  <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl">
-                    <TabsTrigger value="backups" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white font-bold rounded-lg px-6">
-                      Backup History
+                  <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl grid grid-cols-4">
+                    <TabsTrigger value="backups" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white font-bold rounded-lg px-4">
+                      History
                     </TabsTrigger>
-                    <TabsTrigger value="create" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white font-bold rounded-lg px-6">
-                      Create Backup
+                    <TabsTrigger value="create" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white font-bold rounded-lg px-4">
+                      Create
                     </TabsTrigger>
-                    <TabsTrigger value="restore" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white font-bold rounded-lg px-6">
-                      Restore Backup
+                    <TabsTrigger value="restore" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white font-bold rounded-lg px-4">
+                      Restore
+                    </TabsTrigger>
+                    <TabsTrigger value="schedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white font-bold rounded-lg px-4">
+                      Schedule
                     </TabsTrigger>
                   </TabsList>
 
@@ -692,6 +720,118 @@ export default function DataBackup() {
                             </>
                           )}
                         </Button>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  {/* Schedule Tab */}
+                  <TabsContent value="schedule">
+                    <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+                      <CardHeader>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <Clock className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">Automatic Backup Schedule</CardTitle>
+                            <CardDescription className="font-medium">Configure scheduled backups for all eligible organizations</CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <Alert className="bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-500">
+                          <Database className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          <AlertDescription className="text-blue-800 dark:text-blue-300 font-medium">
+                            Configure automatic backups to run on a schedule. The system will automatically backup all Basic and Premium organizations.
+                          </AlertDescription>
+                        </Alert>
+
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border-2 border-gray-200 dark:border-gray-700">
+                            <div>
+                              <Label className="text-lg font-bold text-gray-900 dark:text-white">Enable Automatic Backups</Label>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                {backupSchedule?.enabled ? 'Automatic backups are currently enabled' : 'Automatic backups are currently disabled'}
+                              </p>
+                            </div>
+                            <Button
+                              onClick={() => updateScheduleMutation.mutate({ 
+                                enabled: !backupSchedule?.enabled,
+                                frequency: backupSchedule?.frequency || 'daily',
+                                time_of_day: backupSchedule?.time_of_day || '02:00'
+                              })}
+                              className={`font-bold ${backupSchedule?.enabled ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} text-white`}
+                              disabled={updateScheduleMutation.isPending}
+                            >
+                              {updateScheduleMutation.isPending ? (
+                                <><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Updating...</>
+                              ) : (
+                                backupSchedule?.enabled ? 'Disable' : 'Enable'
+                              )}
+                            </Button>
+                          </div>
+
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                              <Label className="font-bold text-gray-700 dark:text-gray-300 mb-2 block">Frequency</Label>
+                              <Select 
+                                value={backupSchedule?.frequency || 'daily'}
+                                onValueChange={(value) => updateScheduleMutation.mutate({
+                                  enabled: backupSchedule?.enabled || false,
+                                  frequency: value,
+                                  time_of_day: backupSchedule?.time_of_day || '02:00'
+                                })}
+                                disabled={updateScheduleMutation.isPending}
+                              >
+                                <SelectTrigger className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="daily">Daily</SelectItem>
+                                  <SelectItem value="weekly">Weekly</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label className="font-bold text-gray-700 dark:text-gray-300 mb-2 block">Time of Day (24h)</Label>
+                              <Input
+                                type="time"
+                                value={backupSchedule?.time_of_day || '02:00'}
+                                onChange={(e) => updateScheduleMutation.mutate({
+                                  enabled: backupSchedule?.enabled || false,
+                                  frequency: backupSchedule?.frequency || 'daily',
+                                  time_of_day: e.target.value
+                                })}
+                                className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600"
+                                disabled={updateScheduleMutation.isPending}
+                              />
+                            </div>
+                          </div>
+
+                          {backupSchedule?.last_run && (
+                            <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-xl border-2 border-green-200 dark:border-green-800">
+                              <p className="text-sm font-bold text-green-800 dark:text-green-300">
+                                Last Run: {new Date(backupSchedule.last_run).toLocaleString()}
+                              </p>
+                            </div>
+                          )}
+
+                          {backupSchedule?.next_run && (
+                            <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-xl border-2 border-blue-200 dark:border-blue-800">
+                              <p className="text-sm font-bold text-blue-800 dark:text-blue-300">
+                                Next Scheduled Run: {new Date(backupSchedule.next_run).toLocaleString()}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        <Alert className="bg-yellow-50 dark:bg-yellow-950/30 border-2 border-yellow-500">
+                          <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                          <AlertDescription className="text-yellow-800 dark:text-yellow-300 font-medium">
+                            <strong>Important:</strong> You need to set up an external cron service (like cron-job.org) to call the <code className="bg-yellow-200 dark:bg-yellow-900 px-1 rounded">scheduledBackup</code> function URL at your configured schedule. Go to Dashboard → Code → Functions → scheduledBackup to get the URL.
+                          </AlertDescription>
+                        </Alert>
                       </CardContent>
                     </Card>
                   </TabsContent>
