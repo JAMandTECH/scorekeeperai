@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Users, Trophy, Calendar, TrendingUp, Activity, Loader2, ChevronRight, Shield, Clock } from "lucide-react";
+import { Building2, Users, Trophy, Calendar, TrendingUp, Activity, Loader2, ChevronRight, Shield, Clock, Database } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
@@ -263,7 +263,7 @@ export default function SuperAdminHome() {
               </div>
 
               {/* Quick Actions */}
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Link to={createPageUrl("SuperAdminDashboard")}>
                   <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all cursor-pointer group">
                     <CardContent className="p-6">
@@ -297,6 +297,25 @@ export default function SuperAdminHome() {
                           </div>
                         </div>
                         <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+
+                <Link to={createPageUrl("DataBackup")}>
+                  <Card className="bg-white dark:bg-gray-800 border-2 border-green-200 dark:border-green-700 shadow-lg hover:shadow-xl transition-all cursor-pointer group">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <Database className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="font-black text-gray-900 dark:text-white">Data Backups</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Manage backups</p>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors" />
                       </div>
                     </CardContent>
                   </Card>
