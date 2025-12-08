@@ -592,7 +592,7 @@ export default function DataBackup() {
                             <SelectContent>
                               {backupEligibleOrgs.map(org => (
                                 <SelectItem key={org.id} value={org.id}>
-                                  {org.name} ({org.subscription_tier.toUpperCase()})
+                                  {org.name} ({org.subscription_tier?.toUpperCase() || 'FREE'})
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -655,7 +655,7 @@ export default function DataBackup() {
                             <SelectContent>
                               {backupHistory.filter(b => b.status === 'success').map(backup => (
                                 <SelectItem key={backup.id} value={backup.id}>
-                                  {backup.organization_name} - {new Date(backup.backup_date).toLocaleString()} ({backup.subscription_tier})
+                                  {backup.organization_name} - {new Date(backup.backup_date).toLocaleString()} ({backup.subscription_tier?.toUpperCase() || 'FREE'})
                                 </SelectItem>
                               ))}
                             </SelectContent>
