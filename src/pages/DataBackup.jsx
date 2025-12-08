@@ -105,9 +105,9 @@ export default function DataBackup() {
     enabled: isSuperAdmin,
   });
 
-  // For manual backups, Super Admin can backup any organization
-  // Scheduled backups (in the backend function) will still only backup Basic/Premium
-  const backupEligibleOrgs = allOrganizations;
+  const backupEligibleOrgs = allOrganizations.filter(
+    org => org.subscription_tier === 'basic' || org.subscription_tier === 'premium'
+  );
 
   // Fetch backup history
   const { data: backupHistory = [] } = useQuery({
@@ -579,7 +579,7 @@ export default function DataBackup() {
                         <Alert className="bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-500">
                           <Database className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                           <AlertDescription className="text-blue-800 dark:text-blue-300 font-medium">
-                            Manual backups are created instantly and stored securely. As Super Admin, you can backup any organization. Scheduled automated backups will only backup Basic and Premium tier organizations.
+                            Manual backups are created instantly and stored securely. Only Basic and Premium organizations can be backed up.
                           </AlertDescription>
                         </Alert>
 
