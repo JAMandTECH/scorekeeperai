@@ -213,14 +213,10 @@ export default function PublicLanding() {
             <Sparkles className="w-4 h-4 inline mr-2" />
             AI-Powered Sports League Management Platform
           </Badge>
-
-          <div className="mb-6">
-            <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690476f21c3624553ac82b4f/52e29a3c6_Gemini_Generated_Image_zaqcyhzaqcyhzaqc1.png"
-              alt="ScorekeeperAI Logo"
-              className="mx-auto h-24 md:h-32 lg:h-40 w-auto drop-shadow-2xl"
-            />
-          </div>
+          
+          <h1 className="text-6xl md:text-7xl lg:text-8xl font-black mb-6 tracking-tight">
+            <span className="text-gradient-primary neon-text-blue">Scorekeeper</span><span className="text-gradient-warm">AI</span>
+          </h1>
           <p className="text-2xl md:text-3xl text-blue-100 mb-4 max-w-4xl mx-auto font-bold">
             The Complete AI-Powered Solution for Basketball & Volleyball Leagues
           </p>
@@ -1046,13 +1042,14 @@ export default function PublicLanding() {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div className="col-span-2">
-                <div className="flex items-center gap-3 mb-4">
-                  <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690476f21c3624553ac82b4f/52e29a3c6_Gemini_Generated_Image_zaqcyhzaqcyhzaqc1.png"
-                    alt="ScorekeeperAI Logo"
-                    className="h-12 w-auto"
-                  />
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 rounded-xl flex items-center justify-center shadow-xl neon-glow-orange">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                  </svg>
                 </div>
+                <span className="text-3xl font-black text-gradient-warm">ScorekeeperAI</span>
+              </div>
               <p className="text-blue-200 mb-4 max-w-md">
                 Professional sports league management platform for basketball and volleyball leagues.
               </p>
