@@ -209,7 +209,7 @@ export default function PublicLanding() {
         </div>
 
         <div className="max-w-7xl mx-auto text-center relative z-10">
-          <Badge className="mb-8 glass text-cyan-300 border border-cyan-400/30 text-sm font-bold px-6 py-3 animate-pulse">
+          <Badge className="mb-8 bg-cyan-500/20 backdrop-blur-md text-cyan-100 border-2 border-cyan-400/60 text-sm font-bold px-6 py-3 animate-pulse shadow-lg">
             <Sparkles className="w-4 h-4 inline mr-2" />
             AI-Powered Sports League Management Platform
           </Badge>
