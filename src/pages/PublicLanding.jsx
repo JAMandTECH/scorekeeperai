@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import AIAssistant from "@/components/AIAssistant";
+import LiveScorePreview from "@/components/LiveScorePreview";
 
 export default function PublicLanding() {
   const [darkMode, setDarkMode] = useState(false);
@@ -284,6 +285,44 @@ export default function PublicLanding() {
         </div>
         
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white dark:from-gray-800 to-transparent"></div>
+      </section>
+
+      {/* LIVE SCORING PREVIEW - Interactive Demo */}
+      <section className="py-24 px-4 bg-white dark:bg-gray-900 relative overflow-hidden">
+        <div className="absolute inset-0 mesh-gradient opacity-30"></div>
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 text-sm font-bold px-6 py-3 shadow-lg animate-pulse">
+              <PlayCircle className="w-4 h-4 inline mr-2 animate-pulse" />
+              LIVE SCORING SIMULATION
+            </Badge>
+            <h2 className="text-5xl font-black text-gray-900 dark:text-white mb-4">
+              Watch Real-Time Scoring <span className="text-gradient-primary">In Action</span>
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Experience our live scoring system with this interactive simulation featuring automated score updates and real-time statistics.
+            </p>
+          </div>
+
+          <div className="max-w-4xl mx-auto">
+            <LiveScorePreview />
+          </div>
+
+          <div className="text-center mt-12">
+            <p className="text-gray-600 dark:text-gray-400 font-medium mb-6">
+              This is a live simulation showing how games are tracked in real-time with instant updates and animations.
+            </p>
+            {!isAuthenticated && (
+              <Button 
+                onClick={handleGetStarted}
+                className="btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white text-lg px-12 py-6 font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-2xl neon-glow-orange"
+              >
+                Try It With Your League
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            )}
+          </div>
+        </div>
       </section>
 
       {/* DEMO SECTION - Sample League Data */}
