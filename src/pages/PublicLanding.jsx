@@ -214,8 +214,17 @@ export default function PublicLanding() {
             AI-Powered Sports League Management Platform
           </Badge>
           
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-black mb-6 tracking-tight">
-            <span className="text-gradient-primary neon-text-blue">Scorekeeper</span><span className="text-gradient-warm">AI</span>
+          <h1 className="text-6xl md:text-7xl lg:text-8xl font-black mb-6" style={{ fontFamily: "'Arial Black', 'Arial Bold', Gadget, sans-serif", letterSpacing: '0.1em' }}>
+            <span className="text-white">SCOREKEEPER</span>
+            <span 
+              className="ml-2 bg-gradient-to-r from-cyan-400 via-cyan-300 to-cyan-500 bg-clip-text text-transparent" 
+              style={{ 
+                filter: 'drop-shadow(0 0 30px rgba(34, 211, 238, 0.8)) drop-shadow(0 0 60px rgba(34, 211, 238, 0.5))',
+                textShadow: '0 0 80px rgba(34, 211, 238, 0.6)'
+              }}
+            >
+              AI
+            </span>
           </h1>
           <p className="text-2xl md:text-3xl text-blue-100 mb-4 max-w-4xl mx-auto font-bold">
             The Complete AI-Powered Solution for Basketball & Volleyball Leagues
@@ -284,7 +293,7 @@ export default function PublicLanding() {
           </div>
         </div>
         
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white dark:from-gray-800 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent"></div>
       </section>
 
       {/* LIVE SCORING PREVIEW - Interactive Demo */}
