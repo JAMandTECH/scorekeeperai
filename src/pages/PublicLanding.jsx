@@ -213,7 +213,7 @@ export default function PublicLanding() {
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690476f21c3624553ac82b4f/cb4f4bb56_Gemini_Generated_Image_knflvbknflvbknfl1.png" 
             alt="ScorekeeperAI Logo" 
             className="w-32 h-32 md:w-40 md:h-40 mx-auto mb-8 animate-pulse"
-            style={{ filter: 'drop-shadow(0 0 40px rgba(34, 211, 238, 0.6))' }}
+            style={{ filter: 'drop-shadow(0 0 40px rgba(34, 211, 238, 0.6))', mixBlendMode: 'screen' }}
           />
           
           <Badge className="mb-8 bg-cyan-500/20 backdrop-blur-md text-cyan-100 border-2 border-cyan-400/60 text-sm font-bold px-6 py-3 animate-pulse shadow-lg">
