@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageCircle, X, Send, Sparkles, ChevronRight, HelpCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getAIProvider, setAIProvider, getAIProviderLabel } from "@/components/ai/aiProvider";
 
 // Role-based quick guides
 const ADMIN_GUIDES = [
@@ -149,6 +150,7 @@ export default function AIAssistant() {
   const [userRole, setUserRole] = useState(null); // 'super_admin', 'admin', 'scorekeeper', 'user', 'public'
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [provider, setProvider] = useState(getAIProvider());
 
   // Load user and determine role
   useEffect(() => {
@@ -338,11 +340,30 @@ IMPORTANT INSTRUCTIONS:
 5. Format steps with numbers (1. 2. 3.) for clarity.
 6. If you're unsure about their access, suggest they contact their admin.`;
 
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: prompt
-      });
+      let replyText = '';
+      try {
+        if (provider === 'gemini') {
+          const { data } = await base44.functions.invoke('geminiChat', { prompt });
+          replyText = typeof data?.output === 'string' ? data.output : JSON.stringify(data?.output, null, 2);
+        } else {
+          const coreRes = await base44.integrations.Core.InvokeLLM({ prompt });
+          replyText = typeof coreRes === 'string' ? coreRes : JSON.stringify(coreRes, null, 2);
+        }
+      } catch (e) {
+        try {
+          if (provider !== 'gemini') {
+            const { data } = await base44.functions.invoke('geminiChat', { prompt });
+            replyText = typeof data?.output === 'string' ? data.output : JSON.stringify(data?.output, null, 2);
+          } else {
+            const coreRes = await base44.integrations.Core.InvokeLLM({ prompt });
+            replyText = typeof coreRes === 'string' ? coreRes : JSON.stringify(coreRes, null, 2);
+          }
+        } catch (e2) {
+          throw e2;
+        }
+      }
 
-      setMessages(prev => [...prev, { role: "assistant", content: response }]);
+      setMessages(prev => [...prev, { role: "assistant", content: replyText }]);
     } catch (error) {
       console.error("Error getting AI response:", error);
       setMessages(prev => [...prev, {
@@ -405,14 +426,28 @@ IMPORTANT INSTRUCTIONS:
                   <p className="text-xs text-purple-100 font-medium">Here to help you navigate</p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsOpen(false)}
-                className="text-white hover:bg-white/20 h-9 w-9 rounded-xl"
-              >
-                <X className="w-5 h-5" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const next = provider === 'gemini' ? 'default' : 'gemini';
+                    const saved = setAIProvider(next);
+                    setProvider(saved);
+                  }}
+                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 rounded-xl px-3 h-9"
+                >
+                  {provider === 'gemini' ? 'Gemini' : 'Default AI'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsOpen(false)}
+                  className="text-white hover:bg-white/20 h-9 w-9 rounded-xl"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
           </CardHeader>
 

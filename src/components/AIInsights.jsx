@@ -41,28 +41,46 @@ Provide insights in JSON format:
 
 Focus on: league growth, team participation, player engagement, and upcoming events.`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: prompt,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            insights: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  title: { type: "string" },
-                  description: { type: "string" },
-                  type: { type: "string" },
-                  icon: { type: "string" }
-                }
+      const schema = {
+        type: "object",
+        properties: {
+          insights: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                title: { type: "string" },
+                description: { type: "string" },
+                type: { type: "string" },
+                icon: { type: "string" }
               }
             }
           }
         }
-      });
+      };
 
-      setInsights(result.insights || []);
+      let insightsOut = [];
+      try {
+        const provider = (typeof window !== 'undefined' && localStorage.getItem('aiProvider')) || 'default';
+        if (provider === 'gemini') {
+          const { data } = await base44.functions.invoke('geminiChat', { prompt, response_json_schema: schema });
+          const out = data?.output;
+          insightsOut = out?.insights || [];
+        } else {
+          const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema });
+          insightsOut = result.insights || [];
+        }
+      } catch (err) {
+        try {
+          const { data } = await base44.functions.invoke('geminiChat', { prompt, response_json_schema: schema });
+          const out = data?.output;
+          insightsOut = out?.insights || [];
+        } catch (e2) {
+          insightsOut = [];
+        }
+      }
+
+      setInsights(insightsOut);
     } catch (error) {
       console.error("Error generating insights:", error);
       setInsights([]);

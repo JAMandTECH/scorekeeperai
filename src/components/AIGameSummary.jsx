@@ -30,11 +30,26 @@ Write a 3-paragraph summary (100-150 words total) covering:
 
 Keep it exciting and engaging for fans!`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: prompt,
-      });
+      let text = '';
+      try {
+        const provider = (typeof window !== 'undefined' && localStorage.getItem('aiProvider')) || 'default';
+        if (provider === 'gemini') {
+          const { data } = await base44.functions.invoke('geminiChat', { prompt });
+          text = typeof data?.output === 'string' ? data.output : JSON.stringify(data?.output, null, 2);
+        } else {
+          const result = await base44.integrations.Core.InvokeLLM({ prompt });
+          text = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+        }
+      } catch (err) {
+        try {
+          const { data } = await base44.functions.invoke('geminiChat', { prompt });
+          text = typeof data?.output === 'string' ? data.output : JSON.stringify(data?.output, null, 2);
+        } catch (e2) {
+          throw e2;
+        }
+      }
 
-      setSummary(result);
+      setSummary(text);
     } catch (error) {
       console.error("Error generating summary:", error);
       setSummary("Unable to generate summary at this time. Please try again later.");
