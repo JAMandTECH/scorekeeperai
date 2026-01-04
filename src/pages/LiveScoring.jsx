@@ -17,6 +17,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import VoiceAssistant from "@/components/VoiceAssistant";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export default function LiveScoring() {
   const [game, setGame] = useState(null);
@@ -39,6 +40,8 @@ export default function LiveScoring() {
   const [user, setUser] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
   const [userRole, setUserRole] = useState('viewer'); // 'overall', 'home_stat', 'away_stat', 'viewer'
+  const [activeTimeout, setActiveTimeout] = useState(null); // 'home' | 'away' | null
+  const [voiceFeedback, setVoiceFeedback] = useState(null); // {text, status}
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -406,6 +409,10 @@ export default function LiveScoring() {
     const oldHomeTimeouts = homeTimeouts;
     const oldAwayTimeouts = awayTimeouts;
 
+    // Visual indicator for active timeout (auto-clear after 60s)
+    setActiveTimeout(team);
+    setTimeout(() => setActiveTimeout((prev) => (prev === team ? null : prev)), 60000);
+
     if (team === 'home' && homeTimeouts > 0) {
       const newTimeouts = homeTimeouts - 1;
       setHomeTimeouts(newTimeouts);
@@ -695,16 +702,18 @@ export default function LiveScoring() {
 
   // New voice command handler
   const handleVoiceCommand = async ({ team, player, action, value }) => {
-    console.log('Voice command received:', { team, player: player?.jersey_number, action, value });
-    
+    const summary = `${team || ''} #${player?.jersey_number || ''} ${action}${value ? ' ' + value : ''}`.trim();
+    setVoiceFeedback({ text: summary, status: 'processing' });
+
     // Handle undo command
     if (action === 'undo') {
       await handleUndo();
+      setVoiceFeedback({ text: 'Undo last action', status: 'success' });
       return;
     }
     
     if (!game || !player) {
-      console.error('Game or player not found');
+      setVoiceFeedback({ text: 'Game or player not found', status: 'error' });
       return;
     }
 
@@ -717,35 +726,27 @@ export default function LiveScoring() {
 
       // Execute the action based on the command
       if (action === '3-pointer') {
-        console.log('Adding 3 points for player', player.jersey_number);
         await addPoints(player.id, teamId, 3);
       } else if (action === '2-pointer') {
-        console.log('Adding 2 points for player', player.jersey_number);
         await addPoints(player.id, teamId, 2);
       } else if (action === 'free-throw') {
-        console.log('Adding 1 point for player', player.jersey_number);
         await addPoints(player.id, teamId, 1);
       } else if (action === 'foul') {
-        console.log('Adding foul for player', player.jersey_number);
         await handleFoul(player.id, teamId);
       } else if (action === 'rebound') {
-        console.log('Adding rebound for player', player.jersey_number);
         await addPlayerStat(player.id, teamId, 'rebounds', 1);
       } else if (action === 'assist') {
-        console.log('Adding assist for player', player.jersey_number);
         await addPlayerStat(player.id, teamId, 'assists', 1);
       } else if (action === 'steal') {
-        console.log('Adding steal for player', player.jersey_number);
         await addPlayerStat(player.id, teamId, 'steals', 1);
       } else if (action === 'block') {
-        console.log('Adding block for player', player.jersey_number);
         await addPlayerStat(player.id, teamId, 'blocks', 1);
       }
       
-      console.log('Action completed successfully');
+      setVoiceFeedback({ text: summary, status: 'success' });
     } catch (error) {
       console.error('Error executing voice command:', error);
-      alert(`Error executing command: ${error.message}`);
+      setVoiceFeedback({ text: error.message || 'Command failed', status: 'error' });
     }
   };
 
@@ -761,6 +762,12 @@ export default function LiveScoring() {
   const inPenalty = (team) => {
     return (team === 'home' ? homeTeamFouls : awayTeamFouls) >= game.penalty_limit_per_quarter;
   };
+
+  // Roles available to this user for this game (basketball)
+  const allowedRoles = [];
+  if (user?.role === 'admin' || game?.overall_scorekeeper_email === user?.email) allowedRoles.push('overall');
+  if (user?.role === 'admin' || game?.home_statistician_email === user?.email) allowedRoles.push('home_stat');
+  if (user?.role === 'admin' || game?.away_statistician_email === user?.email) allowedRoles.push('away_stat');
 
   const PlayerRow = ({ player, team, teamId, onSelect }) => {
     const totalFouls = getTotalPlayerFouls(player.id);
@@ -966,11 +973,14 @@ export default function LiveScoring() {
                 <div className="text-gray-900 dark:text-white text-2xl font-black text-left">{homeTeam.name}</div>
               </div>
               <div className="text-orange-600 dark:text-orange-500 text-7xl font-black mb-2">{homeScore}</div>
-              <div className="flex justify-center gap-4 text-xs font-bold">
+              <div className="flex justify-center gap-4 text-xs font-bold items-center">
                 <span className={`${inPenalty('home') ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
                   FOULS: {homeTeamFouls}/{game.penalty_limit_per_quarter}
                 </span>
                 <span className="text-gray-900 dark:text-white">TO: {homeTimeouts}</span>
+                {activeTimeout === 'home' && (
+                  <span className="ml-2 px-2 py-1 rounded bg-red-600 text-white text-[10px] font-black animate-pulse">TIMEOUT</span>
+                )}
               </div>
             </div>
 
@@ -1071,11 +1081,14 @@ export default function LiveScoring() {
                 </Avatar>
               </div>
               <div className="text-blue-600 dark:text-blue-500 text-7xl font-black mb-2">{awayScore}</div>
-              <div className="flex justify-center gap-4 text-xs font-bold">
+              <div className="flex justify-center gap-4 text-xs font-bold items-center">
                 <span className={`${inPenalty('away') ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
                   FOULS: {awayTeamFouls}/{game.penalty_limit_per_quarter}
                 </span>
                 <span className="text-gray-900 dark:text-white">TO: {awayTimeouts}</span>
+                {activeTimeout === 'away' && (
+                  <span className="ml-2 px-2 py-1 rounded bg-red-600 text-white text-[10px] font-black animate-pulse">TIMEOUT</span>
+                )}
               </div>
             </div>
           </div>
@@ -1132,6 +1145,11 @@ export default function LiveScoring() {
             onCommand={handleVoiceCommand}
             sport="basketball"
           />
+        )}
+        {voiceFeedback?.text && (
+          <div className={`mt-3 text-sm font-semibold ${voiceFeedback.status === 'success' ? 'text-green-600' : voiceFeedback.status === 'error' ? 'text-red-600' : 'text-gray-600'}`}>
+            {voiceFeedback.status === 'processing' ? 'Listening: ' : voiceFeedback.status === 'success' ? 'Recorded: ' : 'Error: '} {voiceFeedback.text}
+          </div>
         )}
       </div>
 

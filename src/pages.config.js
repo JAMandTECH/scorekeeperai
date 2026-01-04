@@ -1,88 +1,92 @@
-import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
-import Organizations from './pages/Organizations';
-import Teams from './pages/Teams';
-import Players from './pages/Players';
-import Games from './pages/Games';
-import LiveScoring from './pages/LiveScoring';
-import Statistics from './pages/Statistics';
-import AllTeams from './pages/AllTeams';
-import AllGames from './pages/AllGames';
-import SuperAdminSetup from './pages/SuperAdminSetup';
-import RequestAdminAccess from './pages/RequestAdminAccess';
 import AdminApprovals from './pages/AdminApprovals';
-import VerifyAdminCode from './pages/VerifyAdminCode';
-import LiveScoringVolleyball from './pages/LiveScoringVolleyball';
-import Divisions from './pages/Divisions';
-import Scorekeepers from './pages/Scorekeepers';
-import PublicLanding from './pages/PublicLanding';
-import RoleSelection from './pages/RoleSelection';
+import AllGames from './pages/AllGames';
+import AllTeams from './pages/AllTeams';
 import AssociateOrganization from './pages/AssociateOrganization';
+import Dashboard from './pages/Dashboard';
+import DataBackup from './pages/DataBackup';
+import Divisions from './pages/Divisions';
+import Games from './pages/Games';
+import Home from './pages/Home';
+import JoinOrganization from './pages/JoinOrganization';
+import LiveScoring from './pages/LiveScoring';
+import LiveScoringVolleyball from './pages/LiveScoringVolleyball';
+import ManualGameEntry from './pages/ManualGameEntry';
+import OrganizationJoinRequests from './pages/OrganizationJoinRequests';
+import OrganizationMembers from './pages/OrganizationMembers';
 import OrganizationSelector from './pages/OrganizationSelector';
 import OrganizationSettings from './pages/OrganizationSettings';
-import DataBackup from './pages/DataBackup';
+import Organizations from './pages/Organizations';
+import PendingTeams from './pages/PendingTeams';
+import Players from './pages/Players';
+import Profile from './pages/Profile';
+import PublicGameView from './pages/PublicGameView';
+import PublicLanding from './pages/PublicLanding';
+import RequestAdminAccess from './pages/RequestAdminAccess';
+import RoleSelection from './pages/RoleSelection';
+import RolesPermissions from './pages/RolesPermissions';
+import Schedule from './pages/Schedule';
+import ScorekeeperDashboard from './pages/ScorekeeperDashboard';
+import Scorekeepers from './pages/Scorekeepers';
+import SocialFeed from './pages/SocialFeed';
+import Statistics from './pages/Statistics';
+import SubscriptionCancelled from './pages/SubscriptionCancelled';
+import SubscriptionCheckout from './pages/SubscriptionCheckout';
+import SubscriptionManagement from './pages/SubscriptionManagement';
+import SubscriptionSuccess from './pages/SubscriptionSuccess';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import SuperAdminHome from './pages/SuperAdminHome';
-import ScorekeeperDashboard from './pages/ScorekeeperDashboard';
-import TournamentBracket from './pages/TournamentBracket';
-import SocialFeed from './pages/SocialFeed';
-import WeeklySummary from './pages/WeeklySummary';
+import SuperAdminSetup from './pages/SuperAdminSetup';
 import TeamRegistration from './pages/TeamRegistration';
-import PendingTeams from './pages/PendingTeams';
-import OrganizationMembers from './pages/OrganizationMembers';
-import RolesPermissions from './pages/RolesPermissions';
-import ManualGameEntry from './pages/ManualGameEntry';
-import JoinOrganization from './pages/JoinOrganization';
-import OrganizationJoinRequests from './pages/OrganizationJoinRequests';
-import PublicGameView from './pages/PublicGameView';
-import SubscriptionManagement from './pages/SubscriptionManagement';
-import SubscriptionCheckout from './pages/SubscriptionCheckout';
-import SubscriptionSuccess from './pages/SubscriptionSuccess';
-import SubscriptionCancelled from './pages/SubscriptionCancelled';
+import Teams from './pages/Teams';
+import TournamentBracket from './pages/TournamentBracket';
+import VerifyAdminCode from './pages/VerifyAdminCode';
+import WeeklySummary from './pages/WeeklySummary';
 
 
 export const PAGES = {
-    "Home": Home,
-    "Dashboard": Dashboard,
-    "Organizations": Organizations,
-    "Teams": Teams,
-    "Players": Players,
-    "Games": Games,
-    "LiveScoring": LiveScoring,
-    "Statistics": Statistics,
-    "AllTeams": AllTeams,
-    "AllGames": AllGames,
-    "SuperAdminSetup": SuperAdminSetup,
-    "RequestAdminAccess": RequestAdminAccess,
     "AdminApprovals": AdminApprovals,
-    "VerifyAdminCode": VerifyAdminCode,
-    "LiveScoringVolleyball": LiveScoringVolleyball,
-    "Divisions": Divisions,
-    "Scorekeepers": Scorekeepers,
-    "PublicLanding": PublicLanding,
-    "RoleSelection": RoleSelection,
+    "AllGames": AllGames,
+    "AllTeams": AllTeams,
     "AssociateOrganization": AssociateOrganization,
+    "Dashboard": Dashboard,
+    "DataBackup": DataBackup,
+    "Divisions": Divisions,
+    "Games": Games,
+    "Home": Home,
+    "JoinOrganization": JoinOrganization,
+    "LiveScoring": LiveScoring,
+    "LiveScoringVolleyball": LiveScoringVolleyball,
+    "ManualGameEntry": ManualGameEntry,
+    "OrganizationJoinRequests": OrganizationJoinRequests,
+    "OrganizationMembers": OrganizationMembers,
     "OrganizationSelector": OrganizationSelector,
     "OrganizationSettings": OrganizationSettings,
-    "DataBackup": DataBackup,
+    "Organizations": Organizations,
+    "PendingTeams": PendingTeams,
+    "Players": Players,
+    "Profile": Profile,
+    "PublicGameView": PublicGameView,
+    "PublicLanding": PublicLanding,
+    "RequestAdminAccess": RequestAdminAccess,
+    "RoleSelection": RoleSelection,
+    "RolesPermissions": RolesPermissions,
+    "Schedule": Schedule,
+    "ScorekeeperDashboard": ScorekeeperDashboard,
+    "Scorekeepers": Scorekeepers,
+    "SocialFeed": SocialFeed,
+    "Statistics": Statistics,
+    "SubscriptionCancelled": SubscriptionCancelled,
+    "SubscriptionCheckout": SubscriptionCheckout,
+    "SubscriptionManagement": SubscriptionManagement,
+    "SubscriptionSuccess": SubscriptionSuccess,
     "SuperAdminDashboard": SuperAdminDashboard,
     "SuperAdminHome": SuperAdminHome,
-    "ScorekeeperDashboard": ScorekeeperDashboard,
-    "TournamentBracket": TournamentBracket,
-    "SocialFeed": SocialFeed,
-    "WeeklySummary": WeeklySummary,
+    "SuperAdminSetup": SuperAdminSetup,
     "TeamRegistration": TeamRegistration,
-    "PendingTeams": PendingTeams,
-    "OrganizationMembers": OrganizationMembers,
-    "RolesPermissions": RolesPermissions,
-    "ManualGameEntry": ManualGameEntry,
-    "JoinOrganization": JoinOrganization,
-    "OrganizationJoinRequests": OrganizationJoinRequests,
-    "PublicGameView": PublicGameView,
-    "SubscriptionManagement": SubscriptionManagement,
-    "SubscriptionCheckout": SubscriptionCheckout,
-    "SubscriptionSuccess": SubscriptionSuccess,
-    "SubscriptionCancelled": SubscriptionCancelled,
+    "Teams": Teams,
+    "TournamentBracket": TournamentBracket,
+    "VerifyAdminCode": VerifyAdminCode,
+    "WeeklySummary": WeeklySummary,
 }
 
 export const pagesConfig = {

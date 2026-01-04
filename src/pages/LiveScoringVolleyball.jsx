@@ -40,6 +40,8 @@ export default function LiveScoringVolleyball() {
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(true);
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [activeTimeout, setActiveTimeout] = useState(null); // 'home' | 'away' | null
+  const [voiceFeedback, setVoiceFeedback] = useState(null); // {text, status}
 
   useEffect(() => {
     loadGame();
@@ -349,6 +351,10 @@ export default function LiveScoringVolleyball() {
       };
       setActionHistory(prev => [...prev, action]);
 
+      // Visual indicator (auto-clear after 60s)
+      setActiveTimeout(team);
+      setTimeout(() => setActiveTimeout((prev) => (prev === team ? null : prev)), 60000);
+
       if (team === 'home' && homeTimeouts > 0) {
         const newTimeouts = homeTimeouts - 1;
         setHomeTimeouts(newTimeouts);
@@ -541,14 +547,18 @@ export default function LiveScoringVolleyball() {
   };
 
   const handleVoiceCommand = async ({ team, player, action, value }) => {
+    const summary = `${team || ''} #${player?.jersey_number || ''} ${action}${value ? ' ' + value : ''}`.trim();
+    setVoiceFeedback({ text: summary, status: 'processing' });
+
     if (!game) {
-      console.warn("Game not loaded, cannot process voice command.");
+      setVoiceFeedback({ text: 'Game not loaded', status: 'error' });
       return;
     }
 
     // Handle undo command
     if (action === 'undo') {
       await handleUndo();
+      setVoiceFeedback({ text: 'Undo last action', status: 'success' });
       return;
     }
 
@@ -559,6 +569,7 @@ export default function LiveScoringVolleyball() {
       setSelectedTeam(team);
       setSelectedPlayer(null);
       await handleScoreOnly();
+      setVoiceFeedback({ text: summary, status: 'success' });
       return;
     }
     
@@ -566,21 +577,26 @@ export default function LiveScoringVolleyball() {
     setSelectedPlayer(player);
     setSelectedTeam(team);
 
-    // Execute the action based on the command
-    if (action === 'point') {
-      await handleScoreOnly();
-    } else if (action === 'kill') {
-      await handleScoreWithStat('field_goals_made', 'attack');
-    } else if (action === 'ace') {
-      await handleScoreWithStat('three_pointers', 'ace');
-    } else if (action === 'block') {
-      await handleScoreWithStat('blocks', 'block');
-    } else if (action === 'assist') {
-      await updatePlayerStats(player.id, teamId, [{ statType: 'assists', value: 1 }]);
-    } else if (action === 'dig') {
-      await updatePlayerStats(player.id, teamId, [{ statType: 'rebounds', value: 1 }]);
-    } else if (action === 'error') {
-      await updatePlayerStats(player.id, teamId, [{ statType: 'steals', value: 1 }]);
+    try {
+      // Execute the action based on the command
+      if (action === 'point') {
+        await handleScoreOnly();
+      } else if (action === 'kill') {
+        await handleScoreWithStat('field_goals_made', 'attack');
+      } else if (action === 'ace') {
+        await handleScoreWithStat('three_pointers', 'ace');
+      } else if (action === 'block') {
+        await handleScoreWithStat('blocks', 'block');
+      } else if (action === 'assist') {
+        await updatePlayerStats(player.id, teamId, [{ statType: 'assists', value: 1 }]);
+      } else if (action === 'dig') {
+        await updatePlayerStats(player.id, teamId, [{ statType: 'rebounds', value: 1 }]);
+      } else if (action === 'error') {
+        await updatePlayerStats(player.id, teamId, [{ statType: 'steals', value: 1 }]);
+      }
+      setVoiceFeedback({ text: summary, status: 'success' });
+    } catch (e) {
+      setVoiceFeedback({ text: e.message || 'Command failed', status: 'error' });
     }
   };
 
@@ -852,6 +868,11 @@ export default function LiveScoringVolleyball() {
             sport="volleyball"
           />
         )}
+        {voiceFeedback?.text && (
+          <div className={`mt-3 text-sm font-semibold ${voiceFeedback.status === 'success' ? 'text-green-400' : voiceFeedback.status === 'error' ? 'text-red-400' : 'text-gray-300'}`}>
+            {voiceFeedback.status === 'processing' ? 'Listening: ' : voiceFeedback.status === 'success' ? 'Recorded: ' : 'Error: '} {voiceFeedback.text}
+          </div>
+        )}
       </div>
 
       {selectedPlayer ? (
@@ -906,6 +927,24 @@ export default function LiveScoringVolleyball() {
                   >
                     <Zap className="w-4 h-4 mr-1" />
                     ACE
+                  </Button>
+                  <Button
+                    onClick={() => updatePlayerStats(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, [{ statType: 'assists', value: 1 }])}
+                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                  >
+                    ASSIST
+                  </Button>
+                  <Button
+                    onClick={() => updatePlayerStats(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, [{ statType: 'rebounds', value: 1 }])}
+                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                  >
+                    DIG
+                  </Button>
+                  <Button
+                    onClick={() => updatePlayerStats(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, [{ statType: 'steals', value: 1 }])}
+                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
+                  >
+                    ERROR
                   </Button>
                   <Button
                     onClick={handleScoreOnly}
