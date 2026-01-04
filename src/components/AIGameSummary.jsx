@@ -32,14 +32,8 @@ Keep it exciting and engaging for fans!`;
 
       let text = '';
       try {
-        const provider = (typeof window !== 'undefined' && localStorage.getItem('aiProvider')) || 'default';
-        if (provider === 'gemini') {
-          const { data } = await base44.functions.invoke('geminiChat', { prompt });
-          text = typeof data?.output === 'string' ? data.output : JSON.stringify(data?.output, null, 2);
-        } else {
-          const result = await base44.integrations.Core.InvokeLLM({ prompt });
-          text = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
-        }
+        const result = await base44.integrations.Core.InvokeLLM({ prompt });
+        text = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
       } catch (err) {
         try {
           const { data } = await base44.functions.invoke('geminiChat', { prompt });

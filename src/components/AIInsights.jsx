@@ -61,15 +61,8 @@ Focus on: league growth, team participation, player engagement, and upcoming eve
 
       let insightsOut = [];
       try {
-        const provider = (typeof window !== 'undefined' && localStorage.getItem('aiProvider')) || 'default';
-        if (provider === 'gemini') {
-          const { data } = await base44.functions.invoke('geminiChat', { prompt, response_json_schema: schema });
-          const out = data?.output;
-          insightsOut = out?.insights || [];
-        } else {
-          const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema });
-          insightsOut = result.insights || [];
-        }
+        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema });
+        insightsOut = result.insights || [];
       } catch (err) {
         try {
           const { data } = await base44.functions.invoke('geminiChat', { prompt, response_json_schema: schema });
