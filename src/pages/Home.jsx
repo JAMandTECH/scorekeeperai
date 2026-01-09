@@ -235,6 +235,7 @@ export default function Home() {
         average: gamesPlayed > 0 ? (total / gamesPlayed).toFixed(1) : 0,
         averageLabel,
         teamName: team?.name || 'Unknown',
+        teamLogoUrl: team?.logo_url || '',
         division: team?.division || 'No Division',
       };
     });
@@ -877,10 +878,14 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                                {player.first_name} {player.last_name}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
+                                  <AvatarImage src={player.teamLogoUrl} />
+                                  <AvatarFallback className="bg-gray-200 text-[10px] font-bold">{player.teamName?.substring(0,2)?.toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="text-2xl font-black text-blue-600 dark:text-blue-400">{player.total}</p>
@@ -934,10 +939,14 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                                {player.first_name} {player.last_name}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
+                                  <AvatarImage src={player.teamLogoUrl} />
+                                  <AvatarFallback className="bg-gray-200 text-[10px] font-bold">{player.teamName?.substring(0,2)?.toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="text-2xl font-black text-green-600 dark:text-green-400">{player.total}</p>
@@ -991,10 +1000,14 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                                {player.first_name} {player.last_name}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
+                                  <AvatarImage src={player.teamLogoUrl} />
+                                  <AvatarFallback className="bg-gray-200 text-[10px] font-bold">{player.teamName?.substring(0,2)?.toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="text-2xl font-black text-red-600 dark:text-red-400">{player.total}</p>
@@ -1048,10 +1061,14 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                                {player.first_name} {player.last_name}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
+                                  <AvatarImage src={player.teamLogoUrl} />
+                                  <AvatarFallback className="bg-gray-200 text-[10px] font-bold">{player.teamName?.substring(0,2)?.toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="text-2xl font-black text-yellow-600 dark:text-yellow-400">{player.total}</p>
@@ -1380,10 +1397,14 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                                {player.first_name} {player.last_name}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
+                                  <AvatarImage src={player.teamLogoUrl} />
+                                  <AvatarFallback className="bg-gray-200 text-[10px] font-bold">{player.teamName?.substring(0,2)?.toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="text-2xl font-black text-blue-600 dark:text-blue-400">{player.total}</p>
@@ -1437,10 +1458,14 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                                {player.first_name} {player.last_name}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
+                                  <AvatarImage src={player.teamLogoUrl} />
+                                  <AvatarFallback className="bg-gray-200 text-[10px] font-bold">{player.teamName?.substring(0,2)?.toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="text-2xl font-black text-orange-600 dark:text-orange-400">{player.total}</p>
@@ -1494,10 +1519,14 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                                {player.first_name} {player.last_name}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
+                                  <AvatarImage src={player.teamLogoUrl} />
+                                  <AvatarFallback className="bg-gray-200 text-[10px] font-bold">{player.teamName?.substring(0,2)?.toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="text-2xl font-black text-red-600 dark:text-red-400">{player.total}</p>
@@ -1551,10 +1580,14 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                                {player.first_name} {player.last_name}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
+                                  <AvatarImage src={player.teamLogoUrl} />
+                                  <AvatarFallback className="bg-gray-200 text-[10px] font-bold">{player.teamName?.substring(0,2)?.toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p>
+                              </div>
                             </div>
                             <div className="text-right">
                             <p className="text-2xl font-black text-yellow-600 dark:text-yellow-400">{player.total}</p>
