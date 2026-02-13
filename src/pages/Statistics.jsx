@@ -605,7 +605,7 @@ Please provide:
                     </Card>
 
                     {/* Top Assists (Basketball) */}
-                    <TopAssistLeaders organizationId={user?.organization_id} sport="basketball" />
+                    <TopAssistLeaders organizationId={user?.organization_id} sport="basketball" orgName={organization?.name} orgLogoUrl={organization?.logo_url} />
 
                     {/* Top Blocks */}
                     <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">

@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 
-export default function TopAssistLeaders({ organizationId = null, sport = "basketball", limit = 10, title = "Top 10 Assist Leaders" }) {
+export default function TopAssistLeaders({ organizationId = null, sport = "basketball", limit = 10, title = "Top 10 Assist Leaders", orgName = null, orgLogoUrl = null }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["top-assist-leaders", organizationId, sport, limit],
     queryFn: async () => {
@@ -29,7 +29,18 @@ export default function TopAssistLeaders({ organizationId = null, sport = "baske
             </div>
             <CardTitle className="text-xl font-black text-gray-900 dark:text-white">{title}</CardTitle>
           </div>
-          <Badge className="bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-bold">{sport.toUpperCase()}</Badge>
+          <div className="flex items-center gap-2">
+            {orgName && <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{orgName}</span>}
+            {orgLogoUrl && (
+              <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+                <AvatarImage src={orgLogoUrl} />
+                <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-xs">
+                  {(orgName || '').substring(0,2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            )}
+            <Badge className="bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-bold">{sport.toUpperCase()}</Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-4">
