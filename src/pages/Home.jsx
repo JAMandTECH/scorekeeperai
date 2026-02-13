@@ -15,6 +15,7 @@ import AIInsights from "@/components/AIInsights";
 import AIGameSummary from "@/components/AIGameSummary";
 import AIAssistant from "@/components/AIAssistant";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
+import TopAssistLeaders from "@/components/leaders/TopAssistLeaders";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
