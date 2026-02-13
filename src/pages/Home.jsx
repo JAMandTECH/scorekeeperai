@@ -214,6 +214,9 @@ export default function Home() {
       } else if (statType === 'rebounds') {
         total = playerStatsList.reduce((sum, s) => sum + (s.rebounds || 0), 0);
         averageLabel = "RPG";
+      } else if (statType === 'assists') {
+        total = playerStatsList.reduce((sum, s) => sum + (s.assists || 0), 0);
+        averageLabel = "APG";
       } else if (statType === 'blocks') {
         total = playerStatsList.reduce((sum, s) => sum + (s.blocks || 0), 0);
         averageLabel = "BPG";
@@ -335,6 +338,7 @@ export default function Home() {
 
   const topScorers = getTopPlayers('points', 'basketball', 10);
   const topRebounders = getTopPlayers('rebounds', 'basketball', 10);
+  const topAssisters = getTopPlayers('assists', 'basketball', 10);
   const topBlockers = getTopPlayers('blocks', 'basketball', 10);
   const top3Pointers = getTopPlayers('three_pointers', 'basketball', 10);
 
