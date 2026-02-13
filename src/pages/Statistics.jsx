@@ -560,7 +560,10 @@ Please provide:
                       </CardHeader>
                       <CardContent className="p-6 print:p-4">
                         <div className="space-y-2">
-                          {topScorers.map((player, index) => (
+                          {topScorers.length === 0 && (
+                             <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                           )}
+                           {topScorers.map((player, index) => (
                             <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
                               <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black ${
                                 index === 0 ? 'bg-yellow-400 text-gray-900' :
@@ -588,7 +591,10 @@ Please provide:
                       </CardHeader>
                       <CardContent className="p-6 print:p-4">
                         <div className="space-y-2">
-                          {topRebounders.slice(0, 10).map((player, index) => (
+                          {topRebounders.length === 0 && (
+                             <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                           )}
+                           {topRebounders.slice(0, 10).map((player, index) => (
                             <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
                               <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-green-500 text-white">
                                 {index + 1}
@@ -614,7 +620,10 @@ Please provide:
                       </CardHeader>
                       <CardContent className="p-6 print:p-4">
                         <div className="space-y-2">
-                          {topBlocks.slice(0, 10).map((player, index) => (
+                          {topBlocks.length === 0 && (
+                             <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                           )}
+                           {topBlocks.slice(0, 10).map((player, index) => (
                             <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
                               <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-orange-500 text-white">
                                 {index + 1}

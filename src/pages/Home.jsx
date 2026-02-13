@@ -867,7 +867,10 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-2">
-                        {topScorers.map((player, i) => (
+                        {topScorers.length === 0 && (
+                        <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                      )}
+                      {topScorers.map((player, i) => (
                           <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                               i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
@@ -928,7 +931,10 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-2">
-                        {topRebounders.map((player, i) => (
+                        {topRebounders.length === 0 && (
+                        <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                      )}
+                      {topRebounders.map((player, i) => (
                           <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                               i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
@@ -989,7 +995,10 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-2">
-                        {topBlockers.map((player, i) => (
+                        {topBlockers.length === 0 && (
+                        <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                      )}
+                      {topBlockers.map((player, i) => (
                           <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                               i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
@@ -1052,7 +1061,10 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-2">
-                        {top3Pointers.map((player, i) => (
+                        {top3Pointers.length === 0 && (
+                        <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                      )}
+                      {top3Pointers.map((player, i) => (
                           <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                               i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
@@ -1388,7 +1400,10 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-2">
-                        {topVolleyballScorers.map((player, i) => (
+                        {topVolleyballScorers.length === 0 && (
+                           <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                         )}
+                         {topVolleyballScorers.map((player, i) => (
                           <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                               i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
@@ -1449,7 +1464,10 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-2">
-                        {topVolleyballAttackers.map((player, i) => (
+                        {topVolleyballAttackers.length === 0 && (
+                           <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                         )}
+                         {topVolleyballAttackers.map((player, i) => (
                           <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                               i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
@@ -1510,7 +1528,10 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-2">
-                        {topVolleyballBlockers.map((player, i) => (
+                        {topVolleyballBlockers.length === 0 && (
+                           <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                         )}
+                         {topVolleyballBlockers.map((player, i) => (
                           <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                               i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
@@ -1571,7 +1592,10 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-2">
-                        {topVolleyballAces.map((player, i) => (
+                        {topVolleyballAces.length === 0 && (
+                           <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                         )}
+                         {topVolleyballAces.map((player, i) => (
                           <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                               i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :

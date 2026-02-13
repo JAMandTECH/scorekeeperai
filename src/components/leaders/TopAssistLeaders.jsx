@@ -51,7 +51,7 @@ export default function TopAssistLeaders({ organizationId = null, sport = "baske
         ) : isError ? (
           <div className="text-sm text-red-600 dark:text-red-400">Failed to load leaders.</div>
         ) : data.length === 0 ? (
-          <div className="text-sm text-gray-500 dark:text-gray-400">No assist data available.</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
         ) : (
           <div className="space-y-2">
             {data.map((p, i) => (
