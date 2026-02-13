@@ -17,17 +17,21 @@ export default function PlayerFileScanner({ onPlayersExtracted, sport = "basketb
     items: {
       type: "object",
       properties: {
-        jersey_number: {
+        name: {
           type: "string",
-          description: "Player's jersey number"
+          description: "Full player name as written (any format, e.g., Michael Jordan, Jordan Michael, Jordan, M.)"
         },
         first_name: {
           type: "string",
-          description: "Player's first name"
+          description: "Player's first name (if available)"
         },
         last_name: {
           type: "string",
-          description: "Player's last name"
+          description: "Player's last name (if available)"
+        },
+        jersey_number: {
+          type: "string",
+          description: "Jersey number in any format (e.g., 23, #23, No 23, (23))"
         },
         position: {
           type: "string",
@@ -40,7 +44,10 @@ export default function PlayerFileScanner({ onPlayersExtracted, sport = "basketb
           description: "Player's contact phone number (if available)"
         }
       },
-      required: ["first_name", "last_name"]
+      anyOf: [
+        { required: ["name"] },
+        { required: ["first_name", "last_name"] }
+      ]
     }
   };
 
@@ -78,8 +85,8 @@ export default function PlayerFileScanner({ onPlayersExtracted, sport = "basketb
     setSuccess(null);
 
     // Validate file type
-    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf', 'text/csv'];
-    const validExtensions = ['.png', '.jpg', '.jpeg', '.pdf', '.csv'];
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf', 'text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/plain', 'application/json'];
+    const validExtensions = ['.png', '.jpg', '.jpeg', '.pdf', '.csv', '.xlsx', '.txt', '.json'];
     
     const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
     const isValidType = validTypes.includes(file.type) || validExtensions.includes(fileExtension);
@@ -129,14 +136,39 @@ export default function PlayerFileScanner({ onPlayersExtracted, sport = "basketb
       }
 
       // Format players for the form
-      const formattedPlayers = extractedPlayers.map(player => ({
-        jersey_number: player.jersey_number || "",
-        first_name: player.first_name || "",
-        last_name: player.last_name || "",
-        position: player.position || "",
-        contact_number: player.contact_number || "",
-        photo_url: ""
-      }));
+      const formattedPlayers = extractedPlayers.map((p) => {
+        const fullName = (p.name || [p.first_name, p.last_name].filter(Boolean).join(' ') || '').trim();
+        let jersey = String(p.jersey_number || '').trim();
+        if (!jersey) {
+          const nums = (fullName.match(/\d{1,3}/g) || []);
+          if (nums.length) jersey = nums[nums.length - 1];
+        }
+        jersey = jersey.replace(/[^\d]/g, '');
+
+        let nameOnly = fullName
+          .replace(/\bNo\.?\s*\d+\b/ig, '')
+          .replace(/[#\(\)\-]*\b\d{1,3}\b[#\)\-]*/g, '')
+          .replace(/^\s*\d+\s*[.)-]?\s*/, '')
+          .replace(/\s{2,}/g, ' ')
+          .trim()
+          .replace(/^[,\.\-]+|[,\.\-]+$/g, '');
+
+        if (!nameOnly && (p.first_name || p.last_name)) {
+          nameOnly = [p.first_name, p.last_name].filter(Boolean).join(' ').trim();
+        }
+
+        const [first, ...rest] = nameOnly.split(/\s+/);
+        const last = rest.join(' ');
+
+        return {
+          jersey_number: jersey,
+          first_name: p.first_name || first || '',
+          last_name: p.last_name || last || '',
+          position: p.position || '',
+          contact_number: p.contact_number || '',
+          photo_url: ''
+        };
+      });
 
       setSuccess(`Successfully extracted ${formattedPlayers.length} player(s) from the file!`);
       onPlayersExtracted(formattedPlayers);
@@ -202,7 +234,7 @@ export default function PlayerFileScanner({ onPlayersExtracted, sport = "basketb
         >
           <input
             type="file"
-            accept=".png,.jpg,.jpeg,.pdf,.csv,image/png,image/jpeg,application/pdf,text/csv"
+            accept=".png,.jpg,.jpeg,.pdf,.csv,.xlsx,.txt,.json,image/png,image/jpeg,application/pdf,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,application/json"
             onChange={handleFileSelect}
             disabled={isProcessing}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -246,7 +278,7 @@ export default function PlayerFileScanner({ onPlayersExtracted, sport = "basketb
 
         <div className="mt-4 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
           <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-            <strong>💡 Tip:</strong> For best results, use a clear image or document that includes player names and jersey numbers in a table or list format.
+            <strong>💡 Tip:</strong> Any clear list or table works. Examples: "23 Michael Jordan", "Michael Jordan #23", "No. 23 Michael Jordan", "(23) Jordan, Michael".
           </p>
         </div>
       </CardContent>
