@@ -759,6 +759,8 @@ export default function Home() {
               </div>
             </div>
 
+            <div className="mb-8"><TopAssistLeaders organizationId={orgId} sport="basketball" title="Top 10 Assist Leaders" /></div>
+
             <Tabs defaultValue="standings" className="space-y-8">
               <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl shadow-sm">
                 <TabsTrigger value="standings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
