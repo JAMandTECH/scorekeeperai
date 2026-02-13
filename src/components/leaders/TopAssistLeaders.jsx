@@ -39,7 +39,7 @@ export default function TopAssistLeaders({ organizationId = null, sport = "baske
                 </AvatarFallback>
               </Avatar>
             )}
-            <Badge className="bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-bold">{sport.toUpperCase()}</Badge>
+
           </div>
         </div>
       </CardHeader>
