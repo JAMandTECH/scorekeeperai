@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -11,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
+import TopAssistLeaders from "@/components/leaders/TopAssistLeaders";
 import { createPageUrl } from "@/utils";
 
 export default function Statistics() {
@@ -604,28 +604,8 @@ Please provide:
                       </CardContent>
                     </Card>
 
-                    {/* Top Assists */}
-                    <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
-                      <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">🤝 Top Assists</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-6 print:p-4">
-                        <div className="space-y-2">
-                          {topAssists.slice(0, 10).map((player, index) => (
-                            <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
-                              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-purple-500 text-white">
-                                {index + 1}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
-                              </div>
-                              <div className="text-xl font-black text-purple-600 dark:text-purple-400 print:text-lg">{player.value}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
+                    {/* Top Assists (Basketball) */}
+                    <TopAssistLeaders organizationId={user?.organization_id} sport="basketball" />
 
                     {/* Top Blocks */}
                     <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
