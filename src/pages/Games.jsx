@@ -751,14 +751,16 @@ export default function Games() {
                   <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Schedule and manage games</p>
                 </div>
                 <div className="flex gap-3">
-                  <Link to={createPageUrl("ManualGameEntry")}>
-                    <Button 
-                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold shadow-xl"
-                    >
-                      <FileEdit className="w-5 h-5 mr-2" />
-                      Manual Entry
-                    </Button>
-                  </Link>
+                  {hasPermission('manage_games') && (
+                    <Link to={createPageUrl("ManualGameEntry")}>
+                      <Button 
+                        className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold shadow-xl"
+                      >
+                        <FileEdit className="w-5 h-5 mr-2" />
+                        Manual Entry
+                      </Button>
+                    </Link>
+                  )}
                   <Button 
                     onClick={() => setShowAIScheduleDialog(true)}
                     className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-xl"
