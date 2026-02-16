@@ -15,7 +15,7 @@ export default function AdminSidebar({
   handleLogout,
   navigationItems 
 }) {
-  const { hasPermission, loading: permissionsLoading } = usePermissions();
+  const { hasPermission, loading: permissionsLoading, role } = usePermissions();
   const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
   const isAdmin = user?.role === 'admin';
 
@@ -121,7 +121,7 @@ export default function AdminSidebar({
     // Super admin uses flat structure
     navStructure = { main: superAdminNav, groups: [] };
     useFlatStructure = true;
-  } else if (isAdmin) {
+  } else if (isAdmin || role) {
     navStructure = adminNav;
   } else {
     navStructure = userNav;
