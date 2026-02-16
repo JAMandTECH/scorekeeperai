@@ -35,8 +35,8 @@ export default function PlayerFileScanner({ onPlayersExtracted, sport = "basketb
         },
         position: {
           type: "string",
-          description: sport === "basketball" 
-            ? "Position (e.g., PG, SG, SF, PF, C, Guard, Forward, Center)" 
+          description: sport === "basketball"
+            ? "Position (e.g., PG, SG, SF, PF, C, Guard, Forward, Center)"
             : "Position (e.g., Setter, Libero, Outside Hitter, Middle Blocker, Opposite)"
         },
         contact_number: {
@@ -44,10 +44,7 @@ export default function PlayerFileScanner({ onPlayersExtracted, sport = "basketb
           description: "Player's contact phone number (if available)"
         }
       },
-      anyOf: [
-        { required: ["name"] },
-        { required: ["first_name", "last_name"] }
-      ]
+      additionalProperties: false
     }
   };
 
@@ -117,7 +114,8 @@ export default function PlayerFileScanner({ onPlayersExtracted, sport = "basketb
           properties: {
             players: playerSchema
           },
-          required: ["players"]
+          required: ["players"],
+          additionalProperties: false
         }
       });
 
