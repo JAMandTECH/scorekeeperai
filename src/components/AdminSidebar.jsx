@@ -77,7 +77,7 @@ export default function AdminSidebar({
         key: "organization",
         icon: Settings,
         items: [
-          { title: "Manage Subscription", url: createPageUrl("SubscriptionCheckout"), icon: CreditCard, permission: "manage_organization" },
+          { title: "Manage Subscription", url: createPageUrl("SubscriptionCheckout"), icon: CreditCard, permission: "manage_organization", superAdminOnly: true },
           { title: "Organization Settings", url: createPageUrl("OrganizationSettings"), icon: Settings, permission: "manage_organization" },
           { title: "Pending Teams", url: createPageUrl("PendingTeams"), icon: Clock, permission: "manage_teams" },
           { title: "Manual Game Entry", url: createPageUrl("ManualGameEntry"), icon: FileEdit, permission: "manage_games" },
@@ -188,7 +188,10 @@ export default function AdminSidebar({
                 {/* Grouped Navigation Items */}
                 {navStructure.groups.map((group) => {
                   if (group.key === 'organization' && !hasPermission('manage_organization')) return null;
-                  const visibleItems = group.items.filter(item => !item.permission || hasPermission(item.permission));
+                  const visibleItems = group.items.filter(item => {
+                    if (item.superAdminOnly && !isSuperAdmin) return false;
+                    return !item.permission || hasPermission(item.permission);
+                  });
                   if (visibleItems.length === 0) return null;
 
                   return (
