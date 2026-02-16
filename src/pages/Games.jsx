@@ -17,6 +17,7 @@ import GameHistory from "@/components/GameHistory";
 import ConflictResolver from "@/components/ConflictResolver";
 import AIScheduleGenerator from "@/components/AIScheduleGenerator";
 import AIAssistant from "@/components/AIAssistant";
+import { usePermissions } from "@/components/hooks/usePermissions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,6 +50,7 @@ export default function Games() {
   const [expandedWeeks, setExpandedWeeks] = useState({});
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { hasPermission, loading: permissionsLoading, isAdmin } = usePermissions();
 
   useEffect(() => {
     loadUser();
@@ -90,6 +92,25 @@ export default function Games() {
       base44.auth.redirectToLogin(createPageUrl("Games"));
     }
   };
+
+  // Permission-based access guard for Games page
+  useEffect(() => {
+    if (!user || permissionsLoading) return;
+
+    // Scorekeepers without game management go to their dashboard
+    if (user.is_scorekeeper && user.role !== 'admin' && !hasPermission('manage_games')) {
+      navigate(createPageUrl("ScorekeeperDashboard"));
+      return;
+    }
+
+    // Built-in admins are allowed
+    if (isAdmin) return;
+
+    // Custom role must have manage_games
+    if (user.role_id && !hasPermission('manage_games')) {
+      navigate(createPageUrl("Home"));
+    }
+  }, [user, permissionsLoading]);
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("PublicLanding"));
