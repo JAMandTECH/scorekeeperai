@@ -187,6 +187,7 @@ export default function AdminSidebar({
 
                 {/* Grouped Navigation Items */}
                 {navStructure.groups.map((group) => {
+                  if (group.key === 'organization' && !hasPermission('manage_organization')) return null;
                   const visibleItems = group.items.filter(item => !item.permission || hasPermission(item.permission));
                   if (visibleItems.length === 0) return null;
 
