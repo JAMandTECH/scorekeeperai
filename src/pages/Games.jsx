@@ -75,23 +75,13 @@ export default function Games() {
   const loadUser = async () => {
     try {
       const currentUser = await base44.auth.me();
-      
-      if (currentUser.is_scorekeeper && currentUser.role !== 'admin') {
-        navigate(createPageUrl("ScorekeeperDashboard"));
-        return;
-      }
-      
-      if (currentUser.role !== 'admin') {
-        navigate(createPageUrl("Home"));
-        return;
-      }
-      
       setUser(currentUser);
     } catch (error) {
       console.error("Error loading user:", error);
       base44.auth.redirectToLogin(createPageUrl("Games"));
     }
   };
+
 
   // Permission-based access guard for Games page
   useEffect(() => {
