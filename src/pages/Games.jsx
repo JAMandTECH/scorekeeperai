@@ -766,13 +766,15 @@ export default function Games() {
                     <Zap className="w-5 h-5 mr-2" />
                     AI Generate Schedule
                   </Button>
-                  <Button 
-                    onClick={() => setShowForm(true)}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Schedule Game
-                  </Button>
+                  {hasPermission('manage_games') && (
+                    <Button 
+                      onClick={() => setShowForm(true)}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
+                    >
+                      <Plus className="w-5 h-5 mr-2" />
+                      Schedule Game
+                    </Button>
+                  )}
                 </div>
               </div>
 
