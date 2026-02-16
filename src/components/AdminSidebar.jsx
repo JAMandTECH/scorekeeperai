@@ -77,7 +77,7 @@ export default function AdminSidebar({
         key: "organization",
         icon: Settings,
         items: [
-          { title: "Manage Subscription", url: createPageUrl("SubscriptionCheckout"), icon: CreditCard },
+          { title: "Manage Subscription", url: createPageUrl("SubscriptionCheckout"), icon: CreditCard, permission: "manage_organization" },
           { title: "Organization Settings", url: createPageUrl("OrganizationSettings"), icon: Settings, permission: "manage_organization" },
           { title: "Pending Teams", url: createPageUrl("PendingTeams"), icon: Clock, permission: "manage_teams" },
           { title: "Manual Game Entry", url: createPageUrl("ManualGameEntry"), icon: FileEdit, permission: "manage_games" },

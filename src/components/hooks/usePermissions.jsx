@@ -50,29 +50,21 @@ export function usePermissions() {
   });
 
   const hasPermission = (permissionKey) => {
-    console.log(`usePermissions - Checking permission: ${permissionKey}`);
-    console.log(`usePermissions - User:`, user);
-    console.log(`usePermissions - Role:`, role);
-    
-    // Super admins have all permissions
-    if (user?.role === 'admin' && user?.is_super_admin === true) {
-      console.log(`usePermissions - ${permissionKey}: true (super admin)`);
-      return true;
+    const isAdmin = user?.role === 'admin';
+    const isSuperAdmin = isAdmin && user?.is_super_admin === true;
+
+    // 1) Super admin: full access
+    if (isSuperAdmin) return true;
+
+    // 2) If a custom role is assigned, rely strictly on its permissions
+    if (user?.role_id) {
+      return role?.permissions?.[permissionKey] === true;
     }
 
-    // Regular admins have all permissions
-    if (user?.role === 'admin') {
-      console.log(`usePermissions - ${permissionKey}: true (admin)`);
-      return true;
-    }
+    // 3) If no custom role assigned but user is built-in admin, allow
+    if (!user?.role_id && isAdmin) return true;
 
-    // Check role-based permissions
-    if (role?.permissions?.[permissionKey] === true) {
-      console.log(`usePermissions - ${permissionKey}: true (role permission)`);
-      return true;
-    }
-
-    console.log(`usePermissions - ${permissionKey}: false (no permission)`);
+    // 4) Default deny
     return false;
   };
 
