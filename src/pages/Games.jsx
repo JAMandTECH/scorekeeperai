@@ -653,7 +653,7 @@ export default function Games() {
             </p>
           )}
           
-          {game.status === 'scheduled' && !game.archived && (
+          {game.status === 'scheduled' && !game.archived && hasPermission('live_scoring') && (
             <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}`}>
               <Button className={`w-full bg-gradient-to-r from-${sportColor}-600 to-${sportColor}-700 hover:from-${sportColor}-700 hover:to-${sportColor}-800 text-white font-bold shadow-lg`}>
                 <PlayCircle className="w-4 h-4 mr-2" />
@@ -661,7 +661,7 @@ export default function Games() {
               </Button>
             </Link>
           )}
-          {game.status === 'in_progress' && !game.archived && (
+          {game.status === 'in_progress' && !game.archived && hasPermission('live_scoring') && (
             <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}`}>
               <Button className={`w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white font-bold shadow-lg`}>
                 Continue Scoring
