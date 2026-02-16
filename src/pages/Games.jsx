@@ -121,6 +121,12 @@ export default function Games() {
     enabled: !!user?.organization_id,
   });
 
+  const { data: divisions = [] } = useQuery({
+    queryKey: ['divisions', user?.organization_id],
+    queryFn: () => base44.entities.Division.filter({ organization_id: user?.organization_id }),
+    enabled: !!user?.organization_id,
+  });
+
   const { data: games = [] } = useQuery({
     queryKey: ['games', user?.organization_id],
     queryFn: () => base44.entities.Game.filter({ organization_id: user?.organization_id }, '-game_date'),
@@ -327,6 +333,7 @@ export default function Games() {
                 away_team_id: formData.get('away_team_id'),
                 sport: formData.get('sport'),
                 game_type: formData.get('game_type'),
+                division: formData.get('division') || null,
                 game_date: new Date(formData.get('game_date')).toISOString(),
                 court_number: formData.get('court_number'),
                 duration_hours: 1.5,
@@ -360,6 +367,7 @@ export default function Games() {
       if (form) {
         form.sport.value = game.sport || '';
         form.game_type.value = game.game_type || 'regular_season';
+        form.division.value = game.division || '';
         form.home_team_id.value = game.home_team_id || '';
         form.away_team_id.value = game.away_team_id || '';
         form.location.value = game.location || '';
@@ -1126,6 +1134,20 @@ export default function Games() {
                         <option value="playoffs">Playoffs</option>
                         <option value="semi_finals">Semi Finals</option>
                         <option value="finals">Finals</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="division" className="font-bold text-gray-700 dark:text-gray-300">Division</Label>
+                      <select
+                        id="division"
+                        name="division"
+                        className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                      >
+                        <option value="">Select division</option>
+                        {divisions.map(div => (
+                          <option key={div.id} value={div.name}>{div.name}{div.sport ? ` (${div.sport})` : ''}</option>
+                        ))}
                       </select>
                     </div>
 
