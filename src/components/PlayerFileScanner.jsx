@@ -112,7 +112,21 @@ export default function PlayerFileScanner({ onPlayersExtracted, sport = "basketb
         json_schema: {
           type: "object",
           properties: {
-            players: playerSchema
+            players: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  first_name: { type: "string" },
+                  last_name: { type: "string" },
+                  jersey_number: { type: "string" },
+                  position: { type: "string" },
+                  contact_number: { type: "string" }
+                },
+                additionalProperties: false
+              }
+            }
           },
           required: ["players"],
           additionalProperties: false
@@ -122,7 +136,7 @@ export default function PlayerFileScanner({ onPlayersExtracted, sport = "basketb
       setIsExtracting(false);
 
       if (result.status === "error") {
-        setError(result.details || "Failed to extract player data from the file.");
+        setError((result.details && String(result.details)) || "Failed to extract player data. Please try a clearer image or upload a CSV.");
         return;
       }
 
@@ -176,7 +190,8 @@ export default function PlayerFileScanner({ onPlayersExtracted, sport = "basketb
 
     } catch (err) {
       console.error("Error processing file:", err);
-      setError("An error occurred while processing the file. Please try again.");
+      const msg = (err && (err.details || err.message)) ? String(err.details || err.message) : null;
+      setError(msg ? `AI extraction error: ${msg}` : "An error occurred while processing the file. Please try again.");
       setIsUploading(false);
       setIsExtracting(false);
     }
