@@ -25,6 +25,7 @@ export default function Statistics() {
   const [darkMode, setDarkMode] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     loadUser();
@@ -407,9 +408,11 @@ Please provide:
                   <TabsTrigger value="teams" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
                     Team Stats
                   </TabsTrigger>
-                  <TabsTrigger value="ai" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
-                    AI Insights
-                  </TabsTrigger>
+                  {isAdmin && (
+                    <TabsTrigger value="ai" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                      AI Insights
+                    </TabsTrigger>
+                  )}
                 </TabsList>
 
                 {/* OVERVIEW TAB */}
@@ -855,7 +858,8 @@ Please provide:
                   </Card>
                 </TabsContent>
 
-                {/* AI INSIGHTS TAB */}
+                {/* AI INSIGHTS TAB - Admins only */}
+                {isAdmin && (
                 <TabsContent value="ai" className="space-y-6">
                   <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
                     <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
