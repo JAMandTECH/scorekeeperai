@@ -47,15 +47,21 @@ export default function Statistics() {
   };
 
   const loadUser = async () => {
-    const currentUser = await base44.auth.me();
-    setUser(currentUser);
-    
-    if (currentUser?.organization_id) {
-      const orgs = await base44.entities.Organization.list();
-      const userOrg = orgs.find(o => o.id === currentUser.organization_id);
-      setOrganization(userOrg);
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      
+      if (currentUser?.organization_id) {
+        const orgs = await base44.entities.Organization.list();
+        const userOrg = orgs.find(o => o.id === currentUser.organization_id);
+        setOrganization(userOrg);
+      }
+    } catch (error) {
+      // Require authentication for access
+      base44.auth.redirectToLogin(createPageUrl("Statistics"));
     }
   };
+
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("PublicLanding"));
