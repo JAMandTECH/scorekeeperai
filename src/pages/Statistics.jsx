@@ -85,10 +85,8 @@ export default function Statistics() {
 
   const { data: playerGameStats = [] } = useQuery({
     queryKey: ['playerGameStats', user?.organization_id],
-    queryFn: async () => {
-      return base44.entities.PlayerGameStats.list();
-    },
-    enabled: !!user?.organization_id,
+    queryFn: async () => base44.entities.PlayerGameStats.list(),
+    enabled: !!user, // any authenticated user can read stats per RLS
   });
 
   const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division'))];
