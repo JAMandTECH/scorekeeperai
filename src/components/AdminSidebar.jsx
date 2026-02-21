@@ -129,6 +129,11 @@ export default function AdminSidebar({
     navStructure = userNav;
   }
 
+  // Ensure "Statistics" is always visible for logged-in users
+  if (user && !navStructure.main.some((item) => item.title === "Statistics")) {
+    navStructure.main.push({ title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 });
+  }
+
   return (
     <>
       <aside className={`
