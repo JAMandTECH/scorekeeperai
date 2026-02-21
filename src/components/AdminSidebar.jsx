@@ -42,6 +42,7 @@ export default function AdminSidebar({
     main: [
       { title: "Home", url: createPageUrl("Home"), icon: Home },
       { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
+      { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 },
       { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle, permission: "manage_social" },
     ],
     groups: [
@@ -105,7 +106,7 @@ export default function AdminSidebar({
       { title: "Register Team", url: createPageUrl("TeamRegistration"), icon: UserPlus },
       { title: "Join Organization", url: createPageUrl("JoinOrganization"), icon: Building2 },
       { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
-      ...(user ? [{ title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 }] : []),
+      { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 },
     ],
     groups: []
   };
