@@ -69,8 +69,8 @@ export default function Statistics() {
 
   const { data: games = [] } = useQuery({
     queryKey: ['games', user?.organization_id],
-    queryFn: () => base44.entities.Game.filter({ organization_id: user?.organization_id }),
-    enabled: !!user?.organization_id,
+    queryFn: () => base44.entities.Game.filter(user?.organization_id ? { organization_id: user?.organization_id } : {}),
+    enabled: !!user,
   });
 
   const { data: players = [] } = useQuery({
