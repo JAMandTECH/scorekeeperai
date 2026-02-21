@@ -914,6 +914,7 @@ Please provide:
                     </CardContent>
                   </Card>
                 </TabsContent>
+                )
               </Tabs>
             </div>
           </div>
