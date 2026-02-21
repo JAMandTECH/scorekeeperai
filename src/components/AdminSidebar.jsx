@@ -105,7 +105,7 @@ export default function AdminSidebar({
       { title: "Register Team", url: createPageUrl("TeamRegistration"), icon: UserPlus },
       { title: "Join Organization", url: createPageUrl("JoinOrganization"), icon: Building2 },
       { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
-      { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 },
+      ...(user ? [{ title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 }] : []),
     ],
     groups: []
   };
