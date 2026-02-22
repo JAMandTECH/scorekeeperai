@@ -301,6 +301,10 @@ export default function LiveScoring() {
     const statUpdates = [
       { statType: 'points', value: points }
     ];
+
+    // Prepend a quarter snapshot of cumulative score to avoid stale calcs during undo across quarter boundaries
+    // (no DB write, used only by actionHistory logic)
+    const snapshot = { quarter: currentQuarter, homeScoreSnapshot: newHomeScore, awayScoreSnapshot: newAwayScore };
     
     if (points === 3) {
       statUpdates.push(
