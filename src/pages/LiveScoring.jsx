@@ -79,12 +79,38 @@ export default function LiveScoring() {
   useEffect(() => { homeScoreRef.current = homeScore; }, [homeScore]);
   useEffect(() => { awayScoreRef.current = awayScore; }, [awayScore]);
 
+  // Real-time subscribe to this game's updates to avoid poll races across devices
+  useEffect(() => {
+    if (!game?.id) return;
+    const unsubscribe = base44.entities.Game.subscribe((event) => {
+      if (event.id !== game.id) return;
+      if (event.type === 'update' || event.type === 'create') {
+        const g = event.data;
+        setGame(g);
+        const allowDecrease = Date.now() < allowDecreaseUntilRef.current;
+        const srvHome = g.home_score || 0;
+        const srvAway = g.away_score || 0;
+        const nextHome = allowDecrease ? srvHome : Math.max(srvHome, homeScoreRef.current);
+        const nextAway = allowDecrease ? srvAway : Math.max(srvAway, awayScoreRef.current);
+        setHomeScore(nextHome);
+        setAwayScore(nextAway);
+        setCurrentQuarter(g.current_quarter || 1);
+        setQuarterScores(g.quarter_scores || []);
+        setHomeTimeouts(g.home_timeouts ?? 5);
+        setAwayTimeouts(g.away_timeouts ?? 5);
+        setHomeTeamFouls(g.home_team_fouls || 0);
+        setAwayTeamFouls(g.away_team_fouls || 0);
+      }
+    });
+    return unsubscribe;
+  }, [game?.id]);
+
   const refreshGameState = async () => {
     if (!game?.id) return;
     if (Date.now() - lastWriteTsRef.current < 1200) return;
     try {
-      const games = await base44.entities.Game.list();
-      const currentGame = games.find(g => g.id === game.id);
+      const games = await base44.entities.Game.filter({ id: game.id });
+      const currentGame = games && games[0];
       if (currentGame) {
         setGame(currentGame);
         const allowDecrease = Date.now() < allowDecreaseUntilRef.current;
@@ -354,10 +380,8 @@ export default function LiveScoring() {
     await updatePlayerStats(playerId, teamId, statUpdates);
 
     lastWriteTsRef.current = Date.now();
-    await base44.entities.Game.update(game.id, {
-      home_score: newHomeScore,
-      away_score: newAwayScore,
-    });
+    const scorePayload = isHomeTeam ? { home_score: newHomeScore } : { away_score: newAwayScore };
+    await base44.entities.Game.update(game.id, scorePayload);
 
     setActionHistory(prev => [...prev, {
       type: 'score',
@@ -517,10 +541,10 @@ export default function LiveScoring() {
       setHomeScore(lastAction.oldHomeScore);
       setAwayScore(lastAction.oldAwayScore);
       lastWriteTsRef.current = Date.now();
-      await base44.entities.Game.update(game.id, {
-        home_score: lastAction.oldHomeScore,
-        away_score: lastAction.oldAwayScore,
-      });
+      const scoreUndoPayload = lastAction.team === 'home' 
+        ? { home_score: lastAction.oldHomeScore } 
+        : { away_score: lastAction.oldAwayScore };
+      await base44.entities.Game.update(game.id, scoreUndoPayload);
 
       const reverseUpdates = lastAction.statUpdates.map(update => ({
         statType: update.statType,
