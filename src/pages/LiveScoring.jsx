@@ -667,6 +667,12 @@ export default function LiveScoring() {
     const nextQuarter = currentQuarter + 1;
     const newOvertimeCount = nextQuarter > 4 ? (nextQuarter - 4) : 0;
 
+    // Optimistic UI update
+    setCurrentQuarter(nextQuarter);
+    setShowQuarterEnd(false);
+    setActionHistory([]);
+
+    // Persist to server while showing saving overlay
     lastWriteTsRef.current = Date.now();
     setSavingQuarter(true);
     try {
@@ -680,18 +686,11 @@ export default function LiveScoring() {
         away_score: awayScore,
       });
       lastGameUpdateAtRef.current = Date.now();
+      // Quick sync to pull server copy
+      setTimeout(() => { refreshGameState(); }, 300);
     } finally {
       setSavingQuarter(false);
     }
-
-    setCurrentQuarter(nextQuarter);
-
-    // Clear per-quarter UI state and selection
-    setShowQuarterEnd(false);
-    setActionHistory([]);
-
-    // Delay refresh slightly to avoid stale read after update
-    setTimeout(() => { refreshGameState(); }, 800);
   };
 
   const endGame = async () => {
