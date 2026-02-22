@@ -554,38 +554,44 @@ export default function LiveScoring() {
       setHomeScore(lastAction.oldHomeScore);
       setAwayScore(lastAction.oldAwayScore);
       lastWriteTsRef.current = Date.now();
-      const scoreUndoPayload = lastAction.team === 'home' 
-        ? { home_score: lastAction.oldHomeScore } 
+
+      const scoreUndoPayload = lastAction.team === 'home'
+        ? { home_score: lastAction.oldHomeScore }
         : { away_score: lastAction.oldAwayScore };
-      await base44.entities.Game.update(game.id, scoreUndoPayload);
 
       const reverseUpdates = lastAction.statUpdates.map(update => ({
         statType: update.statType,
-        value: -update.value
+        value: -update.value,
       }));
-      
       const teamId = lastAction.team === 'home' ? game.home_team_id : game.away_team_id;
-      await updatePlayerStats(lastAction.playerId, teamId, reverseUpdates, lastAction.quarter);
+
+      await Promise.all([
+        base44.entities.Game.update(game.id, scoreUndoPayload),
+        updatePlayerStats(lastAction.playerId, teamId, reverseUpdates, lastAction.quarter),
+      ]);
 
     } else if (lastAction.type === 'foul') {
-      // Undo player foul
+      // Undo player foul + team foul in parallel
       const reverseUpdates = lastAction.statUpdates.map(update => ({
         statType: update.statType,
-        value: -update.value
+        value: -update.value,
       }));
-      
-      await updatePlayerStats(lastAction.playerId, lastAction.teamId, reverseUpdates, lastAction.quarter);
 
-      // Undo team foul
+      const teamPayload = lastAction.team === 'home'
+        ? { home_team_fouls: lastAction.oldTeamFouls }
+        : { away_team_fouls: lastAction.oldTeamFouls };
+
       if (lastAction.team === 'home') {
         setHomeTeamFouls(lastAction.oldTeamFouls);
-        lastWriteTsRef.current = Date.now();
-        await base44.entities.Game.update(game.id, { home_team_fouls: lastAction.oldTeamFouls });
       } else {
         setAwayTeamFouls(lastAction.oldTeamFouls);
-        lastWriteTsRef.current = Date.now();
-        await base44.entities.Game.update(game.id, { away_team_fouls: lastAction.oldTeamFouls });
       }
+      lastWriteTsRef.current = Date.now();
+
+      await Promise.all([
+        updatePlayerStats(lastAction.playerId, lastAction.teamId, reverseUpdates, lastAction.quarter),
+        base44.entities.Game.update(game.id, teamPayload),
+      ]);
 
     } else if (['rebounds', 'assists', 'steals', 'blocks'].includes(lastAction.type)) {
       const reverseUpdates = lastAction.statUpdates.map(update => ({
@@ -596,15 +602,18 @@ export default function LiveScoring() {
       await updatePlayerStats(lastAction.playerId, lastAction.teamId, reverseUpdates, lastAction.quarter);
 
     } else if (lastAction.type === 'timeout') {
+      const payload = lastAction.team === 'home'
+        ? { home_timeouts: lastAction.oldTimeouts }
+        : { away_timeouts: lastAction.oldTimeouts };
+
       if (lastAction.team === 'home') {
         setHomeTimeouts(lastAction.oldTimeouts);
-        lastWriteTsRef.current = Date.now();
-        await base44.entities.Game.update(game.id, { home_timeouts: lastAction.oldTimeouts });
       } else {
         setAwayTimeouts(lastAction.oldTimeouts);
-        lastWriteTsRef.current = Date.now();
-        await base44.entities.Game.update(game.id, { away_timeouts: lastAction.oldTimeouts });
       }
+      lastWriteTsRef.current = Date.now();
+
+      await base44.entities.Game.update(game.id, payload);
     }
     } finally {
       undoLockRef.current = false;
