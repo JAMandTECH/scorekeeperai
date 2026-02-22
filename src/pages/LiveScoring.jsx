@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,7 @@ export default function LiveScoring() {
   const [activeTimeout, setActiveTimeout] = useState(null); // 'home' | 'away' | null
   const [voiceFeedback, setVoiceFeedback] = useState(null); // {text, status}
   const [undoInProgress, setUndoInProgress] = useState(false);
+  const undoLockRef = useRef(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -462,7 +463,8 @@ export default function LiveScoring() {
       return;
     }
     if (actionHistory.length === 0) return;
-    if (undoInProgress) return;
+    if (undoLockRef.current) return;
+    undoLockRef.current = true;
     setUndoInProgress(true);
 
     try {
@@ -521,6 +523,7 @@ export default function LiveScoring() {
       }
     }
     } finally {
+      undoLockRef.current = false;
       setUndoInProgress(false);
     }
   };
