@@ -757,10 +757,9 @@ export default function LiveScoring() {
       lastGameUpdateAtRef.current = Date.now();
     } finally {
       setSavingQuarter(false);
+      // Ensure we always exit Live Scoring even if the save throws
+      navigate(createPageUrl("Games"));
     }
-
-    // Navigate away immediately after marking game completed
-    navigate(createPageUrl("Games"));
 
     const isAdmin = user?.role === 'admin';
 
