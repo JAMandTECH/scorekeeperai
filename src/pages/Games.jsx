@@ -155,11 +155,8 @@ export default function Games() {
   const { data: scorekeepers = [] } = useQuery({
     queryKey: ['scorekeepers', user?.organization_id],
     queryFn: async () => {
-      const allUsers = await base44.entities.User.list();
-      return allUsers.filter(u => 
-        u.is_scorekeeper === true && 
-        (u.organization_id === user?.organization_id || u.active_organization_id === user?.organization_id)
-      );
+      const res = await base44.functions.invoke('getScorekeepers', {});
+      return Array.isArray(res.data) ? res.data : [];
     },
     enabled: !!user?.organization_id,
   });
@@ -594,11 +591,11 @@ export default function Games() {
                   Court {game.court_number}
                 </p>
               )}
-              {(isAdmin || hasPermission('manage_scorekeepers')) && assignedScorekeepersList.length > 0 && (
+              {(isAdmin || hasPermission('manage_scorekeepers') || hasPermission('manage_games')) && assignedScorekeepersList.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {assignedScorekeepersList.map((sk, idx) => (
                     <Badge key={idx} variant="outline" className="text-xs font-bold border-green-300 dark:border-green-700 text-green-700 dark:text-green-300">
-                      👤 {sk.full_name}
+                      👤 {sk?.full_name || sk?.email}
                     </Badge>
                   ))}
                 </div>
