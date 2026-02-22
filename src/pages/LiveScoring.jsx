@@ -80,8 +80,11 @@ export default function LiveScoring() {
       const currentGame = games.find(g => g.id === game.id);
       if (currentGame) {
         setGame(currentGame);
-        setHomeScore(currentGame.home_score || 0);
-        setAwayScore(currentGame.away_score || 0);
+        const justWrote = Date.now() - lastWriteTsRef.current < 2000;
+        const nextHome = justWrote ? Math.max(currentGame.home_score || 0, homeScore) : (currentGame.home_score || 0);
+        const nextAway = justWrote ? Math.max(currentGame.away_score || 0, awayScore) : (currentGame.away_score || 0);
+        setHomeScore(nextHome);
+        setAwayScore(nextAway);
         setCurrentQuarter(currentGame.current_quarter || 1);
         setQuarterScores(currentGame.quarter_scores || []);
         setHomeTimeouts(currentGame.home_timeouts ?? 5);
@@ -340,6 +343,7 @@ export default function LiveScoring() {
 
     await updatePlayerStats(playerId, teamId, statUpdates);
 
+    lastWriteTsRef.current = Date.now();
     await base44.entities.Game.update(game.id, {
       home_score: newHomeScore,
       away_score: newAwayScore,
