@@ -594,7 +594,7 @@ export default function Games() {
                   Court {game.court_number}
                 </p>
               )}
-              {assignedScorekeepersList.length > 0 && (
+              {(isAdmin || hasPermission('manage_scorekeepers')) && assignedScorekeepersList.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {assignedScorekeepersList.map((sk, idx) => (
                     <Badge key={idx} variant="outline" className="text-xs font-bold border-green-300 dark:border-green-700 text-green-700 dark:text-green-300">
