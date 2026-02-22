@@ -340,6 +340,7 @@ export default function LiveScoring() {
       oldHomeScore: oldHomeScore,
       oldAwayScore: oldAwayScore,
       statUpdates: statUpdates,
+      snapshot,
     }]);
   };
 
