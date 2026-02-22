@@ -1054,7 +1054,7 @@ export default function LiveScoring() {
                     onClick={() => setShowQuarterEnd(true)}
                     size="sm"
                     className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-black text-xs px-4 py-2"
-                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
+                    disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     END {quarterLabel}
                     <ChevronRight className="w-4 h-4 ml-1" />
