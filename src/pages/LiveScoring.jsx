@@ -36,7 +36,7 @@ export default function LiveScoring() {
   const [actionHistory, setActionHistory] = useState([]);
   const [showQuarterStats, setShowQuarterStats] = useState(true);
   const [showDefaultDialog, setShowDefaultDialog] = useState(false);
-  const [showVoiceAssistant, setShowVoiceAssistant] = useState(true);
+  const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const [user, setUser] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
   const [userRole, setUserRole] = useState('viewer'); // 'overall', 'home_stat', 'away_stat', 'viewer'
@@ -739,6 +739,7 @@ export default function LiveScoring() {
 
   // New voice command handler
   const handleVoiceCommand = async ({ team, player, action, value }) => {
+    if (!showVoiceAssistant) return; // ignore commands when assistant is hidden
     const summary = `${team || ''} #${player?.jersey_number || ''} ${action}${value ? ' ' + value : ''}`.trim();
     setVoiceFeedback({ text: summary, status: 'processing' });
 
