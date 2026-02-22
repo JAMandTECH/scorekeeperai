@@ -91,8 +91,13 @@ export default function LiveScoring() {
         if (srvAt + 1 < lastGameUpdateAtRef.current) return; // ignore stale/out-of-order updates
         lastGameUpdateAtRef.current = srvAt;
         setGame(g);
-        setHomeScore(g.home_score || 0);
-        setAwayScore(g.away_score || 0);
+        const allowDec = Date.now() < allowDecreaseUntilRef.current;
+        const srvHome = g.home_score || 0;
+        const srvAway = g.away_score || 0;
+        const nextHome = allowDec ? srvHome : Math.max(srvHome, homeScoreRef.current);
+        const nextAway = allowDec ? srvAway : Math.max(srvAway, awayScoreRef.current);
+        setHomeScore(nextHome);
+        setAwayScore(nextAway);
         setCurrentQuarter(g.current_quarter || 1);
         setQuarterScores(g.quarter_scores || []);
         setHomeTimeouts(g.home_timeouts ?? 5);
@@ -113,10 +118,22 @@ export default function LiveScoring() {
       const key = `${stat.player_id}_${stat.quarter}`;
       setPlayerStats((prev) => {
         const next = { ...prev };
+        const prevStat = prev[key];
+        const hadDecrease = !!prevStat && [
+          'points','rebounds','assists','steals','blocks','fouls',
+          'three_pointers','field_goals_made','field_goals_attempted',
+          'free_throws_made','free_throws_attempted'
+        ].some(k => (prevStat?.[k] || 0) > (stat?.[k] || 0));
+
         if (event.type === 'delete') {
           delete next[key];
         } else {
           next[key] = stat;
+        }
+
+        if (hadDecrease) {
+          // A stat decreased (likely an undo) — allow score decreases briefly so Game update can apply
+          allowDecreaseUntilRef.current = Date.now() + 4000;
         }
         return next;
       });
@@ -135,11 +152,13 @@ export default function LiveScoring() {
         if (srvAt + 1 < lastGameUpdateAtRef.current) return;
         lastGameUpdateAtRef.current = srvAt;
         setGame(currentGame);
+        const allowDec = Date.now() < allowDecreaseUntilRef.current;
         const srvHome = currentGame.home_score || 0;
         const srvAway = currentGame.away_score || 0;
-        // Trust server on refresh so undo/decreases propagate reliably
-        setHomeScore(srvHome);
-        setAwayScore(srvAway);
+        const nextHome = allowDec ? srvHome : Math.max(srvHome, homeScoreRef.current);
+        const nextAway = allowDec ? srvAway : Math.max(srvAway, awayScoreRef.current);
+        setHomeScore(nextHome);
+        setAwayScore(nextAway);
         setCurrentQuarter(currentGame.current_quarter || 1);
         setQuarterScores(currentGame.quarter_scores || []);
         setHomeTimeouts(currentGame.home_timeouts ?? 5);
