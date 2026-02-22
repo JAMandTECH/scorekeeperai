@@ -669,17 +669,20 @@ export default function LiveScoring() {
 
     lastWriteTsRef.current = Date.now();
     setSavingQuarter(true);
-    await base44.entities.Game.update(game.id, {
-      quarter_scores: newQuarterScores,
-      current_quarter: nextQuarter,
-      home_team_fouls: 0,
-      away_team_fouls: 0,
-      overtime_count: newOvertimeCount,
-      home_score: homeScore,
-      away_score: awayScore,
-    });
-    lastGameUpdateAtRef.current = Date.now();
-    setSavingQuarter(false);
+    try {
+      await base44.entities.Game.update(game.id, {
+        quarter_scores: newQuarterScores,
+        current_quarter: nextQuarter,
+        home_team_fouls: 0,
+        away_team_fouls: 0,
+        overtime_count: newOvertimeCount,
+        home_score: homeScore,
+        away_score: awayScore,
+      });
+      lastGameUpdateAtRef.current = Date.now();
+    } finally {
+      setSavingQuarter(false);
+    }
 
     setCurrentQuarter(nextQuarter);
 
@@ -1667,6 +1670,15 @@ export default function LiveScoring() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {savingQuarter && (
+        <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-900 border-2 border-orange-400 rounded-xl px-6 py-4 shadow-2xl flex items-center gap-3">
+            <Loader2 className="w-6 h-6 animate-spin text-orange-600" />
+            <span className="font-bold text-gray-900 dark:text-white">Saving quarter...</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
