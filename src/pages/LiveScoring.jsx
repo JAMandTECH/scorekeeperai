@@ -393,6 +393,11 @@ export default function LiveScoring() {
 
   // Updated handleFoul to accept playerId and teamId
   const handleFoul = async (playerId, teamId) => {
+    // throttle duplicate rapid clicks (300ms)
+    if (!handleFoul.lastTs) handleFoul.lastTs = 0;
+    const now = Date.now();
+    if (now - handleFoul.lastTs < 300) return;
+    handleFoul.lastTs = now;
     // Only overall scorekeeper can manage fouls for basketball
     if (game.sport === 'basketball' && userRole !== 'overall') {
       alert("Only the Overall Scorekeeper can manage fouls.");
