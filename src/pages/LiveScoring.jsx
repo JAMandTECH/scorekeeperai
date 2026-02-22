@@ -752,6 +752,9 @@ export default function LiveScoring() {
       setSavingQuarter(false);
     }
 
+    // Navigate away immediately after marking game completed
+    navigate(createPageUrl("Games"));
+
     const isAdmin = user?.role === 'admin';
 
     // Only admins can modify Team records due to RLS — skip for non-admins
@@ -795,8 +798,7 @@ export default function LiveScoring() {
 
     const winningTeam = homeScore > awayScore ? homeTeam : awayTeam;
 
-    // Navigate after save completes; still send notification without blocking UI
-    navigate(createPageUrl("Games"));
+    // Already navigated after completion save
 
     base44.entities.Notification.create({
       organization_id: game.organization_id,
