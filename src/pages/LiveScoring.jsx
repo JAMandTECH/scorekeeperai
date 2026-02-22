@@ -646,6 +646,12 @@ export default function LiveScoring() {
       alert("Only the Overall Scorekeeper can end quarters.");
       return;
     }
+    // If end of regulation or OT and not tied, finish the game
+    if (currentQuarter >= 4 && homeScore !== awayScore) {
+      setShowQuarterEnd(false);
+      await endGame();
+      return;
+    }
     // Calculate the score for THIS QUARTER ONLY by subtracting previous quarters' scores
     const previousHomeTotalScore = quarterScores.reduce((sum, q) => sum + q.home, 0);
     const previousAwayTotalScore = quarterScores.reduce((sum, q) => sum + q.away, 0);
@@ -1179,7 +1185,7 @@ export default function LiveScoring() {
                     DEFAULT
                   </Button>
                 )}
-                {currentQuarter <= 4 && (
+                {currentQuarter < 4 && (
                   <Button
                     onClick={() => setShowQuarterEnd(true)}
                     size="sm"
@@ -1657,7 +1663,7 @@ export default function LiveScoring() {
                       ? 'START OVERTIME' 
                       : currentQuarter > 4 && homeScore === awayScore
                         ? `PROCEED TO OT${currentQuarter - 3}`
-                        : 'FINISH QUARTER'
+                        : 'END GAME'
                 )}
               </Button>
               <Button
