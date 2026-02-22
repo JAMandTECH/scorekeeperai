@@ -62,52 +62,47 @@ export default function ScorekeeperDashboard() {
   };
 
   const { data: organization } = useQuery({
-    queryKey: ['organization', user?.organization_id],
+    queryKey: ['organization', user?.organization_id, user?.active_organization_id],
     queryFn: async () => {
       const orgs = await base44.entities.Organization.list();
-      return orgs.find(o => o.id === user?.organization_id);
+      const orgId = user?.organization_id || user?.active_organization_id;
+      return orgs.find(o => o.id === orgId);
     },
-    enabled: !!user?.organization_id,
+    enabled: !!user?.organization_id || !!user?.active_organization_id,
   });
 
   const { data: myGames = [] } = useQuery({
-    queryKey: ['my-scorekeeper-games', user?.email, user?.organization_id],
+    queryKey: ['my-scorekeeper-games', user?.email, user?.organization_id, user?.active_organization_id],
     queryFn: async () => {
+      const orgId = user?.organization_id || user?.active_organization_id;
       // Fetch games from scorekeeper's organization
       const allGames = await base44.entities.Game.filter(
-        { organization_id: user?.organization_id },
+        orgId ? { organization_id: orgId } : {},
         '-game_date'
       );
       
-      console.log("TOTAL GAMES IN ORGANIZATION:", allGames.length);
-      console.log("SCOREKEEPER EMAIL TO MATCH:", user?.email);
-      console.log("SAMPLE GAME DATA:", allGames[0]);
+      const myEmail = (user?.email || '').toLowerCase();
       
-      // Filter games assigned to this scorekeeper
+      // Filter games assigned to this scorekeeper (array, legacy single, or role-specific fields)
       const myAssignedGames = allGames.filter(game => {
-        // Check if assigned_scorekeeper_emails array exists and includes this email
-        if (game.assigned_scorekeeper_emails && Array.isArray(game.assigned_scorekeeper_emails)) {
-          const isAssigned = game.assigned_scorekeeper_emails.includes(user?.email);
-          if (isAssigned) {
-            console.log("✅ GAME ASSIGNED:", game.id, "Scorekeepers:", game.assigned_scorekeeper_emails);
-          }
-          return isAssigned;
-        }
+        const arr = Array.isArray(game.assigned_scorekeeper_emails) ? game.assigned_scorekeeper_emails.map(e => (e || '').toLowerCase()) : [];
+        const legacy = (game.assigned_scorekeeper_email || '').toLowerCase();
+        const overall = (game.overall_scorekeeper_email || '').toLowerCase();
+        const homeStat = (game.home_statistician_email || '').toLowerCase();
+        const awayStat = (game.away_statistician_email || '').toLowerCase();
         
-        // Also check old format for backward compatibility
-        if (game.assigned_scorekeeper_email && game.assigned_scorekeeper_email === user?.email) {
-          console.log("✅ GAME ASSIGNED (old format):", game.id);
-          return true;
-        }
-        
-        return false;
+        return (
+          arr.includes(myEmail) ||
+          legacy === myEmail ||
+          overall === myEmail ||
+          homeStat === myEmail ||
+          awayStat === myEmail
+        );
       });
-      
-      console.log("🎯 FILTERED MY GAMES COUNT:", myAssignedGames.length);
       
       return myAssignedGames;
     },
-    enabled: !!user?.email && !!user?.organization_id,
+    enabled: !!user?.email && (!!user?.organization_id || !!user?.active_organization_id),
   });
 
   const { data: teams = [] } = useQuery({
