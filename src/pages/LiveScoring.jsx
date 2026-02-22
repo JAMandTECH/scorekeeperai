@@ -357,6 +357,11 @@ export default function LiveScoring() {
 
   // Updated addPlayerStat to accept playerId and teamId
   const addPlayerStat = async (playerId, teamId, statType, value) => {
+    // throttle duplicate rapid clicks (300ms)
+    if (!addPlayerStat.lastTs) addPlayerStat.lastTs = 0;
+    const now = Date.now();
+    if (now - addPlayerStat.lastTs < 300) return;
+    addPlayerStat.lastTs = now;
     // Permission checks for basketball
     if (game.sport === 'basketball') {
       const isHomeTeam = teamId === game.home_team_id;
