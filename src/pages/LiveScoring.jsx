@@ -712,12 +712,38 @@ export default function LiveScoring() {
       return;
     }
 
-    // Complete the game first (scorekeepers have permission for Game updates)
-    await base44.entities.Game.update(game.id, {
-      status: 'completed',
-      home_score: homeScore,
-      away_score: awayScore,
-    });
+    // Finalize current quarter scores before completing the game
+    const previousHomeTotalScore = quarterScores.reduce((sum, q) => sum + q.home, 0);
+    const previousAwayTotalScore = quarterScores.reduce((sum, q) => sum + q.away, 0);
+    const finalQuarterScore = {
+      quarter: currentQuarter,
+      home: homeScore - previousHomeTotalScore,
+      away: awayScore - previousAwayTotalScore,
+    };
+    const finalQuarterScores = (() => {
+      const idx = quarterScores.findIndex(q => q.quarter === currentQuarter);
+      const updated = [...quarterScores];
+      if (idx >= 0) updated[idx] = finalQuarterScore; else updated.push(finalQuarterScore);
+      return updated;
+    })();
+
+    lastWriteTsRef.current = Date.now();
+    setSavingQuarter(true);
+    try {
+      await base44.entities.Game.update(game.id, {
+        quarter_scores: finalQuarterScores,
+        current_quarter: currentQuarter,
+        home_team_fouls: homeTeamFouls,
+        away_team_fouls: awayTeamFouls,
+        overtime_count: currentQuarter > 4 ? (currentQuarter - 4) : 0,
+        status: 'completed',
+        home_score: homeScore,
+        away_score: awayScore,
+      });
+      lastGameUpdateAtRef.current = Date.now();
+    } finally {
+      setSavingQuarter(false);
+    }
 
     const isAdmin = user?.role === 'admin';
 
