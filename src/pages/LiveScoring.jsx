@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User, Eye, EyeOff, Flag, Sun, Moon } from "lucide-react";
+import { CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User, Eye, EyeOff, Flag, Sun, Moon, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -33,6 +33,7 @@ export default function LiveScoring() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null); // 'home' or 'away'
   const [showQuarterEnd, setShowQuarterEnd] = useState(false);
+  const [savingQuarter, setSavingQuarter] = useState(false);
   const [actionHistory, setActionHistory] = useState([]);
   const [showQuarterStats, setShowQuarterStats] = useState(true);
   const [showDefaultDialog, setShowDefaultDialog] = useState(false);
@@ -667,6 +668,7 @@ export default function LiveScoring() {
     const newOvertimeCount = nextQuarter > 4 ? (nextQuarter - 4) : 0;
 
     lastWriteTsRef.current = Date.now();
+    setSavingQuarter(true);
     await base44.entities.Game.update(game.id, {
       quarter_scores: newQuarterScores,
       current_quarter: nextQuarter,
@@ -676,6 +678,8 @@ export default function LiveScoring() {
       home_score: homeScore,
       away_score: awayScore,
     });
+    lastGameUpdateAtRef.current = Date.now();
+    setSavingQuarter(false);
 
     setCurrentQuarter(nextQuarter);
 
@@ -1631,19 +1635,26 @@ export default function LiveScoring() {
             <div className="flex gap-3">
               <Button
                 onClick={endQuarter}
+                disabled={savingQuarter || undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                 className={`flex-1 font-black ${
                   currentQuarter >= 4 && homeScore === awayScore
                     ? 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
                     : 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-600 hover:to-orange-800'
-                } text-white`}
+                } text-white disabled:opacity-60`}
               >
-                {currentQuarter < 4 
-                  ? `PROCEED TO Q${currentQuarter + 1}` 
-                  : currentQuarter === 4 && homeScore === awayScore 
-                    ? 'START OVERTIME' 
-                    : currentQuarter > 4 && homeScore === awayScore
-                      ? `PROCEED TO OT${currentQuarter - 3}`
-                      : 'FINISH QUARTER'}
+                {savingQuarter ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                  </span>
+                ) : (
+                  currentQuarter < 4 
+                    ? `PROCEED TO Q${currentQuarter + 1}` 
+                    : currentQuarter === 4 && homeScore === awayScore 
+                      ? 'START OVERTIME' 
+                      : currentQuarter > 4 && homeScore === awayScore
+                        ? `PROCEED TO OT${currentQuarter - 3}`
+                        : 'FINISH QUARTER'
+                )}
               </Button>
               <Button
                 onClick={() => setShowQuarterEnd(false)}
