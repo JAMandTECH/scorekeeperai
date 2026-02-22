@@ -788,7 +788,7 @@ export default function LiveScoring() {
 
     const winningTeam = homeScore > awayScore ? homeTeam : awayTeam;
 
-    // Navigate immediately; send notification without blocking
+    // Navigate after save completes; still send notification without blocking UI
     navigate(createPageUrl("Games"));
 
     base44.entities.Notification.create({
