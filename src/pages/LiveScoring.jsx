@@ -357,11 +357,6 @@ export default function LiveScoring() {
 
   // Updated addPlayerStat to accept playerId and teamId
   const addPlayerStat = async (playerId, teamId, statType, value) => {
-    // throttle duplicate rapid clicks (300ms)
-    if (!addPlayerStat.lastTs) addPlayerStat.lastTs = 0;
-    const now = Date.now();
-    if (now - addPlayerStat.lastTs < 300) return;
-    addPlayerStat.lastTs = now;
     // Permission checks for basketball
     if (game.sport === 'basketball') {
       const isHomeTeam = teamId === game.home_team_id;
@@ -378,6 +373,13 @@ export default function LiveScoring() {
         return;
       }
     }
+    if (undoInProgress) return;
+    if (!addPlayerStat.lastTs) addPlayerStat.lastTs = 0;
+    {
+      const now = Date.now();
+      if (now - addPlayerStat.lastTs < 200) return;
+      addPlayerStat.lastTs = now;
+    }
     const statUpdates = [{ statType, value }];
     await updatePlayerStats(playerId, teamId, statUpdates);
     
@@ -393,16 +395,12 @@ export default function LiveScoring() {
 
   // Updated handleFoul to accept playerId and teamId
   const handleFoul = async (playerId, teamId) => {
-    // throttle duplicate rapid clicks (300ms)
-    if (!handleFoul.lastTs) handleFoul.lastTs = 0;
-    const now = Date.now();
-    if (now - handleFoul.lastTs < 300) return;
-    handleFoul.lastTs = now;
     // Only overall scorekeeper can manage fouls for basketball
     if (game.sport === 'basketball' && userRole !== 'overall') {
       alert("Only the Overall Scorekeeper can manage fouls.");
       return;
     }
+    if (undoInProgress) return;
     const isHomeTeam = teamId === game.home_team_id;
     const currentTeam = isHomeTeam ? 'home' : 'away';
     const oldTeamFouls = isHomeTeam ? homeTeamFouls : awayTeamFouls;
@@ -770,8 +768,7 @@ export default function LiveScoring() {
 
     // Handle undo command
     if (action === 'undo') {
-      await handleUndo();
-      setVoiceFeedback({ text: 'Undo last action', status: 'success' });
+      setVoiceFeedback({ text: 'Voice undo disabled — use the UNDO button', status: 'error' });
       return;
     }
     
@@ -1071,7 +1068,7 @@ export default function LiveScoring() {
                     onClick={() => setShowDefaultDialog(true)}
                     size="sm"
                     className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-xs px-4 py-2"
-                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
+                    disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     <Flag className="w-4 h-4 mr-1" />
                     DEFAULT
@@ -1115,7 +1112,7 @@ export default function LiveScoring() {
                     onClick={() => setShowQuarterEnd(true)}
                     size="sm"
                     className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-black text-xs px-4 py-2"
-                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
+                    disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     START OT
                     <ChevronRight className="w-4 h-4 ml-1" />
@@ -1274,7 +1271,7 @@ export default function LiveScoring() {
                   <Button
                     onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'rebounds', 1)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
-                    disabled={game.sport === 'basketball' && userRole === 'viewer'}
+                    disabled={undoInProgress || (game.sport === 'basketball' && userRole === 'viewer')}
                   >
                     <TrendingUp className="w-4 h-4 mr-1" />
                     REB
@@ -1282,7 +1279,7 @@ export default function LiveScoring() {
                   <Button
                     onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'assists', 1)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
-                    disabled={game.sport === 'basketball' && userRole === 'viewer'}
+                    disabled={undoInProgress || (game.sport === 'basketball' && userRole === 'viewer')}
                   >
                     <Target className="w-4 h-4 mr-1" />
                     AST
@@ -1290,7 +1287,7 @@ export default function LiveScoring() {
                   <Button
                     onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'steals', 1)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
-                    disabled={game.sport === 'basketball' && userRole === 'viewer'}
+                    disabled={undoInProgress || (game.sport === 'basketball' && userRole === 'viewer')}
                   >
                     <Zap className="w-4 h-4 mr-1" />
                     STL
@@ -1298,7 +1295,7 @@ export default function LiveScoring() {
                   <Button
                     onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'blocks', 1)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
-                    disabled={game.sport === 'basketball' && userRole === 'viewer'}
+                    disabled={undoInProgress || (game.sport === 'basketball' && userRole === 'viewer')}
                   >
                     <Shield className="w-4 h-4 mr-1" />
                     BLK
