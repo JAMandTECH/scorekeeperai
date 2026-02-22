@@ -42,6 +42,7 @@ export default function LiveScoring() {
   const [userRole, setUserRole] = useState('viewer'); // 'overall', 'home_stat', 'away_stat', 'viewer'
   const [activeTimeout, setActiveTimeout] = useState(null); // 'home' | 'away' | null
   const [voiceFeedback, setVoiceFeedback] = useState(null); // {text, status}
+  const [undoInProgress, setUndoInProgress] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -460,9 +461,12 @@ export default function LiveScoring() {
       return;
     }
     if (actionHistory.length === 0) return;
+    if (undoInProgress) return;
+    setUndoInProgress(true);
 
-    const lastAction = actionHistory[actionHistory.length - 1];
-    setActionHistory(prev => prev.slice(0, -1));
+    try {
+      const lastAction = actionHistory[actionHistory.length - 1];
+      setActionHistory(prev => prev.slice(0, -1));
 
     if (lastAction.type === 'score') {
       setHomeScore(lastAction.oldHomeScore);
@@ -514,6 +518,9 @@ export default function LiveScoring() {
         setAwayTimeouts(lastAction.oldTimeouts);
         await base44.entities.Game.update(game.id, { away_timeouts: lastAction.oldTimeouts });
       }
+    }
+    } finally {
+      setUndoInProgress(false);
     }
   };
 
@@ -1277,7 +1284,7 @@ export default function LiveScoring() {
                   </Button>
                   <Button
                     onClick={handleUndo}
-                    disabled={actionHistory.length === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
+                    disabled={undoInProgress || actionHistory.length === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <RotateCcw className="w-4 h-4 mr-1" />
