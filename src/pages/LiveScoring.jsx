@@ -48,6 +48,8 @@ export default function LiveScoring() {
   const lastCommandRef = useRef({ key: '', ts: 0 });
   const lastWriteTsRef = useRef(0);
   const allowDecreaseUntilRef = useRef(0);
+  const homeScoreRef = useRef(0);
+  const awayScoreRef = useRef(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,6 +75,10 @@ export default function LiveScoring() {
     return () => clearInterval(intervalId);
   }, [game?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Keep refs in sync with latest scores to avoid stale-closure issues in interval refresh
+  useEffect(() => { homeScoreRef.current = homeScore; }, [homeScore]);
+  useEffect(() => { awayScoreRef.current = awayScore; }, [awayScore]);
+
   const refreshGameState = async () => {
     if (!game?.id) return;
     if (Date.now() - lastWriteTsRef.current < 1200) return;
@@ -85,8 +91,8 @@ export default function LiveScoring() {
         const justWrote = Date.now() - lastWriteTsRef.current < 2000;
         const srvHome = currentGame.home_score || 0;
         const srvAway = currentGame.away_score || 0;
-        const nextHome = allowDecrease ? srvHome : Math.max(srvHome, homeScore);
-        const nextAway = allowDecrease ? srvAway : Math.max(srvAway, awayScore);
+        const nextHome = allowDecrease ? srvHome : Math.max(srvHome, homeScoreRef.current);
+        const nextAway = allowDecrease ? srvAway : Math.max(srvAway, awayScoreRef.current);
         setHomeScore(nextHome);
         setAwayScore(nextAway);
         setCurrentQuarter(currentGame.current_quarter || 1);
