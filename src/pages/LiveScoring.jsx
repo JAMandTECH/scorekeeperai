@@ -194,8 +194,8 @@ export default function LiveScoring() {
       return;
     }
 
-    const games = await base44.entities.Game.list();
-    const currentGame = games.find(g => g.id === gameId);
+    const games = await base44.entities.Game.filter({ id: gameId });
+    const currentGame = games && games[0];
     if (!currentGame) {
       navigate(createPageUrl("Games"));
       return;
@@ -409,6 +409,7 @@ export default function LiveScoring() {
     lastWriteTsRef.current = Date.now();
     const scorePayload = isHomeTeam ? { home_score: newHomeScore } : { away_score: newAwayScore };
     await base44.entities.Game.update(game.id, scorePayload);
+    lastGameUpdateAtRef.current = Date.now();
 
     setActionHistory(prev => [...prev, {
       type: 'score',
