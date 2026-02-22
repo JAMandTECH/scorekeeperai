@@ -46,6 +46,7 @@ export default function LiveScoring() {
   const undoLockRef = useRef(false);
   const lastUndoTsRef = useRef(0);
   const lastCommandRef = useRef({ key: '', ts: 0 });
+  const lastWriteTsRef = useRef(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,6 +74,7 @@ export default function LiveScoring() {
 
   const refreshGameState = async () => {
     if (!game?.id) return;
+    if (Date.now() - lastWriteTsRef.current < 1200) return;
     try {
       const games = await base44.entities.Game.list();
       const currentGame = games.find(g => g.id === game.id);
@@ -258,6 +260,7 @@ export default function LiveScoring() {
     });
 
     try {
+      lastWriteTsRef.current = Date.now();
       // Ensure we use existing DB row if present (prevents duplicates on rapid actions/undo)
       if (!statToPersist.id) {
         const existing = await base44.entities.PlayerGameStats.filter({
@@ -411,9 +414,11 @@ export default function LiveScoring() {
     const newTeamFouls = oldTeamFouls + 1;
     if (isHomeTeam) {
       setHomeTeamFouls(newTeamFouls);
+      lastWriteTsRef.current = Date.now();
       await base44.entities.Game.update(game.id, { home_team_fouls: newTeamFouls });
     } else {
       setAwayTeamFouls(newTeamFouls);
+      lastWriteTsRef.current = Date.now();
       await base44.entities.Game.update(game.id, { away_team_fouls: newTeamFouls });
     }
 
@@ -452,6 +457,7 @@ export default function LiveScoring() {
     if (team === 'home' && homeTimeouts > 0) {
       const newTimeouts = homeTimeouts - 1;
       setHomeTimeouts(newTimeouts);
+      lastWriteTsRef.current = Date.now();
       await base44.entities.Game.update(game.id, { home_timeouts: newTimeouts });
       setActionHistory(prev => [...prev, {
         type: 'timeout',
@@ -462,6 +468,7 @@ export default function LiveScoring() {
     } else if (team === 'away' && awayTimeouts > 0) {
       const newTimeouts = awayTimeouts - 1;
       setAwayTimeouts(newTimeouts);
+      lastWriteTsRef.current = Date.now();
       await base44.entities.Game.update(game.id, { away_timeouts: newTimeouts });
       setActionHistory(prev => [...prev, {
         type: 'timeout',
@@ -493,6 +500,7 @@ export default function LiveScoring() {
     if (lastAction.type === 'score') {
       setHomeScore(lastAction.oldHomeScore);
       setAwayScore(lastAction.oldAwayScore);
+      lastWriteTsRef.current = Date.now();
       await base44.entities.Game.update(game.id, {
         home_score: lastAction.oldHomeScore,
         away_score: lastAction.oldAwayScore,
@@ -518,9 +526,11 @@ export default function LiveScoring() {
       // Undo team foul
       if (lastAction.team === 'home') {
         setHomeTeamFouls(lastAction.oldTeamFouls);
+        lastWriteTsRef.current = Date.now();
         await base44.entities.Game.update(game.id, { home_team_fouls: lastAction.oldTeamFouls });
       } else {
         setAwayTeamFouls(lastAction.oldTeamFouls);
+        lastWriteTsRef.current = Date.now();
         await base44.entities.Game.update(game.id, { away_team_fouls: lastAction.oldTeamFouls });
       }
 
@@ -535,9 +545,11 @@ export default function LiveScoring() {
     } else if (lastAction.type === 'timeout') {
       if (lastAction.team === 'home') {
         setHomeTimeouts(lastAction.oldTimeouts);
+        lastWriteTsRef.current = Date.now();
         await base44.entities.Game.update(game.id, { home_timeouts: lastAction.oldTimeouts });
       } else {
         setAwayTimeouts(lastAction.oldTimeouts);
+        lastWriteTsRef.current = Date.now();
         await base44.entities.Game.update(game.id, { away_timeouts: lastAction.oldTimeouts });
       }
     }
@@ -576,6 +588,7 @@ export default function LiveScoring() {
     const nextQuarter = currentQuarter + 1;
     const newOvertimeCount = nextQuarter > 4 ? (nextQuarter - 4) : 0;
 
+    lastWriteTsRef.current = Date.now();
     await base44.entities.Game.update(game.id, {
       quarter_scores: newQuarterScores,
       current_quarter: nextQuarter,
