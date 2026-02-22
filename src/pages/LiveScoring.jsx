@@ -238,7 +238,7 @@ export default function LiveScoring() {
         game_id: game.id,
         player_id: playerId,
         team_id: teamId,
-        quarter: currentQuarter,
+        quarter: quarter,
       };
 
       statUpdates.forEach(({ statType, value }) => {
