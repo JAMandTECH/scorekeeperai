@@ -133,6 +133,13 @@ export default function LiveScoring() {
     return unsubscribe;
   }, [game?.id]);
 
+  // Extra safety: if the game becomes completed for any reason, exit Live Scoring immediately
+  useEffect(() => {
+    if (game?.status === 'completed') {
+      navigate(createPageUrl("Games"));
+    }
+  }, [game?.status]);
+
   const refreshGameState = async () => {
     if (!game?.id) return;
     if (Date.now() - lastWriteTsRef.current < 1200) return;
