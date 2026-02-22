@@ -22,6 +22,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 export default function LiveScoring() {
   const [game, setGame] = useState(null);
   const [currentQuarter, setCurrentQuarter] = useState(1);
+  const currentQuarterRef = useRef(1);
   const [homeScore, setHomeScore] = useState(0);
   const [awayScore, setAwayScore] = useState(0);
   const [quarterScores, setQuarterScores] = useState([]);
@@ -80,6 +81,7 @@ export default function LiveScoring() {
   // Keep refs in sync with latest scores to avoid stale-closure issues in interval refresh
   useEffect(() => { homeScoreRef.current = homeScore; }, [homeScore]);
   useEffect(() => { awayScoreRef.current = awayScore; }, [awayScore]);
+  useEffect(() => { currentQuarterRef.current = currentQuarter; }, [currentQuarter]);
 
   // Real-time subscribe to this game's updates to avoid poll races across devices
   useEffect(() => {
@@ -99,7 +101,7 @@ export default function LiveScoring() {
         const nextAway = allowDec ? srvAway : Math.max(srvAway, awayScoreRef.current);
         setHomeScore(nextHome);
         setAwayScore(nextAway);
-        setCurrentQuarter(g.current_quarter || 1);
+        setCurrentQuarter(Math.max(g.current_quarter || 1, currentQuarterRef.current));
         setQuarterScores(g.quarter_scores || []);
         setHomeTimeouts(g.home_timeouts ?? 5);
         setAwayTimeouts(g.away_timeouts ?? 5);
@@ -148,7 +150,7 @@ export default function LiveScoring() {
         const nextAway = allowDec ? srvAway : Math.max(srvAway, awayScoreRef.current);
         setHomeScore(nextHome);
         setAwayScore(nextAway);
-        setCurrentQuarter(currentGame.current_quarter || 1);
+        setCurrentQuarter(Math.max(currentGame.current_quarter || 1, currentQuarterRef.current));
         setQuarterScores(currentGame.quarter_scores || []);
         setHomeTimeouts(currentGame.home_timeouts ?? 5);
         setAwayTimeouts(currentGame.away_timeouts ?? 5);
