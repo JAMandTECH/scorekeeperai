@@ -1076,7 +1076,7 @@ export default function LiveScoring() {
                     onClick={endGame}
                     size="sm"
                     className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-black text-xs px-4 py-2"
-                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
+                    disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     <CheckCircle className="w-4 h-4 mr-1" />
                     END GAME
