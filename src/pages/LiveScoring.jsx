@@ -289,6 +289,7 @@ export default function LiveScoring() {
       alert("Only the Overall Scorekeeper can add points.");
       return;
     }
+    if (undoInProgress) return; // prevent race with undo
     const oldHomeScore = homeScore;
     const oldAwayScore = awayScore;
 
