@@ -118,22 +118,10 @@ export default function LiveScoring() {
       const key = `${stat.player_id}_${stat.quarter}`;
       setPlayerStats((prev) => {
         const next = { ...prev };
-        const prevStat = prev[key];
-        const hadDecrease = !!prevStat && [
-          'points','rebounds','assists','steals','blocks','fouls',
-          'three_pointers','field_goals_made','field_goals_attempted',
-          'free_throws_made','free_throws_attempted'
-        ].some(k => (prevStat?.[k] || 0) > (stat?.[k] || 0));
-
         if (event.type === 'delete') {
           delete next[key];
         } else {
           next[key] = stat;
-        }
-
-        if (hadDecrease) {
-          // A stat decreased (likely an undo) — allow score decreases briefly so Game update can apply
-          allowDecreaseUntilRef.current = Date.now() + 4000;
         }
         return next;
       });
