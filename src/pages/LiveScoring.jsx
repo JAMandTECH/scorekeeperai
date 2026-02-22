@@ -404,6 +404,18 @@ export default function LiveScoring() {
       );
     }
 
+    setActionHistory(prev => [...prev, {
+      type: 'score',
+      team: isHomeTeam ? 'home' : 'away',
+      points: points,
+      playerId: playerId,
+      quarter: currentQuarter,
+      oldHomeScore: oldHomeScore,
+      oldAwayScore: oldAwayScore,
+      statUpdates: statUpdates,
+      snapshot,
+    }]);
+
     await updatePlayerStats(playerId, teamId, statUpdates);
 
     lastWriteTsRef.current = Date.now();
@@ -450,8 +462,6 @@ export default function LiveScoring() {
       addPlayerStat.lastTs = now;
     }
     const statUpdates = [{ statType, value }];
-    await updatePlayerStats(playerId, teamId, statUpdates);
-    
     setActionHistory(prev => [...prev, {
       type: statType,
       playerId: playerId,
@@ -460,6 +470,7 @@ export default function LiveScoring() {
       value: value,
       statUpdates: statUpdates,
     }]);
+    await updatePlayerStats(playerId, teamId, statUpdates);
   };
 
   // Updated handleFoul to accept playerId and teamId
@@ -1226,6 +1237,15 @@ export default function LiveScoring() {
                   UNDO
                 </Button>
                 <Button
+                  onClick={handleUndo}
+                  size="sm"
+                  className={`bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-black text-xs px-4 py-2 disabled:opacity-50 ${actionHistory.length>0 ? 'ring-2 ring-rose-300 animate-pulse' : ''}`}
+                  disabled={undoInProgress || actionHistory.length === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
+                >
+                  <RotateCcw className="w-4 h-4 mr-1" />
+                  UNDO
+                </Button>
+                <Button
                   onClick={() => navigate(createPageUrl("Games"))}
                   variant="outline"
                   size="sm"
@@ -1418,7 +1438,7 @@ export default function LiveScoring() {
                   <Button
                     onClick={handleUndo}
                     disabled={undoInProgress || actionHistory.length === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed ${actionHistory.length>0 ? "ring-2 ring-rose-300 animate-pulse" : ""}` }
                   >
                     <RotateCcw className="w-4 h-4 mr-1" />
                     UNDO
