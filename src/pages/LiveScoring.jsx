@@ -87,13 +87,9 @@ export default function LiveScoring() {
       if (event.type === 'update' || event.type === 'create') {
         const g = event.data;
         setGame(g);
-        const allowDecrease = Date.now() < allowDecreaseUntilRef.current;
-        const srvHome = g.home_score || 0;
-        const srvAway = g.away_score || 0;
-        const nextHome = allowDecrease ? srvHome : Math.max(srvHome, homeScoreRef.current);
-        const nextAway = allowDecrease ? srvAway : Math.max(srvAway, awayScoreRef.current);
-        setHomeScore(nextHome);
-        setAwayScore(nextAway);
+        // Trust server on realtime events to reflect legitimate decreases (e.g., undos from other devices)
+        setHomeScore(g.home_score || 0);
+        setAwayScore(g.away_score || 0);
         setCurrentQuarter(g.current_quarter || 1);
         setQuarterScores(g.quarter_scores || []);
         setHomeTimeouts(g.home_timeouts ?? 5);
@@ -101,6 +97,26 @@ export default function LiveScoring() {
         setHomeTeamFouls(g.home_team_fouls || 0);
         setAwayTeamFouls(g.away_team_fouls || 0);
       }
+    });
+    return unsubscribe;
+  }, [game?.id]);
+
+  // Real-time subscribe to player stats for immediate cross-device sync (including undos)
+  useEffect(() => {
+    if (!game?.id) return;
+    const unsubscribe = base44.entities.PlayerGameStats.subscribe((event) => {
+      const stat = event.data;
+      if (!stat || stat.game_id !== game.id) return;
+      const key = `${stat.player_id}_${stat.quarter}`;
+      setPlayerStats((prev) => {
+        const next = { ...prev };
+        if (event.type === 'delete') {
+          delete next[key];
+        } else {
+          next[key] = stat;
+        }
+        return next;
+      });
     });
     return unsubscribe;
   }, [game?.id]);
