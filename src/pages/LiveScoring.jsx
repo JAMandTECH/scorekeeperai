@@ -90,6 +90,7 @@ export default function LiveScoring() {
       if (event.id !== game.id) return;
       if (event.type === 'update' || event.type === 'create') {
         const g = event.data;
+        if (g.status === 'completed') { navigate(createPageUrl("Games")); return; }
         const srvAt = new Date(g.updated_date || Date.now()).getTime();
         if (srvAt + 1 < lastGameUpdateAtRef.current) return; // ignore stale/out-of-order updates
         lastGameUpdateAtRef.current = srvAt;
@@ -139,6 +140,7 @@ export default function LiveScoring() {
       const games = await base44.entities.Game.filter({ id: game.id });
       const currentGame = games && games[0];
       if (currentGame) {
+        if (currentGame.status === 'completed') { navigate(createPageUrl("Games")); return; }
         const srvAt = new Date(currentGame.updated_date || Date.now()).getTime();
         if (srvAt + 1 < lastGameUpdateAtRef.current) return;
         lastGameUpdateAtRef.current = srvAt;
@@ -200,6 +202,11 @@ export default function LiveScoring() {
     const games = await base44.entities.Game.filter({ id: gameId });
     const currentGame = games && games[0];
     if (!currentGame) {
+      navigate(createPageUrl("Games"));
+      return;
+    }
+
+    if (currentGame.status === 'completed') {
       navigate(createPageUrl("Games"));
       return;
     }
