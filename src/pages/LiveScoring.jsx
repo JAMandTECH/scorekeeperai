@@ -44,6 +44,8 @@ export default function LiveScoring() {
   const [voiceFeedback, setVoiceFeedback] = useState(null); // {text, status}
   const [undoInProgress, setUndoInProgress] = useState(false);
   const undoLockRef = useRef(false);
+  const lastUndoTsRef = useRef(0);
+  const lastCommandRef = useRef({ key: '', ts: 0 });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -463,6 +465,9 @@ export default function LiveScoring() {
       return;
     }
     if (actionHistory.length === 0) return;
+    const now = Date.now();
+    if (now - lastUndoTsRef.current < 1500) return; // throttle rapid undos
+    lastUndoTsRef.current = now;
     if (undoLockRef.current) return;
     undoLockRef.current = true;
     setUndoInProgress(true);
@@ -740,6 +745,10 @@ export default function LiveScoring() {
   // New voice command handler
   const handleVoiceCommand = async ({ team, player, action, value }) => {
     if (!showVoiceAssistant) return; // ignore commands when assistant is hidden
+    const key = `${action}|${team}|${player?.id || ''}|${value || ''}`;
+    const nowCmd = Date.now();
+    if (lastCommandRef.current.key === key && nowCmd - lastCommandRef.current.ts < 1500) return; // dedupe rapid repeats
+    lastCommandRef.current = { key, ts: nowCmd };
     const summary = `${team || ''} #${player?.jersey_number || ''} ${action}${value ? ' ' + value : ''}`.trim();
     setVoiceFeedback({ text: summary, status: 'processing' });
 
@@ -1228,21 +1237,21 @@ export default function LiveScoring() {
                   <Button
                     onClick={() => addPoints(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 1)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
-                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
+                    disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     +1 PT
                   </Button>
                   <Button
                     onClick={() => addPoints(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 2)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
-                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
+                    disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     +2 PTS
                   </Button>
                   <Button
                     onClick={() => addPoints(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 3)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
-                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
+                    disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     +3 PTS
                   </Button>
@@ -1281,7 +1290,7 @@ export default function LiveScoring() {
                   <Button
                     onClick={() => handleFoul(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
-                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
+                    disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     <AlertTriangle className="w-4 h-4 mr-1" />
                     FOUL
