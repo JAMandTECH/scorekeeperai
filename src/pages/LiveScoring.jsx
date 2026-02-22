@@ -762,8 +762,10 @@ export default function LiveScoring() {
 
     const winningTeam = homeScore > awayScore ? homeTeam : awayTeam;
 
-    // Create notification for all org members (allowed for most roles)
-    await base44.entities.Notification.create({
+    // Navigate immediately; send notification without blocking
+    navigate(createPageUrl("Games"));
+
+    base44.entities.Notification.create({
       organization_id: game.organization_id,
       type: "game_completed",
       title: "Game Completed! 🏀",
@@ -780,8 +782,6 @@ export default function LiveScoring() {
       },
       read_by: []
     });
-
-    navigate(createPageUrl("Games"));
   };
 
   const handleDeclareDefault = async (defaultedTeamId) => {
