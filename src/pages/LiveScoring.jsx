@@ -50,6 +50,7 @@ export default function LiveScoring() {
   const allowDecreaseUntilRef = useRef(0);
   const homeScoreRef = useRef(0);
   const awayScoreRef = useRef(0);
+  const lastGameUpdateAtRef = useRef(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -86,8 +87,10 @@ export default function LiveScoring() {
       if (event.id !== game.id) return;
       if (event.type === 'update' || event.type === 'create') {
         const g = event.data;
+        const srvAt = new Date(g.updated_date || Date.now()).getTime();
+        if (srvAt + 1 < lastGameUpdateAtRef.current) return; // ignore stale/out-of-order updates
+        lastGameUpdateAtRef.current = srvAt;
         setGame(g);
-        // Trust server on realtime events to reflect legitimate decreases (e.g., undos from other devices)
         setHomeScore(g.home_score || 0);
         setAwayScore(g.away_score || 0);
         setCurrentQuarter(g.current_quarter || 1);
@@ -128,6 +131,9 @@ export default function LiveScoring() {
       const games = await base44.entities.Game.filter({ id: game.id });
       const currentGame = games && games[0];
       if (currentGame) {
+        const srvAt = new Date(currentGame.updated_date || Date.now()).getTime();
+        if (srvAt + 1 < lastGameUpdateAtRef.current) return;
+        lastGameUpdateAtRef.current = srvAt;
         setGame(currentGame);
         const srvHome = currentGame.home_score || 0;
         const srvAway = currentGame.away_score || 0;
@@ -189,6 +195,7 @@ export default function LiveScoring() {
     }
 
     setGame(currentGame);
+    lastGameUpdateAtRef.current = new Date(currentGame.updated_date || Date.now()).getTime();
     setHomeScore(currentGame.home_score || 0);
     setAwayScore(currentGame.away_score || 0);
     setCurrentQuarter(currentGame.current_quarter || 1);
