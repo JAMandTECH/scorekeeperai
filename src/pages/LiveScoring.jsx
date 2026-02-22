@@ -469,7 +469,7 @@ export default function LiveScoring() {
         value: -update.value
       }));
       
-      await updatePlayerStats(lastAction.playerId, lastAction.teamId, reverseUpdates);
+      await updatePlayerStats(lastAction.playerId, lastAction.teamId, reverseUpdates, lastAction.quarter);
 
       // Undo team foul
       if (lastAction.team === 'home') {
