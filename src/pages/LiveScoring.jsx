@@ -1374,7 +1374,7 @@ export default function LiveScoring() {
                 </h2>
                 <Button
                   onClick={() => useTimeout('home')}
-                  disabled={homeTimeouts === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
+                  disabled={undoInProgress || homeTimeouts === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
                   className="bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
                 >
                   <Clock className="w-3 h-3 mr-1" />
