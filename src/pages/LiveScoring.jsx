@@ -72,7 +72,7 @@ export default function LiveScoring() {
     try {
       const games = await base44.entities.Game.list();
       const currentGame = games.find(g => g.id === game.id);
-      if (currentGame && currentGame.status !== game.status) {
+      if (currentGame) {
         setGame(currentGame);
         setHomeScore(currentGame.home_score || 0);
         setAwayScore(currentGame.away_score || 0);
@@ -254,6 +254,19 @@ export default function LiveScoring() {
     });
 
     try {
+      // Ensure we use existing DB row if present (prevents duplicates on rapid actions/undo)
+      if (!statToPersist.id) {
+        const existing = await base44.entities.PlayerGameStats.filter({
+          game_id: game.id,
+          player_id: playerId,
+          team_id: teamId,
+          quarter: quarter,
+        });
+        if (existing && existing[0]?.id) {
+          statToPersist.id = existing[0].id;
+        }
+      }
+
       if (statToPersist.id) {
         await base44.entities.PlayerGameStats.update(statToPersist.id, statToPersist);
       } else {
@@ -515,7 +528,12 @@ export default function LiveScoring() {
       away: awayScore - previousAwayTotalScore,
     };
 
-    const newQuarterScores = [...quarterScores, quarterScore];
+    const newQuarterScores = (() => {
+      const idx = quarterScores.findIndex(q => q.quarter === currentQuarter);
+      const updated = [...quarterScores];
+      if (idx >= 0) updated[idx] = quarterScore; else updated.push(quarterScore);
+      return updated;
+    })();
     setQuarterScores(newQuarterScores);
     setHomeTeamFouls(0);
     setAwayTeamFouls(0);
