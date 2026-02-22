@@ -712,38 +712,39 @@ export default function LiveScoring() {
       return;
     }
 
-    // Fetch fresh team data to ensure we have latest wins/losses
-    const allTeams = await base44.entities.Team.list();
-    const home = allTeams.find(t => t.id === game.home_team_id);
-    const away = allTeams.find(t => t.id === game.away_team_id);
-
-    if (!home || !away) {
-      alert("Error: Unable to find team data. Please try again.");
-      return;
-    }
-
+    // Complete the game first (scorekeepers have permission for Game updates)
     await base44.entities.Game.update(game.id, {
       status: 'completed',
       home_score: homeScore,
       away_score: awayScore,
     });
 
-    if (homeScore > awayScore) {
-      await base44.entities.Team.update(game.home_team_id, {
-        wins: (home.wins || 0) + 1
-      });
-      
-      await base44.entities.Team.update(game.away_team_id, {
-        losses: (away.losses || 0) + 1
-      });
-    } else {
-      await base44.entities.Team.update(game.home_team_id, {
-        losses: (home.losses || 0) + 1
-      });
-      
-      await base44.entities.Team.update(game.away_team_id, {
-        wins: (away.wins || 0) + 1
-      });
+    const isAdmin = user?.role === 'admin';
+
+    // Only admins can modify Team records due to RLS — skip for non-admins
+    if (isAdmin) {
+      // Fetch fresh team data to ensure we have latest wins/losses
+      const allTeams = await base44.entities.Team.list();
+      const home = allTeams.find(t => t.id === game.home_team_id);
+      const away = allTeams.find(t => t.id === game.away_team_id);
+
+      if (home && away) {
+        if (homeScore > awayScore) {
+          await base44.entities.Team.update(game.home_team_id, {
+            wins: (home.wins || 0) + 1
+          });
+          await base44.entities.Team.update(game.away_team_id, {
+            losses: (away.losses || 0) + 1
+          });
+        } else {
+          await base44.entities.Team.update(game.home_team_id, {
+            losses: (home.losses || 0) + 1
+          });
+          await base44.entities.Team.update(game.away_team_id, {
+            wins: (away.wins || 0) + 1
+          });
+        }
+      }
     }
 
     // Find best player (highest points)
@@ -761,7 +762,7 @@ export default function LiveScoring() {
 
     const winningTeam = homeScore > awayScore ? homeTeam : awayTeam;
 
-    // Create notification for all org members
+    // Create notification for all org members (allowed for most roles)
     await base44.entities.Notification.create({
       organization_id: game.organization_id,
       type: "game_completed",
