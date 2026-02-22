@@ -293,6 +293,12 @@ export default function LiveScoring() {
       return;
     }
     if (undoInProgress) return; // prevent race with undo
+    // throttle duplicate rapid clicks (300ms)
+    if (!addPoints.lastTs) addPoints.lastTs = 0;
+    const now = Date.now();
+    if (now - addPoints.lastTs < 300) return;
+    addPoints.lastTs = now;
+
     const oldHomeScore = homeScore;
     const oldAwayScore = awayScore;
 
