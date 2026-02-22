@@ -129,14 +129,11 @@ export default function LiveScoring() {
       const currentGame = games && games[0];
       if (currentGame) {
         setGame(currentGame);
-        const allowDecrease = Date.now() < allowDecreaseUntilRef.current;
-        const justWrote = Date.now() - lastWriteTsRef.current < 2000;
         const srvHome = currentGame.home_score || 0;
         const srvAway = currentGame.away_score || 0;
-        const nextHome = allowDecrease ? srvHome : Math.max(srvHome, homeScoreRef.current);
-        const nextAway = allowDecrease ? srvAway : Math.max(srvAway, awayScoreRef.current);
-        setHomeScore(nextHome);
-        setAwayScore(nextAway);
+        // Trust server on refresh so undo/decreases propagate reliably
+        setHomeScore(srvHome);
+        setAwayScore(srvAway);
         setCurrentQuarter(currentGame.current_quarter || 1);
         setQuarterScores(currentGame.quarter_scores || []);
         setHomeTimeouts(currentGame.home_timeouts ?? 5);
