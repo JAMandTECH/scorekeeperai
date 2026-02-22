@@ -55,6 +55,14 @@ export default function LiveScoring() {
   const lastGameUpdateAtRef = useRef(0);
   const navigate = useNavigate();
 
+  // Service-role backed safe game update (validates user is allowed on backend)
+  const updateGameSafe = async (patch) => {
+    await base44.functions.invoke('updateGame', { gameId: game.id, patch });
+  };
+  const updateGameByIdSafe = async (id, patch) => {
+    await base44.functions.invoke('updateGame', { gameId: id, patch });
+  };
+
   useEffect(() => {
     loadGame();
     loadUser();
@@ -230,7 +238,7 @@ export default function LiveScoring() {
     setAwayTeamFouls(currentGame.away_team_fouls || 0);
     
     if (currentGame.status === 'scheduled') {
-      await base44.entities.Game.update(gameId, { status: 'in_progress' });
+      await updateGameByIdSafe(gameId, { status: 'in_progress' });
     }
 
     const stats = await base44.entities.PlayerGameStats.filter({ game_id: gameId });
@@ -437,7 +445,7 @@ export default function LiveScoring() {
 
     lastWriteTsRef.current = Date.now();
     const scorePayload = isHomeTeam ? { home_score: newHomeScore } : { away_score: newAwayScore };
-    await base44.entities.Game.update(game.id, scorePayload);
+    await updateGameSafe(scorePayload);
 
   };
 
@@ -497,11 +505,11 @@ export default function LiveScoring() {
     if (isHomeTeam) {
       setHomeTeamFouls(newTeamFouls);
       lastWriteTsRef.current = Date.now();
-      await base44.entities.Game.update(game.id, { home_team_fouls: newTeamFouls });
+      await updateGameSafe({ home_team_fouls: newTeamFouls });
     } else {
       setAwayTeamFouls(newTeamFouls);
       lastWriteTsRef.current = Date.now();
-      await base44.entities.Game.update(game.id, { away_team_fouls: newTeamFouls });
+      await updateGameSafe({ away_team_fouls: newTeamFouls });
     }
 
     setActionHistory(prev => [...prev, {
@@ -540,7 +548,7 @@ export default function LiveScoring() {
       const newTimeouts = homeTimeouts - 1;
       setHomeTimeouts(newTimeouts);
       lastWriteTsRef.current = Date.now();
-      await base44.entities.Game.update(game.id, { home_timeouts: newTimeouts });
+      await updateGameSafe({ home_timeouts: newTimeouts });
       setActionHistory(prev => [...prev, {
         type: 'timeout',
         team: 'home',
@@ -551,7 +559,7 @@ export default function LiveScoring() {
       const newTimeouts = awayTimeouts - 1;
       setAwayTimeouts(newTimeouts);
       lastWriteTsRef.current = Date.now();
-      await base44.entities.Game.update(game.id, { away_timeouts: newTimeouts });
+      await updateGameSafe({ away_timeouts: newTimeouts });
       setActionHistory(prev => [...prev, {
         type: 'timeout',
         team: 'away',
@@ -646,7 +654,7 @@ export default function LiveScoring() {
       }
       lastWriteTsRef.current = Date.now();
 
-      await base44.entities.Game.update(game.id, payload);
+      await updateGameSafe(payload);
     }
     } finally {
       undoLockRef.current = false;
@@ -698,7 +706,7 @@ export default function LiveScoring() {
     lastWriteTsRef.current = Date.now();
     setSavingQuarter(true);
     try {
-      await base44.entities.Game.update(game.id, {
+      await updateGameSafe({
         quarter_scores: newQuarterScores,
         current_quarter: nextQuarter,
         home_team_fouls: 0,
@@ -744,7 +752,7 @@ export default function LiveScoring() {
     lastWriteTsRef.current = Date.now();
     setSavingQuarter(true);
     try {
-      await base44.entities.Game.update(game.id, {
+      await updateGameSafe({
         quarter_scores: finalQuarterScores,
         current_quarter: currentQuarter,
         home_team_fouls: homeTeamFouls,
@@ -838,7 +846,7 @@ export default function LiveScoring() {
     // Allow server-side score change (may decrease for defaulted team)
     allowDecreaseUntilRef.current = Date.now() + 4000;
 
-    await base44.entities.Game.update(game.id, {
+    await updateGameSafe({
       status: 'completed',
       home_score: newHomeScore,
       away_score: newAwayScore,
@@ -897,7 +905,7 @@ export default function LiveScoring() {
       losses: Math.max(0, (defaultedTeam.losses || 0) - 1)
     });
 
-    await base44.entities.Game.update(game.id, {
+    await updateGameSafe({
       status: 'in_progress',
       home_score: 0,
       away_score: 0,
