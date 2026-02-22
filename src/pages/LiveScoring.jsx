@@ -99,20 +99,19 @@ export default function LiveScoring() {
 
   // Determine user role for basketball games
   useEffect(() => {
-    if (user && game && game.sport === 'basketball') {
-      if (game.overall_scorekeeper_email === user.email) {
-        setUserRole('overall');
-      } else if (game.home_statistician_email === user.email) {
-        setUserRole('home_stat');
-      } else if (game.away_statistician_email === user.email) {
-        setUserRole('away_stat');
-      } else if (user.role === 'admin') {
-        setUserRole('overall'); // Admins get full access
-      } else {
-        setUserRole('viewer');
-      }
-    } else if (user?.role === 'admin') {
-      setUserRole('overall'); // Admins always have full access
+    if (!user || !game) return;
+    if (user.role === 'admin') { setUserRole('overall'); return; }
+    if (game.sport === 'basketball') {
+      const u = user.email?.toLowerCase();
+      const overall = game.overall_scorekeeper_email?.toLowerCase();
+      const home = game.home_statistician_email?.toLowerCase();
+      const away = game.away_statistician_email?.toLowerCase();
+      if (overall && u && overall === u) setUserRole('overall');
+      else if (home && u && home === u) setUserRole('home_stat');
+      else if (away && u && away === u) setUserRole('away_stat');
+      else setUserRole('viewer');
+    } else {
+      setUserRole('overall');
     }
   }, [user, game]);
 
@@ -203,7 +202,7 @@ export default function LiveScoring() {
     enabled: !!user?.organization_id,
   });
 
-  const getPlayerStatKey = (playerId) => `${playerId}_${currentQuarter}`;
+  const getPlayerStatKey = (playerId, quarter = currentQuarter) => `${playerId}_${quarter}`;
 
   const getPlayerStat = (playerId, statType) => {
     let total = 0;
@@ -228,8 +227,8 @@ export default function LiveScoring() {
     return totalFouls;
   };
 
-  const updatePlayerStats = async (playerId, teamId, statUpdates) => {
-    const key = getPlayerStatKey(playerId);
+  const updatePlayerStats = async (playerId, teamId, statUpdates, quarter = currentQuarter) => {
+    const key = getPlayerStatKey(playerId, quarter);
     let statToPersist = null; 
 
     setPlayerStats(prev => {
@@ -461,7 +460,7 @@ export default function LiveScoring() {
       }));
       
       const teamId = lastAction.team === 'home' ? game.home_team_id : game.away_team_id;
-      await updatePlayerStats(lastAction.playerId, teamId, reverseUpdates);
+      await updatePlayerStats(lastAction.playerId, teamId, reverseUpdates, lastAction.quarter);
 
     } else if (lastAction.type === 'foul') {
       // Undo player foul
@@ -765,9 +764,10 @@ export default function LiveScoring() {
 
   // Roles available to this user for this game (basketball)
   const allowedRoles = [];
-  if (user?.role === 'admin' || game?.overall_scorekeeper_email === user?.email) allowedRoles.push('overall');
-  if (user?.role === 'admin' || game?.home_statistician_email === user?.email) allowedRoles.push('home_stat');
-  if (user?.role === 'admin' || game?.away_statistician_email === user?.email) allowedRoles.push('away_stat');
+  const uEmail = user?.email?.toLowerCase();
+  if (user?.role === 'admin' || game?.overall_scorekeeper_email?.toLowerCase() === uEmail) allowedRoles.push('overall');
+  if (user?.role === 'admin' || game?.home_statistician_email?.toLowerCase() === uEmail) allowedRoles.push('home_stat');
+  if (user?.role === 'admin' || game?.away_statistician_email?.toLowerCase() === uEmail) allowedRoles.push('away_stat');
 
   const PlayerRow = ({ player, team, teamId, onSelect }) => {
     const totalFouls = getTotalPlayerFouls(player.id);
