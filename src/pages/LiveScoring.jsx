@@ -421,19 +421,7 @@ export default function LiveScoring() {
     lastWriteTsRef.current = Date.now();
     const scorePayload = isHomeTeam ? { home_score: newHomeScore } : { away_score: newAwayScore };
     await base44.entities.Game.update(game.id, scorePayload);
-    lastGameUpdateAtRef.current = Date.now();
 
-    setActionHistory(prev => [...prev, {
-      type: 'score',
-      team: isHomeTeam ? 'home' : 'away',
-      points: points,
-      playerId: playerId,
-      quarter: currentQuarter,
-      oldHomeScore: oldHomeScore,
-      oldAwayScore: oldAwayScore,
-      statUpdates: statUpdates,
-      snapshot,
-    }]);
   };
 
   // Updated addPlayerStat to accept playerId and teamId
@@ -1227,15 +1215,7 @@ export default function LiveScoring() {
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 )}
-                <Button
-                  onClick={handleUndo}
-                  size="sm"
-                  className="bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-black text-xs px-4 py-2 disabled:opacity-50"
-                  disabled={undoInProgress || actionHistory.length === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
-                >
-                  <RotateCcw className="w-4 h-4 mr-1" />
-                  UNDO
-                </Button>
+
                 <Button
                   onClick={handleUndo}
                   size="sm"
