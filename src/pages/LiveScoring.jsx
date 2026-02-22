@@ -584,6 +584,7 @@ export default function LiveScoring() {
         base44.entities.Game.update(game.id, scoreUndoPayload),
         updatePlayerStats(lastAction.playerId, teamId, reverseUpdates, lastAction.quarter),
       ]);
+      lastGameUpdateAtRef.current = Date.now();
 
     } else if (lastAction.type === 'foul') {
       // Undo player foul + team foul in parallel
@@ -607,6 +608,7 @@ export default function LiveScoring() {
         updatePlayerStats(lastAction.playerId, lastAction.teamId, reverseUpdates, lastAction.quarter),
         base44.entities.Game.update(game.id, teamPayload),
       ]);
+      lastGameUpdateAtRef.current = Date.now();
 
     } else if (['rebounds', 'assists', 'steals', 'blocks'].includes(lastAction.type)) {
       const reverseUpdates = lastAction.statUpdates.map(update => ({
@@ -1214,6 +1216,15 @@ export default function LiveScoring() {
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 )}
+                <Button
+                  onClick={handleUndo}
+                  size="sm"
+                  className="bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-black text-xs px-4 py-2 disabled:opacity-50"
+                  disabled={undoInProgress || actionHistory.length === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
+                >
+                  <RotateCcw className="w-4 h-4 mr-1" />
+                  UNDO
+                </Button>
                 <Button
                   onClick={() => navigate(createPageUrl("Games"))}
                   variant="outline"
