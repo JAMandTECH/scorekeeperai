@@ -486,7 +486,7 @@ export default function LiveScoring() {
         value: -update.value
       }));
       
-      await updatePlayerStats(lastAction.playerId, lastAction.teamId, reverseUpdates);
+      await updatePlayerStats(lastAction.playerId, lastAction.teamId, reverseUpdates, lastAction.quarter);
 
     } else if (lastAction.type === 'timeout') {
       if (lastAction.team === 'home') {
