@@ -547,14 +547,19 @@ export default function LiveScoring() {
       home_team_fouls: 0,
       away_team_fouls: 0,
       overtime_count: newOvertimeCount,
-      home_score: homeScore, // Persist the cumulative score
-      away_score: awayScore, // Persist the cumulative score
+      home_score: homeScore,
+      away_score: awayScore,
     });
 
     setCurrentQuarter(nextQuarter);
-    // DON'T reset scores - they continue accumulating
+
+    // Clear per-quarter UI state and selection
     setShowQuarterEnd(false);
     setActionHistory([]);
+
+    // If we crossed to a new quarter, ensure next actions write to next quarter immediately
+    // by forcing a short refresh of game state from backend.
+    await refreshGameState();
   };
 
   const endGame = async () => {
