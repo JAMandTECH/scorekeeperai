@@ -47,6 +47,7 @@ export default function LiveScoring() {
   const lastUndoTsRef = useRef(0);
   const lastCommandRef = useRef({ key: '', ts: 0 });
   const lastWriteTsRef = useRef(0);
+  const allowDecreaseUntilRef = useRef(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -80,9 +81,12 @@ export default function LiveScoring() {
       const currentGame = games.find(g => g.id === game.id);
       if (currentGame) {
         setGame(currentGame);
+        const allowDecrease = Date.now() < allowDecreaseUntilRef.current;
         const justWrote = Date.now() - lastWriteTsRef.current < 2000;
-        const nextHome = justWrote ? Math.max(currentGame.home_score || 0, homeScore) : (currentGame.home_score || 0);
-        const nextAway = justWrote ? Math.max(currentGame.away_score || 0, awayScore) : (currentGame.away_score || 0);
+        const srvHome = currentGame.home_score || 0;
+        const srvAway = currentGame.away_score || 0;
+        const nextHome = allowDecrease ? srvHome : Math.max(srvHome, homeScore);
+        const nextAway = allowDecrease ? srvAway : Math.max(srvAway, awayScore);
         setHomeScore(nextHome);
         setAwayScore(nextAway);
         setCurrentQuarter(currentGame.current_quarter || 1);
@@ -496,6 +500,8 @@ export default function LiveScoring() {
     if (undoLockRef.current) return;
     undoLockRef.current = true;
     setUndoInProgress(true);
+    // Allow legitimate decreases from server for a short window (undo)
+    allowDecreaseUntilRef.current = Date.now() + 4000;
 
     try {
       const lastAction = actionHistory[actionHistory.length - 1];
@@ -705,6 +711,9 @@ export default function LiveScoring() {
     const newHomeScore = defaultedTeamId === game.home_team_id ? 0 : 20;
     const newAwayScore = defaultedTeamId === game.away_team_id ? 0 : 20;
 
+    // Allow server-side score change (may decrease for defaulted team)
+    allowDecreaseUntilRef.current = Date.now() + 4000;
+
     await base44.entities.Game.update(game.id, {
       status: 'completed',
       home_score: newHomeScore,
@@ -748,6 +757,9 @@ export default function LiveScoring() {
       return;
     }
     if (!game.is_default) return;
+
+    // Allow server-side decrease to 0-0 during undo default
+    allowDecreaseUntilRef.current = Date.now() + 4000;
 
     const allTeams = await base44.entities.Team.list();
     const winningTeam = allTeams.find(t => t.id === game.winning_team_id);
