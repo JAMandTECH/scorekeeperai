@@ -573,9 +573,8 @@ export default function LiveScoring() {
     setShowQuarterEnd(false);
     setActionHistory([]);
 
-    // If we crossed to a new quarter, ensure next actions write to next quarter immediately
-    // by forcing a short refresh of game state from backend.
-    await refreshGameState();
+    // Delay refresh slightly to avoid stale read after update
+    setTimeout(() => { refreshGameState(); }, 800);
   };
 
   const endGame = async () => {
@@ -1068,7 +1067,7 @@ export default function LiveScoring() {
                     onClick={() => setShowQuarterEnd(true)}
                     size="sm"
                     className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-black text-xs px-4 py-2"
-                    disabled={game.sport === 'basketball' && userRole !== 'overall'}
+                    disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     END {quarterLabel}
                     <ChevronRight className="w-4 h-4 ml-1" />
