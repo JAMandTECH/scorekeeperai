@@ -261,7 +261,11 @@ export default function AllGames() {
               </div>
               {game.status === 'completed' && (
                 <div className="text-5xl font-black text-gray-900 dark:text-white">
-                  {game.sport === 'volleyball' ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0) : game.away_score}
+                  {game.sport === 'volleyball'
+                    ? ((game.quarter_scores && game.quarter_scores.length > 0)
+                        ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0)
+                        : (game.away_score ?? 0))
+                    : (game.away_score ?? 0)}
                 </div>
               )}
             </div>
