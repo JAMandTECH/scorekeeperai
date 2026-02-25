@@ -210,6 +210,17 @@ export default function Schedule() {
                       <Clock className="w-3 h-3" />
                       {format(new Date(game.game_date || game.scheduled_date), "h:mm a")}
                     </div>
+                    {game.status === 'completed' && (
+                      <div className="mt-1 text-sm font-bold text-slate-700">
+                        {(() => {
+                          const isVB = game.sport === 'volleyball';
+                          const hasSets = Array.isArray(game.quarter_scores) && game.quarter_scores.length > 0;
+                          const home = isVB ? (hasSets ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0) : (game.home_score ?? 0)) : (game.home_score ?? 0);
+                          const away = isVB ? (hasSets ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0) : (game.away_score ?? 0)) : (game.away_score ?? 0);
+                          return `${home} - ${away}`;
+                        })()}
+                      </div>
+                    )}
                     {game.venue && (
                       <div className="flex items-center gap-2 text-xs text-slate-600 mt-1">
                         <MapPin className="w-3 h-3" />
