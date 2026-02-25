@@ -805,7 +805,7 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-0">
                       <div className="overflow-x-auto">
-                        <table className="w-full">
+                        <table className="w-full table-fixed">
                           <thead>
                             <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
                               <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">#</th>
@@ -1338,7 +1338,7 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-0">
                       <div className="overflow-x-auto">
-                        <table className="w-full">
+                        <table className="w-full table-fixed">
                           <thead>
                             <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
                               <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">#</th>
