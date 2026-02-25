@@ -274,22 +274,34 @@ export default function Home() {
             let teamScore, oppScore;
 
             if (sport === 'volleyball') {
-              // For volleyball: calculate total points across all sets
-              const homeTotalPoints = (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0);
-              const awayTotalPoints = (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0);
-              const homeSetsWon = (game.quarter_scores || []).filter(s => s.home > s.away).length;
-              const awaySetsWon = (game.quarter_scores || []).filter(s => s.away > s.home).length;
-              
-              teamScore = isHome ? homeTotalPoints : awayTotalPoints;
-              oppScore = isHome ? awayTotalPoints : homeTotalPoints;
-              
-              // Win/loss based on sets won
-              if (homeSetsWon > awaySetsWon) {
-                if (isHome) wins++;
-                else losses++;
-              } else if (awaySetsWon > homeSetsWon) {
-                if (isHome) losses++;
-                else wins++;
+              const sets = Array.isArray(game.quarter_scores) ? game.quarter_scores : [];
+              if (sets.length > 0) {
+                // Use set scores when available
+                const homeTotalPoints = sets.reduce((sum, s) => sum + (s.home || 0), 0);
+                const awayTotalPoints = sets.reduce((sum, s) => sum + (s.away || 0), 0);
+                const homeSetsWon = sets.filter(s => s.home > s.away).length;
+                const awaySetsWon = sets.filter(s => s.away > s.home).length;
+                
+                teamScore = isHome ? homeTotalPoints : awayTotalPoints;
+                oppScore = isHome ? awayTotalPoints : homeTotalPoints;
+                
+                if (homeSetsWon > awaySetsWon) {
+                  if (isHome) wins++; else losses++;
+                } else if (awaySetsWon > homeSetsWon) {
+                  if (isHome) losses++; else wins++;
+                } else {
+                  // tie on sets (shouldn't happen), fall back to total points
+                  if (homeTotalPoints > awayTotalPoints) { if (isHome) wins++; else losses++; }
+                  else if (awayTotalPoints > homeTotalPoints) { if (isHome) losses++; else wins++; }
+                }
+              } else {
+                // Fallback to final cumulative score when no set data was recorded (e.g., manual entry)
+                const homeFinal = Number(game.home_score || 0);
+                const awayFinal = Number(game.away_score || 0);
+                teamScore = isHome ? homeFinal : awayFinal;
+                oppScore = isHome ? awayFinal : homeFinal;
+                if (homeFinal > awayFinal) { if (isHome) wins++; else losses++; }
+                else if (awayFinal > homeFinal) { if (isHome) losses++; else wins++; }
               }
             } else { // Basketball
               teamScore = isHome ? game.home_score : game.away_score;
