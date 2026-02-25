@@ -208,7 +208,7 @@ export default function Schedule() {
                     </p>
                     <div className="flex items-center gap-2 text-xs text-slate-600">
                       <Clock className="w-3 h-3" />
-                      {format(new Date(game.scheduled_date), "h:mm a")}
+                      {format(new Date(game.game_date || game.scheduled_date), "h:mm a")}
                     </div>
                     {game.venue && (
                       <div className="flex items-center gap-2 text-xs text-slate-600 mt-1">
