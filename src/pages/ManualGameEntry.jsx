@@ -247,34 +247,48 @@ export default function ManualGameEntry() {
         const newAway = gameScores.away;
         const newWinner = newHome === newAway ? null : (newHome > newAway ? 'home' : 'away');
 
-        if (newWinner) {
-          const allTeams = await base44.entities.Team.list();
-          const homeTeam = allTeams.find(t => t.id === selectedGame.home_team_id);
-          const awayTeam = allTeams.find(t => t.id === selectedGame.away_team_id);
-          if (homeTeam && awayTeam) {
-            let homeWins = homeTeam.wins || 0;
-            let homeLosses = homeTeam.losses || 0;
-            let awayWins = awayTeam.wins || 0;
-            let awayLosses = awayTeam.losses || 0;
+        const allTeams = await base44.entities.Team.list();
+        const homeTeam = allTeams.find(t => t.id === selectedGame.home_team_id);
+        const awayTeam = allTeams.find(t => t.id === selectedGame.away_team_id);
+        if (homeTeam && awayTeam) {
+          let homeWins = homeTeam.wins || 0;
+          let homeLosses = homeTeam.losses || 0;
+          let awayWins = awayTeam.wins || 0;
+          let awayLosses = awayTeam.losses || 0;
 
-            if (originalStatus !== 'completed') {
+          if (originalStatus !== 'completed') {
+            // Newly completing a game
+            if (newWinner === 'home') { homeWins++; awayLosses++; }
+            else if (newWinner === 'away') { awayWins++; homeLosses++; }
+            // ties do not change W/L
+          } else {
+            // Editing a previously completed game
+            if (prevWinner === newWinner) {
+              // no change
+            } else if (prevWinner && !newWinner) {
+              // was a win, now tie -> remove previous result
+              if (prevWinner === 'home') { homeWins = Math.max(0, homeWins - 1); awayLosses = Math.max(0, awayLosses - 1); }
+              else { awayWins = Math.max(0, awayWins - 1); homeLosses = Math.max(0, homeLosses - 1); }
+            } else if (!prevWinner && newWinner) {
+              // was tie, now a win
               if (newWinner === 'home') { homeWins++; awayLosses++; }
               else { awayWins++; homeLosses++; }
-            } else if (prevWinner && prevWinner !== newWinner) {
+            } else if (prevWinner && newWinner && prevWinner !== newWinner) {
+              // switch winner
               if (prevWinner === 'home') { homeWins = Math.max(0, homeWins - 1); awayLosses = Math.max(0, awayLosses - 1); }
-              else if (prevWinner === 'away') { awayWins = Math.max(0, awayWins - 1); homeLosses = Math.max(0, homeLosses - 1); }
+              else { awayWins = Math.max(0, awayWins - 1); homeLosses = Math.max(0, homeLosses - 1); }
               if (newWinner === 'home') { homeWins++; awayLosses++; }
-              else if (newWinner === 'away') { awayWins++; homeLosses++; }
+              else { awayWins++; homeLosses++; }
             }
-
-            await Promise.all([
-              base44.entities.Team.update(homeTeam.id, { wins: homeWins, losses: homeLosses }),
-              base44.entities.Team.update(awayTeam.id, { wins: awayWins, losses: awayLosses }),
-            ]);
-
-            // Refresh teams list to reflect new standings
-            queryClient.invalidateQueries(['teams']);
           }
+
+          await Promise.all([
+            base44.entities.Team.update(homeTeam.id, { wins: homeWins, losses: homeLosses }),
+            base44.entities.Team.update(awayTeam.id, { wins: awayWins, losses: awayLosses }),
+          ]);
+
+          // Refresh teams list to reflect new standings
+          queryClient.invalidateQueries(['teams']);
         }
       } catch (e) {
         console.error('Failed to update team standings:', e);
