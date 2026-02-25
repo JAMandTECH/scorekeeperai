@@ -233,6 +233,52 @@ export default function ManualGameEntry() {
         gameId: selectedGame.id,
         stats: playerStats
       });
+
+      // Update team standings (wins/losses) based on final score
+      try {
+        const originalStatus = selectedGame.status;
+        const prevHome = selectedGame.home_score ?? 0;
+        const prevAway = selectedGame.away_score ?? 0;
+        const prevWinner = originalStatus === 'completed'
+          ? (prevHome === prevAway ? null : (prevHome > prevAway ? 'home' : 'away'))
+          : null;
+
+        const newHome = gameScores.home;
+        const newAway = gameScores.away;
+        const newWinner = newHome === newAway ? null : (newHome > newAway ? 'home' : 'away');
+
+        if (newWinner) {
+          const allTeams = await base44.entities.Team.list();
+          const homeTeam = allTeams.find(t => t.id === selectedGame.home_team_id);
+          const awayTeam = allTeams.find(t => t.id === selectedGame.away_team_id);
+          if (homeTeam && awayTeam) {
+            let homeWins = homeTeam.wins || 0;
+            let homeLosses = homeTeam.losses || 0;
+            let awayWins = awayTeam.wins || 0;
+            let awayLosses = awayTeam.losses || 0;
+
+            if (originalStatus !== 'completed') {
+              if (newWinner === 'home') { homeWins++; awayLosses++; }
+              else { awayWins++; homeLosses++; }
+            } else if (prevWinner && prevWinner !== newWinner) {
+              if (prevWinner === 'home') { homeWins = Math.max(0, homeWins - 1); awayLosses = Math.max(0, awayLosses - 1); }
+              else if (prevWinner === 'away') { awayWins = Math.max(0, awayWins - 1); homeLosses = Math.max(0, homeLosses - 1); }
+              if (newWinner === 'home') { homeWins++; awayLosses++; }
+              else if (newWinner === 'away') { awayWins++; homeLosses++; }
+            }
+
+            await Promise.all([
+              base44.entities.Team.update(homeTeam.id, { wins: homeWins, losses: homeLosses }),
+              base44.entities.Team.update(awayTeam.id, { wins: awayWins, losses: awayLosses }),
+            ]);
+
+            // Refresh teams list to reflect new standings
+            queryClient.invalidateQueries(['teams']);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to update team standings:', e);
+      }
       
       setSuccessMessage("Game result and player statistics saved successfully!");
       setConfirmSave(false);
