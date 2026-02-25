@@ -517,8 +517,10 @@ export default function AllGames() {
                         {game.status === 'completed' ? (
                           <div className="font-black text-2xl text-gray-900 dark:text-white">
                             {game.sport === 'volleyball' 
-                              ? `${(game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0)} - ${(game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0)}`
-                              : `${game.home_score} - ${game.away_score}`
+                              ? ((game.quarter_scores && game.quarter_scores.length > 0)
+                                  ? `${(game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0)} - ${(game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0)}`
+                                  : `${game.home_score ?? 0} - ${game.away_score ?? 0}`)
+                              : `${game.home_score ?? 0} - ${game.away_score ?? 0}`
                             }
                           </div>
                         ) : (
