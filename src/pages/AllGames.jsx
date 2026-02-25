@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -237,7 +236,11 @@ export default function AllGames() {
               </div>
               {game.status === 'completed' && (
                 <div className={`text-5xl font-black text-${sportColor}-600 dark:text-${sportColor}-400`}>
-                  {game.sport === 'volleyball' ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0) : game.home_score}
+                  {game.sport === 'volleyball'
+                    ? ((game.quarter_scores && game.quarter_scores.length > 0)
+                        ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0)
+                        : (game.home_score ?? 0))
+                    : (game.home_score ?? 0)}
                 </div>
               )}
             </div>
