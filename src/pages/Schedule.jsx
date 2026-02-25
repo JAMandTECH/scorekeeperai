@@ -29,7 +29,7 @@ export default function Schedule() {
     queryKey: ["games", orgId],
     queryFn: () =>
       orgId
-        ? base44.entities.Game.filter({ organization_id: orgId }, "-scheduled_date")
+        ? base44.entities.Game.filter({ organization_id: orgId }, "-game_date")
         : [],
     enabled: !!orgId,
   });
