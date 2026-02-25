@@ -808,20 +808,20 @@ export default function Home() {
                         <table className="w-full table-fixed">
                           <thead>
                             <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
-                              <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">#</th>
+                              <th className="text-left w-10 py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">#</th>
                               <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">TEAM</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">W</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">L</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PCT</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PF</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PA</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">DIFF</th>
+                              <th className="w-12 text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">W</th>
+                              <th className="w-12 text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">L</th>
+                              <th className="w-12 text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PCT</th>
+                              <th className="w-12 text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PF</th>
+                              <th className="w-12 text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PA</th>
+                              <th className="w-12 text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">DIFF</th>
                             </tr>
                           </thead>
                           <tbody>
                             {divisionData.teams.map((team, i) => (
                               <tr key={team.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors">
-                                <td className="py-4 px-4 font-black text-xl text-gray-400 dark:text-gray-500">{i + 1}</td>
+                                <td className="w-10 py-4 px-4 font-black text-xl text-gray-400 dark:text-gray-500">{i + 1}</td>
                                 <td className="py-4 px-4">
                                   <div className="flex items-center gap-3">
                                     <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
@@ -833,12 +833,12 @@ export default function Home() {
                                     <span className="font-bold text-gray-900 dark:text-white">{team.name}</span>
                                   </div>
                                 </td>
-                                <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold text-lg">{team.wins}</td>
-                                <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-bold text-lg">{team.losses}</td>
-                                <td className="py-4 px-4 text-center font-bold text-gray-900 dark:text-white">{(team.winPct * 100).toFixed(0)}%</td>
-                                <td className="py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-semibold">{team.avgPointsFor}</td>
-                                <td className="py-4 px-4 text-center text-orange-600 dark:text-orange-400 font-semibold">{team.avgPointsAgainst}</td>
-                                <td className={`py-4 px-4 text-center font-bold text-lg ${team.diff > 0 ? 'text-green-600 dark:text-green-400' : team.diff < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                                <td className="w-12 py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold text-lg">{team.wins}</td>
+                                <td className="w-12 py-4 px-4 text-center text-red-600 dark:text-red-400 font-bold text-lg">{team.losses}</td>
+                                <td className="w-12 py-4 px-4 text-center font-bold text-gray-900 dark:text-white">{(team.winPct * 100).toFixed(0)}%</td>
+                                <td className="w-12 py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-semibold">{team.avgPointsFor}</td>
+                                <td className="w-12 py-4 px-4 text-center text-orange-600 dark:text-orange-400 font-semibold">{team.avgPointsAgainst}</td>
+                                <td className={`w-12 py-4 px-4 text-center font-bold text-lg ${team.diff > 0 ? 'text-green-600 dark:text-green-400' : team.diff < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
                                   {team.diff > 0 ? '+' : ''}{team.diff}
                                 </td>
                               </tr>
@@ -1341,20 +1341,20 @@ export default function Home() {
                         <table className="w-full table-fixed">
                           <thead>
                             <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
-                              <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">#</th>
+                              <th className="text-left w-10 py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">#</th>
                               <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">TEAM</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">W</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">L</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PCT</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PF</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PA</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">DIFF</th>
+                              <th className="w-12 text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">W</th>
+                              <th className="w-12 text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">L</th>
+                              <th className="w-12 text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PCT</th>
+                              <th className="w-12 text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PF</th>
+                              <th className="w-12 text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PA</th>
+                              <th className="w-12 text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">DIFF</th>
                             </tr>
                           </thead>
                           <tbody>
                             {divisionData.teams.map((team, i) => (
                               <tr key={team.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-orange-50/50 dark:hover:bg-blue-950/20 transition-colors">
-                                <td className="py-4 px-4 font-black text-xl text-gray-400 dark:text-gray-500">{i + 1}</td>
+                                <td className="w-10 py-4 px-4 font-black text-xl text-gray-400 dark:text-gray-500">{i + 1}</td>
                                 <td className="py-4 px-4">
                                   <div className="flex items-center gap-3">
                                     <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
@@ -1366,12 +1366,12 @@ export default function Home() {
                                     <span className="font-bold text-gray-900 dark:text-white">{team.name}</span>
                                   </div>
                                 </td>
-                                <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold text-lg">{team.wins}</td>
-                                <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-bold text-lg">{team.losses}</td>
-                                <td className="py-4 px-4 text-center font-bold text-gray-900 dark:text-white">{(team.winPct * 100).toFixed(0)}%</td>
-                                <td className="py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-semibold">{team.avgPointsFor}</td>
-                                <td className="py-4 px-4 text-center text-orange-600 dark:text-orange-400 font-semibold">{team.avgPointsAgainst}</td>
-                                <td className={`py-4 px-4 text-center font-bold text-lg ${team.diff > 0 ? 'text-green-600 dark:text-green-400' : team.diff < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                                <td className="w-12 py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold text-lg">{team.wins}</td>
+                                <td className="w-12 py-4 px-4 text-center text-red-600 dark:text-red-400 font-bold text-lg">{team.losses}</td>
+                                <td className="w-12 py-4 px-4 text-center font-bold text-gray-900 dark:text-white">{(team.winPct * 100).toFixed(0)}%</td>
+                                <td className="w-12 py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-semibold">{team.avgPointsFor}</td>
+                                <td className="w-12 py-4 px-4 text-center text-orange-600 dark:text-orange-400 font-semibold">{team.avgPointsAgainst}</td>
+                                <td className={`w-12 py-4 px-4 text-center font-bold text-lg ${team.diff > 0 ? 'text-green-600 dark:text-green-400' : team.diff < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
                                   {team.diff > 0 ? '+' : ''}{team.diff}
                                 </td>
                               </tr>
