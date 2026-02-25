@@ -161,13 +161,23 @@ export default function PublicGameView() {
               {/* Score */}
               <div className="flex flex-col items-center mx-8">
                 <div className="text-7xl font-black text-white tracking-tight">
-                  {game.home_score} <span className="text-gray-500">-</span> {game.away_score}
+                  {game.sport === 'volleyball'
+                    ? ((game.quarter_scores && game.quarter_scores.length > 0)
+                        ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0)
+                        : (game.home_score ?? 0))
+                    : (game.home_score ?? 0)}
+                  <span className="text-gray-500">-</span>
+                  {game.sport === 'volleyball'
+                    ? ((game.quarter_scores && game.quarter_scores.length > 0)
+                        ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0)
+                        : (game.away_score ?? 0))
+                    : (game.away_score ?? 0)}
                 </div>
                 {game.quarter_scores && game.quarter_scores.length > 0 && (
                   <div className="flex gap-2 mt-4">
                     {game.quarter_scores.map((q, idx) => (
                       <Badge key={idx} variant="outline" className="text-white border-white/30 text-xs">
-                        Q{idx + 1}: {q.home}-{q.away}
+                        {game.sport === 'basketball' ? `Q${idx + 1}` : `Set ${idx + 1}`}: {q.home}-{q.away}
                       </Badge>
                     ))}
                   </div>
