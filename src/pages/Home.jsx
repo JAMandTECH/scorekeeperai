@@ -1710,14 +1710,21 @@ export default function Home() {
                     <CardContent className="p-4">
                       <div className="space-y-3">
                         {completedVolleyballGames.map(game => {
-                          // Calculate total points across all sets
-                          const homeTotalPoints = (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0);
-                          const awayTotalPoints = (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0);
-                          const homeSetsWon = (game.quarter_scores || []).filter(s => s.home > s.away).length;
-                          const awaySetsWon = (game.quarter_scores || []).filter(s => s.away > s.home).length;
+                          // Fallback to final scores when no set data exists (e.g., manual entry)
+                          const hasSets = Array.isArray(game.quarter_scores) && game.quarter_scores.length > 0;
+                          const homeTotalPoints = hasSets
+                            ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0)
+                            : Number(game.home_score ?? 0);
+                          const awayTotalPoints = hasSets
+                            ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0)
+                            : Number(game.away_score ?? 0);
+                          const homeSetsWon = hasSets ? (game.quarter_scores || []).filter(s => s.home > s.away).length : 0;
+                          const awaySetsWon = hasSets ? (game.quarter_scores || []).filter(s => s.away > s.home).length : 0;
                           
-                          // Determine winning team based on sets won
-                          const winningTeamId = homeSetsWon > awaySetsWon ? game.home_team_id : game.away_team_id;
+                          // Determine winning team (by sets when available, otherwise by total points)
+                          const winningTeamId = hasSets
+                            ? (homeSetsWon > awaySetsWon ? game.home_team_id : game.away_team_id)
+                            : (homeTotalPoints >= awayTotalPoints ? game.home_team_id : game.away_team_id);
                           
                           // Find best player from WINNING team only
                           const gameStats = allPlayerStats.filter(s => s.game_id === game.id && s.team_id === winningTeamId);
