@@ -99,9 +99,21 @@ export default function Teams() {
     base44.auth.logout(createPageUrl("PublicLanding"));
   };
 
+  const recalc = async () => {
+    if (!user?.organization_id) return;
+    try {
+      await base44.functions.invoke('recalcStandings', { organization_id: user.organization_id });
+    } catch (e) {
+      console.warn('Recalc standings failed (non-blocking):', e?.response?.data || e.message);
+    }
+  };
+
   const { data: teams = [], isLoading: teamsLoading } = useQuery({
     queryKey: ['teams', user?.organization_id],
-    queryFn: () => base44.entities.Team.filter({ organization_id: user?.organization_id }, '-created_date'),
+    queryFn: async () => {
+      await recalc();
+      return base44.entities.Team.filter({ organization_id: user?.organization_id }, '-created_date');
+    },
     enabled: !!user?.organization_id,
   });
 
