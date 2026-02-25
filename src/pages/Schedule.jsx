@@ -40,7 +40,7 @@ export default function Schedule() {
 
   const getGamesForDate = (date) => {
     return games.filter((game) => {
-      const gameDate = new Date(game.scheduled_date);
+      const gameDate = new Date(game.game_date || game.scheduled_date);
       return isSameDay(gameDate, date);
     });
   };
