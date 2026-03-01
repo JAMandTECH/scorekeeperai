@@ -325,6 +325,10 @@ export default function LiveScoring() {
   };
 
   const updatePlayerStats = async (playerId, teamId, statUpdates, quarter = currentQuarter) => {
+    if (!game?.id) {
+      console.warn('Game not loaded yet for updatePlayerStats');
+      return;
+    }
     const key = getPlayerStatKey(playerId, quarter);
     let statToPersist = null; 
 
@@ -605,7 +609,7 @@ export default function LiveScoring() {
       const teamId = lastAction.team === 'home' ? game.home_team_id : game.away_team_id;
 
       await Promise.all([
-        base44.entities.Game.update(game.id, scoreUndoPayload),
+        updateGameSafe(scoreUndoPayload),
         updatePlayerStats(lastAction.playerId, teamId, reverseUpdates, lastAction.quarter),
       ]);
       lastGameUpdateAtRef.current = Date.now();
@@ -630,7 +634,7 @@ export default function LiveScoring() {
 
       await Promise.all([
         updatePlayerStats(lastAction.playerId, lastAction.teamId, reverseUpdates, lastAction.quarter),
-        base44.entities.Game.update(game.id, teamPayload),
+        updateGameSafe(teamPayload),
       ]);
       lastGameUpdateAtRef.current = Date.now();
 
