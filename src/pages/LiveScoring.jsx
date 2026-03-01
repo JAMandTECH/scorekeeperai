@@ -1283,7 +1283,7 @@ export default function LiveScoring() {
                 <Button
                   onClick={handleUndo}
                   size="sm"
-                  className={`bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-black text-xs px-4 py-2 disabled:opacity-50 ${actionHistory.length>0 ? 'ring-2 ring-rose-300 animate-pulse' : ''}`}
+                  className="bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-black text-xs px-4 py-2 disabled:opacity-50"
                   disabled={undoInProgress || actionHistory.length === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
                 >
                   <RotateCcw className="w-4 h-4 mr-1" />
