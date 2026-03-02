@@ -198,8 +198,13 @@ export default function Home() {
     const sportTeamIds = teams.filter(t => t.sport === sport).map(t => t.id);
     const sportPlayers = players.filter(p => sportTeamIds.includes(p.team_id));
 
+    const includeArchived = organization?.settings?.include_archived_in_leaders === true;
+    const eligibleGameIds = sport === 'volleyball'
+      ? new Set(games.filter(g => g.sport === 'volleyball' && g.status === 'completed' && (includeArchived || !g.archived)).map(g => g.id))
+      : new Set(games.map(g => g.id));
+
     const playerTotals = sportPlayers.map(player => {
-      const playerStatsList = playerStats.filter(s => s.player_id === player.id);
+      const playerStatsList = playerStats.filter(s => s.player_id === player.id && eligibleGameIds.has(s.game_id));
       
       let total = 0;
       let averageLabel = "";

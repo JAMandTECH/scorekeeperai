@@ -107,10 +107,14 @@ export default function OrganizationSettings() {
       const formData = new FormData(e.target);
       const data = {
         name: formData.get('name'),
-        tournament_name: formData.get('tournament_name') || null, // New field added here
+        tournament_name: formData.get('tournament_name') || null,
         contact_email: formData.get('contact_email'),
         contact_phone: formData.get('contact_phone') || null,
         address: formData.get('address') || null,
+        settings: {
+          ...(organization.settings || {}),
+          include_archived_in_leaders: formData.get('include_archived_in_leaders') === 'on'
+        }
       };
 
       console.log('Form data before upload:', data);
@@ -322,6 +326,26 @@ export default function OrganizationSettings() {
                         placeholder="123 Main Street, City, State 12345"
                         className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium mt-2"
                       />
+                    </div>
+
+                    {/* Leaderboards Settings */}
+                    <div>
+                      <Label className="font-bold text-gray-700 dark:text-gray-300">Leaderboards</Label>
+                      <div className="mt-2 flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          id="include_archived_in_leaders"
+                          name="include_archived_in_leaders"
+                          defaultChecked={organization?.settings?.include_archived_in_leaders === true}
+                          className="h-4 w-4 rounded border-gray-300"
+                        />
+                        <label htmlFor="include_archived_in_leaders" className="text-sm text-gray-700 dark:text-gray-300">
+                          Include archived games in leaderboards
+                        </label>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        When enabled, archived completed games will count toward player leaders.
+                      </p>
                     </div>
 
                     {/* Debug Info - Remove after testing */}
