@@ -809,6 +809,62 @@ Please provide:
                       </CardContent>
                     </Card>
                   </div>
+
+                  {selectedSport === 'volleyball' && (
+                    <div className="grid lg:grid-cols-2 gap-6 print:grid-cols-2 print:gap-4 mt-6">
+                      {/* Top Aces */}
+                      <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
+                        <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
+                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">🎯 Top Aces</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6 print:p-4">
+                          <div className="space-y-2">
+                            {topAces.length === 0 && (
+                              <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                            )}
+                            {topAces.slice(0, 10).map((player, index) => (
+                              <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-blue-500 text-white">
+                                  {index + 1}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
+                                </div>
+                                <div className="text-xl font-black text-blue-600 dark:text-blue-400 print:text-lg">{player.value}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Top Attacks */}
+                      <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
+                        <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
+                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">⚡ Top Attacks</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6 print:p-4">
+                          <div className="space-y-2">
+                            {topAttacks.length === 0 && (
+                              <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                            )}
+                            {topAttacks.slice(0, 10).map((player, index) => (
+                              <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-green-500 text-white">
+                                  {index + 1}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
+                                </div>
+                                <div className="text-xl font-black text-green-600 dark:text-green-400 print:text-lg">{player.value}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* TEAM PLAYERS TAB */}
