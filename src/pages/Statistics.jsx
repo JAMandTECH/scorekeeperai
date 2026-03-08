@@ -91,6 +91,13 @@ export default function Statistics() {
     enabled: teams.length > 0,
   });
 
+  const filteredTeams = teams.filter(team => {
+    const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
+    const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
+    return divisionMatch && sportMatch;
+  });
+  const filteredTeamIds = filteredTeams.map(t => t.id);
+
   const completedIds = games.filter(g => g.status === 'completed').map(g => g.id);
   const filteredGameIds = games
     .filter(g => filteredTeamIds.includes(g.home_team_id) || filteredTeamIds.includes(g.away_team_id))
@@ -110,13 +117,7 @@ export default function Statistics() {
   const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division'))];
   const sports = ['all', 'basketball', 'volleyball'];
 
-  const filteredTeams = teams.filter(team => {
-    const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
-    const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
-    return divisionMatch && sportMatch;
-  });
-
-  const filteredTeamIds = filteredTeams.map(t => t.id);
+  // filteredTeams and filteredTeamIds are defined above
   const filteredGames = games.filter(game =>
     (filteredTeamIds.includes(game.home_team_id) || filteredTeamIds.includes(game.away_team_id))
   );
@@ -944,7 +945,7 @@ Please provide:
       </div>
 
       {/* Print Styles */}
-      <style jsx global>{`
+      <style>{`
         @media print {
           body {
             -webkit-print-color-adjust: exact;
