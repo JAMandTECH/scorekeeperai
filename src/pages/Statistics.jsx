@@ -132,8 +132,9 @@ export default function Statistics() {
 
   const relevantPlayerGameStats = playerGameStats.filter(stat => {
     const gameIsCompletedAndFiltered = completedGames.some(game => game.id === stat.game_id);
-    const playerTeamIsFiltered = filteredTeamIds.includes(stat.team_id);
-    return gameIsCompletedAndFiltered && playerTeamIsFiltered;
+    const playerIsFiltered = filteredPlayers.some(p => p.id === stat.player_id);
+    const teamIsFiltered = stat.team_id ? filteredTeamIds.includes(stat.team_id) : false;
+    return gameIsCompletedAndFiltered && (playerIsFiltered || teamIsFiltered);
   });
 
   // Team players filter
