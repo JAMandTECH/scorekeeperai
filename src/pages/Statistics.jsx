@@ -92,14 +92,19 @@ export default function Statistics() {
   });
 
   const completedIds = games.filter(g => g.status === 'completed').map(g => g.id);
+  const filteredGameIds = games
+    .filter(g => filteredTeamIds.includes(g.home_team_id) || filteredTeamIds.includes(g.away_team_id))
+    .map(g => g.id);
+
   const { data: playerGameStats = [] } = useQuery({
-    queryKey: ['playerGameStats', orgId, JSON.stringify(completedIds)],
+    queryKey: ['playerGameStats', orgId, JSON.stringify(filteredGameIds)],
     queryFn: async () => {
-      if (completedIds.length === 0) return [];
-      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: completedIds });
+      if (filteredGameIds.length === 0) return [];
+      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: filteredGameIds });
       return res.data || [];
     },
-    enabled: !!orgId && completedIds.length > 0,
+    enabled: filteredGameIds.length > 0,
+    refetchInterval: 10000,
   });
 
   const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division'))];
