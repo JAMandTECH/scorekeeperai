@@ -82,13 +82,13 @@ export default function Statistics() {
   });
 
   const { data: players = [] } = useQuery({
-    queryKey: ['players'],
+    queryKey: ['players', orgId],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
       const teamIds = teams.map(t => t.id);
       return allPlayers.filter(p => teamIds.includes(p.team_id));
     },
-    enabled: teams.length > 0,
+    enabled: teams.length > 0 && !!orgId,
   });
 
   const filteredTeams = teams.filter(team => {
@@ -98,21 +98,7 @@ export default function Statistics() {
   });
   const filteredTeamIds = filteredTeams.map(t => t.id);
 
-  // Build filters first so we can derive game IDs correctly
-  const filteredTeams = teams.filter(team => {
-    const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
-    const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
-    return divisionMatch && sportMatch;
-  });
-  const filteredTeamIds = filteredTeams.map(t => t.id);
 
-  // Build team filters before deriving game IDs
-  const filteredTeams = teams.filter(team => {
-    const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
-    const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
-    return divisionMatch && sportMatch;
-  });
-  const filteredTeamIds = filteredTeams.map(t => t.id);
 
   const completedIds = games.filter(g => g.status === 'completed').map(g => g.id);
   const filteredGameIds = games
