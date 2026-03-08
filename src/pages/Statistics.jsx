@@ -137,7 +137,7 @@ export default function Statistics() {
   const getDetailedPlayerStats = (playerId) => {
     const playerStats = relevantPlayerGameStats.filter(s => s.player_id === playerId);
     const gamesPlayed = [...new Set(playerStats.map(s => s.game_id))].length;
-    
+
     const totals = {
       points: playerStats.reduce((sum, s) => sum + (s.points || 0), 0),
       rebounds: playerStats.reduce((sum, s) => sum + (s.rebounds || 0), 0),
@@ -151,6 +151,12 @@ export default function Statistics() {
       freeThrowsMade: playerStats.reduce((sum, s) => sum + (s.free_throws_made || 0), 0),
       freeThrowsAttempted: playerStats.reduce((sum, s) => sum + (s.free_throws_attempted || 0), 0),
     };
+
+    // Volleyball uses ATK (field_goals_made), BLK (blocks), ACE (three_pointers) as scoring actions
+    if (selectedSport === 'volleyball') {
+      const volleyPoints = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0);
+      totals.points = volleyPoints;
+    }
 
     return {
       gamesPlayed,
@@ -240,7 +246,12 @@ export default function Statistics() {
     return filteredPlayers
       .map(player => {
         const playerStats = relevantPlayerGameStats.filter(s => s.player_id === player.id);
-        const total = playerStats.reduce((sum, s) => sum + (s[statKey] || 0), 0);
+        let total;
+        if (selectedSport === 'volleyball' && statKey === 'points') {
+          total = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0);
+        } else {
+          total = playerStats.reduce((sum, s) => sum + (s[statKey] || 0), 0);
+        }
         const team = filteredTeams.find(t => t.id === player.team_id);
         return {
           name: `${player.first_name} ${player.last_name}`,
@@ -624,7 +635,7 @@ Please provide:
                     </Card>
 
                     {/* Top Assists (Basketball) */}
-                    <TopAssistLeaders organizationId={orgId} sport="basketball" orgName={organization?.name} orgLogoUrl={organization?.logo_url} />
+                    <TopAssistLeaders organizationId={orgId} sport={selectedSport === 'all' ? 'basketball' : selectedSport} orgName={organization?.name} orgLogoUrl={organization?.logo_url} />
 
                     {/* Top Blocks */}
                     <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
