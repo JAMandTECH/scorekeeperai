@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,22 @@ export default function GameHistory({
 }) {
   const [expandedGame, setExpandedGame] = useState(null);
   const [viewMode, setViewMode] = useState('card');
+  const [statsByGame, setStatsByGame] = useState({});
+
+  useEffect(() => {
+    if (!expandedGame) return;
+    (async () => {
+      try {
+        // Fetch stats for this game if not already cached or empty
+        if (!statsByGame[expandedGame] || statsByGame[expandedGame].length === 0) {
+          const res = await base44.entities.PlayerGameStats.filter({ game_id: expandedGame });
+          setStatsByGame(prev => ({ ...prev, [expandedGame]: Array.isArray(res) ? res : [] }));
+        }
+      } catch (e) {
+        console.warn('Failed fetching stats for game', expandedGame, e?.message || e);
+      }
+    })();
+  }, [expandedGame]);
 
   // Get unique divisions for filters
   const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division').filter(Boolean))];
