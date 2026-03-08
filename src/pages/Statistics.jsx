@@ -410,6 +410,8 @@ export default function Statistics() {
   const topAssists = createPlayerLeaderboard('assists', 'Assists');
   const topBlocks = createPlayerLeaderboard('blocks', 'Blocks');
   const topSteals = createPlayerLeaderboard('steals', 'Steals');
+  const topAces = createPlayerLeaderboard('aces', 'Aces');
+  const topAttacks = createPlayerLeaderboard('attacks', 'Attacks');
 
   const generateAIAnalysis = async () => {
     setLoadingAI(true);
@@ -749,33 +751,37 @@ Please provide:
                     </Card>
 
                     {/* Top Rebounders */}
-                    <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
-                      <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">💪 Top Rebounders</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-6 print:p-4">
-                        <div className="space-y-2">
-                          {topRebounders.length === 0 && (
-                             <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
-                           )}
-                           {topRebounders.slice(0, 10).map((player, index) => (
-                            <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
-                              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-green-500 text-white">
-                                {index + 1}
+                    {selectedSport !== 'volleyball' && (
+                      <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
+                        <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
+                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">💪 Top Rebounders</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6 print:p-4">
+                          <div className="space-y-2">
+                            {topRebounders.length === 0 && (
+                               <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                             )}
+                             {topRebounders.slice(0, 10).map((player, index) => (
+                              <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-green-500 text-white">
+                                  {index + 1}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
+                                </div>
+                                <div className="text-xl font-black text-green-600 dark:text-green-400 print:text-lg">{player.value}</div>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
-                              </div>
-                              <div className="text-xl font-black text-green-600 dark:text-green-400 print:text-lg">{player.value}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
 
                     {/* Top Assists (Basketball) */}
-                    <TopAssistLeaders organizationId={orgId} sport={selectedSport === 'all' ? 'basketball' : selectedSport} orgName={organization?.name} orgLogoUrl={organization?.logo_url} />
+                    {selectedSport !== 'volleyball' && (
+                      <TopAssistLeaders organizationId={orgId} sport={selectedSport === 'all' ? 'basketball' : selectedSport} orgName={organization?.name} orgLogoUrl={organization?.logo_url} />
+                    )}
 
                     {/* Top Blocks */}
                     <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
@@ -896,7 +902,9 @@ Please provide:
                                   <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ERR</th>
                                 </>
                               )}
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">FG%</th>
+                              {!(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
+                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">FG%</th>
+                              )}
                             </tr>
                           </thead>
                           <tbody>
@@ -935,7 +943,9 @@ Please provide:
                                     <td className="py-4 px-4 text-center text-rose-600 dark:text-rose-400 font-semibold">{player.stats.rallyErrors}</td>
                                   </>
                                 )}
-                                <td className="py-4 px-4 text-center text-indigo-600 dark:text-indigo-400 font-semibold">{player.stats.fgPct}%</td>
+                                {!(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
+                                  <td className="py-4 px-4 text-center text-indigo-600 dark:text-indigo-400 font-semibold">{player.stats.fgPct}%</td>
+                                )}
                               </tr>
                             )) : (
                               <tr>
