@@ -3,33 +3,36 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 // Small delay helper
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Fetch stats for a single game with retry/backoff on 429
-async function fetchStatsForGame(base44, gameId, attempt = 1) {
+// Generic fetch with retry/backoff on 429
+async function fetchWithRetry(base44, filter, attempt = 1) {
   try {
-    return await base44.asServiceRole.entities.PlayerGameStats.filter({ game_id: gameId });
+    return await base44.asServiceRole.entities.PlayerGameStats.filter(filter);
   } catch (err) {
     const msg = String(err?.message || '');
     const isRateLimited = /429|rate limit/i.test(msg);
-    if (isRateLimited && attempt < 5) {
-      // Exponential backoff: 250ms, 500ms, 1000ms, 2000ms
+    if (isRateLimited && attempt < 6) {
+      // Exponential backoff: 250, 500, 1000, 2000, 4000ms
       const delay = 250 * Math.pow(2, attempt - 1);
       await sleep(delay);
-      return fetchStatsForGame(base44, gameId, attempt + 1);
+      return fetchWithRetry(base44, filter, attempt + 1);
     }
     throw err;
   }
 }
 
-// Batch fetch with limited concurrency to avoid 429s
-async function fetchInBatches(base44, gameIds, batchSize = 5) {
+// Single game helper using generic retry
+async function fetchStatsForGame(base44, gameId) {
+  return fetchWithRetry(base44, { game_id: gameId });
+}
+
+// Batch fetch using $in to dramatically cut down requests; chunk to avoid payload limits
+async function fetchInChunks(base44, gameIds, chunkSize = 100) {
   const results = [];
-  for (let i = 0; i < gameIds.length; i += batchSize) {
-    const batch = gameIds.slice(i, i + batchSize);
-    // Run this small batch in parallel, each with its own internal retry
-    const batchResults = await Promise.all(batch.map((id) => fetchStatsForGame(base44, id).catch(() => [])));
-    results.push(...batchResults.flat());
-    // Gentle pacing between batches
-    if (i + batchSize < gameIds.length) {
+  for (let i = 0; i < gameIds.length; i += chunkSize) {
+    const chunk = gameIds.slice(i, i + chunkSize);
+    const chunkResults = await fetchWithRetry(base44, { game_id: { $in: chunk } });
+    results.push(...chunkResults);
+    if (i + chunkSize < gameIds.length) {
       await sleep(150);
     }
   }
@@ -57,7 +60,7 @@ Deno.serve(async (req) => {
       const ids = Array.from(new Set(game_ids.filter(Boolean)));
       // Cap extreme requests defensively (very large lists can cause long runtimes)
       // If needed on frontend, make multiple paged requests instead of one giant one.
-      stats = await fetchInBatches(base44, ids, 6);
+      stats = await fetchInChunks(base44, ids, 100);
     }
 
     return Response.json(stats, { status: 200 });
