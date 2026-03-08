@@ -130,6 +130,9 @@ export default function Statistics() {
   const filteredPlayers = players.filter(p => filteredTeamIds.includes(p.team_id));
   const completedGames = filteredGames.filter(g => g.status === 'completed');
 
+  // Map games by id for sport-aware stat calculations
+  const gameById = new Map(games.map(g => [g.id, g]));
+
   const relevantPlayerGameStats = playerGameStats.filter(stat => {
     const gameIsCompletedAndFiltered = completedGames.some(game => game.id === stat.game_id);
     const playerIsFiltered = filteredPlayers.some(p => p.id === stat.player_id);
@@ -146,13 +149,13 @@ export default function Statistics() {
     ? teams.find(t => t.id === selectedTeamForPlayers) 
     : null;
 
-  // Individual player statistics with detailed metrics
+  // Individual player statistics with detailed, sport-aware metrics per game
   const getDetailedPlayerStats = (playerId) => {
     const playerStats = relevantPlayerGameStats.filter(s => s.player_id === playerId);
     const gamesPlayed = [...new Set(playerStats.map(s => s.game_id))].length;
 
+    // Sum core counting stats
     const totals = {
-      points: playerStats.reduce((sum, s) => sum + (s.points || 0), 0),
       rebounds: playerStats.reduce((sum, s) => sum + (s.rebounds || 0), 0),
       assists: playerStats.reduce((sum, s) => sum + (s.assists || 0), 0),
       blocks: playerStats.reduce((sum, s) => sum + (s.blocks || 0), 0),
@@ -165,30 +168,36 @@ export default function Statistics() {
       freeThrowsAttempted: playerStats.reduce((sum, s) => sum + (s.free_throws_attempted || 0), 0),
     };
 
-    // Volleyball uses ATK (field_goals_made), BLK (blocks), ACE (three_pointers) as scoring actions
-    if (selectedSport === 'volleyball') {
-      const volleyPoints = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0);
-      totals.points = volleyPoints;
-    }
-    // Basketball: derive points if not stored explicitly
-    if (selectedSport === 'basketball' && (totals.points || 0) === 0) {
-      const derivedBasketPoints = Math.max(0, (totals.fieldGoalsMade - totals.threePointers)) * 2
-        + (totals.threePointers * 3)
-        + (totals.freeThrowsMade || 0);
-      totals.points = derivedBasketPoints;
-    }
+    // Points are computed per-game using that game's sport
+    const computedPoints = playerStats.reduce((sum, s) => {
+      const game = gameById.get(s.game_id);
+      const sport = game?.sport;
+      if (sport === 'volleyball') {
+        return sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0);
+      }
+      // basketball/default
+      const stored = Number(s.points || 0);
+      if (stored > 0) return sum + stored;
+      const threes = Number(s.three_pointers || 0);
+      const fgm = Number(s.field_goals_made || 0);
+      const twos = Math.max(fgm - threes, 0);
+      const ftm = Number(s.free_throws_made || 0);
+      return sum + (twos * 2) + (threes * 3) + ftm;
+    }, 0);
+
+    const totalsWithPoints = { ...totals, points: computedPoints };
 
     return {
       gamesPlayed,
-      ...totals,
-      ppg: gamesPlayed > 0 ? (totals.points / gamesPlayed).toFixed(1) : 0,
-      rpg: gamesPlayed > 0 ? (totals.rebounds / gamesPlayed).toFixed(1) : 0,
-      apg: gamesPlayed > 0 ? (totals.assists / gamesPlayed).toFixed(1) : 0,
-      bpg: gamesPlayed > 0 ? (totals.blocks / gamesPlayed).toFixed(1) : 0,
-      spg: gamesPlayed > 0 ? (totals.steals / gamesPlayed).toFixed(1) : 0,
-      fpg: gamesPlayed > 0 ? (totals.fouls / gamesPlayed).toFixed(1) : 0,
-      fgPct: totals.fieldGoalsAttempted > 0 ? ((totals.fieldGoalsMade / totals.fieldGoalsAttempted) * 100).toFixed(1) : 0,
-      ftPct: totals.freeThrowsAttempted > 0 ? ((totals.freeThrowsMade / totals.freeThrowsAttempted) * 100).toFixed(1) : 0,
+      ...totalsWithPoints,
+      ppg: gamesPlayed > 0 ? (totalsWithPoints.points / gamesPlayed).toFixed(1) : 0,
+      rpg: gamesPlayed > 0 ? (totalsWithPoints.rebounds / gamesPlayed).toFixed(1) : 0,
+      apg: gamesPlayed > 0 ? (totalsWithPoints.assists / gamesPlayed).toFixed(1) : 0,
+      bpg: gamesPlayed > 0 ? (totalsWithPoints.blocks / gamesPlayed).toFixed(1) : 0,
+      spg: gamesPlayed > 0 ? (totalsWithPoints.steals / gamesPlayed).toFixed(1) : 0,
+      fpg: gamesPlayed > 0 ? (totalsWithPoints.fouls / gamesPlayed).toFixed(1) : 0,
+      fgPct: totalsWithPoints.fieldGoalsAttempted > 0 ? ((totalsWithPoints.fieldGoalsMade / totalsWithPoints.fieldGoalsAttempted) * 100).toFixed(1) : 0,
+      ftPct: totalsWithPoints.freeThrowsAttempted > 0 ? ((totalsWithPoints.freeThrowsMade / totalsWithPoints.freeThrowsAttempted) * 100).toFixed(1) : 0,
     };
   };
 
