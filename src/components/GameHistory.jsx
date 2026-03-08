@@ -73,7 +73,8 @@ export default function GameHistory({
   };
 
   const getBestPlayerForTeam = (gameId, teamId, sport) => {
-    const gameStats = allPlayerStats.filter(s => s.game_id === gameId && s.team_id === teamId);
+    const pool = (statsByGame[gameId] && statsByGame[gameId].length > 0) ? statsByGame[gameId] : allPlayerStats;
+    const gameStats = pool.filter(s => s.game_id === gameId && s.team_id === teamId);
     
     if (gameStats.length === 0) return null;
 
@@ -99,7 +100,9 @@ export default function GameHistory({
   };
 
   const getGamePlayerStats = (gameId, homeTeamId, awayTeamId) => {
-    const gameStats = allPlayerStats.filter(s => s.game_id === gameId);
+    const gameStats = (statsByGame[gameId] && statsByGame[gameId].length > 0)
+      ? statsByGame[gameId]
+      : allPlayerStats.filter(s => s.game_id === gameId);
     
     const homeStats = gameStats
       .filter(s => s.team_id === homeTeamId)
