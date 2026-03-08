@@ -950,14 +950,24 @@ Please provide:
                               <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PLAYER</th>
                               <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">GP</th>
                               <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PTS</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PPG</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">REB</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">RPG</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">AST</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">APG</th>
+                              {!(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
+                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PPG</th>
+                              )}
+                              {!(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
+                                <>
+                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">REB</th>
+                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">RPG</th>
+                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">AST</th>
+                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">APG</th>
+                                </>
+                              )}
                               <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">BLK</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">STL</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">FLS</th>
+                              {!(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
+                                <>
+                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">STL</th>
+                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">FLS</th>
+                                </>
+                              )}
                               {(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
                                 <>
                                   <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ACES</th>
@@ -992,13 +1002,21 @@ Please provide:
                                 <td className="py-4 px-4 text-center font-semibold text-gray-900 dark:text-white">{player.stats.gamesPlayed}</td>
                                 <td className="py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-bold text-lg">{player.stats.points}</td>
                                 <td className="py-4 px-4 text-center font-semibold text-gray-700 dark:text-gray-300">{player.stats.ppg}</td>
-                                <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold">{player.stats.rebounds}</td>
-                                <td className="py-4 px-4 text-center font-semibold text-gray-700 dark:text-gray-300">{player.stats.rpg}</td>
-                                <td className="py-4 px-4 text-center text-purple-600 dark:text-purple-400 font-bold">{player.stats.assists}</td>
-                                <td className="py-4 px-4 text-center font-semibold text-gray-700 dark:text-gray-300">{player.stats.apg}</td>
+                                {!(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
+                                  <>
+                                    <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold">{player.stats.rebounds}</td>
+                                    <td className="py-4 px-4 text-center font-semibold text-gray-700 dark:text-gray-300">{player.stats.rpg}</td>
+                                    <td className="py-4 px-4 text-center text-purple-600 dark:text-purple-400 font-bold">{player.stats.assists}</td>
+                                    <td className="py-4 px-4 text-center font-semibold text-gray-700 dark:text-gray-300">{player.stats.apg}</td>
+                                  </>
+                                )}
                                 <td className="py-4 px-4 text-center text-orange-600 dark:text-orange-400 font-semibold">{player.stats.blocks}</td>
-                                <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-semibold">{player.stats.steals}</td>
-                                <td className="py-4 px-4 text-center text-yellow-600 dark:text-yellow-400 font-semibold">{player.stats.fouls}</td>
+                                {!(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
+                                  <>
+                                    <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-semibold">{player.stats.steals}</td>
+                                    <td className="py-4 px-4 text-center text-yellow-600 dark:text-yellow-400 font-semibold">{player.stats.fouls}</td>
+                                  </>
+                                )}
                                 {(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
                                   <>
                                     <td className="py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-semibold">{player.stats.aces}</td>
