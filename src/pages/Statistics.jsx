@@ -20,6 +20,7 @@ export default function Statistics() {
   const [selectedDivision, setSelectedDivision] = useState('all');
   const [selectedSport, setSelectedSport] = useState('all');
   const [selectedTeamForPlayers, setSelectedTeamForPlayers] = useState('all');
+  const [dataScope, setDataScope] = useState('system');
   const [viewMode, setViewMode] = useState('card');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -85,7 +86,7 @@ export default function Statistics() {
   const { data: allGamesAllOrgs = [] } = useQuery({
     queryKey: ['allGamesAllOrgs'],
     queryFn: () => base44.entities.Game.list(),
-    enabled: !!user && (games.length === 0 || !games.some(g => g.status === 'completed')),
+    enabled: !!user,
   });
 
   // Load all teams across orgs for cross-org filtering (division lookups)
@@ -116,7 +117,8 @@ export default function Statistics() {
     enabled: !!user,
   });
 
-  const availableTeams = teams.length > 0 ? teams : allTeamsAllOrgs;
+  const scopeAll = dataScope === 'system';
+  const availableTeams = scopeAll ? allTeamsAllOrgs : (teams.length > 0 ? teams : allTeamsAllOrgs);
   const filteredTeams = availableTeams.filter(team => {
     const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
     const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
@@ -127,7 +129,7 @@ export default function Statistics() {
 
 
 
-  const effectiveGames = (games.some(g => g.status === 'completed') ? games : allGamesAllOrgs);
+  const effectiveGames = scopeAll ? allGamesAllOrgs : (games.some(g => g.status === 'completed') ? games : allGamesAllOrgs);
   const filteredGameIds = effectiveGames
     .filter((g) => {
       if (g.status !== 'completed') return false;
@@ -208,7 +210,7 @@ export default function Statistics() {
     }
     return true;
   });
-  const availablePlayers = players.length > 0 ? players : allPlayersAllOrgs;
+  const availablePlayers = scopeAll ? allPlayersAllOrgs : (players.length > 0 ? players : allPlayersAllOrgs);
   const filteredPlayers = availablePlayers.filter(p => filteredTeamIds.includes(p.team_id));
   // Fallback: if players list is empty, still allow leaderboards from stats using player_id only
   const completedGames = filteredGames.filter(g => g.status === 'completed');
@@ -519,6 +521,15 @@ Please provide:
                       <Filter className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                       <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Filter by:</span>
                     </div>
+
+                    <select
+                      value={dataScope}
+                      onChange={(e) => setDataScope(e.target.value)}
+                      className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-4 py-2 font-bold shadow-sm"
+                    >
+                      <option value="system">All Organizations</option>
+                      <option value="organization">My Organization</option>
+                    </select>
 
                     <select
                       value={selectedSport}
