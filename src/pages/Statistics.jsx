@@ -85,7 +85,7 @@ export default function Statistics() {
   const { data: allGamesAllOrgs = [] } = useQuery({
     queryKey: ['allGamesAllOrgs'],
     queryFn: () => base44.entities.Game.list(),
-    enabled: !!user && games.length === 0,
+    enabled: !!user && (games.length === 0 || !games.some(g => g.status === 'completed')),
   });
 
   // Load all teams across orgs for cross-org filtering (division lookups)
@@ -119,7 +119,7 @@ export default function Statistics() {
 
 
 
-  const effectiveGames = (games.length > 0 ? games : allGamesAllOrgs);
+  const effectiveGames = (games.some(g => g.status === 'completed') ? games : allGamesAllOrgs);
   const filteredGameIds = effectiveGames
     .filter((g) => {
       if (g.status !== 'completed') return false;
@@ -177,7 +177,7 @@ export default function Statistics() {
   const sports = ['all', 'basketball', 'volleyball'];
 
   // filteredTeams and filteredTeamIds are defined above
-  const filteredGames = (games.length > 0 ? games : allGamesAllOrgs).filter((game) => {
+  const filteredGames = effectiveGames.filter((game) => {
     if (game.status !== 'completed') return false;
     if (selectedSport !== 'all' && game.sport !== selectedSport) return false;
     if (selectedDivision !== 'all') {
