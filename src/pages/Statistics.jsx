@@ -119,7 +119,14 @@ export default function Statistics() {
   const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division'))];
   const sports = ['all', 'basketball', 'volleyball'];
 
-  // filteredTeams and filteredTeamIds are defined above
+  // Build filtered teams once
+  const filteredTeams = teams.filter(team => {
+    const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
+    const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
+    return divisionMatch && sportMatch;
+  });
+  const filteredTeamIds = filteredTeams.map(t => t.id);
+
   const filteredGames = games.filter(game =>
     (filteredTeamIds.includes(game.home_team_id) || filteredTeamIds.includes(game.away_team_id))
   );
