@@ -135,6 +135,7 @@ export default function Statistics() {
     game.status === 'completed' && (filteredTeamIds.includes(game.home_team_id) || filteredTeamIds.includes(game.away_team_id))
   );
   const filteredPlayers = players.filter(p => filteredTeamIds.includes(p.team_id));
+  // Fallback: if players list is empty, still allow leaderboards from stats using player_id only
   const completedGames = filteredGames.filter(g => g.status === 'completed');
 
   // Map games by id for sport-aware stat calculations
