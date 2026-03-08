@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
       away_score_delta: 'away_score',
       home_timeouts_delta: 'home_timeouts',
       away_timeouts_delta: 'away_timeouts',
-    } as const;
+    };
 
     const safePatch = Object.fromEntries(
       Object.entries(patch).filter(([k]) => allowedKeys.has(k))
