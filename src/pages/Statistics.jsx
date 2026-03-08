@@ -81,6 +81,13 @@ export default function Statistics() {
     enabled: !!user,
   });
 
+  // Fallback: if org-scoped games are empty, load all games across orgs (matches AllGames behaviour)
+  const { data: allGamesAllOrgs = [] } = useQuery({
+    queryKey: ['allGamesAllOrgs'],
+    queryFn: () => base44.entities.Game.list(),
+    enabled: !!user && games.length === 0,
+  });
+
   const { data: players = [] } = useQuery({
     queryKey: ['players', orgId, teams.map(t => t.id).join(',')],
     queryFn: async () => {
