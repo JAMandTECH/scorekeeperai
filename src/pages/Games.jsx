@@ -140,16 +140,52 @@ export default function Games() {
       const orgTeams = await base44.entities.Team.filter({ organization_id: user?.organization_id });
       const teamIds = orgTeams.map(t => t.id);
       if (teamIds.length === 0) return [];
-      const players = await base44.entities.Player.list();
-      return players.filter(p => teamIds.includes(p.team_id));
+      const results = await Promise.all(teamIds.map(id => base44.entities.Player.filter({ team_id: id }).catch(() => [])));
+      const merged = new Map();
+      results.flat().forEach(p => { if (!merged.has(p.id)) merged.set(p.id, p); });
+      return Array.from(merged.values());
     },
     enabled: !!user?.organization_id,
   });
 
+  const completedIds = (games || []).filter(g => g.status === 'completed' && !g.archived).map(g => g.id);
+
   const { data: allPlayerStats = [] } = useQuery({
-    queryKey: ['all-player-stats', user?.organization_id],
-    queryFn: () => base44.entities.PlayerGameStats.list(),
-    enabled: !!user?.organization_id,
+    queryKey: ['all-player-stats', user?.organization_id, JSON.stringify(completedIds)],
+    queryFn: async () => {
+      if (completedIds.length === 0) return [];
+
+      let stats = [];
+      try {
+        const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: completedIds });
+        stats = Array.isArray(res.data) ? res.data : [];
+      } catch (e) {
+        console.warn('getGamePlayerStats failed, falling back to direct entity fetch:', e?.message || e);
+      }
+
+      if (!stats || stats.length === 0) {
+        const results = [];
+        for (let i = 0; i < completedIds.length; i += 50) {
+          const chunk = completedIds.slice(i, i + 50);
+          try {
+            const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
+            results.push(...part);
+          } catch (_) {
+            const per = await Promise.all(
+              chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
+            );
+            results.push(...per.flat());
+          }
+        }
+        stats = results;
+      }
+
+      return stats;
+    },
+    enabled: !!user?.organization_id && completedIds.length > 0,
+    staleTime: 30000,
+    gcTime: 5 * 60 * 1000,
+    refetchInterval: 20000,
   });
 
   const { data: scorekeepers = [] } = useQuery({
