@@ -90,10 +90,15 @@ export default function Statistics() {
     enabled: teams.length > 0,
   });
 
+  const completedIds = games.filter(g => g.status === 'completed').map(g => g.id);
   const { data: playerGameStats = [] } = useQuery({
-    queryKey: ['playerGameStats', user?.organization_id],
-    queryFn: async () => base44.entities.PlayerGameStats.list(),
-    enabled: !!user, // any authenticated user can read stats per RLS
+    queryKey: ['playerGameStats', JSON.stringify(completedIds)],
+    queryFn: async () => {
+      if (completedIds.length === 0) return [];
+      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: completedIds });
+      return res.data || [];
+    },
+    enabled: completedIds.length > 0,
   });
 
   const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division'))];
