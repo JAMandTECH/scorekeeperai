@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+// Note: React.useMemo and React.useCallback used without named imports to avoid duplicate hook import issues
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
