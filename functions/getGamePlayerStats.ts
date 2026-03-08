@@ -25,16 +25,41 @@ async function fetchStatsForGame(base44, gameId) {
   return fetchWithRetry(base44, { game_id: gameId });
 }
 
-// Batch fetch using $in to dramatically cut down requests; chunk to avoid payload limits
-async function fetchInChunks(base44, gameIds, chunkSize = 100) {
+// Per-game batch fetch with controlled concurrency
+async function fetchInBatches(base44, gameIds, batchSize = 3) {
+  const results = [];
+  for (let i = 0; i < gameIds.length; i += batchSize) {
+    const batch = gameIds.slice(i, i + batchSize);
+    const batchResults = await Promise.all(
+      batch.map((id) => fetchStatsForGame(base44, id).catch(() => []))
+    );
+    results.push(...batchResults.flat());
+    if (i + batchSize < gameIds.length) {
+      await sleep(300);
+    }
+  }
+  return results;
+}
+
+// Prefer $in when available; fallback to per-game if provider doesn't support it
+async function fetchInChunksOrPerGame(base44, gameIds, chunkSize = 100, perGameBatch = 3) {
   const results = [];
   for (let i = 0; i < gameIds.length; i += chunkSize) {
     const chunk = gameIds.slice(i, i + chunkSize);
-    const chunkResults = await fetchWithRetry(base44, { game_id: { $in: chunk } });
-    results.push(...chunkResults);
-    if (i + chunkSize < gameIds.length) {
-      await sleep(150);
+    let chunkResults = [];
+    try {
+      chunkResults = await fetchWithRetry(base44, { game_id: { $in: chunk } });
+    } catch (_) {
+      chunkResults = [];
     }
+    // If $in unsupported or returned empty unexpectedly, fallback per-game
+    if (!Array.isArray(chunkResults) || (chunkResults.length === 0 && chunk.length > 1)) {
+      const perGame = await fetchInBatches(base44, chunk, perGameBatch);
+      results.push(...perGame);
+    } else {
+      results.push(...chunkResults);
+    }
+    if (i + chunkSize < gameIds.length) await sleep(200);
   }
   return results;
 }
@@ -60,7 +85,7 @@ Deno.serve(async (req) => {
       const ids = Array.from(new Set(game_ids.filter(Boolean)));
       // Cap extreme requests defensively (very large lists can cause long runtimes)
       // If needed on frontend, make multiple paged requests instead of one giant one.
-      stats = await fetchInChunks(base44, ids, 100);
+      stats = await fetchInChunksOrPerGame(base44, ids, 100, 3);
     }
 
     return Response.json(stats, { status: 200 });

@@ -226,7 +226,20 @@ export default function Statistics() {
     volleyballTeams: filteredTeams.filter(t => t.sport === 'volleyball').length,
     basketballGames: completedGames.filter(g => g.sport === 'basketball').length,
     volleyballGames: completedGames.filter(g => g.sport === 'volleyball').length,
-    totalPoints: relevantPlayerGameStats.reduce((sum, s) => sum + (s.points || 0), 0),
+    totalPoints: relevantPlayerGameStats.reduce((sum, s) => {
+      const game = gameById.get(s.game_id);
+      const sport = game?.sport;
+      if (sport === 'volleyball') {
+        return sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0);
+      }
+      const stored = Number(s.points || 0);
+      if (stored > 0) return sum + stored;
+      const threes = Number(s.three_pointers || 0);
+      const fgm = Number(s.field_goals_made || 0);
+      const twos = Math.max(fgm - threes, 0);
+      const ftm = Number(s.free_throws_made || 0);
+      return sum + (twos * 2) + (threes * 3) + ftm;
+    }, 0),
     totalRebounds: relevantPlayerGameStats.reduce((sum, s) => sum + (s.rebounds || 0), 0),
     totalAssists: relevantPlayerGameStats.reduce((sum, s) => sum + (s.assists || 0), 0),
     totalBlocks: relevantPlayerGameStats.reduce((sum, s) => sum + (s.blocks || 0), 0),
