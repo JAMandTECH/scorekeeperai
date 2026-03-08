@@ -227,6 +227,9 @@ export default function Statistics() {
       fieldGoalsAttempted: playerStats.reduce((sum, s) => sum + (s.field_goals_attempted || 0), 0),
       freeThrowsMade: playerStats.reduce((sum, s) => sum + (s.free_throws_made || 0), 0),
       freeThrowsAttempted: playerStats.reduce((sum, s) => sum + (s.free_throws_attempted || 0), 0),
+      aces: playerStats.reduce((sum, s) => sum + (s.aces || 0), 0),
+      attacks: playerStats.reduce((sum, s) => sum + (s.attacks || 0), 0),
+      rallyErrors: playerStats.reduce((sum, s) => sum + (s.rally_errors || 0), 0),
     };
 
     // Points are computed per-game using that game's sport
@@ -234,7 +237,10 @@ export default function Statistics() {
       const game = gameById.get(s.game_id);
       const sport = game?.sport;
       if (sport === 'volleyball') {
-        return sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0);
+        const aces = Number(s.aces || 0);
+        const attacks = Number(s.attacks || 0);
+        const blocks = Number(s.blocks || 0);
+        return sum + aces + attacks + blocks;
       }
       // basketball/default
       const stored = Number(s.points || 0);
@@ -280,7 +286,10 @@ export default function Statistics() {
       const game = gameById.get(s.game_id);
       const sport = game?.sport;
       if (sport === 'volleyball') {
-        return sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0);
+        const aces = Number(s.aces || 0);
+        const attacks = Number(s.attacks || 0);
+        const blocks = Number(s.blocks || 0);
+        return sum + aces + attacks + blocks;
       }
       const stored = Number(s.points || 0);
       if (stored > 0) return sum + stored;
@@ -357,7 +366,10 @@ export default function Statistics() {
 
       if (statKey === 'points') {
         if (sport === 'volleyball') {
-          add = (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0);
+          const aces = Number(s.aces || 0);
+          const attacks = Number(s.attacks || 0);
+          const blocks = Number(s.blocks || 0);
+          add = aces + attacks + blocks;
         } else { // basketball/default
           const stored = Number(s.points || 0);
           if (stored > 0) add = stored; else {
@@ -877,6 +889,13 @@ Please provide:
                               <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">BLK</th>
                               <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">STL</th>
                               <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">FLS</th>
+                              {(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
+                                <>
+                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ACES</th>
+                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ATT</th>
+                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ERR</th>
+                                </>
+                              )}
                               <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">FG%</th>
                             </tr>
                           </thead>
@@ -909,6 +928,13 @@ Please provide:
                                 <td className="py-4 px-4 text-center text-orange-600 dark:text-orange-400 font-semibold">{player.stats.blocks}</td>
                                 <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-semibold">{player.stats.steals}</td>
                                 <td className="py-4 px-4 text-center text-yellow-600 dark:text-yellow-400 font-semibold">{player.stats.fouls}</td>
+                                {(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
+                                  <>
+                                    <td className="py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-semibold">{player.stats.aces}</td>
+                                    <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-semibold">{player.stats.attacks}</td>
+                                    <td className="py-4 px-4 text-center text-rose-600 dark:text-rose-400 font-semibold">{player.stats.rallyErrors}</td>
+                                  </>
+                                )}
                                 <td className="py-4 px-4 text-center text-indigo-600 dark:text-indigo-400 font-semibold">{player.stats.fgPct}%</td>
                               </tr>
                             )) : (
