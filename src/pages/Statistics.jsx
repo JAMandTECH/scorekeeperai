@@ -137,13 +137,21 @@ export default function Statistics() {
     return gameIsCompletedAndFiltered && (playerIsFiltered || teamIsFiltered);
   });
 
-  // Team players filter
-  const teamPlayersFilteredByTeam = selectedTeamForPlayers === 'all' 
-    ? filteredPlayers 
-    : filteredPlayers.filter(p => p.team_id === selectedTeamForPlayers);
+  // Team players filter with fallback to stats-derived players when player list is sparse
+  const statsPlayerIds = Array.from(new Set(relevantPlayerGameStats.map(s => s.player_id)));
+  const playersAugmented = (filteredPlayers.length > 0 ? filteredPlayers : statsPlayerIds.map(pid => {
+    const p = players.find(x => x.id === pid);
+    if (p) return p;
+    const stat = relevantPlayerGameStats.find(s => s.player_id === pid);
+    return { id: pid, first_name: 'Player', last_name: String(pid).slice(-4), team_id: stat?.team_id, jersey_number: '' };
+  }));
 
-  const selectedTeamData = selectedTeamForPlayers !== 'all' 
-    ? teams.find(t => t.id === selectedTeamForPlayers) 
+  const teamPlayersFilteredByTeam = selectedTeamForPlayers === 'all'
+    ? playersAugmented
+    : playersAugmented.filter(p => p.team_id === selectedTeamForPlayers);
+
+  const selectedTeamData = selectedTeamForPlayers !== 'all'
+    ? teams.find(t => t.id === selectedTeamForPlayers)
     : null;
 
   // Individual player statistics with detailed metrics
@@ -261,33 +269,43 @@ export default function Statistics() {
     };
   });
 
-  // Player leaderboards
+  // Player leaderboards aggregated directly from saved game stats (works even if Players list is partial)
   const createPlayerLeaderboard = (statKey, label) => {
-    return filteredPlayers
-      .map(player => {
-        const playerStats = relevantPlayerGameStats.filter(s => s.player_id === player.id);
-        let total;
-        if (selectedSport === 'volleyball' && statKey === 'points') {
-          total = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0);
-        } else if (selectedSport === 'basketball' && statKey === 'points') {
-          const fgm = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0), 0);
-          const threes = playerStats.reduce((sum, s) => sum + (s.three_pointers || 0), 0);
-          const ftm = playerStats.reduce((sum, s) => sum + (s.free_throws_made || 0), 0);
-          total = Math.max(0, (fgm - threes)) * 2 + (threes * 3) + ftm;
-        } else {
-          total = playerStats.reduce((sum, s) => sum + (s[statKey] || 0), 0);
-        }
-        const team = filteredTeams.find(t => t.id === player.team_id);
-        return {
-          name: `${player.first_name} ${player.last_name}`,
-          team: team?.name || 'Unknown',
-          value: total,
-          sport: team?.sport,
-        };
-      })
-      .filter(p => p.value > 0)
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 10);
+    const totals = new Map(); // player_id -> { total, team_id }
+
+    relevantPlayerGameStats.forEach(s => {
+      const pid = s.player_id;
+      let add = 0;
+      if (selectedSport === 'volleyball' && statKey === 'points') {
+        add = (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0);
+      } else if (selectedSport === 'basketball' && statKey === 'points') {
+        const threes = Number(s.three_pointers || 0);
+        const fgm = Number(s.field_goals_made || 0);
+        const twos = Math.max(fgm - threes, 0);
+        const ftm = Number(s.free_throws_made || 0);
+        const stored = Number(s.points || 0);
+        add = stored > 0 ? stored : (twos * 2) + (threes * 3) + ftm;
+      } else {
+        add = Number(s[statKey] || 0);
+      }
+      const prev = totals.get(pid) || { total: 0, team_id: s.team_id };
+      totals.set(pid, { total: prev.total + add, team_id: prev.team_id || s.team_id });
+    });
+
+    return Array.from(totals.entries()).map(([playerId, { total, team_id }]) => {
+      const player = players.find(p => p.id === playerId);
+      const team = filteredTeams.find(t => t.id === team_id);
+      const name = player ? `${player.first_name} ${player.last_name}` : `Player ${String(playerId).slice(-4)}`;
+      return {
+        name,
+        team: team?.name || 'Unknown',
+        value: total,
+        sport: team?.sport,
+      };
+    })
+    .filter(p => p.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 10);
   };
 
   const topScorers = createPlayerLeaderboard('points', 'Points');
