@@ -181,6 +181,17 @@ export default function Statistics() {
     refetchInterval: 20000,
   });
 
+  // Fallback: if no accessible completed games, still show data using raw stats
+  const { data: fallbackStats = [] } = useQuery({
+    queryKey: ['playerGameStatsFallback'],
+    queryFn: () => base44.entities.PlayerGameStats.list(),
+    enabled: gameIdsForStats.length === 0,
+    staleTime: 30000,
+    gcTime: 5 * 60 * 1000,
+  });
+
+  const effectivePlayerGameStats = gameIdsForStats.length > 0 ? playerGameStats : fallbackStats;
+
   const divisions = ['all', ...new Set((teams.length > 0 ? teams : allTeamsAllOrgs).map(t => t.division || 'No Division'))];
   const sports = ['all', 'basketball', 'volleyball'];
 
@@ -204,10 +215,12 @@ export default function Statistics() {
 
   // Map games by id for sport-aware stat calculations
   // teamByIdAll defined above
-  const gameById = new Map((games.length > 0 ? games : allGamesAllOrgs).map(g => [g.id, g]));
+  const gameById = new Map((games.length > 0 ? games : allGamesAllOrgs).map(g => [g.id, g])); // may be empty if no access; fallbacks handle this
 
   const completedGameIdsSet = new Set(completedGames.map(g => g.id));
-  const relevantPlayerGameStats = playerGameStats.filter((s) => completedGameIdsSet.has(s.game_id));
+  const relevantPlayerGameStats = gameIdsForStats.length > 0
+    ? effectivePlayerGameStats.filter((s) => completedGameIdsSet.has(s.game_id))
+    : effectivePlayerGameStats;
 
   // Team players filter
   const teamPlayersFilteredByTeam = selectedTeamForPlayers === 'all' 
