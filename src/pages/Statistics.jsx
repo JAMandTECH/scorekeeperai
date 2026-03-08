@@ -167,7 +167,7 @@ export default function Statistics() {
   const completedGames = filteredGames.filter(g => g.status === 'completed');
 
   // Map games by id for sport-aware stat calculations
-  const gameById = new Map(games.map(g => [g.id, g]));
+  const gameById = new Map((games.length > 0 ? games : allGamesAllOrgs).map(g => [g.id, g]));
 
   const completedGameIdsSet = new Set(completedGames.map(g => g.id));
   const filteredTeamIdsSet = new Set(filteredTeamIds);
