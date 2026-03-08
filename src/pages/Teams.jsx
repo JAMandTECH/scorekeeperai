@@ -158,6 +158,7 @@ export default function Teams() {
       const lossesA = a.losses || 0, lossesB = b.losses || 0;
       return lossesA - lossesB;
     });
+  }, [pointsDiffMap]);
   }, [pointsDiffMap])
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Team.create(data),
