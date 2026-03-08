@@ -143,9 +143,13 @@ export default function Statistics() {
 
   const completedGameIdsSet = new Set(completedGames.map(g => g.id));
   const filteredTeamIdsSet = new Set(filteredTeamIds);
-  const relevantPlayerGameStats = playerGameStats.filter(stat => (
-    completedGameIdsSet.has(stat.game_id) && filteredTeamIdsSet.has(stat.team_id)
-  ));
+  const playerIdsSet = new Set(filteredPlayers.map(p => p.id));
+  const relevantPlayerGameStats = playerGameStats.filter(stat => {
+    if (!completedGameIdsSet.has(stat.game_id)) return false;
+    const byTeam = stat.team_id ? filteredTeamIdsSet.has(stat.team_id) : false;
+    const byPlayer = playerIdsSet.size > 0 ? playerIdsSet.has(stat.player_id) : true;
+    return byTeam || byPlayer;
+  });
 
   // Team players filter
   const teamPlayersFilteredByTeam = selectedTeamForPlayers === 'all' 
