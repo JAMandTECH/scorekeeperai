@@ -566,7 +566,7 @@ export default function LiveScoringVolleyball() {
     if (action === 'point' && !player) {
       setSelectedTeam(team);
       setSelectedPlayer(null);
-      await handleScoreOnly();
+      await performAction(handleScoreOnly);
       setVoiceFeedback({ text: summary, status: 'success' });
       return;
     }
