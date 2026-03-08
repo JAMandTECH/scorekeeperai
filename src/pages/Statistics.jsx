@@ -109,6 +109,12 @@ export default function Statistics() {
     enabled: teams.length > 0 && !!orgId,
   });
 
+  const { data: allPlayersAllOrgs = [] } = useQuery({
+    queryKey: ['allPlayersAllOrgs'],
+    queryFn: () => base44.entities.Player.list(),
+    enabled: !!user,
+  });
+
   const filteredTeams = teams.filter(team => {
     const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
     const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
@@ -198,14 +204,7 @@ export default function Statistics() {
   const gameById = new Map((games.length > 0 ? games : allGamesAllOrgs).map(g => [g.id, g]));
 
   const completedGameIdsSet = new Set(completedGames.map(g => g.id));
-  const filteredTeamIdsSet = new Set(filteredTeamIds);
-  const playerIdsSet = new Set(filteredPlayers.map(p => p.id));
-  const relevantPlayerGameStats = playerGameStats.filter(stat => {
-    if (!completedGameIdsSet.has(stat.game_id)) return false;
-    const byTeam = stat.team_id ? filteredTeamIdsSet.has(stat.team_id) : false;
-    const byPlayer = playerIdsSet.size > 0 ? playerIdsSet.has(stat.player_id) : true;
-    return byTeam || byPlayer;
-  });
+  const relevantPlayerGameStats = playerGameStats.filter((s) => completedGameIdsSet.has(s.game_id));
 
   // Team players filter
   const teamPlayersFilteredByTeam = selectedTeamForPlayers === 'all' 
@@ -352,8 +351,9 @@ export default function Statistics() {
 
   // Player leaderboards aggregated from finished-game stats (no dependency on player list)
   const createPlayerLeaderboard = (statKey, _label) => {
-    const teamsById = new Map(teams.map(t => [t.id, t]));
-    const playersById = new Map(players.map(p => [p.id, p]));
+    const teamsById = new Map((teams.length > 0 ? teams : allTeamsAllOrgs).map(t => [t.id, t]));
+    const playersByIdOrg = new Map(players.map(p => [p.id, p]));
+    const playersByIdAll = new Map(allPlayersAllOrgs.map(p => [p.id, p]));
     const totals = new Map(); // player_id -> { total, team_id }
 
     relevantPlayerGameStats.forEach(s => {
@@ -384,7 +384,7 @@ export default function Statistics() {
 
     return Array.from(totals.entries())
       .map(([playerId, { total, team_id }]) => {
-        const player = playersById.get(playerId);
+        const player = playersByIdOrg.get(playerId) || playersByIdAll.get(playerId);
         const team = teamsById.get(team_id);
         const name = player ? `${player.first_name} ${player.last_name}` : `Player ${String(playerId).slice(-4)}`;
         return {
