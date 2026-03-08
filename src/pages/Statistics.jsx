@@ -82,13 +82,13 @@ export default function Statistics() {
   });
 
   const { data: players = [] } = useQuery({
-    queryKey: ['players'],
+    queryKey: ['players', orgId],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
       const teamIds = teams.map(t => t.id);
       return allPlayers.filter(p => teamIds.includes(p.team_id));
     },
-    enabled: teams.length > 0,
+    enabled: teams.length > 0 && !!orgId,
   });
 
   const filteredTeams = teams.filter(team => {
@@ -98,35 +98,12 @@ export default function Statistics() {
   });
   const filteredTeamIds = filteredTeams.map(t => t.id);
 
-  // Build filters first so we can derive game IDs correctly
-  const filteredTeams = teams.filter(team => {
-    const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
-    const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
-    return divisionMatch && sportMatch;
-  });
-  const filteredTeamIds = filteredTeams.map(t => t.id);
 
-  // Build team filters before deriving game IDs
-  const filteredTeams = teams.filter(team => {
-    const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
-    const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
-    return divisionMatch && sportMatch;
-  });
-  const filteredTeamIds = filteredTeams.map(t => t.id);
 
-  // Build team filters first so we can derive game IDs correctly
-  const filteredTeams = teams.filter(team => {
-    const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
-    const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
-    return divisionMatch && sportMatch;
-  });
-  const filteredTeamIds = filteredTeams.map(t => t.id);
-
+  const completedIds = games.filter(g => g.status === 'completed').map(g => g.id);
   const filteredGameIds = games
     .filter(g => filteredTeamIds.includes(g.home_team_id) || filteredTeamIds.includes(g.away_team_id))
     .map(g => g.id);
-
-  const completedIds = games.filter(g => g.status === 'completed').map(g => g.id);
 
   const { data: playerGameStats = [] } = useQuery({
     queryKey: ['playerGameStats', orgId, JSON.stringify(filteredGameIds)],
@@ -187,6 +164,19 @@ export default function Statistics() {
     if (selectedSport === 'volleyball') {
       const volleyPoints = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0);
       totals.points = volleyPoints;
+    }
+    // Basketball fallback points = 2*twos + 3*threes + 1*FTM (if points not stored)
+    if (selectedSport === 'basketball') {
+      const derivedPoints = playerStats.reduce((sum, s) => {
+        const threes = Number(s.three_pointers || 0);
+        const fgm = Number(s.field_goals_made || 0);
+        const twos = Math.max(fgm - threes, 0);
+        const ftm = Number(s.free_throws_made || 0);
+        return sum + (twos * 2) + (threes * 3) + ftm;
+      }, 0);
+      if ((totals.points || 0) === 0 && derivedPoints > 0) {
+        totals.points = derivedPoints;
+      }
     }
 
     return {
@@ -280,6 +270,16 @@ export default function Statistics() {
         let total;
         if (selectedSport === 'volleyball' && statKey === 'points') {
           total = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0);
+        } else if (selectedSport === 'basketball' && statKey === 'points') {
+          total = playerStats.reduce((sum, s) => {
+            const threes = Number(s.three_pointers || 0);
+            const fgm = Number(s.field_goals_made || 0);
+            const twos = Math.max(fgm - threes, 0);
+            const ftm = Number(s.free_throws_made || 0);
+            const stored = Number(s.points || 0);
+            const derived = (twos * 2) + (threes * 3) + ftm;
+            return sum + (stored > 0 ? stored : derived);
+          }, 0);
         } else {
           total = playerStats.reduce((sum, s) => sum + (s[statKey] || 0), 0);
         }
