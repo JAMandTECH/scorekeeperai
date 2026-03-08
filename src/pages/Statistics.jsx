@@ -141,11 +141,18 @@ export default function Statistics() {
     queryKey: ['playerGameStats', orgId, JSON.stringify(gameIdsForStats)],
     queryFn: async () => {
       if (gameIdsForStats.length === 0) return [];
-      // Primary: backend function (handles batching/backoff)
-      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: gameIdsForStats });
-      let stats = Array.isArray(res.data) ? res.data : [];
 
-      // Fallback: fetch directly from entity if function returns empty (safety net)
+      let stats = [];
+      try {
+        // Primary: backend function (handles batching/backoff)
+        const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: gameIdsForStats });
+        stats = Array.isArray(res.data) ? res.data : [];
+      } catch (e) {
+        // Fallback to direct entity fetch if function fails (timeouts/limits)
+        console.warn('getGamePlayerStats failed, falling back to direct entity fetch:', e?.message || e);
+      }
+
+      // Fallback: fetch directly from entity if function fails or returns empty (safety net)
       if (!stats || stats.length === 0) {
         const results = [];
         for (let i = 0; i < gameIdsForStats.length; i += 50) {
