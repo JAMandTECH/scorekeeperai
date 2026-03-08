@@ -109,7 +109,7 @@ export default function LiveScoringVolleyball() {
     setAwayTimeouts(currentGame.away_timeouts ?? 5);
     
     if (currentGame.status === 'scheduled') {
-      await base44.entities.Game.update(gameId, { status: 'in_progress' });
+      await updateGameById(gameId, { status: 'in_progress' });
     }
 
     const stats = await base44.entities.PlayerGameStats.filter({ game_id: gameId });
@@ -184,6 +184,15 @@ export default function LiveScoringVolleyball() {
   const getCurrentSetPlayerStat = (playerId, statType) => {
     const key = `${playerId}_${currentSet}`;
     return playerStats[key]?.[statType] || 0;
+  };
+
+  // Service-backed game updater to avoid client RLS issues
+  const updateGameById = async (id, patch) => {
+    await base44.functions.invoke('updateGame', { game_id: id, patch });
+  };
+  const updateGame = async (patch) => {
+    if (!game?.id) return;
+    await updateGameById(game.id, patch);
   };
 
   const updatePlayerStats = async (playerId, teamId, statUpdates) => {
@@ -263,7 +272,7 @@ export default function LiveScoringVolleyball() {
     // Update score
     setHomeScore(newHomeScore);
     setAwayScore(newAwayScore);
-    await base44.entities.Game.update(game.id, {
+    await updateGame({
       home_score: newHomeScore,
       away_score: newAwayScore,
     });
@@ -287,7 +296,7 @@ export default function LiveScoringVolleyball() {
     setHomeScore(newHomeScore);
     setAwayScore(newAwayScore);
 
-    await base44.entities.Game.update(game.id, {
+    await updateGame({
       home_score: newHomeScore,
       away_score: newAwayScore,
     });
@@ -310,7 +319,7 @@ export default function LiveScoringVolleyball() {
       const newAwayScore = lastAction.previousAwayScore;
       setHomeScore(newHomeScore);
       setAwayScore(newAwayScore);
-      await base44.entities.Game.update(game.id, {
+      await updateGame({
         home_score: newHomeScore,
         away_score: newAwayScore,
       });
@@ -325,7 +334,7 @@ export default function LiveScoringVolleyball() {
       const newAwayScore = lastAction.previousAwayScore;
       setHomeScore(newHomeScore);
       setAwayScore(newAwayScore);
-      await base44.entities.Game.update(game.id, {
+      await updateGame({
         home_score: newHomeScore,
         away_score: newAwayScore,
       });
@@ -333,11 +342,11 @@ export default function LiveScoringVolleyball() {
       if (lastAction.team === 'home') {
         const newTimeouts = homeTimeouts + 1;
         setHomeTimeouts(newTimeouts);
-        await base44.entities.Game.update(game.id, { home_timeouts: newTimeouts });
+        await updateGame({ home_timeouts: newTimeouts });
       } else if (lastAction.team === 'away') {
         const newTimeouts = awayTimeouts + 1;
         setAwayTimeouts(newTimeouts);
-        await base44.entities.Game.update(game.id, { away_timeouts: newTimeouts });
+        await updateGame({ away_timeouts: newTimeouts });
       }
     }
   };
@@ -358,11 +367,11 @@ export default function LiveScoringVolleyball() {
       if (team === 'home' && homeTimeouts > 0) {
         const newTimeouts = homeTimeouts - 1;
         setHomeTimeouts(newTimeouts);
-        await base44.entities.Game.update(game.id, { home_timeouts: newTimeouts });
+        await updateGame({ home_timeouts: newTimeouts });
       } else if (team === 'away' && awayTimeouts > 0) {
         const newTimeouts = awayTimeouts - 1;
         setAwayTimeouts(newTimeouts);
-        await base44.entities.Game.update(game.id, { away_timeouts: newTimeouts });
+        await updateGame({ away_timeouts: newTimeouts });
       }
     }
   };
@@ -381,7 +390,7 @@ export default function LiveScoringVolleyball() {
     const newSetScores = [...setScores, setScore];
     setSetScores(newSetScores);
 
-    await base44.entities.Game.update(game.id, {
+    await updateGame({
       quarter_scores: newSetScores,
       current_quarter: currentSet + 1,
       home_score: homeScore,
@@ -425,7 +434,7 @@ export default function LiveScoringVolleyball() {
       return;
     }
 
-    await base44.entities.Game.update(game.id, {
+    await updateGame({
       status: 'completed',
       home_score: homeScore,
       away_score: awayScore,
@@ -494,7 +503,7 @@ export default function LiveScoringVolleyball() {
     const newHomeScore = defaultedTeamId === game.home_team_id ? 0 : 20;
     const newAwayScore = defaultedTeamId === game.away_team_id ? 0 : 20;
 
-    await base44.entities.Game.update(game.id, {
+    await updateGame({
       status: 'completed',
       home_score: newHomeScore,
       away_score: newAwayScore,
@@ -534,7 +543,7 @@ export default function LiveScoringVolleyball() {
       losses: Math.max(0, (defaultedTeam.losses || 0) - 1)
     });
 
-    await base44.entities.Game.update(game.id, {
+    await updateGame({
       status: 'in_progress',
       home_score: 0,
       away_score: 0,
