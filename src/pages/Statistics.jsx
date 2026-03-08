@@ -159,7 +159,7 @@ export default function Statistics() {
   const sports = ['all', 'basketball', 'volleyball'];
 
   // filteredTeams and filteredTeamIds are defined above
-  const filteredGames = games.filter(game =>
+  const filteredGames = (games.length > 0 ? games : allGamesAllOrgs).filter(game =>
     game.status === 'completed' && (filteredTeamIds.includes(game.home_team_id) || filteredTeamIds.includes(game.away_team_id))
   );
   const filteredPlayers = players.filter(p => filteredTeamIds.includes(p.team_id));
