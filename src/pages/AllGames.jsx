@@ -51,10 +51,37 @@ export default function AllGames() {
     queryKey: ['all-player-stats-history', JSON.stringify(completedIds)],
     queryFn: async () => {
       if (completedIds.length === 0) return [];
-      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: completedIds });
-      return res.data || [];
+
+      let stats = [];
+      try {
+        const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: completedIds });
+        stats = Array.isArray(res.data) ? res.data : [];
+      } catch (e) {
+        console.warn('getGamePlayerStats failed, falling back to direct entity fetch:', e?.message || e);
+      }
+
+      if (!stats || stats.length === 0) {
+        const results = [];
+        for (let i = 0; i < completedIds.length; i += 50) {
+          const chunk = completedIds.slice(i, i + 50);
+          try {
+            const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
+            results.push(...part);
+          } catch (_) {
+            const per = await Promise.all(
+              chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
+            );
+            results.push(...per.flat());
+          }
+        }
+        stats = results;
+      }
+
+      return stats;
     },
     enabled: completedIds.length > 0,
+    staleTime: 30000,
+    gcTime: 5 * 60 * 1000,
   });
 
   const { data: allDivisions = [] } = useQuery({
