@@ -98,6 +98,14 @@ export default function Statistics() {
   });
   const filteredTeamIds = filteredTeams.map(t => t.id);
 
+  // Build filters first so we can derive game IDs correctly
+  const filteredTeams = teams.filter(team => {
+    const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
+    const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
+    return divisionMatch && sportMatch;
+  });
+  const filteredTeamIds = filteredTeams.map(t => t.id);
+
   const completedIds = games.filter(g => g.status === 'completed').map(g => g.id);
   const filteredGameIds = games
     .filter(g => filteredTeamIds.includes(g.home_team_id) || filteredTeamIds.includes(g.away_team_id))
