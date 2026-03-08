@@ -88,6 +88,13 @@ export default function Statistics() {
     enabled: !!user && games.length === 0,
   });
 
+  // Load all teams across orgs for cross-org filtering (division lookups)
+  const { data: allTeamsAllOrgs = [] } = useQuery({
+    queryKey: ['allTeamsAllOrgs'],
+    queryFn: () => base44.entities.Team.list(),
+    enabled: !!user,
+  });
+
   const { data: players = [] } = useQuery({
     queryKey: ['players', orgId, teams.map(t => t.id).join(',')],
     queryFn: async () => {
@@ -114,8 +121,19 @@ export default function Statistics() {
 
   const effectiveGames = (games.length > 0 ? games : allGamesAllOrgs);
   const filteredGameIds = effectiveGames
-    .filter(g => g.status === 'completed' && (filteredTeamIds.includes(g.home_team_id) || filteredTeamIds.includes(g.away_team_id)))
-    .map(g => g.id);
+    .filter((g) => {
+      if (g.status !== 'completed') return false;
+      if (selectedSport !== 'all' && g.sport !== selectedSport) return false;
+      if (selectedDivision !== 'all') {
+        const homeTeam = teamByIdAll.get(g.home_team_id);
+        const awayTeam = teamByIdAll.get(g.away_team_id);
+        const homeDiv = homeTeam?.division || 'No Division';
+        const awayDiv = awayTeam?.division || 'No Division';
+        if (homeDiv !== selectedDivision && awayDiv !== selectedDivision) return false;
+      }
+      return true;
+    })
+    .map((g) => g.id);
 
   const completedIds = effectiveGames.filter(g => g.status === 'completed').map(g => g.id);
 
@@ -159,14 +177,24 @@ export default function Statistics() {
   const sports = ['all', 'basketball', 'volleyball'];
 
   // filteredTeams and filteredTeamIds are defined above
-  const filteredGames = (games.length > 0 ? games : allGamesAllOrgs).filter(game =>
-    game.status === 'completed' && (filteredTeamIds.includes(game.home_team_id) || filteredTeamIds.includes(game.away_team_id))
-  );
+  const filteredGames = (games.length > 0 ? games : allGamesAllOrgs).filter((game) => {
+    if (game.status !== 'completed') return false;
+    if (selectedSport !== 'all' && game.sport !== selectedSport) return false;
+    if (selectedDivision !== 'all') {
+      const homeTeam = teamByIdAll.get(game.home_team_id);
+      const awayTeam = teamByIdAll.get(game.away_team_id);
+      const homeDiv = homeTeam?.division || 'No Division';
+      const awayDiv = awayTeam?.division || 'No Division';
+      if (homeDiv !== selectedDivision && awayDiv !== selectedDivision) return false;
+    }
+    return true;
+  });
   const filteredPlayers = players.filter(p => filteredTeamIds.includes(p.team_id));
   // Fallback: if players list is empty, still allow leaderboards from stats using player_id only
   const completedGames = filteredGames.filter(g => g.status === 'completed');
 
   // Map games by id for sport-aware stat calculations
+  const teamByIdAll = new Map(allTeamsAllOrgs.map(t => [t.id, t]));
   const gameById = new Map((games.length > 0 ? games : allGamesAllOrgs).map(g => [g.id, g]));
 
   const completedGameIdsSet = new Set(completedGames.map(g => g.id));
