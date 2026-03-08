@@ -55,6 +55,23 @@ export default function LiveScoringVolleyball() {
     }, 5000);
 
     return () => clearInterval(intervalId);
+  }, [game?.id]);
+
+  // Real-time sync across devices for this game
+  useEffect(() => {
+    if (!game?.id) return;
+    const unsubscribe = base44.entities.Game.subscribe((event) => {
+      if (event?.id !== game.id || event?.type !== 'update') return;
+      const g = event.data || {};
+      setGame(g);
+      setHomeScore(g.home_score || 0);
+      setAwayScore(g.away_score || 0);
+      setCurrentSet(g.current_quarter || 1);
+      setSetScores(g.quarter_scores || []);
+      setHomeTimeouts(g.home_timeouts ?? 5);
+      setAwayTimeouts(g.away_timeouts ?? 5);
+    });
+    return unsubscribe;
   }, [game?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const refreshGameState = async () => {
@@ -296,10 +313,7 @@ export default function LiveScoringVolleyball() {
     setHomeScore(newHomeScore);
     setAwayScore(newAwayScore);
 
-    await updateGame({
-      home_score: newHomeScore,
-      away_score: newAwayScore,
-    });
+    await updateGame(selectedTeam === 'home' ? { home_score_delta: 1 } : { away_score_delta: 1 });
   };
 
   const handleUndo = async () => {
@@ -319,10 +333,7 @@ export default function LiveScoringVolleyball() {
       const newAwayScore = lastAction.previousAwayScore;
       setHomeScore(newHomeScore);
       setAwayScore(newAwayScore);
-      await updateGame({
-        home_score: newHomeScore,
-        away_score: newAwayScore,
-      });
+      await updateGame(lastAction.team === 'home' ? { home_score_delta: -1 } : { away_score_delta: -1 });
       
       await updatePlayerStats(lastAction.playerId, lastAction.teamId, [{ 
         statType: lastAction.statType, 
@@ -334,10 +345,7 @@ export default function LiveScoringVolleyball() {
       const newAwayScore = lastAction.previousAwayScore;
       setHomeScore(newHomeScore);
       setAwayScore(newAwayScore);
-      await updateGame({
-        home_score: newHomeScore,
-        away_score: newAwayScore,
-      });
+      await updateGame(lastAction.team === 'home' ? { home_score_delta: -1 } : { away_score_delta: -1 });
     } else if (lastAction.type === 'timeout') {
       if (lastAction.team === 'home') {
         const newTimeouts = homeTimeouts + 1;

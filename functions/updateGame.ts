@@ -22,7 +22,10 @@ Deno.serve(async (req) => {
 
     // Permission check: admin OR scorekeeper AND same organization (or super admin)
     const isAdmin = user.role === 'admin';
-    const sameOrg = !!(user.organization_id && user.organization_id === game.organization_id) || !!(user.active_organization_id && user.active_organization_id === game.organization_id);
+    const sameOrg = Boolean(
+      (user.organization_id && user.organization_id === game.organization_id) ||
+      (user.active_organization_id && user.active_organization_id === game.organization_id)
+    );
     const isSuperAdmin = Boolean(user.is_super_admin);
     const isScorekeeper = Boolean(user.is_scorekeeper);
 
@@ -30,7 +33,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: insufficient permissions' }, { status: 403 });
     }
 
-    // Allow only specific fields to be updated
+    // Whitelist absolute fields
     const allowedKeys = new Set([
       'status',
       'home_score', 'away_score',
@@ -40,9 +43,30 @@ Deno.serve(async (req) => {
       'notes', 'stream_url'
     ]);
 
+    // Supported delta fields (server will convert to absolute values)
+    const deltaFields = {
+      home_score_delta: 'home_score',
+      away_score_delta: 'away_score',
+      home_timeouts_delta: 'home_timeouts',
+      away_timeouts_delta: 'away_timeouts',
+    } as const;
+
     const safePatch = Object.fromEntries(
       Object.entries(patch).filter(([k]) => allowedKeys.has(k))
     );
+
+    // Apply deltas into safePatch if present
+    for (const [deltaKey, absKey] of Object.entries(deltaFields)) {
+      if (deltaKey in patch) {
+        const deltaVal = Number(patch[deltaKey]);
+        if (!Number.isFinite(deltaVal) || deltaVal === 0) continue;
+        const currentVal = Number(game[absKey] || 0);
+        let next = currentVal + deltaVal;
+        if (absKey.includes('timeouts')) next = Math.max(0, next);
+        if (absKey.includes('score')) next = Math.max(0, next);
+        safePatch[absKey] = next;
+      }
+    }
 
     if (Object.keys(safePatch).length === 0) {
       return Response.json({ error: 'No allowed fields in patch' }, { status: 400 });
