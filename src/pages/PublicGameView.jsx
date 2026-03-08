@@ -50,10 +50,13 @@ export default function PublicGameView() {
     enabled: !!game,
   });
 
-  // Fetch player stats for this game
+  // Fetch player stats for this game via backend function (public-safe)
   const { data: playerStats = [] } = useQuery({
     queryKey: ['public-game-stats', gameId],
-    queryFn: () => base44.entities.PlayerGameStats.filter({ game_id: gameId }),
+    queryFn: async () => {
+      const res = await base44.functions.invoke('getGamePlayerStats', { game_id: gameId });
+      return res.data || [];
+    },
     enabled: !!gameId,
     refetchInterval: 5000,
   });

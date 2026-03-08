@@ -46,9 +46,15 @@ export default function AllGames() {
     queryFn: () => base44.entities.Player.list(),
   });
 
+  const completedIds = allGames.filter(g => g.status === 'completed').map(g => g.id);
   const { data: allPlayerStats = [] } = useQuery({
-    queryKey: ['all-player-stats-history'],
-    queryFn: () => base44.entities.PlayerGameStats.list(),
+    queryKey: ['all-player-stats-history', JSON.stringify(completedIds)],
+    queryFn: async () => {
+      if (completedIds.length === 0) return [];
+      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: completedIds });
+      return res.data || [];
+    },
+    enabled: completedIds.length > 0,
   });
 
   const { data: allDivisions = [] } = useQuery({
