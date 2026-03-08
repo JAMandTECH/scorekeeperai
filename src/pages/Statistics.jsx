@@ -194,7 +194,7 @@ export default function Statistics() {
 
   const effectivePlayerGameStats = gameIdsForStats.length > 0 ? playerGameStats : fallbackStats;
 
-  const divisions = ['all', ...new Set((teams.length > 0 ? teams : allTeamsAllOrgs).map(t => t.division || 'No Division'))];
+  const divisions = ['all', ...new Set((scopeAll ? allTeamsAllOrgs : (teams.length > 0 ? teams : allTeamsAllOrgs)).map(t => t.division || 'No Division'))];
   const sports = ['all', 'basketball', 'volleyball'];
 
   // filteredTeams and filteredTeamIds are defined above
@@ -217,7 +217,7 @@ export default function Statistics() {
 
   // Map games by id for sport-aware stat calculations
   // teamByIdAll defined above
-  const gameById = new Map((games.length > 0 ? games : allGamesAllOrgs).map(g => [g.id, g])); // may be empty if no access; fallbacks handle this
+  const gameById = new Map(effectiveGames.map(g => [g.id, g])); // uses current scope and filters; may be empty if no access
 
   const completedGameIdsSet = new Set(completedGames.map(g => g.id));
   const relevantPlayerGameStats = gameIdsForStats.length > 0
@@ -369,7 +369,7 @@ export default function Statistics() {
 
   // Player leaderboards aggregated from finished-game stats (no dependency on player list)
   const createPlayerLeaderboard = (statKey, _label) => {
-    const teamsById = new Map((teams.length > 0 ? teams : allTeamsAllOrgs).map(t => [t.id, t]));
+    const teamsById = new Map((scopeAll ? allTeamsAllOrgs : (teams.length > 0 ? teams : allTeamsAllOrgs)).map(t => [t.id, t]));
     const playersByIdOrg = new Map(players.map(p => [p.id, p]));
     const playersByIdAll = new Map(allPlayersAllOrgs.map(p => [p.id, p]));
     const totals = new Map(); // player_id -> { total, team_id }
