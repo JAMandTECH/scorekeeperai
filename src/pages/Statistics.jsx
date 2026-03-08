@@ -82,13 +82,13 @@ export default function Statistics() {
   });
 
   const { data: players = [] } = useQuery({
-    queryKey: ['players', orgId],
+    queryKey: ['players'],
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
       const teamIds = teams.map(t => t.id);
       return allPlayers.filter(p => teamIds.includes(p.team_id));
     },
-    enabled: teams.length > 0 && !!orgId,
+    enabled: teams.length > 0,
   });
 
   const filteredTeams = teams.filter(team => {
@@ -106,7 +106,7 @@ export default function Statistics() {
   });
   const filteredTeamIds = filteredTeams.map(t => t.id);
 
-  // Build team filters first
+  // Build team filters before deriving game IDs
   const filteredTeams = teams.filter(team => {
     const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
     const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
