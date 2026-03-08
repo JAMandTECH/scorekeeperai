@@ -31,11 +31,14 @@ Deno.serve(async (req) => {
     const teamIds = new Set(teams.map((t: any) => t.id));
     const completedGameIds: string[] = games.map((g: any) => g.id);
 
-    // Pull stats for completed games in parallel
+    // Pull stats per team to reduce request volume, then keep only completed games
+    const completedSet = new Set(completedGameIds);
     const statChunks = await Promise.all(
-      completedGameIds.map((id) => base44.asServiceRole.entities.PlayerGameStats.filter({ game_id: id }))
+      Array.from(teamIds).map((tid) => base44.asServiceRole.entities.PlayerGameStats.filter({ team_id: tid as string }))
     );
-    const allStats = ([] as any[]).concat(...statChunks).filter(s => teamIds.has(s.team_id));
+    const allStats = ([] as any[])
+      .concat(...statChunks)
+      .filter(s => completedSet.has(s.game_id));
 
     if (allStats.length === 0) {
       return Response.json({ leaders: [], count: 0, sport, organization_id: organizationId });
