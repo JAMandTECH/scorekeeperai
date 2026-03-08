@@ -89,16 +89,14 @@ export default function GameHistory({
       .map(stat => ({
         ...stat,
         player: allPlayers.find(p => p.id === stat.player_id)
-      }))
-      .filter(s => s.player);
+      }));
 
     const awayStats = gameStats
       .filter(s => s.team_id === awayTeamId)
       .map(stat => ({
         ...stat,
         player: allPlayers.find(p => p.id === stat.player_id)
-      }))
-      .filter(s => s.player);
+      }));
 
     return { homeStats, awayStats };
   };
