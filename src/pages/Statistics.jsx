@@ -83,19 +83,11 @@ export default function Statistics() {
   });
 
   // Fallback: if org-scoped games are empty, load all games across orgs (matches AllGames behaviour)
-  const { data: allGamesAllOrgs = [] } = useQuery({
-    queryKey: ['allGamesAllOrgs'],
-    queryFn: () => base44.entities.Game.list(),
-    enabled: !!user,
-  });
+  // Removed cross-organization fallback; using only organization games
 
   // Load all teams across orgs for cross-org filtering (division lookups)
-  const { data: allTeamsAllOrgs = [] } = useQuery({
-    queryKey: ['allTeamsAllOrgs'],
-    queryFn: () => base44.entities.Team.list(),
-    enabled: !!user,
-  });
-  const teamByIdAll = new Map(allTeamsAllOrgs.map(t => [t.id, t]));
+  // Build team index for current organization only
+  const teamById = new Map(teams.map(t => [t.id, t]));
   const teamById = new Map(teams.map(t => [t.id, t]));
 
   const { data: players = [] } = useQuery({
@@ -112,11 +104,7 @@ export default function Statistics() {
     enabled: teams.length > 0 && !!orgId,
   });
 
-  const { data: allPlayersAllOrgs = [] } = useQuery({
-    queryKey: ['allPlayersAllOrgs'],
-    queryFn: () => base44.entities.Player.list(),
-    enabled: !!user,
-  });
+  // Removed cross-organization players list; using only organization players
 
 
   const availableTeams = teams;
@@ -209,7 +197,7 @@ export default function Statistics() {
 
   // Map games by id for sport-aware stat calculations
   // teamByIdAll defined above
-  const gameById = new Map(effectiveGames.map(g => [g.id, g])); // uses current scope and filters; may be empty if no access
+  const gameById = new Map(games.map(g => [g.id, g]));
 
   const completedGameIdsSet = new Set(completedGames.map(g => g.id));
   const relevantPlayerGameStats = playerGameStats.filter((s) => completedGameIdsSet.has(s.game_id));
