@@ -94,6 +94,7 @@ export default function Statistics() {
     queryFn: () => base44.entities.Team.list(),
     enabled: !!user,
   });
+  const teamByIdAll = new Map(allTeamsAllOrgs.map(t => [t.id, t]));
 
   const { data: players = [] } = useQuery({
     queryKey: ['players', orgId, teams.map(t => t.id).join(',')],
@@ -115,7 +116,8 @@ export default function Statistics() {
     enabled: !!user,
   });
 
-  const filteredTeams = teams.filter(team => {
+  const availableTeams = teams.length > 0 ? teams : allTeamsAllOrgs;
+  const filteredTeams = availableTeams.filter(team => {
     const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
     const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
     return divisionMatch && sportMatch;
@@ -179,7 +181,7 @@ export default function Statistics() {
     refetchInterval: 20000,
   });
 
-  const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division'))];
+  const divisions = ['all', ...new Set((teams.length > 0 ? teams : allTeamsAllOrgs).map(t => t.division || 'No Division'))];
   const sports = ['all', 'basketball', 'volleyball'];
 
   // filteredTeams and filteredTeamIds are defined above
@@ -195,12 +197,13 @@ export default function Statistics() {
     }
     return true;
   });
-  const filteredPlayers = players.filter(p => filteredTeamIds.includes(p.team_id));
+  const availablePlayers = players.length > 0 ? players : allPlayersAllOrgs;
+  const filteredPlayers = availablePlayers.filter(p => filteredTeamIds.includes(p.team_id));
   // Fallback: if players list is empty, still allow leaderboards from stats using player_id only
   const completedGames = filteredGames.filter(g => g.status === 'completed');
 
   // Map games by id for sport-aware stat calculations
-  const teamByIdAll = new Map(allTeamsAllOrgs.map(t => [t.id, t]));
+  // teamByIdAll defined above
   const gameById = new Map((games.length > 0 ? games : allGamesAllOrgs).map(g => [g.id, g]));
 
   const completedGameIdsSet = new Set(completedGames.map(g => g.id));
@@ -212,7 +215,7 @@ export default function Statistics() {
     : filteredPlayers.filter(p => p.team_id === selectedTeamForPlayers);
 
   const selectedTeamData = selectedTeamForPlayers !== 'all' 
-    ? teams.find(t => t.id === selectedTeamForPlayers) 
+    ? (availableTeams || []).find(t => t.id === selectedTeamForPlayers) 
     : null;
 
   // Individual player statistics with detailed, sport-aware metrics per game
