@@ -42,6 +42,16 @@ export default function LiveScoringVolleyball() {
   const [user, setUser] = useState(null);
   const [activeTimeout, setActiveTimeout] = useState(null); // 'home' | 'away' | null
   const [voiceFeedback, setVoiceFeedback] = useState(null); // {text, status}
+  const [actionLock, setActionLock] = useState(false);
+  const performAction = async (fn) => {
+    if (actionLock) return;
+    setActionLock(true);
+    try {
+      await fn();
+    } finally {
+      setActionLock(false);
+    }
+  };
 
   useEffect(() => {
     loadGame();
@@ -534,6 +544,7 @@ export default function LiveScoringVolleyball() {
   };
 
   const handleVoiceCommand = async ({ team, player, action, value }) => {
+    if (actionLock) return;
     const summary = `${team || ''} #${player?.jersey_number || ''} ${action}${value ? ' ' + value : ''}`.trim();
     setVoiceFeedback({ text: summary, status: 'processing' });
 
@@ -567,19 +578,19 @@ export default function LiveScoringVolleyball() {
     try {
       // Execute the action based on the command
       if (action === 'point') {
-        await handleScoreOnly();
+        await performAction(handleScoreOnly);
       } else if (action === 'kill') {
-        await handleScoreWithStat('field_goals_made', 'attack');
+        await performAction(() => handleScoreWithStat('field_goals_made', 'attack'));
       } else if (action === 'ace') {
-        await handleScoreWithStat('three_pointers', 'ace');
+        await performAction(() => handleScoreWithStat('three_pointers', 'ace'));
       } else if (action === 'block') {
-        await handleScoreWithStat('blocks', 'block');
+        await performAction(() => handleScoreWithStat('blocks', 'block'));
       } else if (action === 'assist') {
-        await updatePlayerStats(player.id, teamId, [{ statType: 'assists', value: 1 }]);
+        await performAction(() => updatePlayerStats(player.id, teamId, [{ statType: 'assists', value: 1 }]));
       } else if (action === 'dig') {
-        await updatePlayerStats(player.id, teamId, [{ statType: 'rebounds', value: 1 }]);
+        await performAction(() => updatePlayerStats(player.id, teamId, [{ statType: 'rebounds', value: 1 }]));
       } else if (action === 'error') {
-        await updatePlayerStats(player.id, teamId, [{ statType: 'steals', value: 1 }]);
+        await performAction(() => updatePlayerStats(player.id, teamId, [{ statType: 'steals', value: 1 }]));
       }
       setVoiceFeedback({ text: summary, status: 'success' });
     } catch (e) {
@@ -895,54 +906,61 @@ export default function LiveScoringVolleyball() {
 
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    onClick={() => handleScoreWithStat('field_goals_made', 'attack')}
+                    disabled={actionLock}
+                    onClick={() => performAction(() => handleScoreWithStat('field_goals_made', 'attack'))}
                     className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Target className="w-4 h-4 mr-1" />
                     ATTACK
                   </Button>
                   <Button
-                    onClick={() => handleScoreWithStat('blocks', 'block')}
+                    disabled={actionLock}
+                    onClick={() => performAction(() => handleScoreWithStat('blocks', 'block'))}
                     className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:scale-95 text-white font-black text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Shield className="w-4 h-4 mr-1" />
                     BLOCK
                   </Button>
                   <Button
-                    onClick={() => handleScoreWithStat('three_pointers', 'ace')}
+                    disabled={actionLock}
+                    onClick={() => performAction(() => handleScoreWithStat('three_pointers', 'ace'))}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Zap className="w-4 h-4 mr-1" />
                     ACE
                   </Button>
                   <Button
-                    onClick={() => updatePlayerStats(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, [{ statType: 'assists', value: 1 }])}
+                    disabled={actionLock}
+                    onClick={() => performAction(() => updatePlayerStats(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, [{ statType: 'assists', value: 1 }]))}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     ASSIST
                   </Button>
                   <Button
-                    onClick={() => updatePlayerStats(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, [{ statType: 'rebounds', value: 1 }])}
+                    disabled={actionLock}
+                    onClick={() => performAction(() => updatePlayerStats(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, [{ statType: 'rebounds', value: 1 }]))}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     DIG
                   </Button>
                   <Button
-                    onClick={() => updatePlayerStats(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, [{ statType: 'steals', value: 1 }])}
+                    disabled={actionLock}
+                    onClick={() => performAction(() => updatePlayerStats(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, [{ statType: 'steals', value: 1 }]))}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     ERROR
                   </Button>
                   <Button
-                    onClick={handleScoreOnly}
+                    disabled={actionLock}
+                    onClick={() => performAction(handleScoreOnly)}
                     className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Trophy className="w-4 h-4 mr-1" />
                     RALLY
                   </Button>
                   <Button
-                    onClick={handleUndo}
-                    disabled={actionHistory.length === 0}
+                    onClick={() => performAction(handleUndo)}
+                    disabled={actionLock || actionHistory.length === 0}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <RotateCcw className="w-4 h-4 mr-1" />
