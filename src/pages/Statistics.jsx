@@ -117,11 +117,14 @@ export default function Statistics() {
     queryKey: ['playerGameStats', orgId, JSON.stringify(gameIdsForStats)],
     queryFn: async () => {
       if (gameIdsForStats.length === 0) return [];
+      // Batch on backend; pass only completed IDs
       const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: gameIdsForStats });
-      return res.data || [];
+      return Array.isArray(res.data) ? res.data : [];
     },
     enabled: gameIdsForStats.length > 0,
-    refetchInterval: 10000,
+    staleTime: 30000,
+    gcTime: 5 * 60 * 1000,
+    refetchInterval: 20000,
   });
 
   const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division'))];
