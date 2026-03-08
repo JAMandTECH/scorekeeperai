@@ -20,7 +20,7 @@ export default function Statistics() {
   const [selectedDivision, setSelectedDivision] = useState('all');
   const [selectedSport, setSelectedSport] = useState('all');
   const [selectedTeamForPlayers, setSelectedTeamForPlayers] = useState('all');
-  const [dataScope, setDataScope] = useState('system');
+
   const [viewMode, setViewMode] = useState('card');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -96,6 +96,7 @@ export default function Statistics() {
     enabled: !!user,
   });
   const teamByIdAll = new Map(allTeamsAllOrgs.map(t => [t.id, t]));
+  const teamById = new Map(teams.map(t => [t.id, t]));
 
   const { data: players = [] } = useQuery({
     queryKey: ['players', orgId, teams.map(t => t.id).join(',')],
@@ -117,8 +118,8 @@ export default function Statistics() {
     enabled: !!user,
   });
 
-  const scopeAll = dataScope === 'system';
-  const availableTeams = scopeAll ? allTeamsAllOrgs : (teams.length > 0 ? teams : allTeamsAllOrgs);
+
+  const availableTeams = teams;
   const filteredTeams = availableTeams.filter(team => {
     const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
     const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
@@ -129,14 +130,14 @@ export default function Statistics() {
 
 
 
-  const effectiveGames = scopeAll ? allGamesAllOrgs : (games.some(g => g.status === 'completed') ? games : allGamesAllOrgs);
+  const effectiveGames = games;
   const filteredGameIds = effectiveGames
     .filter((g) => {
       if (g.status !== 'completed') return false;
       if (selectedSport !== 'all' && g.sport !== selectedSport) return false;
       if (selectedDivision !== 'all') {
-        const homeTeam = teamByIdAll.get(g.home_team_id);
-        const awayTeam = teamByIdAll.get(g.away_team_id);
+        const homeTeam = teamById.get(g.home_team_id);
+        const awayTeam = teamById.get(g.away_team_id);
         const homeDiv = homeTeam?.division || 'No Division';
         const awayDiv = awayTeam?.division || 'No Division';
         if (homeDiv !== selectedDivision && awayDiv !== selectedDivision) return false;
@@ -183,18 +184,9 @@ export default function Statistics() {
     refetchInterval: 20000,
   });
 
-  // Fallback: if no accessible completed games, still show data using raw stats
-  const { data: fallbackStats = [] } = useQuery({
-    queryKey: ['playerGameStatsFallback'],
-    queryFn: () => base44.entities.PlayerGameStats.list(),
-    enabled: gameIdsForStats.length === 0,
-    staleTime: 30000,
-    gcTime: 5 * 60 * 1000,
-  });
 
-  const effectivePlayerGameStats = gameIdsForStats.length > 0 ? playerGameStats : fallbackStats;
 
-  const divisions = ['all', ...new Set((scopeAll ? allTeamsAllOrgs : (teams.length > 0 ? teams : allTeamsAllOrgs)).map(t => t.division || 'No Division'))];
+  const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division'))];
   const sports = ['all', 'basketball', 'volleyball'];
 
   // filteredTeams and filteredTeamIds are defined above
@@ -202,15 +194,15 @@ export default function Statistics() {
     if (game.status !== 'completed') return false;
     if (selectedSport !== 'all' && game.sport !== selectedSport) return false;
     if (selectedDivision !== 'all') {
-      const homeTeam = teamByIdAll.get(game.home_team_id);
-      const awayTeam = teamByIdAll.get(game.away_team_id);
+      const homeTeam = teamById.get(game.home_team_id);
+      const awayTeam = teamById.get(game.away_team_id);
       const homeDiv = homeTeam?.division || 'No Division';
       const awayDiv = awayTeam?.division || 'No Division';
       if (homeDiv !== selectedDivision && awayDiv !== selectedDivision) return false;
     }
     return true;
   });
-  const availablePlayers = scopeAll ? allPlayersAllOrgs : (players.length > 0 ? players : allPlayersAllOrgs);
+  const availablePlayers = players;
   const filteredPlayers = availablePlayers.filter(p => filteredTeamIds.includes(p.team_id));
   // Fallback: if players list is empty, still allow leaderboards from stats using player_id only
   const completedGames = filteredGames.filter(g => g.status === 'completed');
@@ -220,9 +212,7 @@ export default function Statistics() {
   const gameById = new Map(effectiveGames.map(g => [g.id, g])); // uses current scope and filters; may be empty if no access
 
   const completedGameIdsSet = new Set(completedGames.map(g => g.id));
-  const relevantPlayerGameStats = gameIdsForStats.length > 0
-    ? effectivePlayerGameStats.filter((s) => completedGameIdsSet.has(s.game_id))
-    : effectivePlayerGameStats;
+  const relevantPlayerGameStats = playerGameStats.filter((s) => completedGameIdsSet.has(s.game_id));
 
   // Team players filter
   const teamPlayersFilteredByTeam = selectedTeamForPlayers === 'all' 
@@ -369,9 +359,8 @@ export default function Statistics() {
 
   // Player leaderboards aggregated from finished-game stats (no dependency on player list)
   const createPlayerLeaderboard = (statKey, _label) => {
-    const teamsById = new Map((scopeAll ? allTeamsAllOrgs : (teams.length > 0 ? teams : allTeamsAllOrgs)).map(t => [t.id, t]));
+    const teamsById = new Map(teams.map(t => [t.id, t]));
     const playersByIdOrg = new Map(players.map(p => [p.id, p]));
-    const playersByIdAll = new Map(allPlayersAllOrgs.map(p => [p.id, p]));
     const totals = new Map(); // player_id -> { total, team_id }
 
     relevantPlayerGameStats.forEach(s => {
@@ -402,7 +391,7 @@ export default function Statistics() {
 
     return Array.from(totals.entries())
       .map(([playerId, { total, team_id }]) => {
-        const player = playersByIdOrg.get(playerId) || playersByIdAll.get(playerId);
+        const player = playersByIdOrg.get(playerId);
         const team = teamsById.get(team_id);
         const name = player ? `${player.first_name} ${player.last_name}` : `Player ${String(playerId).slice(-4)}`;
         return {
@@ -521,15 +510,6 @@ Please provide:
                       <Filter className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                       <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Filter by:</span>
                     </div>
-
-                    <select
-                      value={dataScope}
-                      onChange={(e) => setDataScope(e.target.value)}
-                      className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-4 py-2 font-bold shadow-sm"
-                    >
-                      <option value="system">All Organizations</option>
-                      <option value="organization">My Organization</option>
-                    </select>
 
                     <select
                       value={selectedSport}
