@@ -101,18 +101,18 @@ export default function Statistics() {
 
 
   const completedIds = games.filter(g => g.status === 'completed').map(g => g.id);
-  const filteredGameIds = games
-    .filter(g => filteredTeamIds.includes(g.home_team_id) || filteredTeamIds.includes(g.away_team_id))
-    .map(g => g.id);
+  const filteredCompletedGameIds = completedIds.filter(id =>
+    games.some(g => g.id === id && (filteredTeamIds.includes(g.home_team_id) || filteredTeamIds.includes(g.away_team_id)))
+  );
 
   const { data: playerGameStats = [] } = useQuery({
-    queryKey: ['playerGameStats', orgId, JSON.stringify(filteredGameIds)],
+    queryKey: ['playerGameStats', orgId, JSON.stringify(filteredCompletedGameIds)],
     queryFn: async () => {
-      if (filteredGameIds.length === 0) return [];
-      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: filteredGameIds });
+      if (filteredCompletedGameIds.length === 0) return [];
+      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: filteredCompletedGameIds });
       return res.data || [];
     },
-    enabled: filteredGameIds.length > 0,
+    enabled: filteredCompletedGameIds.length > 0,
     refetchInterval: 10000,
   });
 
