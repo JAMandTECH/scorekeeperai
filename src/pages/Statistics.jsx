@@ -82,13 +82,17 @@ export default function Statistics() {
   });
 
   const { data: players = [] } = useQuery({
-    queryKey: ['players'],
+    queryKey: ['players', orgId, teams.map(t => t.id).join(',')],
     queryFn: async () => {
-      const allPlayers = await base44.entities.Player.list();
+      if (!orgId) return [];
       const teamIds = teams.map(t => t.id);
-      return allPlayers.filter(p => teamIds.includes(p.team_id));
+      if (teamIds.length === 0) return [];
+      const results = await Promise.all(teamIds.map(id => base44.entities.Player.filter({ team_id: id })));
+      const merged = new Map();
+      results.flat().forEach(p => { if (!merged.has(p.id)) merged.set(p.id, p); });
+      return Array.from(merged.values());
     },
-    enabled: teams.length > 0,
+    enabled: teams.length > 0 && !!orgId,
   });
 
   const filteredTeams = teams.filter(team => {
