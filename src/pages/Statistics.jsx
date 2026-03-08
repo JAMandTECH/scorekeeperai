@@ -82,17 +82,13 @@ export default function Statistics() {
   });
 
   const { data: players = [] } = useQuery({
-    queryKey: ['players', orgId],
+    queryKey: ['players'],
     queryFn: async () => {
-      if (!orgId) return [];
-      // Fetch players only for teams in this org to avoid 429s and speed up
-      const teamIds = teams.map(t => t.id);
-      if (teamIds.length === 0) return [];
-      // Pull players in chunks to respect API limits
       const allPlayers = await base44.entities.Player.list();
+      const teamIds = teams.map(t => t.id);
       return allPlayers.filter(p => teamIds.includes(p.team_id));
     },
-    enabled: teams.length > 0 && !!orgId,
+    enabled: teams.length > 0,
   });
 
   const filteredTeams = teams.filter(team => {
@@ -104,26 +100,30 @@ export default function Statistics() {
 
 
 
+
+  const filteredGameIds = games
+    .filter(g => g.status === 'completed' && (filteredTeamIds.includes(g.home_team_id) || filteredTeamIds.includes(g.away_team_id)))
+    .map(g => g.id);
+
   const completedIds = games.filter(g => g.status === 'completed').map(g => g.id);
-  const filteredCompletedGameIds = completedIds.filter(id =>
-    games.some(g => g.id === id && (filteredTeamIds.includes(g.home_team_id) || filteredTeamIds.includes(g.away_team_id)))
-  );
+
+  const gameIdsForStats = filteredGameIds.length > 0 ? filteredGameIds : completedIds;
 
   const { data: playerGameStats = [] } = useQuery({
-    queryKey: ['playerGameStats', orgId, JSON.stringify(filteredCompletedGameIds)],
+    queryKey: ['playerGameStats', orgId, JSON.stringify(gameIdsForStats)],
     queryFn: async () => {
-      if (filteredCompletedGameIds.length === 0) return [];
-      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: filteredCompletedGameIds });
+      if (gameIdsForStats.length === 0) return [];
+      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: gameIdsForStats });
       return res.data || [];
     },
-    enabled: filteredCompletedGameIds.length > 0,
+    enabled: gameIdsForStats.length > 0,
     refetchInterval: 10000,
   });
 
   const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division'))];
   const sports = ['all', 'basketball', 'volleyball'];
 
-
+  // filteredTeams and filteredTeamIds are defined above
   const filteredGames = games.filter(game =>
     (filteredTeamIds.includes(game.home_team_id) || filteredTeamIds.includes(game.away_team_id))
   );
@@ -168,19 +168,6 @@ export default function Statistics() {
     if (selectedSport === 'volleyball') {
       const volleyPoints = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0);
       totals.points = volleyPoints;
-    }
-    // Basketball fallback points = 2*twos + 3*threes + 1*FTM (if points not stored)
-    if (selectedSport === 'basketball') {
-      const derivedPoints = playerStats.reduce((sum, s) => {
-        const threes = Number(s.three_pointers || 0);
-        const fgm = Number(s.field_goals_made || 0);
-        const twos = Math.max(fgm - threes, 0);
-        const ftm = Number(s.free_throws_made || 0);
-        return sum + (twos * 2) + (threes * 3) + ftm;
-      }, 0);
-      if ((totals.points || 0) === 0 && derivedPoints > 0) {
-        totals.points = derivedPoints;
-      }
     }
 
     return {
@@ -274,16 +261,6 @@ export default function Statistics() {
         let total;
         if (selectedSport === 'volleyball' && statKey === 'points') {
           total = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0);
-        } else if (selectedSport === 'basketball' && statKey === 'points') {
-          total = playerStats.reduce((sum, s) => {
-            const threes = Number(s.three_pointers || 0);
-            const fgm = Number(s.field_goals_made || 0);
-            const twos = Math.max(fgm - threes, 0);
-            const ftm = Number(s.free_throws_made || 0);
-            const stored = Number(s.points || 0);
-            const derived = (twos * 2) + (threes * 3) + ftm;
-            return sum + (stored > 0 ? stored : derived);
-          }, 0);
         } else {
           total = playerStats.reduce((sum, s) => sum + (s[statKey] || 0), 0);
         }
