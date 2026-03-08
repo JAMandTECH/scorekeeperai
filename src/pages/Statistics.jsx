@@ -141,12 +141,11 @@ export default function Statistics() {
   // Map games by id for sport-aware stat calculations
   const gameById = new Map(games.map(g => [g.id, g]));
 
-  const relevantPlayerGameStats = playerGameStats.filter(stat => {
-    const gameIsCompletedAndFiltered = completedGames.some(game => game.id === stat.game_id);
-    const playerIsFiltered = filteredPlayers.some(p => p.id === stat.player_id);
-    const teamIsFiltered = stat.team_id ? filteredTeamIds.includes(stat.team_id) : false;
-    return gameIsCompletedAndFiltered && (playerIsFiltered || teamIsFiltered);
-  });
+  const completedGameIdsSet = new Set(completedGames.map(g => g.id));
+  const filteredTeamIdsSet = new Set(filteredTeamIds);
+  const relevantPlayerGameStats = playerGameStats.filter(stat => (
+    completedGameIdsSet.has(stat.game_id) && filteredTeamIdsSet.has(stat.team_id)
+  ));
 
   // Team players filter
   const teamPlayersFilteredByTeam = selectedTeamForPlayers === 'all' 
