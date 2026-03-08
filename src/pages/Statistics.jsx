@@ -68,15 +68,16 @@ export default function Statistics() {
     base44.auth.logout(createPageUrl("PublicLanding"));
   };
 
+  const orgId = user?.organization_id || user?.active_organization_id;
   const { data: teams = [] } = useQuery({
-    queryKey: ['teams', user?.organization_id],
-    queryFn: () => base44.entities.Team.filter({ organization_id: user?.organization_id }),
-    enabled: !!user?.organization_id,
+    queryKey: ['teams', orgId],
+    queryFn: () => base44.entities.Team.filter({ organization_id: orgId }),
+    enabled: !!orgId,
   });
 
   const { data: games = [] } = useQuery({
-    queryKey: ['games', user?.organization_id],
-    queryFn: () => base44.entities.Game.filter(user?.organization_id ? { organization_id: user?.organization_id } : {}),
+    queryKey: ['games', orgId],
+    queryFn: () => orgId ? base44.entities.Game.filter({ organization_id: orgId }) : base44.entities.Game.list(),
     enabled: !!user,
   });
 
@@ -92,13 +93,13 @@ export default function Statistics() {
 
   const completedIds = games.filter(g => g.status === 'completed').map(g => g.id);
   const { data: playerGameStats = [] } = useQuery({
-    queryKey: ['playerGameStats', JSON.stringify(completedIds)],
+    queryKey: ['playerGameStats', orgId, JSON.stringify(completedIds)],
     queryFn: async () => {
       if (completedIds.length === 0) return [];
       const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: completedIds });
       return res.data || [];
     },
-    enabled: completedIds.length > 0,
+    enabled: !!orgId && completedIds.length > 0,
   });
 
   const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division'))];
@@ -168,7 +169,7 @@ export default function Statistics() {
   const teamPlayersWithStats = teamPlayersFilteredByTeam.map(player => ({
     ...player,
     stats: getDetailedPlayerStats(player.id)
-  })).sort((a, b) => b.stats.points - a.stats.points);
+  })).sort((a, b) => (b.stats.points || 0) - (a.stats.points || 0));
 
   // Comprehensive organization statistics
   const orgStats = {
@@ -623,7 +624,7 @@ Please provide:
                     </Card>
 
                     {/* Top Assists (Basketball) */}
-                    <TopAssistLeaders organizationId={user?.organization_id} sport="basketball" orgName={organization?.name} orgLogoUrl={organization?.logo_url} />
+                    <TopAssistLeaders organizationId={orgId} sport="basketball" orgName={organization?.name} orgLogoUrl={organization?.logo_url} />
 
                     {/* Top Blocks */}
                     <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
