@@ -112,11 +112,12 @@ export default function Statistics() {
 
 
 
-  const filteredGameIds = games
+  const effectiveGames = (games.length > 0 ? games : allGamesAllOrgs);
+  const filteredGameIds = effectiveGames
     .filter(g => g.status === 'completed' && (filteredTeamIds.includes(g.home_team_id) || filteredTeamIds.includes(g.away_team_id)))
     .map(g => g.id);
 
-  const completedIds = games.filter(g => g.status === 'completed').map(g => g.id);
+  const completedIds = effectiveGames.filter(g => g.status === 'completed').map(g => g.id);
 
   const gameIdsForStats = filteredGameIds.length > 0 ? filteredGameIds : completedIds;
 
