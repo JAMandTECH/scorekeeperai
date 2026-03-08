@@ -88,7 +88,6 @@ export default function Statistics() {
   // Load all teams across orgs for cross-org filtering (division lookups)
   // Build team index for current organization only
   const teamById = new Map(teams.map(t => [t.id, t]));
-  const teamById = new Map(teams.map(t => [t.id, t]));
 
   const { data: players = [] } = useQuery({
     queryKey: ['players', orgId, teams.map(t => t.id).join(',')],
