@@ -125,7 +125,7 @@ export default function Statistics() {
 
   // filteredTeams and filteredTeamIds are defined above
   const filteredGames = games.filter(game =>
-    (filteredTeamIds.includes(game.home_team_id) || filteredTeamIds.includes(game.away_team_id))
+    game.status === 'completed' && (filteredTeamIds.includes(game.home_team_id) || filteredTeamIds.includes(game.away_team_id))
   );
   const filteredPlayers = players.filter(p => filteredTeamIds.includes(p.team_id));
   const completedGames = filteredGames.filter(g => g.status === 'completed');
