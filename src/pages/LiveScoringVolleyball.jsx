@@ -289,10 +289,7 @@ export default function LiveScoringVolleyball() {
     // Update score
     setHomeScore(newHomeScore);
     setAwayScore(newAwayScore);
-    await updateGame({
-      home_score: newHomeScore,
-      away_score: newAwayScore,
-    });
+    await updateGame(selectedTeam === 'home' ? { home_score_delta: 1 } : { away_score_delta: 1 });
   };
 
   const handleScoreOnly = async () => {
@@ -350,11 +347,11 @@ export default function LiveScoringVolleyball() {
       if (lastAction.team === 'home') {
         const newTimeouts = homeTimeouts + 1;
         setHomeTimeouts(newTimeouts);
-        await updateGame({ home_timeouts: newTimeouts });
+        await updateGame({ home_timeouts_delta: +1 });
       } else if (lastAction.team === 'away') {
         const newTimeouts = awayTimeouts + 1;
         setAwayTimeouts(newTimeouts);
-        await updateGame({ away_timeouts: newTimeouts });
+        await updateGame({ away_timeouts_delta: +1 });
       }
     }
   };
@@ -375,11 +372,11 @@ export default function LiveScoringVolleyball() {
       if (team === 'home' && homeTimeouts > 0) {
         const newTimeouts = homeTimeouts - 1;
         setHomeTimeouts(newTimeouts);
-        await updateGame({ home_timeouts: newTimeouts });
+        await updateGame({ home_timeouts_delta: -1 });
       } else if (team === 'away' && awayTimeouts > 0) {
         const newTimeouts = awayTimeouts - 1;
         setAwayTimeouts(newTimeouts);
-        await updateGame({ away_timeouts: newTimeouts });
+        await updateGame({ away_timeouts_delta: -1 });
       }
     }
   };
