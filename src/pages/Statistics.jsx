@@ -117,9 +117,29 @@ export default function Statistics() {
     queryKey: ['playerGameStats', orgId, JSON.stringify(gameIdsForStats)],
     queryFn: async () => {
       if (gameIdsForStats.length === 0) return [];
-      // Batch on backend; pass only completed IDs
+      // Primary: backend function (handles batching/backoff)
       const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: gameIdsForStats });
-      return Array.isArray(res.data) ? res.data : [];
+      let stats = Array.isArray(res.data) ? res.data : [];
+
+      // Fallback: fetch directly from entity if function returns empty (safety net)
+      if (!stats || stats.length === 0) {
+        const results = [];
+        for (let i = 0; i < gameIdsForStats.length; i += 50) {
+          const chunk = gameIdsForStats.slice(i, i + 50);
+          try {
+            const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
+            results.push(...part);
+          } catch (_) {
+            const per = await Promise.all(
+              chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
+            );
+            results.push(...per.flat());
+          }
+        }
+        stats = results;
+      }
+
+      return stats;
     },
     enabled: gameIdsForStats.length > 0,
     staleTime: 30000,
