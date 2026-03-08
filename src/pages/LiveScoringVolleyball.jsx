@@ -235,26 +235,20 @@ export default function LiveScoringVolleyball() {
       };
     });
 
-    setTimeout(async () => {
-      const currentStats = playerStats;
-      const statToSave = currentStats[key]; 
-      
-      if (!statToSave) return;
-
-      try {
-        if (statToSave.id) {
-          await base44.entities.PlayerGameStats.update(statToSave.id, statToSave);
-        } else {
-          const created = await base44.entities.PlayerGameStats.create(statToSave);
-          setPlayerStats(prev => ({
-            ...prev,
-            [key]: { ...prev[key], id: created.id },
-          }));
-        }
-      } catch (error) {
-        console.error("Error saving player stats:", error);
-      }
-    }, 100);
+    const resp = await base44.functions.invoke('upsertPlayerStat', {
+      game_id: game.id,
+      player_id: playerId,
+      team_id: teamId,
+      quarter: currentSet,
+      updates: statUpdates,
+    });
+    const saved = resp?.data?.stat;
+    if (saved?.id) {
+      setPlayerStats(prev => ({
+        ...prev,
+        [key]: { ...prev[key], id: saved.id },
+      }));
+    }
   };
 
   const handleScoreWithStat = async (statType, pointType) => {
@@ -445,19 +439,11 @@ export default function LiveScoringVolleyball() {
       away_score: awayScore,
     });
 
-    if (homeSetsWon > awaySetsWon) {
-      await base44.entities.Team.update(game.home_team_id, {
-        wins: (homeTeamToUpdate.wins || 0) + 1
-      });
-      await base44.entities.Team.update(game.away_team_id, {
-        losses: (awayTeamToUpdate.losses || 0) + 1
-      });
-    } else if (awaySetsWon > homeSetsWon) {
-      await base44.entities.Team.update(game.home_team_id, {
-        losses: (homeTeamToUpdate.losses || 0) + 1
-      });
-      await base44.entities.Team.update(game.away_team_id, {
-        wins: (awayTeamToUpdate.wins || 0) + 1
+    if (homeSetsWon !== awaySetsWon) {
+      await base44.functions.invoke('updateTeamRecords', {
+        game_id: game.id,
+        mode: 'apply_winner',
+        winner_team: homeSetsWon > awaySetsWon ? 'home' : 'away',
       });
     }
 
@@ -517,16 +503,10 @@ export default function LiveScoringVolleyball() {
       winning_team_id: winningTeamId,
     });
 
-    const allTeams = await base44.entities.Team.list();
-    const winningTeam = allTeams.find(t => t.id === winningTeamId);
-    const defaultedTeam = allTeams.find(t => t.id === defaultedTeamId);
-
-    await base44.entities.Team.update(winningTeamId, {
-      wins: (winningTeam.wins || 0) + 1
-    });
-
-    await base44.entities.Team.update(defaultedTeamId, {
-      losses: (defaultedTeam.losses || 0) + 1
+    await base44.functions.invoke('updateTeamRecords', {
+      game_id: game.id,
+      mode: 'apply_default',
+      defaulted_team: defaultedTeamId === game.home_team_id ? 'home' : 'away',
     });
 
     setShowDefaultDialog(false);
@@ -536,16 +516,9 @@ export default function LiveScoringVolleyball() {
   const handleUndoDefault = async () => {
     if (!game.is_default) return;
 
-    const allTeams = await base44.entities.Team.list();
-    const winningTeam = allTeams.find(t => t.id === game.winning_team_id);
-    const defaultedTeam = allTeams.find(t => t.id === game.defaulted_team_id);
-
-    await base44.entities.Team.update(game.winning_team_id, {
-      wins: Math.max(0, (winningTeam.wins || 0) - 1)
-    });
-
-    await base44.entities.Team.update(game.defaulted_team_id, {
-      losses: Math.max(0, (defaultedTeam.losses || 0) - 1)
+    await base44.functions.invoke('updateTeamRecords', {
+      game_id: game.id,
+      mode: 'undo_default',
     });
 
     await updateGame({
