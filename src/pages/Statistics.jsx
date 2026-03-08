@@ -274,32 +274,45 @@ export default function Statistics() {
     };
   });
 
-  // Player leaderboards (sport-aware for points)
-  const createPlayerLeaderboard = (statKey, label) => {
-    return filteredPlayers
-      .map(player => {
-        const playerStats = relevantPlayerGameStats.filter(s => s.player_id === player.id);
-        const team = filteredTeams.find(t => t.id === player.team_id) || teams.find(t => t.id === player.team_id);
-        let total = 0;
+  // Player leaderboards aggregated from finished-game stats (no dependency on player list)
+  const createPlayerLeaderboard = (statKey, _label) => {
+    const teamsById = new Map(teams.map(t => [t.id, t]));
+    const playersById = new Map(players.map(p => [p.id, p]));
+    const totals = new Map(); // player_id -> { total, team_id }
 
-        if (statKey === 'points') {
-          if (team?.sport === 'volleyball') {
-            total = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0), 0);
-          } else { // basketball or default
-            const stored = playerStats.reduce((sum, s) => sum + (s.points || 0), 0);
-            if (stored > 0) total = stored; else {
-              const fgm = playerStats.reduce((sum, s) => sum + (s.field_goals_made || 0), 0);
-              const threes = playerStats.reduce((sum, s) => sum + (s.three_pointers || 0), 0);
-              const ftm = playerStats.reduce((sum, s) => sum + (s.free_throws_made || 0), 0);
-              total = Math.max(0, (fgm - threes)) * 2 + (threes * 3) + ftm;
-            }
+    relevantPlayerGameStats.forEach(s => {
+      const team = teamsById.get(s.team_id);
+      const sport = team?.sport || selectedSport;
+      let add = 0;
+
+      if (statKey === 'points') {
+        if (sport === 'volleyball') {
+          add = (s.field_goals_made || 0) + (s.blocks || 0) + (s.three_pointers || 0);
+        } else { // basketball/default
+          const stored = Number(s.points || 0);
+          if (stored > 0) add = stored; else {
+            const threes = Number(s.three_pointers || 0);
+            const fgm = Number(s.field_goals_made || 0);
+            const twos = Math.max(fgm - threes, 0);
+            const ftm = Number(s.free_throws_made || 0);
+            add = (twos * 2) + (threes * 3) + ftm;
           }
-        } else {
-          total = playerStats.reduce((sum, s) => sum + (s[statKey] || 0), 0);
         }
+      } else {
+        add = Number(s[statKey] || 0);
+      }
 
+      const prev = totals.get(s.player_id) || { total: 0, team_id: s.team_id };
+      totals.set(s.player_id, { total: prev.total + add, team_id: prev.team_id || s.team_id });
+    });
+
+    return Array.from(totals.entries())
+      .map(([playerId, { total, team_id }]) => {
+        const player = playersById.get(playerId);
+        const team = teamsById.get(team_id);
+        const name = player ? `${player.first_name} ${player.last_name}` : `Player ${String(playerId).slice(-4)}`;
         return {
-          name: `${player.first_name} ${player.last_name}`,
+          name,
           team: team?.name || 'Unknown',
           value: total,
           sport: team?.sport,
