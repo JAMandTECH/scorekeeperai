@@ -129,6 +129,35 @@ export default function Teams() {
     enabled: !!user?.organization_id,
   });
 
+  const completedGames = React.useMemo(() => (orgGames || []).filter(g => g.status === 'completed'), [orgGames]);
+
+  const pointsDiffMap = React.useMemo(() => {
+    const map = {};
+    completedGames.forEach(g => {
+      const hId = g.home_team_id;
+      const aId = g.away_team_id;
+      if (!map[hId]) map[hId] = { pf: 0, pa: 0 };
+      if (!map[aId]) map[aId] = { pf: 0, pa: 0 };
+      map[hId].pf += g.home_score || 0;
+      map[hId].pa += g.away_score || 0;
+      map[aId].pf += g.away_score || 0;
+      map[aId].pa += g.home_score || 0;
+    });
+    return map;
+  }, [completedGames]);
+
+  const sortTeams = React.useCallback((arr) => {
+    return [...arr].sort((a, b) => {
+      const winsA = a.wins || 0, winsB = b.wins || 0;
+      if (winsB !== winsA) return winsB - winsA;
+      const diffA = (pointsDiffMap[a.id]?.pf || 0) - (pointsDiffMap[a.id]?.pa || 0);
+      const diffB = (pointsDiffMap[b.id]?.pf || 0) - (pointsDiffMap[b.id]?.pa || 0);
+      if (diffB !== diffA) return diffB - diffA;
+      const lossesA = a.losses || 0, lossesB = b.losses || 0;
+      return lossesA - lossesB;
+    });
+  }, [pointsDiffMap]);
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Team.create(data),
     onSuccess: () => {
