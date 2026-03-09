@@ -157,10 +157,10 @@ export default function Players() {
     const gamesPlayed = [...new Set(playerStatsList.map(s => s.game_id))].length;
     
     if (sport === 'volleyball') {
-      const points = playerStatsList.reduce((sum, s) => sum + (s.points || 0), 0);
-      const attacks = playerStatsList.reduce((sum, s) => sum + (s.field_goals_made || 0), 0);
+      const attacks = playerStatsList.reduce((sum, s) => sum + (s.attacks || 0), 0);
       const blocks = playerStatsList.reduce((sum, s) => sum + (s.blocks || 0), 0);
-      const aces = playerStatsList.reduce((sum, s) => sum + (s.three_pointers || 0), 0);
+      const aces = playerStatsList.reduce((sum, s) => sum + (s.aces || 0), 0);
+      const points = attacks + blocks + aces;
       
       return {
         ...player,
