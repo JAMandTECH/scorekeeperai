@@ -107,9 +107,19 @@ export default function Players() {
   });
 
   const { data: allPlayerStats = [] } = useQuery({
-    queryKey: ['player-stats'],
-    queryFn: () => base44.entities.PlayerGameStats.list(),
-    enabled: !!user,
+  queryKey: ['player-stats'],
+  queryFn: () => base44.entities.PlayerGameStats.list(),
+  enabled: !!user,
+  });
+
+  // Completed games (only these should count toward player statistics)
+  const { data: completedGames = [] } = useQuery({
+  queryKey: ['completed-games', user?.organization_id],
+  queryFn: async () => {
+    if (!user?.organization_id) return [];
+    return base44.entities.Game.filter({ organization_id: user.organization_id, status: 'completed' });
+  },
+  enabled: !!user?.organization_id,
   });
 
   const filteredTeams = teams.filter(team => {
@@ -133,6 +143,9 @@ export default function Players() {
     return team?.sport || 'basketball';
   };
 
+  // Only include stats from completed games
+  const completedGameIds = new Set((completedGames || []).map(g => g.id));
+
   const players = allPlayers.filter(p => {
     const playerTeam = teams.find(t => t.id === p.team_id);
     if (!playerTeam) return false;
@@ -152,7 +165,7 @@ export default function Players() {
 
     return true;
   }).map(player => {
-    const playerStatsList = allPlayerStats.filter(s => s.player_id === player.id);
+    const playerStatsList = allPlayerStats.filter(s => s.player_id === player.id && completedGameIds.has(s.game_id));
     const sport = getTeamSport(player.team_id);
     const gamesPlayed = [...new Set(playerStatsList.map(s => s.game_id))].length;
     
