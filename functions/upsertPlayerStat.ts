@@ -74,6 +74,10 @@ Deno.serve(async (req) => {
         field_goals_attempted: 0,
         free_throws_made: 0,
         free_throws_attempted: 0,
+        // Volleyball fields
+        attacks: 0,
+        aces: 0,
+        rally_errors: 0,
       };
       const doc = applyUpdates(base);
       saved = await base44.asServiceRole.entities.PlayerGameStats.create(doc);

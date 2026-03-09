@@ -463,9 +463,9 @@ export default function LiveScoringVolleyball() {
     let bestPoints = 0;
     
     allPlayersInGame.forEach(player => {
-      const attacks = getPlayerStat(player.id, 'field_goals_made');
+      const attacks = getPlayerStat(player.id, 'attacks');
       const blocks = getPlayerStat(player.id, 'blocks');
-      const aces = getPlayerStat(player.id, 'three_pointers');
+      const aces = getPlayerStat(player.id, 'aces');
       const points = attacks + blocks + aces;
       if (points > bestPoints) {
         bestPoints = points;
@@ -580,9 +580,9 @@ export default function LiveScoringVolleyball() {
       if (action === 'point') {
         await performAction(handleScoreOnly);
       } else if (action === 'kill') {
-        await performAction(() => handleScoreWithStat('field_goals_made', 'attack'));
+        await performAction(() => handleScoreWithStat('attacks', 'attack'));
       } else if (action === 'ace') {
-        await performAction(() => handleScoreWithStat('three_pointers', 'ace'));
+        await performAction(() => handleScoreWithStat('aces', 'ace'));
       } else if (action === 'block') {
         await performAction(() => handleScoreWithStat('blocks', 'block'));
       } else if (action === 'assist') {
@@ -590,7 +590,7 @@ export default function LiveScoringVolleyball() {
       } else if (action === 'dig') {
         await performAction(() => updatePlayerStats(player.id, teamId, [{ statType: 'rebounds', value: 1 }]));
       } else if (action === 'error') {
-        await performAction(() => updatePlayerStats(player.id, teamId, [{ statType: 'steals', value: 1 }]));
+        await performAction(() => updatePlayerStats(player.id, teamId, [{ statType: 'rally_errors', value: 1 }]));
       }
       setVoiceFeedback({ text: summary, status: 'success' });
     } catch (e) {
@@ -616,9 +616,9 @@ export default function LiveScoringVolleyball() {
   const currentSetAwayScore = awayScore - previousAwayTotalScore;
 
   const PlayerRow = ({ player, team, teamId, onSelect }) => {
-    const attacks = getPlayerStat(player.id, 'field_goals_made');
+    const attacks = getPlayerStat(player.id, 'attacks');
     const blocks = getPlayerStat(player.id, 'blocks');
-    const aces = getPlayerStat(player.id, 'three_pointers');
+    const aces = getPlayerStat(player.id, 'aces');
     const points = attacks + blocks + aces;
 
     const isSelected = selectedPlayer?.id === player.id;
@@ -907,7 +907,7 @@ export default function LiveScoringVolleyball() {
                 <div className="flex flex-wrap gap-2">
                   <Button
                     disabled={actionLock}
-                    onClick={() => performAction(() => handleScoreWithStat('field_goals_made', 'attack'))}
+                    onClick={() => performAction(() => handleScoreWithStat('attacks', 'attack'))}
                     className="flex-1 min-w-[90px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Target className="w-4 h-4 mr-1" />
@@ -923,7 +923,7 @@ export default function LiveScoringVolleyball() {
                   </Button>
                   <Button
                     disabled={actionLock}
-                    onClick={() => performAction(() => handleScoreWithStat('three_pointers', 'ace'))}
+                    onClick={() => performAction(() => handleScoreWithStat('aces', 'ace'))}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     <Zap className="w-4 h-4 mr-1" />
@@ -945,7 +945,7 @@ export default function LiveScoringVolleyball() {
                   </Button>
                   <Button
                     disabled={actionLock}
-                    onClick={() => performAction(() => updatePlayerStats(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, [{ statType: 'steals', value: 1 }]))}
+                    onClick={() => performAction(() => updatePlayerStats(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, [{ statType: 'rally_errors', value: 1 }]))}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl"
                   >
                     ERROR
@@ -995,7 +995,7 @@ export default function LiveScoringVolleyball() {
                     <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
                       <div className="grid grid-cols-3 gap-2 text-center">
                         <div>
-                          <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{currentSetStats.field_goals_made || 0}</div>
+                          <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{currentSetStats.attacks || 0}</div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">ATK</div>
                         </div>
                         <div>
@@ -1003,7 +1003,7 @@ export default function LiveScoringVolleyball() {
                           <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">BLK</div>
                         </div>
                         <div>
-                          <div className="text-2xl font-black text-cyan-600 dark:text-cyan-400">{currentSetStats.three_pointers || 0}</div>
+                          <div className="text-2xl font-black text-cyan-600 dark:text-cyan-400">{currentSetStats.aces || 0}</div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">ACE</div>
                         </div>
                       </div>
