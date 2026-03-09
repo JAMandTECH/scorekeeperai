@@ -561,7 +561,7 @@ export default function GameHistory({
                           team: homeTeam?.name,
                           stats: game.sport === 'basketball'
                             ? `${homeBestPlayer.stats.points} PTS, ${homeBestPlayer.stats.rebounds || 0} REB, ${homeBestPlayer.stats.assists || 0} AST`
-                            : `${homeBestPlayer.stats.field_goals_made || 0} ATK, ${homeBestPlayer.stats.blocks || 0} BLK, ${homeBestPlayer.stats.three_pointers || 0} ACE`
+                            : `${homeBestPlayer.stats.attacks || 0} ATK, ${homeBestPlayer.stats.blocks || 0} BLK, ${homeBestPlayer.stats.aces || 0} ACE`
                         });
                       }
                       if (awayBestPlayer) {
@@ -570,7 +570,7 @@ export default function GameHistory({
                           team: awayTeam?.name,
                           stats: game.sport === 'basketball'
                             ? `${awayBestPlayer.stats.points} PTS, ${awayBestPlayer.stats.rebounds || 0} REB, ${awayBestPlayer.stats.assists || 0} AST`
-                            : `${awayBestPlayer.stats.field_goals_made || 0} ATK, ${awayBestPlayer.stats.blocks || 0} BLK, ${awayBestPlayer.stats.three_pointers || 0} ACE`
+                            : `${awayBestPlayer.stats.attacks || 0} ATK, ${awayBestPlayer.stats.blocks || 0} BLK, ${awayBestPlayer.stats.aces || 0} ACE`
                         });
                       }
 
