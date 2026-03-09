@@ -155,6 +155,8 @@ export default function Games() {
     queryFn: async () => {
       if (completedIds.length === 0) return [];
 
+      await new Promise((r) => setTimeout(r, 150));
+
       let stats = [];
       try {
         const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: completedIds });
@@ -176,6 +178,9 @@ export default function Games() {
             );
             results.push(...per.flat());
           }
+          if (i + 50 < completedIds.length) {
+            await new Promise((r) => setTimeout(r, 200));
+          }
         }
         stats = results;
       }
@@ -183,9 +188,13 @@ export default function Games() {
       return stats;
     },
     enabled: !!user?.organization_id && completedIds.length > 0,
-    staleTime: 30000,
-    gcTime: 5 * 60 * 1000,
-    refetchInterval: 20000,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1000 * Math.pow(2, attempt), 8000),
   });
 
   const { data: scorekeepers = [] } = useQuery({
