@@ -15,9 +15,14 @@ export default function TopAssistLeaders({ organizationId = null, sport = "baske
         sport,
         limit,
       });
-      return res.data?.leaders || [];
+      const leaders = res?.data?.leaders;
+      return Array.isArray(leaders) ? leaders : [];
     },
+    initialData: [],
+    refetchOnWindowFocus: false,
   });
+
+  const leaders = Array.isArray(data) ? data : [];
 
   return (
     <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
