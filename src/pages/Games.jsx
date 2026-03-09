@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap, Edit, ChevronDown, ChevronUp, FileEdit, Wrench } from "lucide-react";
+import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap, Edit, ChevronDown, ChevronUp, FileEdit } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -155,8 +155,6 @@ export default function Games() {
     queryFn: async () => {
       if (completedIds.length === 0) return [];
 
-      await new Promise((r) => setTimeout(r, 150));
-
       let stats = [];
       try {
         const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: completedIds });
@@ -178,9 +176,6 @@ export default function Games() {
             );
             results.push(...per.flat());
           }
-          if (i + 50 < completedIds.length) {
-            await new Promise((r) => setTimeout(r, 200));
-          }
         }
         stats = results;
       }
@@ -188,13 +183,9 @@ export default function Games() {
       return stats;
     },
     enabled: !!user?.organization_id && completedIds.length > 0,
-    staleTime: 2 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    retry: 3,
-    retryDelay: (attempt) => Math.min(1000 * Math.pow(2, attempt), 8000),
+    staleTime: 30000,
+    gcTime: 5 * 60 * 1000,
+    refetchInterval: 20000,
   });
 
   const { data: scorekeepers = [] } = useQuery({
@@ -296,22 +287,6 @@ export default function Games() {
     onSuccess: () => {
       queryClient.invalidateQueries(['games']);
       setRestoringGame(null);
-    },
-  });
-
-  const fixStatsMutation = useMutation({
-    mutationFn: async () => {
-      const res = await base44.functions.invoke('auditAndRelinkStatsThisWeek', {});
-      return res.data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries(['all-player-stats']);
-      queryClient.invalidateQueries(['games']);
-      const moved = data?.total_updates ?? 0;
-      alert(`Stats fix completed: ${moved} update(s).`);
-    },
-    onError: (err) => {
-      alert(`Stats fix failed: ${err?.message || err}`);
     },
   });
 
@@ -834,17 +809,6 @@ export default function Games() {
                     <Zap className="w-5 h-5 mr-2" />
                     AI Generate Schedule
                   </Button>
-                  {hasPermission('manage_games') && (
-                    <Button 
-                      onClick={() => fixStatsMutation.mutate()}
-                      variant="outline"
-                      disabled={fixStatsMutation.isLoading}
-                      className="border-2 border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 font-bold"
-                    >
-                      <Wrench className="w-5 h-5 mr-2" />
-                      {fixStatsMutation.isLoading ? 'Fixing...' : 'Fix Missing Stats'}
-                    </Button>
-                  )}
                   {hasPermission('manage_games') && (
                     <Button 
                       onClick={() => setShowForm(true)}
