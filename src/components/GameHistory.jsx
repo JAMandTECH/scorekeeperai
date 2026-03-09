@@ -269,7 +269,7 @@ export default function GameHistory({
                       <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
                         {game.sport === 'basketball' 
                           ? `${homeBestPlayer.stats.points} PTS • ${homeBestPlayer.stats.rebounds || 0} REB • ${homeBestPlayer.stats.assists || 0} AST`
-                          : `${homeBestPlayer.stats.attacks || 0} ATK • ${homeBestPlayer.stats.blocks || 0} BLK • ${homeBestPlayer.stats.aces || 0} ACE`
+                          : `${homeBestPlayer.stats.field_goals_made || 0} ATK • ${homeBestPlayer.stats.blocks || 0} BLK • ${homeBestPlayer.stats.three_pointers || 0} ACE`
                         }
                       </p>
                     </div>
@@ -294,7 +294,7 @@ export default function GameHistory({
                       <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
                         {game.sport === 'basketball' 
                           ? `${awayBestPlayer.stats.points} PTS • ${awayBestPlayer.stats.rebounds || 0} REB • ${awayBestPlayer.stats.assists || 0} AST`
-                          : `${awayBestPlayer.stats.attacks || 0} ATK • ${awayBestPlayer.stats.blocks || 0} BLK • ${awayBestPlayer.stats.aces || 0} ACE`
+                          : `${awayBestPlayer.stats.field_goals_made || 0} ATK • ${awayBestPlayer.stats.blocks || 0} BLK • ${awayBestPlayer.stats.three_pointers || 0} ACE`
                         }
                       </p>
                     </div>
@@ -338,18 +338,6 @@ export default function GameHistory({
               {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
                 <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
               )}
-              {loadingGame === game.id && (
-                <div className="text-xs text-gray-600 dark:text-gray-300">Loading player stats...</div>
-              )}
-              {statsError[game.id] && (
-                <div className="text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
-                  Failed to load stats.
-                  <Button size="sm" variant="outline" onClick={() => fetchStatsForGame(game.id)}>Retry</Button>
-                </div>
-              )}
-              {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
-                <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
-              )}
               {/* Home Team Stats */}
               <div>
                 <p className="text-sm font-bold text-gray-900 dark:text-white mb-3">
@@ -371,7 +359,7 @@ export default function GameHistory({
                         <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
                           {game.sport === 'basketball'
                             ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.steals || 0} STL • ${stat.blocks || 0} BLK • ${stat.fouls || 0} FLS`
-                            : `${stat.attacks || 0} ATK • ${stat.blocks || 0} BLK • ${stat.aces || 0} ACE • ${stat.rally_errors || 0} ERR`
+                            : `${stat.field_goals_made || 0} ATK • ${stat.blocks || 0} BLK • ${stat.three_pointers || 0} ACE • ${stat.assists || 0} AST`
                           }
                         </p>
                       </div>
@@ -401,7 +389,7 @@ export default function GameHistory({
                         <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
                           {game.sport === 'basketball'
                             ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.steals || 0} STL • ${stat.blocks || 0} BLK • ${stat.fouls || 0} FLS`
-                            : `${stat.attacks || 0} ATK • ${stat.blocks || 0} BLK • ${stat.aces || 0} ACE • ${stat.rally_errors || 0} ERR`
+                            : `${stat.field_goals_made || 0} ATK • ${stat.blocks || 0} BLK • ${stat.three_pointers || 0} ACE • ${stat.assists || 0} AST`
                           }
                         </p>
                       </div>
@@ -648,18 +636,6 @@ export default function GameHistory({
                                   {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
                                     <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
                                   )}
-                                  {loadingGame === game.id && (
-                                    <div className="text-xs text-gray-600 dark:text-gray-300">Loading player stats...</div>
-                                  )}
-                                  {statsError[game.id] && (
-                                    <div className="text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
-                                      Failed to load stats.
-                                      <Button size="sm" variant="outline" onClick={() => fetchStatsForGame(game.id)}>Retry</Button>
-                                    </div>
-                                  )}
-                                  {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
-                                    <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
-                                  )}
                                   {/* Quarter/Set Scores */}
                                   {game.quarter_scores && game.quarter_scores.length > 0 && (
                                     <div>
@@ -704,7 +680,7 @@ export default function GameHistory({
                                               <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">
                                                 {game.sport === 'basketball'
                                                   ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.steals || 0} STL • ${stat.blocks || 0} BLK`
-                                                  : `${stat.attacks || 0} ATK • ${stat.blocks || 0} BLK • ${stat.aces || 0} ACE • ${stat.rally_errors || 0} ERR`
+                                                  : `${stat.field_goals_made || 0} ATK • ${stat.blocks || 0} BLK • ${stat.three_pointers || 0} ACE • ${stat.assists || 0} AST`
                                                 }
                                               </p>
                                             </div>
@@ -734,7 +710,7 @@ export default function GameHistory({
                                               <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">
                                                 {game.sport === 'basketball'
                                                   ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.steals || 0} STL • ${stat.blocks || 0} BLK`
-                                                  : `${stat.attacks || 0} ATK • ${stat.blocks || 0} BLK • ${stat.aces || 0} ACE • ${stat.rally_errors || 0} ERR`
+                                                  : `${stat.field_goals_made || 0} ATK • ${stat.blocks || 0} BLK • ${stat.three_pointers || 0} ACE • ${stat.assists || 0} AST`
                                                 }
                                               </p>
                                             </div>
