@@ -50,11 +50,11 @@ export default function TopAssistLeaders({ organizationId = null, sport = "baske
           </div>
         ) : isError ? (
           <div className="text-sm text-red-600 dark:text-red-400">Failed to load leaders.</div>
-        ) : data.length === 0 ? (
+        ) : leaders.length === 0 ? (
           <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
         ) : (
           <div className="space-y-2">
-            {data.map((p, i) => (
+            {leaders.map((p, i) => (
               <div key={p.player_id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                 <div
                   className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
