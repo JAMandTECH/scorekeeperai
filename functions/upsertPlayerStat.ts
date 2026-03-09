@@ -57,6 +57,7 @@ Deno.serve(async (req) => {
     let saved;
     if (existing) {
       const patch = applyUpdates(existing);
+      if (existing.team_id !== team_id) { patch.team_id = team_id; }
       saved = await base44.asServiceRole.entities.PlayerGameStats.update(existing.id, patch);
     } else {
       const base = {
