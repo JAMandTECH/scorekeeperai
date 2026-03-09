@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap, Edit, ChevronDown, ChevronUp, FileEdit } from "lucide-react";
+import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap, Edit, ChevronDown, ChevronUp, FileEdit, Wrench } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -287,6 +287,22 @@ export default function Games() {
     onSuccess: () => {
       queryClient.invalidateQueries(['games']);
       setRestoringGame(null);
+    },
+  });
+
+  const fixStatsMutation = useMutation({
+    mutationFn: async () => {
+      const res = await base44.functions.invoke('auditAndRelinkStatsThisWeek', {});
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['all-player-stats']);
+      queryClient.invalidateQueries(['games']);
+      const moved = data?.total_updates ?? 0;
+      alert(`Stats fix completed: ${moved} update(s).`);
+    },
+    onError: (err) => {
+      alert(`Stats fix failed: ${err?.message || err}`);
     },
   });
 
