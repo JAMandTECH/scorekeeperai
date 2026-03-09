@@ -48,17 +48,9 @@ export default function GameHistory({
 
   useEffect(() => {
     if (!expandedGame) return;
-    (async () => {
-      try {
-        // Fetch stats for this game if not already cached or empty
-        if (!statsByGame[expandedGame] || statsByGame[expandedGame].length === 0) {
-          const res = await base44.entities.PlayerGameStats.filter({ game_id: expandedGame });
-          setStatsByGame(prev => ({ ...prev, [expandedGame]: Array.isArray(res) ? res : [] }));
-        }
-      } catch (e) {
-        console.warn('Failed fetching stats for game', expandedGame, e?.message || e);
-      }
-    })();
+    if (!statsByGame[expandedGame] || statsByGame[expandedGame].length === 0) {
+      fetchStatsForGame(expandedGame);
+    }
   }, [expandedGame]);
 
   // Get unique divisions for filters
@@ -110,8 +102,8 @@ export default function GameHistory({
       }, null);
     } else {
       bestPlayerStat = gameStats.reduce((best, current) => {
-        const currentScore = (current.field_goals_made || 0) + (current.blocks || 0) + (current.three_pointers || 0);
-        const bestScore = best ? ((best.field_goals_made || 0) + (best.blocks || 0) + (best.three_pointers || 0)) : 0;
+        const currentScore = (current.attacks || 0) + (current.blocks || 0) + (current.aces || 0);
+        const bestScore = best ? ((best.attacks || 0) + (best.blocks || 0) + (best.aces || 0)) : 0;
         return currentScore > bestScore ? current : best;
       }, null);
     }
@@ -160,7 +152,7 @@ export default function GameHistory({
         team: homeTeam?.name,
         stats: game.sport === 'basketball'
           ? `${homeBestPlayer.stats.points} PTS, ${homeBestPlayer.stats.rebounds || 0} REB, ${homeBestPlayer.stats.assists || 0} AST`
-          : `${homeBestPlayer.stats.field_goals_made || 0} ATK, ${homeBestPlayer.stats.blocks || 0} BLK, ${homeBestPlayer.stats.three_pointers || 0} ACE`
+          : `${homeBestPlayer.stats.attacks || 0} ATK, ${homeBestPlayer.stats.blocks || 0} BLK, ${homeBestPlayer.stats.aces || 0} ACE`
       });
     }
     if (awayBestPlayer) {
@@ -169,7 +161,7 @@ export default function GameHistory({
         team: awayTeam?.name,
         stats: game.sport === 'basketball'
           ? `${awayBestPlayer.stats.points} PTS, ${awayBestPlayer.stats.rebounds || 0} REB, ${awayBestPlayer.stats.assists || 0} AST`
-          : `${awayBestPlayer.stats.field_goals_made || 0} ATK, ${awayBestPlayer.stats.blocks || 0} BLK, ${awayBestPlayer.stats.three_pointers || 0} ACE`
+          : `${awayBestPlayer.stats.attacks || 0} ATK, ${awayBestPlayer.stats.blocks || 0} BLK, ${awayBestPlayer.stats.aces || 0} ACE`
       });
     }
 
@@ -334,6 +326,18 @@ export default function GameHistory({
           {/* Expanded Stats */}
           {isExpanded && (
             <div className="space-y-4 pt-4 border-t-2 border-gray-200 dark:border-gray-700">
+              {loadingGame === game.id && (
+                <div className="text-xs text-gray-600 dark:text-gray-300">Loading player stats...</div>
+              )}
+              {statsError[game.id] && (
+                <div className="text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+                  Failed to load stats.
+                  <Button size="sm" variant="outline" onClick={() => fetchStatsForGame(game.id)}>Retry</Button>
+                </div>
+              )}
+              {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
+                <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
+              )}
               {/* Home Team Stats */}
               <div>
                 <p className="text-sm font-bold text-gray-900 dark:text-white mb-3">
@@ -620,6 +624,18 @@ export default function GameHistory({
                             <tr className={`border-b-2 border-gray-200 dark:border-gray-700 bg-${sportColor}-50/30 dark:bg-${sportColor}-950/10`}>
                               <td colSpan="5" className="p-6">
                                 <div className="space-y-6">
+                                  {loadingGame === game.id && (
+                                    <div className="text-xs text-gray-600 dark:text-gray-300">Loading player stats...</div>
+                                  )}
+                                  {statsError[game.id] && (
+                                    <div className="text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+                                      Failed to load stats.
+                                      <Button size="sm" variant="outline" onClick={() => fetchStatsForGame(game.id)}>Retry</Button>
+                                    </div>
+                                  )}
+                                  {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
+                                  )}
                                   {/* Quarter/Set Scores */}
                                   {game.quarter_scores && game.quarter_scores.length > 0 && (
                                     <div>
