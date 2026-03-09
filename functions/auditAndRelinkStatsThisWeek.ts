@@ -16,6 +16,29 @@ function withinHours(dateA, dateB, hours = 24) {
   return Math.abs(a - b) <= hours * 3600 * 1000;
 }
 
+// Simple sleep helper
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Retry wrapper to soften 429 rate limits
+async function withRetry(fn, label = 'op', attempts = 5, baseDelay = 300) {
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      const msg = e?.message || String(e);
+      const isRate = /429|rate limit/i.test(msg);
+      lastErr = e;
+      if (!isRate && i === attempts - 1) throw e;
+      const wait = baseDelay * Math.pow(2, i) + Math.floor(Math.random() * 100);
+      await sleep(wait);
+    }
+  }
+  throw lastErr;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -31,19 +54,21 @@ Deno.serve(async (req) => {
     const windowStart = daysAgo(7);
     const windowEnd = new Date();
 
-    // 1) Pull completed games (we'll filter by date/org in code)
-    const allCompleted = await base44.entities.Game.filter({ status: 'completed' }, '-game_date', 500);
-
+    // 1) Pull completed games (filter by org + date in query to reduce load)
     const orgId = user.organization_id || user.active_organization_id || null;
+    const gameFilter = orgId ? {
+      organization_id: orgId,
+      status: 'completed',
+      game_date: { $gte: toISO(windowStart), $lte: toISO(windowEnd) }
+    } : {
+      status: 'completed',
+      game_date: { $gte: toISO(windowStart), $lte: toISO(windowEnd) }
+    };
+    const allCompleted = await withRetry(() => base44.entities.Game.filter(gameFilter, '-game_date', 500), 'Game.filter');
+
     const weeklyGames = (allCompleted || []).filter((g) => {
-      const gd = g.game_date || g.data?.game_date; // handle raw vs SDK-normalized
-      const org = g.organization_id || g.data?.organization_id;
       const sport = g.sport || g.data?.sport;
-      if (!gd) return false;
-      const dt = new Date(gd);
-      const inRange = dt >= windowStart && dt <= windowEnd;
-      const orgMatch = orgId ? (org === orgId) : true;
-      return inRange && orgMatch && (sport === 'basketball' || sport === 'volleyball');
+      return sport === 'basketball' || sport === 'volleyball';
     }).map((g) => ({
       id: g.id || g.data?.id,
       game_date: g.game_date || g.data?.game_date,
@@ -53,13 +78,22 @@ Deno.serve(async (req) => {
       sport: g.sport || g.data?.sport,
     }));
 
-    // 2) Pull recent stats (limit to a reasonable number)
-    // Prefer list by -created_date; fall back to -updated_date if needed
+    // 2) Pull recent stats for the involved teams within window (reduces load)
     let recentStats = [];
-    try {
-      recentStats = await base44.entities.PlayerGameStats.list('-created_date', 1000);
-    } catch (_) {
-      recentStats = await base44.entities.PlayerGameStats.list('-updated_date', 1000);
+    const teamIds = Array.from(new Set(weeklyGames.flatMap(g => [g.home_team_id, g.away_team_id]).filter(Boolean)));
+    if (teamIds.length > 0) {
+      const statsFilter = {
+        team_id: { $in: teamIds },
+        $or: [
+          { created_date: { $gte: toISO(windowStart) } },
+          { updated_date: { $gte: toISO(windowStart) } }
+        ]
+      };
+      try {
+        recentStats = await withRetry(() => base44.entities.PlayerGameStats.filter(statsFilter, '-created_date', 2000), 'PlayerGameStats.filter');
+      } catch (_) {
+        recentStats = await withRetry(() => base44.entities.PlayerGameStats.filter(statsFilter, '-updated_date', 2000), 'PlayerGameStats.filter');
+      }
     }
 
     // Normalize stats records
@@ -74,7 +108,7 @@ Deno.serve(async (req) => {
 
     // Helper: fetch stats for a game directly
     async function fetchStatsForGame(gameId) {
-      const res = await base44.entities.PlayerGameStats.filter({ game_id: gameId }, '-updated_date', 500);
+      const res = await withRetry(() => base44.entities.PlayerGameStats.filter({ game_id: gameId }, '-updated_date', 500), 'PlayerGameStats.filter[byGame]');
       return (res || []).map((s) => ({ id: s.id, team_id: s.team_id || s.data?.team_id }));
     }
 
@@ -160,8 +194,9 @@ Deno.serve(async (req) => {
       const toMove = chosenGroup.statsArr.filter((s) => s.team_id === game.home_team_id || s.team_id === game.away_team_id);
 
       for (const s of toMove) {
-        await base44.entities.PlayerGameStats.update(s.id, { game_id: game.id });
+        await withRetry(() => base44.entities.PlayerGameStats.update(s.id, { game_id: game.id }), 'PlayerGameStats.update');
         totalUpdates += 1;
+        await sleep(30);
       }
 
       report.push({ game_id: game.id, status: 'relinked', from_game_id: chosenGroupKey, moved_count: toMove.length });
