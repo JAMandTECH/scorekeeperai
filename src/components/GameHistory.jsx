@@ -22,6 +22,29 @@ export default function GameHistory({
   const [expandedGame, setExpandedGame] = useState(null);
   const [viewMode, setViewMode] = useState('card');
   const [statsByGame, setStatsByGame] = useState({});
+  const [loadingGame, setLoadingGame] = useState(null);
+  const [statsError, setStatsError] = useState({});
+
+  const fetchStatsForGame = async (gameId) => {
+    setLoadingGame(gameId);
+    setStatsError((prev) => ({ ...prev, [gameId]: null }));
+    const delays = [0, 600, 1200];
+    for (let i = 0; i < delays.length; i++) {
+      if (delays[i]) await new Promise((r) => setTimeout(r, delays[i]));
+      try {
+        const res = await base44.entities.PlayerGameStats.filter({ game_id: gameId }, '-updated_date', 200);
+        const arr = Array.isArray(res) ? res : [];
+        setStatsByGame((prev) => ({ ...prev, [gameId]: arr }));
+        setLoadingGame(null);
+        return;
+      } catch (e) {
+        if (i === delays.length - 1) {
+          setStatsError((prev) => ({ ...prev, [gameId]: e?.message || 'Failed to load' }));
+          setLoadingGame(null);
+        }
+      }
+    }
+  };
 
   useEffect(() => {
     if (!expandedGame) return;
