@@ -362,6 +362,18 @@ export default function GameHistory({
               {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
                 <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
               )}
+              {loadingGame === game.id && (
+                <div className="text-xs text-gray-600 dark:text-gray-300">Loading player stats...</div>
+              )}
+              {statsError[game.id] && (
+                <div className="text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+                  Failed to load stats.
+                  <Button size="sm" variant="outline" onClick={() => fetchStatsForGame(game.id)}>Retry</Button>
+                </div>
+              )}
+              {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
+                <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
+              )}
               {/* Home Team Stats */}
               <div>
                 <p className="text-sm font-bold text-gray-900 dark:text-white mb-3">
