@@ -42,7 +42,15 @@ export default function GameHistory({
       if (delays[i]) await new Promise((r) => setTimeout(r, delays[i]));
       try {
         const res = await base44.entities.PlayerGameStats.filter({ game_id: gameId }, '-updated_date', 200);
-        const arr = Array.isArray(res) ? res : [];
+        let arr = Array.isArray(res) ? res : [];
+        // Fallback to backend function (with retries) if direct query returns nothing
+        if (!arr.length) {
+          try {
+            const resp = await base44.functions.invoke('getGamePlayerStats', { game_id: gameId });
+            const fromFn = Array.isArray(resp?.data) ? resp.data : [];
+            if (fromFn.length) arr = fromFn;
+          } catch (_) {}
+        }
         setStatsByGame((prev) => ({ ...prev, [gameId]: arr }));
         setLoadingGame(null);
         return;
@@ -843,7 +851,7 @@ export default function GameHistory({
                                               </p>
                                               <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">
                                                 {game.sport === 'basketball'
-                                                  ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.steals || 0} STL • ${stat.blocks || 0} BLK`
+                                                  ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.steals || 0} STL • ${stat.blocks || 0} BLK • ${stat.fouls || 0} FLS`
                                                   : `${stat.attacks || 0} ATK • ${stat.blocks || 0} BLK • ${stat.aces || 0} ACE • ${stat.rally_errors || 0} ERR`
                                                 }
                                               </p>
@@ -873,7 +881,7 @@ export default function GameHistory({
                                               </p>
                                               <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">
                                                 {game.sport === 'basketball'
-                                                  ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.steals || 0} STL • ${stat.blocks || 0} BLK`
+                                                  ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.steals || 0} STL • ${stat.blocks || 0} BLK • ${stat.fouls || 0} FLS`
                                                   : `${stat.attacks || 0} ATK • ${stat.blocks || 0} BLK • ${stat.aces || 0} ACE • ${stat.rally_errors || 0} ERR`
                                                 }
                                               </p>
