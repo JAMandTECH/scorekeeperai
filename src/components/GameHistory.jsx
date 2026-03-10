@@ -90,49 +90,86 @@ export default function GameHistory({
   const getBestPlayerForTeam = (gameId, teamId, sport) => {
     const pool = (statsByGame[gameId] && statsByGame[gameId].length > 0) ? statsByGame[gameId] : allPlayerStats;
     const gameStats = pool.filter(s => s.game_id === gameId && s.team_id === teamId);
-    
+
     if (gameStats.length === 0) return null;
 
-    let bestPlayerStat;
-    if (sport === 'basketball') {
-      bestPlayerStat = gameStats.reduce((best, current) => {
-        const currentPoints = current.points || 0;
-        const bestPoints = best?.points || 0;
-        return currentPoints > bestPoints ? current : best;
-      }, null);
-    } else {
-      bestPlayerStat = gameStats.reduce((best, current) => {
-        const currentScore = (current.attacks || 0) + (current.blocks || 0) + (current.aces || 0);
-        const bestScore = best ? ((best.attacks || 0) + (best.blocks || 0) + (best.aces || 0)) : 0;
-        return currentScore > bestScore ? current : best;
-      }, null);
+    // Aggregate per player across all quarters/sets
+    const totalsByPlayer = {};
+    for (const s of gameStats) {
+      const pid = s.player_id;
+      if (!totalsByPlayer[pid]) {
+        totalsByPlayer[pid] = {
+          player_id: pid,
+          team_id: teamId,
+          points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, fouls: 0,
+          attacks: 0, aces: 0, rally_errors: 0
+        };
+      }
+      const t = totalsByPlayer[pid];
+      t.points += s.points || 0;
+      t.rebounds += s.rebounds || 0;
+      t.assists += s.assists || 0;
+      t.steals += s.steals || 0;
+      t.blocks += s.blocks || 0;
+      t.fouls += s.fouls || 0;
+      t.attacks += s.attacks || 0;
+      t.aces += s.aces || 0;
+      t.rally_errors += s.rally_errors || 0;
     }
 
-    if (!bestPlayerStat) return null;
-
-    const player = allPlayers.find(p => p.id === bestPlayerStat.player_id);
-    return { player, stats: bestPlayerStat };
+    const values = Object.values(totalsByPlayer);
+    let best = null;
+    if (sport === 'basketball') {
+      best = values.reduce((b, c) => (c.points || 0) > ((b?.points) || 0) ? c : b, null);
+    } else {
+      best = values.reduce((b, c) => {
+        const cScore = (c.attacks || 0) + (c.blocks || 0) + (c.aces || 0);
+        const bScore = b ? ((b.attacks || 0) + (b.blocks || 0) + (b.aces || 0)) : 0;
+        return cScore > bScore ? c : b;
+      }, null);
+    }
+    if (!best) return null;
+    const player = allPlayers.find(p => p.id === best.player_id);
+    return { player, stats: best };
   };
 
   const getGamePlayerStats = (gameId, homeTeamId, awayTeamId) => {
     const gameStats = (statsByGame[gameId] && statsByGame[gameId].length > 0)
       ? statsByGame[gameId]
       : allPlayerStats.filter(s => s.game_id === gameId);
-    
-    const homeStats = gameStats
-      .filter(s => s.team_id === homeTeamId)
-      .map(stat => ({
+
+    const aggregateTeam = (teamId) => {
+      const totals = {};
+      gameStats.filter(s => s.team_id === teamId).forEach(s => {
+        const pid = s.player_id;
+        if (!totals[pid]) {
+          totals[pid] = {
+            player_id: pid,
+            team_id: teamId,
+            points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, fouls: 0,
+            attacks: 0, aces: 0, rally_errors: 0,
+          };
+        }
+        const t = totals[pid];
+        t.points += s.points || 0;
+        t.rebounds += s.rebounds || 0;
+        t.assists += s.assists || 0;
+        t.steals += s.steals || 0;
+        t.blocks += s.blocks || 0;
+        t.fouls += s.fouls || 0;
+        t.attacks += s.attacks || 0;
+        t.aces += s.aces || 0;
+        t.rally_errors += s.rally_errors || 0;
+      });
+      // Map to array and attach player object
+      return Object.values(totals).map(stat => ({
         ...stat,
         player: allPlayers.find(p => p.id === stat.player_id)
       }));
+    };
 
-    const awayStats = gameStats
-      .filter(s => s.team_id === awayTeamId)
-      .map(stat => ({
-        ...stat,
-        player: allPlayers.find(p => p.id === stat.player_id)
-      }));
-
+    const homeStats = aggregateTeam(homeTeamId);
+    const awayStats = aggregateTeam(awayTeamId);
     return { homeStats, awayStats };
   };
 
@@ -381,7 +418,7 @@ export default function GameHistory({
                 </p>
                 <div className="space-y-2">
                   {homeStats.map((stat) => (
-                    <div key={stat.id} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 rounded-lg p-2 text-xs border border-gray-200 dark:border-gray-700">
+                    <div key={stat.player?.id || stat.player_id} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 rounded-lg p-2 text-xs border border-gray-200 dark:border-gray-700">
                       <Avatar className="w-8 h-8 border border-gray-300 dark:border-gray-600">
                         <AvatarImage src={stat.player?.photo_url} />
                         <AvatarFallback className="bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-[10px] font-bold">
@@ -411,7 +448,7 @@ export default function GameHistory({
                 </p>
                 <div className="space-y-2">
                   {awayStats.map((stat) => (
-                    <div key={stat.id} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 rounded-lg p-2 text-xs border border-gray-200 dark:border-gray-700">
+                    <div key={stat.player?.id || stat.player_id} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 rounded-lg p-2 text-xs border border-gray-200 dark:border-gray-700">
                       <Avatar className="w-8 h-8 border border-gray-300 dark:border-gray-600">
                         <AvatarImage src={stat.player?.photo_url} />
                         <AvatarFallback className="bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-[10px] font-bold">
@@ -726,7 +763,7 @@ export default function GameHistory({
                                       </p>
                                       <div className="space-y-2">
                                         {homeStats.map((stat) => (
-                                          <div key={stat.id} className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-3 text-xs border border-gray-200 dark:border-gray-700">
+                                          <div key={stat.player?.id || stat.player_id} className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-3 text-xs border border-gray-200 dark:border-gray-700">
                                             <Avatar className="w-10 h-10 border-2 border-gray-300 dark:border-gray-600">
                                               <AvatarImage src={stat.player?.photo_url} />
                                               <AvatarFallback className="bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold">
@@ -756,7 +793,7 @@ export default function GameHistory({
                                       </p>
                                       <div className="space-y-2">
                                         {awayStats.map((stat) => (
-                                          <div key={stat.id} className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-3 text-xs border border-gray-200 dark:border-gray-700">
+                                          <div key={stat.player?.id || stat.player_id} className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-3 text-xs border border-gray-200 dark:border-gray-700">
                                             <Avatar className="w-10 h-10 border-2 border-gray-300 dark:border-gray-600">
                                               <AvatarImage src={stat.player?.photo_url} />
                                               <AvatarFallback className="bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold">
