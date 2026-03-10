@@ -24,13 +24,14 @@ export default function GameHistory({
   const [statsByGame, setStatsByGame] = useState({});
   const [loadingGame, setLoadingGame] = useState(null);
   const [statsError, setStatsError] = useState({});
+  const [extraPlayers, setExtraPlayers] = useState([]);
 
   // Fast lookup for players by ID
   const playerById = useMemo(() => {
     const map = {};
-    (allPlayers || []).forEach(p => { if (p?.id) map[p.id] = p; });
+    ([...(allPlayers || []), ...(extraPlayers || [])]).forEach(p => { if (p?.id) map[p.id] = p; });
     return map;
-  }, [allPlayers]);
+  }, [allPlayers, extraPlayers]);
 
   const fetchStatsForGame = async (gameId) => {
     setLoadingGame(gameId);
@@ -59,6 +60,34 @@ export default function GameHistory({
       fetchStatsForGame(expandedGame);
     }
   }, [expandedGame]);
+
+  // Ensure player details exist for all stats in the expanded game
+  useEffect(() => {
+    if (!expandedGame) return;
+    const baseStats = (statsByGame[expandedGame] && statsByGame[expandedGame].length > 0)
+      ? statsByGame[expandedGame]
+      : (allPlayerStats || []).filter(s => s.game_id === expandedGame);
+    if (!baseStats || baseStats.length === 0) return;
+    const missingIds = Array.from(new Set(baseStats.map(s => s.player_id).filter(id => !playerById[id])));
+    if (missingIds.length === 0) return;
+
+    (async () => {
+      try {
+        const all = await base44.entities.Player.list();
+        const needed = all.filter(p => missingIds.includes(p.id));
+        if (needed.length) {
+          setExtraPlayers(prev => {
+            const existing = new Set(prev.map(p => p.id));
+            const combined = [...prev];
+            needed.forEach(p => { if (!existing.has(p.id)) combined.push(p); });
+            return combined;
+          });
+        }
+      } catch (_) {
+        // silent fail - stats will still show numbers
+      }
+    })();
+  }, [expandedGame, statsByGame, allPlayerStats, playerById]);
 
   // Get unique divisions for filters
   const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division').filter(Boolean))];
