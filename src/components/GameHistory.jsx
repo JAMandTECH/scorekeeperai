@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,7 @@ export default function GameHistory({
   const [loadingGame, setLoadingGame] = useState(null);
   const [statsError, setStatsError] = useState({});
   const [extraPlayers, setExtraPlayers] = useState([]);
+  const rosterCacheRef = useRef({});
 
   // Fast lookup for players by ID
   const playerById = useMemo(() => {
@@ -88,6 +89,36 @@ export default function GameHistory({
       }
     })();
   }, [expandedGame, statsByGame, allPlayerStats, playerById]);
+
+  // Prefetch rosters for expanded game's teams to restore names quickly
+  useEffect(() => {
+    if (!expandedGame) return;
+    const game = (completedGames || []).find(g => g.id === expandedGame);
+    if (!game) return;
+    const teamIds = [game.home_team_id, game.away_team_id].filter(Boolean);
+    const toFetch = teamIds.filter(id => !rosterCacheRef.current[id]);
+    if (toFetch.length === 0) return;
+
+    (async () => {
+      try {
+        const results = await Promise.all(
+          toFetch.map(id => base44.entities.Player.filter({ team_id: id }, '-created_date', 200))
+        );
+        results.forEach((list, idx) => { rosterCacheRef.current[toFetch[idx]] = list || []; });
+        const merge = results.flat().filter(Boolean);
+        if (merge.length) {
+          setExtraPlayers(prev => {
+            const existing = new Set(prev.map(p => p.id));
+            const combined = [...prev];
+            merge.forEach(p => { if (p?.id && !existing.has(p.id)) combined.push(p); });
+            return combined;
+          });
+        }
+      } catch (_) {
+        // ignore - UI still shows totals
+      }
+    })();
+  }, [expandedGame, completedGames]);
 
   // Get unique divisions for filters
   const divisions = ['all', ...new Set(teams.map(t => t.division || 'No Division').filter(Boolean))];
@@ -463,7 +494,7 @@ export default function GameHistory({
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-gray-900 dark:text-white truncate">
-                          #{stat.player?.jersey_number} {stat.player?.first_name} {stat.player?.last_name}
+                          #{stat.player?.jersey_number || ''} {stat.player?.first_name || 'Player'} {stat.player?.last_name || ''}
                         </p>
                         <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
                           {game.sport === 'basketball'
@@ -493,7 +524,7 @@ export default function GameHistory({
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-gray-900 dark:text-white truncate">
-                          #{stat.player?.jersey_number} {stat.player?.first_name} {stat.player?.last_name}
+                          #{stat.player?.jersey_number || ''} {stat.player?.first_name || 'Player'} {stat.player?.last_name || ''}
                         </p>
                         <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
                           {game.sport === 'basketball'
