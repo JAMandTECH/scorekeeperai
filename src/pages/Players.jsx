@@ -122,6 +122,38 @@ export default function Players() {
   enabled: !!user?.organization_id,
   });
 
+  // Load stats only from completed games (robust via function + fallback)
+  const { data: playerGameStats = [] } = useQuery({
+    queryKey: ['playerGameStatsPlayers', user?.organization_id, (completedGames || []).map(g => g.id).join(',')],
+    queryFn: async () => {
+      const gameIds = (completedGames || []).map(g => g.id);
+      if (gameIds.length === 0) return [];
+      try {
+        const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: gameIds });
+        return Array.isArray(res.data) ? res.data : [];
+      } catch (e) {
+        const results = [];
+        for (let i = 0; i < gameIds.length; i += 50) {
+          const chunk = gameIds.slice(i, i + 50);
+          try {
+            const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
+            results.push(...part);
+          } catch (_) {
+            const per = await Promise.all(
+              chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
+            );
+            results.push(...per.flat());
+          }
+        }
+        return results;
+      }
+    },
+    enabled: (completedGames || []).length > 0,
+    staleTime: 30000,
+    gcTime: 5 * 60 * 1000,
+    refetchInterval: 20000,
+  });
+
   const filteredTeams = teams.filter(team => {
     const divisionMatch = selectedDivision === 'all' || (team.division || 'No Division') === selectedDivision;
     const sportMatch = selectedSport === 'all' || team.sport === selectedSport;
@@ -165,7 +197,7 @@ export default function Players() {
 
     return true;
   }).map(player => {
-    const playerStatsList = allPlayerStats.filter(s => s.player_id === player.id && completedGameIds.has(s.game_id));
+    const playerStatsList = playerGameStats.filter(s => s.player_id === player.id && completedGameIds.has(s.game_id));
     const sport = getTeamSport(player.team_id);
     const gamesPlayed = [...new Set(playerStatsList.map(s => s.game_id))].length;
     
