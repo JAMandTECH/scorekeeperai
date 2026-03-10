@@ -51,6 +51,7 @@ import AdminApprovals from './pages/AdminApprovals';
 import AllGames from './pages/AllGames';
 import AllTeams from './pages/AllTeams';
 import AssociateOrganization from './pages/AssociateOrganization';
+import BackfillRunner from './pages/BackfillRunner';
 import Dashboard from './pages/Dashboard';
 import DataBackup from './pages/DataBackup';
 import Divisions from './pages/Divisions';
@@ -77,6 +78,7 @@ import Schedule from './pages/Schedule';
 import ScorekeeperDashboard from './pages/ScorekeeperDashboard';
 import Scorekeepers from './pages/Scorekeepers';
 import SocialFeed from './pages/SocialFeed';
+import SportFixReview from './pages/SportFixReview';
 import Statistics from './pages/Statistics';
 import SubscriptionCancelled from './pages/SubscriptionCancelled';
 import SubscriptionCheckout from './pages/SubscriptionCheckout';
@@ -90,8 +92,6 @@ import Teams from './pages/Teams';
 import TournamentBracket from './pages/TournamentBracket';
 import VerifyAdminCode from './pages/VerifyAdminCode';
 import WeeklySummary from './pages/WeeklySummary';
-import BackfillRunner from './pages/BackfillRunner';
-import SportFixReview from './pages/SportFixReview';
 import __Layout from './Layout.jsx';
 
 
@@ -100,6 +100,7 @@ export const PAGES = {
     "AllGames": AllGames,
     "AllTeams": AllTeams,
     "AssociateOrganization": AssociateOrganization,
+    "BackfillRunner": BackfillRunner,
     "Dashboard": Dashboard,
     "DataBackup": DataBackup,
     "Divisions": Divisions,
@@ -126,6 +127,7 @@ export const PAGES = {
     "ScorekeeperDashboard": ScorekeeperDashboard,
     "Scorekeepers": Scorekeepers,
     "SocialFeed": SocialFeed,
+    "SportFixReview": SportFixReview,
     "Statistics": Statistics,
     "SubscriptionCancelled": SubscriptionCancelled,
     "SubscriptionCheckout": SubscriptionCheckout,
@@ -139,8 +141,6 @@ export const PAGES = {
     "TournamentBracket": TournamentBracket,
     "VerifyAdminCode": VerifyAdminCode,
     "WeeklySummary": WeeklySummary,
-    "BackfillRunner": BackfillRunner,
-    "SportFixReview": SportFixReview,
 }
 
 export const pagesConfig = {

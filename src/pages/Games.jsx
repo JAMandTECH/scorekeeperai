@@ -45,6 +45,8 @@ export default function Games() {
   const [selectedDivision, setSelectedDivision] = useState('all');
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [recurringConfig, setRecurringConfig] = useState({ enabled: false });
+  const [completedSportFilter, setCompletedSportFilter] = useState('all');
+  const [completedWeekFilter, setCompletedWeekFilter] = useState('all');
   const [selectedScorekeeperEmails, setSelectedScorekeeperEmails] = useState([]);
   const [aiScheduleView, setAiScheduleView] = useState('card');
   const [expandedWeeks, setExpandedWeeks] = useState({});
@@ -583,6 +585,12 @@ export default function Games() {
   const inProgressGames = games.filter(g => g.status === 'in_progress' && !g.archived);
   const completedGames = games.filter(g => g.status === 'completed' && !g.archived);
   const archivedGames = games.filter(g => g.archived === true);
+  const completedWeekOptions = Array.from(new Set(completedGames.map(g => g.week_number).filter((w) => w !== null && w !== undefined))).sort((a, b) => a - b);
+  const hasUnassignedCompleted = completedGames.some((g) => !g.week_number);
+  const filteredCompletedGames = completedGames.filter((g) =>
+    (completedSportFilter === 'all' || g.sport === completedSportFilter) &&
+    (completedWeekFilter === 'all' || (completedWeekFilter === 'unassigned' ? !g.week_number : g.week_number === parseInt(completedWeekFilter)))
+  );
 
   const handleDivisionChange = (division) => {
     setSelectedDivision(division);
@@ -1073,10 +1081,39 @@ export default function Games() {
                 </TabsContent>
 
                 <TabsContent value="completed" className="space-y-4">
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {completedGames.map(game => <GameCard key={game.id} game={game} />)}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-2 rounded-xl">
+                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Sport</label>
+                      <select
+                        value={completedSportFilter}
+                        onChange={(e) => setCompletedSportFilter(e.target.value)}
+                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 text-sm font-medium"
+                      >
+                        <option value="all">All</option>
+                        <option value="basketball">Basketball</option>
+                        <option value="volleyball">Volleyball</option>
+                      </select>
+                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-3">Week</label>
+                      <select
+                        value={completedWeekFilter}
+                        onChange={(e) => setCompletedWeekFilter(e.target.value)}
+                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 text-sm font-medium"
+                      >
+                        <option value="all">All</option>
+                        {completedWeekOptions.map((w) => (
+                          <option key={w} value={String(w)}>{w}</option>
+                        ))}
+                        {hasUnassignedCompleted && <option value="unassigned">Unassigned</option>}
+                      </select>
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                      Showing {filteredCompletedGames.length} of {completedGames.length}
+                    </div>
                   </div>
-                  {completedGames.length === 0 && (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredCompletedGames.map(game => <GameCard key={game.id} game={game} />)}
+                  </div>
+                  {filteredCompletedGames.length === 0 && (
                     <div className="text-center py-20">
                       <div className="w-24 h-24 bg-gradient-to-br from-green-200 to-green-300 dark:from-green-800 dark:to-green-700 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-300" />
