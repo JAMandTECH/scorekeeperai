@@ -47,6 +47,7 @@ export default function Games() {
   const [recurringConfig, setRecurringConfig] = useState({ enabled: false });
   const [completedSportFilter, setCompletedSportFilter] = useState('all');
   const [completedWeekFilter, setCompletedWeekFilter] = useState('all');
+  const [completedView, setCompletedView] = useState('card');
   const [selectedScorekeeperEmails, setSelectedScorekeeperEmails] = useState([]);
   const [aiScheduleView, setAiScheduleView] = useState('card');
   const [expandedWeeks, setExpandedWeeks] = useState({});
@@ -1106,20 +1107,77 @@ export default function Games() {
                         {hasUnassignedCompleted && <option value="unassigned">Unassigned</option>}
                       </select>
                     </div>
+                    <div className="flex gap-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl">
+                      <Button
+                        onClick={() => setCompletedView('card')}
+                        variant={completedView === 'card' ? 'default' : 'ghost'}
+                        size="sm"
+                        className={completedView === 'card' ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold' : 'font-semibold text-gray-600 dark:text-gray-400'}
+                      >
+                        Card View
+                      </Button>
+                      <Button
+                        onClick={() => setCompletedView('table')}
+                        variant={completedView === 'table' ? 'default' : 'ghost'}
+                        size="sm"
+                        className={completedView === 'table' ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold' : 'font-semibold text-gray-600 dark:text-gray-400'}
+                      >
+                        Table View
+                      </Button>
+                    </div>
                     <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
                       Showing {filteredCompletedGames.length} of {completedGames.length}
                     </div>
                   </div>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredCompletedGames.map(game => <GameCard key={game.id} game={game} />)}
+                  {completedView === 'card' ? (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredCompletedGames.map(game => <GameCard key={game.id} game={game} />)}
+                    </div>
+                  ) : (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg">
+                      <table className="w-full">
+                        <thead className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
+                          <tr>
+                            <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Date & Time</th>
+                            <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Matchup</th>
+                            <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Sport</th>
+                            <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Court</th>
+                            <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Score</th>
+                            <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Week</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredCompletedGames.map((game) => (
+                            <tr key={game.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                              <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">
+                                {new Date(game.game_date).toLocaleDateString()}<br />
+                                <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(game.game_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                              </td>
+                              <td className="py-3 px-4 text-sm font-bold text-gray-900 dark:text-white">
+                                {getTeamName(game.home_team_id)} <span className="text-gray-400 font-normal">vs</span> {getTeamName(game.away_team_id)}
+                              </td>
+                              <td className="py-3 px-4">
+                                <Badge variant="outline" className={`text-${game.sport === 'basketball' ? 'orange' : 'blue'}-600 dark:text-${game.sport === 'basketball' ? 'orange' : 'blue'}-400 border-${game.sport === 'basketball' ? 'orange' : 'blue'}-600 font-bold`}>
+                                  {game.sport}
+                                </Badge>
+                              </td>
+                              <td className="py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">{game.court_number || '-'}</td>
+                              <td className="py-3 px-4 text-sm font-black text-gray-900 dark:text-white">{game.home_score} - {game.away_score}</td>
+                              <td className="py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">{game.week_number || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                   </div>
                   {filteredCompletedGames.length === 0 && (
-                    <div className="text-center py-20">
-                      <div className="w-24 h-24 bg-gradient-to-br from-green-200 to-green-300 dark:from-green-800 dark:to-green-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-300" />
-                      </div>
-                      <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No completed games</p>
-                    </div>
+                   <div className="text-center py-20">
+                     <div className="w-24 h-24 bg-gradient-to-br from-green-200 to-green-300 dark:from-green-800 dark:to-green-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                       <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-300" />
+                     </div>
+                     <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No completed games match your filters</p>
+                   </div>
                   )}
                 </TabsContent>
 
