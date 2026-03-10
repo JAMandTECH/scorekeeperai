@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,13 @@ export default function GameHistory({
   const [statsByGame, setStatsByGame] = useState({});
   const [loadingGame, setLoadingGame] = useState(null);
   const [statsError, setStatsError] = useState({});
+
+  // Fast lookup for players by ID
+  const playerById = useMemo(() => {
+    const map = {};
+    (allPlayers || []).forEach(p => { if (p?.id) map[p.id] = p; });
+    return map;
+  }, [allPlayers]);
 
   const fetchStatsForGame = async (gameId) => {
     setLoadingGame(gameId);
@@ -164,7 +171,7 @@ export default function GameHistory({
       // Map to array and attach player object
       return Object.values(totals).map(stat => ({
         ...stat,
-        player: allPlayers.find(p => p.id === stat.player_id)
+        player: playerById[stat.player_id] || null
       }));
     };
 
