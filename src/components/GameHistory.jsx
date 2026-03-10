@@ -368,7 +368,7 @@ export default function GameHistory({
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                        #{homeBestPlayer.player?.jersey_number} {homeBestPlayer.player?.first_name} {homeBestPlayer.player?.last_name}
+                        {homeBestPlayer.player?.first_name} {homeBestPlayer.player?.last_name}
                       </p>
                       <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
                         {game.sport === 'basketball' 
@@ -393,7 +393,7 @@ export default function GameHistory({
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                        #{awayBestPlayer.player?.jersey_number} {awayBestPlayer.player?.first_name} {awayBestPlayer.player?.last_name}
+                        {awayBestPlayer.player?.first_name} {awayBestPlayer.player?.last_name}
                       </p>
                       <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
                         {game.sport === 'basketball' 
@@ -412,7 +412,7 @@ export default function GameHistory({
           <Button
             variant="outline"
             className="w-full font-bold border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            onClick={() => setExpandedGame(isExpanded ? null : game.id)}
+            onClick={() => { const next = isExpanded ? null : game.id; setExpandedGame(next); if (next) fetchStatsForGame(game.id); }}
           >
             {isExpanded ? (
               <>
@@ -494,7 +494,7 @@ export default function GameHistory({
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-gray-900 dark:text-white truncate">
-                          #{stat.player?.jersey_number || ''} {stat.player?.first_name || 'Player'} {stat.player?.last_name || ''}
+                          {stat.player?.first_name || 'Player'} {stat.player?.last_name || ''}
                         </p>
                         <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
                           {game.sport === 'basketball'
@@ -524,7 +524,7 @@ export default function GameHistory({
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-gray-900 dark:text-white truncate">
-                          #{stat.player?.jersey_number || ''} {stat.player?.first_name || 'Player'} {stat.player?.last_name || ''}
+                          {stat.player?.first_name || 'Player'} {stat.player?.last_name || ''}
                         </p>
                         <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
                           {game.sport === 'basketball'
@@ -752,7 +752,7 @@ export default function GameHistory({
                                 size="sm"
                                 variant="outline"
                                 className="font-bold border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                onClick={() => setExpandedGame(isExpanded ? null : game.id)}
+                                onClick={() => { const next = isExpanded ? null : game.id; setExpandedGame(next); if (next) fetchStatsForGame(game.id); }}
                               >
                                 {isExpanded ? <><ChevronUp className="w-4 h-4 mr-1" />Hide</> : <><ChevronDown className="w-4 h-4 mr-1" />View</>}
                               </Button>
@@ -839,7 +839,7 @@ export default function GameHistory({
                                             </Avatar>
                                             <div className="flex-1 min-w-0">
                                               <p className="font-bold text-gray-900 dark:text-white truncate">
-                                                #{stat.player?.jersey_number} {stat.player?.first_name} {stat.player?.last_name}
+                                                {stat.player?.first_name} {stat.player?.last_name}
                                               </p>
                                               <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">
                                                 {game.sport === 'basketball'
@@ -869,7 +869,7 @@ export default function GameHistory({
                                             </Avatar>
                                             <div className="flex-1 min-w-0">
                                               <p className="font-bold text-gray-900 dark:text-white truncate">
-                                                #{stat.player?.jersey_number} {stat.player?.first_name} {stat.player?.last_name}
+                                                {stat.player?.first_name} {stat.player?.last_name}
                                               </p>
                                               <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">
                                                 {game.sport === 'basketball'
