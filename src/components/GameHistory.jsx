@@ -136,7 +136,7 @@ export default function GameHistory({
       }, null);
     }
     if (!best) return null;
-    const player = allPlayers.find(p => p.id === best.player_id);
+    const player = playerById[best.player_id] || null;
     return { player, stats: best };
   };
 
@@ -370,7 +370,7 @@ export default function GameHistory({
           {/* Expanded Stats */}
           {isExpanded && (
             <div className="space-y-4 pt-4 border-t-2 border-gray-200 dark:border-gray-700">
-              {loadingGame === game.id && (
+              {(loadingGame === game.id || (!statsByGame[game.id] && isExpanded)) && (
                 <div className="text-xs text-gray-600 dark:text-gray-300">Loading player stats...</div>
               )}
               {statsError[game.id] && (
@@ -379,10 +379,10 @@ export default function GameHistory({
                   <Button size="sm" variant="outline" onClick={() => fetchStatsForGame(game.id)}>Retry</Button>
                 </div>
               )}
-              {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
+              {!statsError[game.id] && loadingGame !== game.id && (statsByGame[game.id] || (allPlayerStats && allPlayerStats.length)) && homeStats.length === 0 && awayStats.length === 0 && (
                 <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
               )}
-              {loadingGame === game.id && (
+              {(loadingGame === game.id || (!statsByGame[game.id] && isExpanded)) && (
                 <div className="text-xs text-gray-600 dark:text-gray-300">Loading player stats...</div>
               )}
               {statsError[game.id] && (
@@ -391,10 +391,10 @@ export default function GameHistory({
                   <Button size="sm" variant="outline" onClick={() => fetchStatsForGame(game.id)}>Retry</Button>
                 </div>
               )}
-              {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
+              {!statsError[game.id] && loadingGame !== game.id && (statsByGame[game.id] || (allPlayerStats && allPlayerStats.length)) && homeStats.length === 0 && awayStats.length === 0 && (
                 <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
               )}
-              {loadingGame === game.id && (
+              {(loadingGame === game.id || (!statsByGame[game.id] && isExpanded)) && (
                 <div className="text-xs text-gray-600 dark:text-gray-300">Loading player stats...</div>
               )}
               {statsError[game.id] && (
@@ -403,10 +403,10 @@ export default function GameHistory({
                   <Button size="sm" variant="outline" onClick={() => fetchStatsForGame(game.id)}>Retry</Button>
                 </div>
               )}
-              {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
+              {!statsError[game.id] && loadingGame !== game.id && (statsByGame[game.id] || (allPlayerStats && allPlayerStats.length)) && homeStats.length === 0 && awayStats.length === 0 && (
                 <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
               )}
-              {loadingGame === game.id && (
+              {(loadingGame === game.id || (!statsByGame[game.id] && isExpanded)) && (
                 <div className="text-xs text-gray-600 dark:text-gray-300">Loading player stats...</div>
               )}
               {statsError[game.id] && (
@@ -415,7 +415,7 @@ export default function GameHistory({
                   <Button size="sm" variant="outline" onClick={() => fetchStatsForGame(game.id)}>Retry</Button>
                 </div>
               )}
-              {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
+              {!statsError[game.id] && loadingGame !== game.id && (statsByGame[game.id] || (allPlayerStats && allPlayerStats.length)) && homeStats.length === 0 && awayStats.length === 0 && (
                 <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
               )}
               {/* Home Team Stats */}
@@ -704,7 +704,7 @@ export default function GameHistory({
                             <tr className={`border-b-2 border-gray-200 dark:border-gray-700 bg-${sportColor}-50/30 dark:bg-${sportColor}-950/10`}>
                               <td colSpan="5" className="p-6">
                                 <div className="space-y-6">
-                                  {loadingGame === game.id && (
+                                  {(loadingGame === game.id || (!statsByGame[game.id] && isExpanded)) && (
                                     <div className="text-xs text-gray-600 dark:text-gray-300">Loading player stats...</div>
                                   )}
                                   {statsError[game.id] && (
@@ -713,10 +713,10 @@ export default function GameHistory({
                                       <Button size="sm" variant="outline" onClick={() => fetchStatsForGame(game.id)}>Retry</Button>
                                     </div>
                                   )}
-                                  {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
+                                  {!statsError[game.id] && loadingGame !== game.id && (statsByGame[game.id] || (allPlayerStats && allPlayerStats.length)) && homeStats.length === 0 && awayStats.length === 0 && (
                                     <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
                                   )}
-                                  {loadingGame === game.id && (
+                                  {(loadingGame === game.id || (!statsByGame[game.id] && isExpanded)) && (
                                     <div className="text-xs text-gray-600 dark:text-gray-300">Loading player stats...</div>
                                   )}
                                   {statsError[game.id] && (
@@ -725,10 +725,10 @@ export default function GameHistory({
                                       <Button size="sm" variant="outline" onClick={() => fetchStatsForGame(game.id)}>Retry</Button>
                                     </div>
                                   )}
-                                  {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
+                                  {!statsError[game.id] && loadingGame !== game.id && (statsByGame[game.id] || (allPlayerStats && allPlayerStats.length)) && homeStats.length === 0 && awayStats.length === 0 && (
                                     <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
                                   )}
-                                  {loadingGame === game.id && (
+                                  {(loadingGame === game.id || (!statsByGame[game.id] && isExpanded)) && (
                                     <div className="text-xs text-gray-600 dark:text-gray-300">Loading player stats...</div>
                                   )}
                                   {statsError[game.id] && (
@@ -737,7 +737,7 @@ export default function GameHistory({
                                       <Button size="sm" variant="outline" onClick={() => fetchStatsForGame(game.id)}>Retry</Button>
                                     </div>
                                   )}
-                                  {!statsError[game.id] && loadingGame !== game.id && homeStats.length === 0 && awayStats.length === 0 && (
+                                  {!statsError[game.id] && loadingGame !== game.id && (statsByGame[game.id] || (allPlayerStats && allPlayerStats.length)) && homeStats.length === 0 && awayStats.length === 0 && (
                                     <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
                                   )}
                                   {/* Quarter/Set Scores */}
