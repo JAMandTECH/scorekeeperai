@@ -37,7 +37,7 @@ export default function GameHistory({
   const fetchStatsForGame = async (gameId) => {
     setLoadingGame(gameId);
     setStatsError((prev) => ({ ...prev, [gameId]: null }));
-    const delays = [0, 600, 1200];
+    const delays = [0, 1000, 2000, 4000, 8000];
     for (let i = 0; i < delays.length; i++) {
       if (delays[i]) await new Promise((r) => setTimeout(r, delays[i]));
       try {
