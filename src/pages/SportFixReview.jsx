@@ -87,12 +87,23 @@ export default function SportFixReview() {
       setError('');
       setResult(null);
       const orgId = user.organization_id || user.active_organization_id;
+      // 1) Apply classification fixes (admin-only function)
       const res = await base44.functions.invoke('fixSportsClassification', {
         organization_id: orgId,
         volleyball_game_ids: Array.from(selectedVB),
         reclassify_completed_only: true,
       });
-      setResult(res.data);
+
+      // 2) Re-run basketball migration from the frontend (has user context)
+      const mig = await base44.functions.invoke('migrateBasketballStats', {
+        organization_id: orgId,
+        dry_run: false,
+      });
+
+      setResult({
+        ...res.data,
+        migrateClientResult: mig.data,
+      });
     } catch (e) {
       setError(String(e?.message || e));
     } finally {
