@@ -1170,7 +1170,6 @@ export default function Games() {
                       </table>
                     </div>
                   )}
-                  </div>
                   {filteredCompletedGames.length === 0 && (
                    <div className="text-center py-20">
                      <div className="w-24 h-24 bg-gradient-to-br from-green-200 to-green-300 dark:from-green-800 dark:to-green-700 rounded-full flex items-center justify-center mx-auto mb-6">
