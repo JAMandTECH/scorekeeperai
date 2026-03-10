@@ -26,6 +26,16 @@ export default function GameHistory({
   const [statsError, setStatsError] = useState({});
   const [extraPlayers, setExtraPlayers] = useState([]);
   const rosterCacheRef = useRef({});
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const u = await base44.auth.me();
+        setIsAdmin(Boolean(u?.role === 'admin' || u?.is_super_admin));
+      } catch (_) {}
+    })();
+  }, []);
 
   // Fast lookup for players by ID
   const playerById = useMemo(() => {
