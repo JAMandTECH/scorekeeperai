@@ -57,11 +57,12 @@ export default function LiveScoring() {
 
   // Service-role backed safe game update (validates user is allowed on backend)
   const updateGameSafe = async (patch) => {
-    await base44.functions.invoke('updateGame', { gameId: game.id, patch });
+    await base44.functions.invoke('updateGame', { game_id: game.id, patch });
   };
   const updateGameByIdSafe = async (id, patch) => {
-    await base44.functions.invoke('updateGame', { gameId: id, patch });
+    await base44.functions.invoke('updateGame', { game_id: id, patch });
   };
+
 
   useEffect(() => {
     loadGame();
