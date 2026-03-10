@@ -91,6 +91,7 @@ import TournamentBracket from './pages/TournamentBracket';
 import VerifyAdminCode from './pages/VerifyAdminCode';
 import WeeklySummary from './pages/WeeklySummary';
 import BackfillRunner from './pages/BackfillRunner';
+import SportFixReview from './pages/SportFixReview';
 import __Layout from './Layout.jsx';
 
 
@@ -139,6 +140,7 @@ export const PAGES = {
     "VerifyAdminCode": VerifyAdminCode,
     "WeeklySummary": WeeklySummary,
     "BackfillRunner": BackfillRunner,
+    "SportFixReview": SportFixReview,
 }
 
 export const pagesConfig = {
