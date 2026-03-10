@@ -486,6 +486,11 @@ export default function GameHistory({
               {!statsError[game.id] && loadingGame !== game.id && (statsByGame[game.id] || (allPlayerStats && allPlayerStats.length)) && homeStats.length === 0 && awayStats.length === 0 && (
                 <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game yet.</div>
               )}
+              {isAdmin && (
+                <div className="flex justify-end gap-2 mb-2">
+                  <Button size="sm" variant="outline" onClick={() => forceRefreshStats(game.id)}>Force refresh stats</Button>
+                </div>
+              )}
               {/* Home Team Stats */}
               <div>
                 <p className="text-sm font-bold text-gray-900 dark:text-white mb-3">
@@ -830,6 +835,11 @@ export default function GameHistory({
                                   )}
 
                                   {/* Player Statistics */}
+                                  {isAdmin && (
+                                    <div className="flex justify-end gap-2 mb-2">
+                                      <Button size="sm" variant="outline" onClick={() => forceRefreshStats(game.id)}>Force refresh stats</Button>
+                                    </div>
+                                  )}
                                   <div className="grid md:grid-cols-2 gap-6">
                                     {/* Home Team Stats */}
                                     <div>
