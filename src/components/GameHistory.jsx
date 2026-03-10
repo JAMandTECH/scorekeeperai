@@ -108,6 +108,14 @@ export default function GameHistory({
     })();
   }, [expandedGame, statsByGame, allPlayerStats, playerById]);
 
+  const forceRefreshStats = async (gameId) => {
+    setLoadingGame(gameId);
+    try {
+      await base44.functions.invoke('forceFinalizeAllPeriods', { game_id: gameId });
+    } catch (_) {}
+    await fetchStatsForGame(gameId);
+  };
+
   // Prefetch rosters for expanded game's teams to restore names quickly
   useEffect(() => {
     if (!expandedGame) return;
