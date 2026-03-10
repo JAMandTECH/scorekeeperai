@@ -90,6 +90,7 @@ import Teams from './pages/Teams';
 import TournamentBracket from './pages/TournamentBracket';
 import VerifyAdminCode from './pages/VerifyAdminCode';
 import WeeklySummary from './pages/WeeklySummary';
+import BackfillRunner from './pages/BackfillRunner';
 import __Layout from './Layout.jsx';
 
 
@@ -137,6 +138,7 @@ export const PAGES = {
     "TournamentBracket": TournamentBracket,
     "VerifyAdminCode": VerifyAdminCode,
     "WeeklySummary": WeeklySummary,
+    "BackfillRunner": BackfillRunner,
 }
 
 export const pagesConfig = {
