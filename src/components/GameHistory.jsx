@@ -509,6 +509,11 @@ export default function GameHistory({
                   <Button size="sm" variant="outline" onClick={() => forceRefreshStats(game.id)}>Force refresh stats</Button>
                 </div>
               )}
+              {isAdmin && (
+                <div className="flex justify-end gap-2 mb-2">
+                  <Button size="sm" variant="outline" onClick={() => forceRefreshStats(game.id)}>Force refresh stats</Button>
+                </div>
+              )}
               {/* Home Team Stats */}
               <div>
                 <p className="text-sm font-bold text-gray-900 dark:text-white mb-3">
