@@ -129,8 +129,8 @@ export default function AdminSidebar({
     navStructure = userNav;
   }
 
-  // Ensure "Statistics" is always visible for logged-in users
-  if (user && !navStructure.main.some((item) => item.title === "Statistics")) {
+  // Ensure "Statistics" is visible only for admins
+  if (user && (isAdmin || isSuperAdmin) && !navStructure.main.some((item) => item.title === "Statistics")) {
     navStructure.main.push({ title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 });
   }
 
@@ -168,6 +168,7 @@ export default function AdminSidebar({
               <>
                 {/* Main Navigation Items */}
                 {navStructure.main.map((item) => {
+                  if (!isAdmin && !isSuperAdmin && item.title === "Statistics") return null;
                   if (item.permission && !hasPermission(item.permission)) return null;
                   const isActive = window.location.pathname === item.url;
                   return (
@@ -195,7 +196,10 @@ export default function AdminSidebar({
                 {/* Grouped Navigation Items */}
                 {navStructure.groups.map((group) => {
                   if (group.key === 'organization' && !hasPermission('manage_organization')) return null;
-                  const visibleItems = group.items.filter(item => !item.permission || hasPermission(item.permission));
+                  const visibleItems = group.items.filter(item =>
+                    (isAdmin || isSuperAdmin || item.title !== "Statistics") &&
+                    (!item.permission || hasPermission(item.permission))
+                  );
                   if (visibleItems.length === 0) return null;
 
                   return (
