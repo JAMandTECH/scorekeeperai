@@ -766,7 +766,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
             </Avatar>
             <div className="min-w-0">
               <p className={`text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
-                #{player.jersey_number} {player.first_name} {player.last_name}
+                {player.first_name} {player.last_name}
               </p>
             </div>
           </div>
@@ -1012,7 +1012,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                     </Avatar>
                     <div>
                       <h3 className="text-xl font-black text-gray-900 dark:text-white">
-                        #{selectedPlayer?.jersey_number} {selectedPlayer?.first_name} {selectedPlayer?.last_name}
+                        {selectedPlayer?.first_name} {selectedPlayer?.last_name}
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">
                         {selectedTeam === 'home' ? homeTeam?.name : awayTeam?.name}
@@ -1167,7 +1167,12 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-3">
-              {homePlayers.map(player => (
+              {[...homePlayers].sort((a, b) => {
+                const an = parseInt(a.jersey_number || '0', 10);
+                const bn = parseInt(b.jersey_number || '0', 10);
+                if (!isNaN(an) && !isNaN(bn) && an !== bn) return an - bn;
+                return String(a.jersey_number || '').localeCompare(String(b.jersey_number || ''));
+              }).map(player => (
                 <PlayerRow key={player.id} player={player} team="home" teamId={game.home_team_id} onSelect={handlePlayerSelect} />
               ))}
             </div>
@@ -1190,7 +1195,12 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-3">
-              {awayPlayers.map(player => (
+              {[...awayPlayers].sort((a, b) => {
+                const an = parseInt(a.jersey_number || '0', 10);
+                const bn = parseInt(b.jersey_number || '0', 10);
+                if (!isNaN(an) && !isNaN(bn) && an !== bn) return an - bn;
+                return String(a.jersey_number || '').localeCompare(String(b.jersey_number || ''));
+              }).map(player => (
                 <PlayerRow key={player.id} player={player} team="away" teamId={game.away_team_id} onSelect={handlePlayerSelect} />
               ))}
             </div>
