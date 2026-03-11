@@ -178,7 +178,7 @@ export default function LiveScoring() {
       const games = await base44.entities.Game.filter({ id: game.id });
       const currentGame = games && games[0];
       if (currentGame) {
-        if (currentGame.status === 'completed') { navigate(createPageUrl("Games")); return; }
+        if (currentGame.status === 'completed' && !postGameEdit) { navigate(createPageUrl("Games")); return; }
         const srvAt = new Date(currentGame.updated_date || Date.now()).getTime();
         if (srvAt + 1 < lastGameUpdateAtRef.current) return;
         lastGameUpdateAtRef.current = srvAt;
