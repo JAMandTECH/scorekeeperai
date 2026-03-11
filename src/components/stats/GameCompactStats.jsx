@@ -8,7 +8,7 @@ function aggregateStats(statsForGame, teamId, sport) {
   teamStats.forEach((s) => {
     const id = s.player_id;
     if (!byPlayer.has(id)) {
-      byPlayer.set(id, { points: 0, rebounds: 0, assists: 0, blocks: 0 });
+      byPlayer.set(id, { points: 0, rebounds: 0, assists: 0, blocks: 0, attacks: 0, aces: 0 });
     }
     const agg = byPlayer.get(id);
 
@@ -22,6 +22,10 @@ function aggregateStats(statsForGame, teamId, sport) {
     agg.rebounds += s.rebounds || 0;
     agg.assists += s.assists || 0;
     agg.blocks += s.blocks || 0;
+
+    // Track volleyball components explicitly for display
+    agg.attacks += vbAttacks;
+    agg.aces += vbAces;
   });
 
   return Array.from(byPlayer.entries()).map(([player_id, vals]) => ({ player_id, ...vals }));
@@ -53,8 +57,17 @@ export default function GameCompactStats({ game, allPlayerStats = [], allPlayers
           <tr className="text-left text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
             <th className="py-2 pr-2 font-semibold">Player</th>
             <th className="py-2 px-2 text-center font-semibold">PTS</th>
-            <th className="py-2 px-2 text-center font-semibold">REB</th>
-            <th className="py-2 px-2 text-center font-semibold">AST</th>
+            {sport === "volleyball" ? (
+              <>
+                <th className="py-2 px-2 text-center font-semibold">ACE</th>
+                <th className="py-2 px-2 text-center font-semibold">ATK</th>
+              </>
+            ) : (
+              <>
+                <th className="py-2 px-2 text-center font-semibold">REB</th>
+                <th className="py-2 px-2 text-center font-semibold">AST</th>
+              </>
+            )}
             <th className="py-2 px-2 text-center font-semibold">BLK</th>
           </tr>
         </thead>
@@ -75,8 +88,17 @@ export default function GameCompactStats({ game, allPlayerStats = [], allPlayers
                 </div>
               </td>
               <td className="py-2 px-2 text-center font-bold text-gray-900 dark:text-white">{r.points}</td>
-              <td className="py-2 px-2 text-center font-semibold text-gray-800 dark:text-gray-200">{r.rebounds}</td>
-              <td className="py-2 px-2 text-center font-semibold text-gray-800 dark:text-gray-200">{r.assists}</td>
+              {sport === "volleyball" ? (
+                <>
+                  <td className="py-2 px-2 text-center font-semibold text-gray-800 dark:text-gray-200">{r.aces}</td>
+                  <td className="py-2 px-2 text-center font-semibold text-gray-800 dark:text-gray-200">{r.attacks}</td>
+                </>
+              ) : (
+                <>
+                  <td className="py-2 px-2 text-center font-semibold text-gray-800 dark:text-gray-200">{r.rebounds}</td>
+                  <td className="py-2 px-2 text-center font-semibold text-gray-800 dark:text-gray-200">{r.assists}</td>
+                </>
+              )}
               <td className="py-2 px-2 text-center font-semibold text-gray-800 dark:text-gray-200">{r.blocks}</td>
             </tr>
           ))}
