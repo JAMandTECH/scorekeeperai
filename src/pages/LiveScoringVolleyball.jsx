@@ -20,6 +20,7 @@ import {
   AlertDescription,
 } from "@/components/ui/alert";
 import VoiceAssistant from "@/components/VoiceAssistant";
+import EditStatsDialog from "../components/stats/EditStatsDialog";
 
 
 export default function LiveScoringVolleyball() {
@@ -43,6 +44,8 @@ export default function LiveScoringVolleyball() {
   const [activeTimeout, setActiveTimeout] = useState(null); // 'home' | 'away' | null
   const [voiceFeedback, setVoiceFeedback] = useState(null); // {text, status}
   const [actionLock, setActionLock] = useState(false);
+  const [postGameEdit, setPostGameEdit] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const performAction = async (fn) => {
     if (actionLock) return;
     setActionLock(true);
@@ -54,6 +57,10 @@ export default function LiveScoringVolleyball() {
   };
 
   useEffect(() => {
+    try {
+      const p = new URLSearchParams(window.location.search);
+      setPostGameEdit(p.get('edit') === '1');
+    } catch (_) {}
     loadGame();
     loadUser();
 
@@ -115,6 +122,8 @@ export default function LiveScoringVolleyball() {
   const loadGame = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const gameId = urlParams.get('game_id');
+    const isEdit = urlParams.get('edit') === '1';
+    setPostGameEdit(isEdit);
     if (!gameId) {
       navigate(createPageUrl("Games"));
       return;
@@ -228,8 +237,8 @@ export default function LiveScoringVolleyball() {
     await updateGameById(game.id, patch);
   };
 
-  const updatePlayerStats = async (playerId, teamId, statUpdates) => {
-    const key = getPlayerStatKey(playerId);
+  const updatePlayerStats = async (playerId, teamId, statUpdates, period = currentSet) => {
+    const key = `${playerId}_${period}`;
     
     setPlayerStats(prev => {
       const existingStat = prev[key] || {};
@@ -714,9 +723,39 @@ export default function LiveScoringVolleyball() {
             Back to Dashboard
           </Button>
         </div>
-      </div>
+        </div>
 
-      {/* DEFAULT GAME ALERT */}
+        {postGameEdit && (
+        <div className="z-40 bg-yellow-50/20 border-b-4 border-yellow-500">
+          <div className="max-w-7xl mx-auto p-4 flex flex-col gap-3">
+            <div className="text-sm font-black text-yellow-200">Editing Completed Game — adjust team totals or open player stat editor.</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 items-end">
+              <div>
+                <Label className="text-xs font-bold text-white">Home Score</Label>
+                <Input type="number" value={homeScore} onChange={(e)=>setHomeScore(Number(e.target.value)||0)} />
+              </div>
+              <div>
+                <Label className="text-xs font-bold text-white">Away Score</Label>
+                <Input type="number" value={awayScore} onChange={(e)=>setAwayScore(Number(e.target.value)||0)} />
+              </div>
+              <div>
+                <Label className="text-xs font-bold text-white">Home TO</Label>
+                <Input type="number" value={homeTimeouts} onChange={(e)=>setHomeTimeouts(Math.max(0, Number(e.target.value)||0))} />
+              </div>
+              <div>
+                <Label className="text-xs font-bold text-white">Away TO</Label>
+                <Input type="number" value={awayTimeouts} onChange={(e)=>setAwayTimeouts(Math.max(0, Number(e.target.value)||0))} />
+              </div>
+              <div className="md:col-span-2 flex gap-2">
+                <Button onClick={async ()=>{ await updateGame({ home_score: homeScore, away_score: awayScore, home_timeouts: homeTimeouts, away_timeouts: awayTimeouts }); }} className="bg-yellow-600 hover:bg-yellow-700 text-white font-black w-full">Save Team Totals</Button>
+                <Button variant="outline" onClick={()=>setShowEditDialog(true)} className="font-bold w-full">Edit Player Stats</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+        )}
+
+        {/* DEFAULT GAME ALERT */
       {game.is_default && (
         <div className="sticky z-40 bg-red-900/95 border-b-4 border-red-500" style={{ top: '64px' }}>
           <div className="max-w-7xl mx-auto p-4">
@@ -1134,6 +1173,19 @@ export default function LiveScoringVolleyball() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <EditStatsDialog
+        isOpen={showEditDialog}
+        onClose={()=>setShowEditDialog(false)}
+        sport="volleyball"
+        players={[
+          ...(homeTeam ? (homePlayers || []).map(p=>({ id: p.id, label: `${homeTeam.name} - #${p.jersey_number} ${p.first_name} ${p.last_name}`, teamId: game.home_team_id })) : []),
+          ...(awayTeam ? (awayPlayers || []).map(p=>({ id: p.id, label: `${awayTeam.name} - #${p.jersey_number} ${p.first_name} ${p.last_name}`, teamId: game.away_team_id })) : []),
+        ]}
+        playerStatsMap={playerStats}
+        currentMaxPeriod={Math.max(5, (setScores||[]).length || 5)}
+        applyUpdates={(pid, tid, s, ups) => updatePlayerStats(pid, tid, ups, s)}
+      />
 
       <Dialog open={showSetEnd} onOpenChange={setShowSetEnd}>
         <DialogContent className="bg-gray-900 border-4 border-blue-500 max-w-md">

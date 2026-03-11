@@ -17,6 +17,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import VoiceAssistant from "@/components/VoiceAssistant";
+import EditStatsDialog from "../components/stats/EditStatsDialog";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export default function LiveScoring() {
@@ -44,6 +45,8 @@ export default function LiveScoring() {
   const [userRole, setUserRole] = useState('viewer'); // 'overall', 'home_stat', 'away_stat', 'viewer'
   const [activeTimeout, setActiveTimeout] = useState(null); // 'home' | 'away' | null
   const [voiceFeedback, setVoiceFeedback] = useState(null); // {text, status}
+  const [postGameEdit, setPostGameEdit] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [undoInProgress, setUndoInProgress] = useState(false);
   const undoLockRef = useRef(false);
   const lastUndoTsRef = useRef(0);
@@ -77,6 +80,11 @@ export default function LiveScoring() {
 
 
   useEffect(() => {
+    // detect edit mode via URL param
+    try {
+      const p = new URLSearchParams(window.location.search);
+      setPostGameEdit(p.get('edit') === '1');
+    } catch (_) {}
     loadGame();
     loadUser();
     
@@ -111,7 +119,7 @@ export default function LiveScoring() {
       if (event.id !== game.id) return;
       if (event.type === 'update' || event.type === 'create') {
         const g = event.data;
-        if (g.status === 'completed') { navigate(createPageUrl("Games")); return; }
+        if (g.status === 'completed' && !postGameEdit) { navigate(createPageUrl("Games")); return; }
         const srvAt = new Date(g.updated_date || Date.now()).getTime();
         if (srvAt + 1 < lastGameUpdateAtRef.current) return; // ignore stale/out-of-order updates
         lastGameUpdateAtRef.current = srvAt;
@@ -156,7 +164,7 @@ export default function LiveScoring() {
 
   // Extra safety: if the game becomes completed for any reason, exit Live Scoring immediately
   useEffect(() => {
-    if (game?.status === 'completed') {
+    if (game?.status === 'completed' && !postGameEdit) {
       navigate(createPageUrl("Games"));
     }
   }, [game?.status]);
@@ -222,6 +230,8 @@ export default function LiveScoring() {
   const loadGame = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const gameId = urlParams.get('game_id');
+    const isEdit = urlParams.get('edit') === '1';
+    setPostGameEdit(isEdit);
     if (!gameId) {
       navigate(createPageUrl("Games"));
       return;
@@ -234,7 +244,7 @@ export default function LiveScoring() {
       return;
     }
 
-    if (currentGame.status === 'completed') {
+    if (currentGame.status === 'completed' && !isEdit) {
       navigate(createPageUrl("Games"));
       return;
     }
@@ -1110,6 +1120,9 @@ export default function LiveScoring() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {postGameEdit && (
+              <span className="ml-2 px-2 py-1 rounded bg-yellow-500 text-white text-[10px] font-black">EDIT MODE</span>
+            )}
             <Button
               onClick={toggleDarkMode}
               variant="outline"
@@ -1129,9 +1142,47 @@ export default function LiveScoring() {
             </Button>
           </div>
         </div>
-      </div>
+        </div>
 
-      {/* DEFAULT GAME ALERT */}
+        {postGameEdit && (
+        <div className="z-40 bg-yellow-50 dark:bg-yellow-900/40 border-b-4 border-yellow-500">
+          <div className="max-w-7xl mx-auto p-4 flex flex-col gap-3">
+            <div className="text-sm font-black text-yellow-800 dark:text-yellow-200">Editing Completed Game — adjust team totals or open player stat editor.</div>
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-2 items-end">
+              <div>
+                <Label className="text-xs font-bold">Home Score</Label>
+                <Input type="number" value={homeScore} onChange={(e)=>setHomeScore(Number(e.target.value)||0)} />
+              </div>
+              <div>
+                <Label className="text-xs font-bold">Away Score</Label>
+                <Input type="number" value={awayScore} onChange={(e)=>setAwayScore(Number(e.target.value)||0)} />
+              </div>
+              <div>
+                <Label className="text-xs font-bold">Home TO</Label>
+                <Input type="number" value={homeTimeouts} onChange={(e)=>setHomeTimeouts(Math.max(0, Number(e.target.value)||0))} />
+              </div>
+              <div>
+                <Label className="text-xs font-bold">Away TO</Label>
+                <Input type="number" value={awayTimeouts} onChange={(e)=>setAwayTimeouts(Math.max(0, Number(e.target.value)||0))} />
+              </div>
+              <div>
+                <Label className="text-xs font-bold">Home Fouls</Label>
+                <Input type="number" value={homeTeamFouls} onChange={(e)=>setHomeTeamFouls(Math.max(0, Number(e.target.value)||0))} />
+              </div>
+              <div>
+                <Label className="text-xs font-bold">Away Fouls</Label>
+                <Input type="number" value={awayTeamFouls} onChange={(e)=>setAwayTeamFouls(Math.max(0, Number(e.target.value)||0))} />
+              </div>
+              <div className="md:col-span-2 flex gap-2">
+                <Button onClick={async ()=>{ await updateGameSafe({ home_score: homeScore, away_score: awayScore, home_timeouts: homeTimeouts, away_timeouts: awayTimeouts, home_team_fouls: homeTeamFouls, away_team_fouls: awayTeamFouls }); }} className="bg-yellow-600 hover:bg-yellow-700 text-white font-black w-full">Save Team Totals</Button>
+                <Button variant="outline" onClick={()=>setShowEditDialog(true)} className="font-bold w-full">Edit Player Stats</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+        )}
+
+        {/* DEFAULT GAME ALERT */
       {game.is_default && (
         <div className="sticky z-40 bg-red-100 dark:bg-red-900/95 border-b-4 border-red-500" style={{ top: '64px' }}>
           <div className="max-w-7xl mx-auto p-4">
@@ -1728,6 +1779,19 @@ export default function LiveScoring() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <EditStatsDialog
+        isOpen={showEditDialog}
+        onClose={()=>setShowEditDialog(false)}
+        sport={game.sport}
+        players={[
+          ...(homeTeam ? (homePlayers || []).map(p=>({ id: p.id, label: `${homeTeam.name} - #${p.jersey_number} ${p.first_name} ${p.last_name}`, teamId: game.home_team_id })) : []),
+          ...(awayTeam ? (awayPlayers || []).map(p=>({ id: p.id, label: `${awayTeam.name} - #${p.jersey_number} ${p.first_name} ${p.last_name}`, teamId: game.away_team_id })) : []),
+        ]}
+        playerStatsMap={playerStats}
+        currentMaxPeriod={Math.max(4, (quarterScores||[]).length || 4)}
+        applyUpdates={(pid, tid, q, ups) => updatePlayerStats(pid, tid, ups, q)}
+      />
 
       {savingQuarter && (
         <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center">

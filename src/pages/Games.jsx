@@ -721,13 +721,18 @@ export default function Games() {
           {showActions && game.status === 'completed' && !game.archived && (
             <div className="grid grid-cols-3 gap-2">
               <Button 
-                onClick={() => handleEditGame(game)}
-                variant="outline"
-                className="border-2 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-bold"
+               onClick={() => handleEditGame(game)}
+               variant="outline"
+               className="border-2 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-bold"
               >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit
+               <Edit className="w-4 h-4 mr-2" />
+               Edit
               </Button>
+              <a href={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}&edit=1`} className="w-full">
+               <Button className="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700 text-white font-bold">
+                 <Edit className="w-4 h-4 mr-2" /> Edit Stats
+               </Button>
+              </a>
               <Button
                 onClick={() => setArchivingGame(game)}
                 variant="outline"
