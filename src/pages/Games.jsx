@@ -745,7 +745,7 @@ export default function Games() {
                 Delete
               </Button>
             </div>
-          )
+          )}
           {game.archived && showActions && (
             <div className="grid grid-cols-2 gap-2">
               <Button
