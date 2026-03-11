@@ -2,10 +2,12 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 // Data Health Checks across organizations
 // - Default: scans caller's organization (admin)
-// - scope = 'all': scans ALL organizations (super admin only)
-// - Ensures consistency for basketball & volleyball across any registered org
-// Frontend usage: await base44.functions.invoke('runDataHealthChecks', { scope: 'all' | 'org' })
-// Response shape adapts to scope: single-org returns detailed issues (capped), multi-org returns per-org summaries + aggregate counts
+// - scope = 'all': scans a paginated slice of ALL organizations (super admin only) using offset + limit
+// Ensures consistency for basketball & volleyball across any registered org
+// Frontend usage examples:
+//   await base44.functions.invoke('runDataHealthChecks', { scope: 'org' })
+//   await base44.functions.invoke('runDataHealthChecks', { scope: 'all', offset: 0, limit: 20 })
+// Response for scope='all' includes pagination: { pagination: { offset, limit, scanned, total, has_more } }
 
 Deno.serve(async (req) => {
   try {
@@ -14,8 +16,12 @@ Deno.serve(async (req) => {
 
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Input
-    const { scope = 'org', capSize = 50 } = await req.json().catch(() => ({ scope: 'org' }));
+    // Parse payload
+    const payload = await req.json().catch(() => ({}));
+    const scope = payload.scope || 'org';
+    const capSize = Number(payload.capSize ?? 50);
+    const offset = Number(payload.offset ?? 0);
+    const limit = Math.max(1, Math.min(Number(payload.limit ?? 20), 50)); // cap to 50 per run to avoid timeouts
 
     const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
     const isAdmin = user?.role === 'admin';
@@ -27,22 +33,35 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const orgIds = await (async () => {
-      if (scope === 'all') {
-        // Super admin: scan every organization
-        const orgs = await base44.asServiceRole.entities.Organization.list();
-        return orgs.map((o) => o.id);
+    // Determine organizations to scan
+    let allOrgs = [];
+    let orgIds = [];
+    let total = 0;
+    if (scope === 'all') {
+      allOrgs = await base44.asServiceRole.entities.Organization.list();
+      total = allOrgs.length;
+      const slice = allOrgs.slice(offset, offset + limit);
+      orgIds = slice.map((o) => o.id);
+      if (orgIds.length === 0) {
+        return Response.json({
+          ok: true,
+          scope: 'all',
+          aggregate: { total_orgs: 0, counts: { teams: 0, players: 0, games: 0, stats: 0 }, issues_count: { missing_references: 0, sport_mismatches: 0, invalid_values: 0, invalid_game_fields: 0, score_mismatches: 0 } },
+          per_org: [],
+          pagination: { offset, limit, scanned: 0, total, has_more: false }
+        });
       }
+    } else {
       const orgId = user.organization_id || user.active_organization_id;
       if (!orgId) throw new Error('No organization context found for user');
-      return [orgId];
-    })();
+      orgIds = [orgId];
+      total = 1;
+    }
 
     const cap = (arr, n = capSize) => ({ items: arr.slice(0, n), more_count: Math.max(arr.length - n, 0) });
 
     // Reusable org scanner
     const scanOrg = async (orgId) => {
-      // Load teams, players, games, stats
       const teams = await base44.asServiceRole.entities.Team.filter({ organization_id: orgId });
       const teamIds = teams.map((t) => t.id);
       const playersNested = await Promise.all(teamIds.map((id) => base44.asServiceRole.entities.Player.filter({ team_id: id }).catch(() => [])));
@@ -72,7 +91,6 @@ Deno.serve(async (req) => {
       const scoreMismatches = [];
       const invalidGameFields = [];
 
-      // Stat validations
       for (const s of stats) {
         const g = gameById.get(s.game_id);
         const p = playerById.get(s.player_id);
@@ -111,7 +129,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Game validations
       for (const g of games) {
         if (g.home_timeouts != null && (g.home_timeouts < 0 || g.home_timeouts > 5)) invalidGameFields.push({ type: 'invalid_home_timeouts', game_id: g.id, value: g.home_timeouts });
         if (g.away_timeouts != null && (g.away_timeouts < 0 || g.away_timeouts > 5)) invalidGameFields.push({ type: 'invalid_away_timeouts', game_id: g.id, value: g.away_timeouts });
@@ -119,7 +136,6 @@ Deno.serve(async (req) => {
         if (!teamById.get(g.away_team_id)) missingRefs.push({ type: 'game_away_team_missing', game_id: g.id, team_id: g.away_team_id });
       }
 
-      // Score consistency for completed games
       const computeTeamPoints = (game, teamId) => {
         const related = stats.filter((s) => s.game_id === game.id && s.team_id === teamId);
         if (game.sport === 'volleyball') {
@@ -170,13 +186,13 @@ Deno.serve(async (req) => {
       };
     };
 
-    // Execute scans (sequential to avoid heavy concurrent pressure; switch to limited parallel if needed)
+    // Execute scans (sequential to control time; per-org is already chunked internally)
     const results = [];
     for (const orgId of orgIds) {
       results.push(await scanOrg(orgId));
     }
 
-    if (results.length === 1) {
+    if (scope !== 'all') {
       const r = results[0];
       return Response.json({ ok: true, scope: 'org', organization_id: r.orgId, summary: r.summary, issues: r.issues });
     }
@@ -203,7 +219,8 @@ Deno.serve(async (req) => {
       ok: true,
       scope: 'all',
       aggregate,
-      per_org: results.map((r) => ({ organization_id: r.orgId, summary: r.summary }))
+      per_org: results.map((r) => ({ organization_id: r.orgId, summary: r.summary })),
+      pagination: { offset, limit, scanned: orgIds.length, total, has_more: offset + orgIds.length < total }
     });
   } catch (error) {
     console.error('runDataHealthChecks error:', error);
