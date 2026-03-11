@@ -75,8 +75,8 @@ export default function GameCompactStats({ game, allPlayerStats = [], allPlayers
                 </div>
               </td>
               <td className="py-2 px-2 text-center font-bold text-gray-900 dark:text-white">{r.points}</td>
-              <td className="py-2 px-2 text-center font-semibold text-gray-800 dark:text-gray-200">{sport === "basketball" ? r.rebounds : "-"}</td>
-              <td className="py-2 px-2 text-center font-semibold text-gray-800 dark:text-gray-200">{sport === "basketball" ? r.assists : "-"}</td>
+              <td className="py-2 px-2 text-center font-semibold text-gray-800 dark:text-gray-200">{r.rebounds}</td>
+              <td className="py-2 px-2 text-center font-semibold text-gray-800 dark:text-gray-200">{r.assists}</td>
               <td className="py-2 px-2 text-center font-semibold text-gray-800 dark:text-gray-200">{r.blocks}</td>
             </tr>
           ))}
