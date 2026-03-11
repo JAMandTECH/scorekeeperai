@@ -79,6 +79,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
   };
   const updateGameByIdSafe = async (id, patch) => {
     try {
+      if (!id) return;
       await base44.functions.invoke('updateGame', { game_id: id, patch });
     } catch (e) {
       console.error('updateGameById failed', e);
