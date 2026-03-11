@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlayCircle, ChevronRight, Clock, Target, Shield, Zap, Trophy, RotateCcw, User, Eye, EyeOff, CheckCircle, AlertTriangle, Flag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";

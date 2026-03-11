@@ -47,6 +47,7 @@ Deno.serve(async (req) => {
       'home_score', 'away_score',
       'quarter_scores', 'current_quarter',
       'home_timeouts', 'away_timeouts',
+      'home_team_fouls', 'away_team_fouls',
       'is_default', 'defaulted_team_id', 'winning_team_id',
       'notes', 'stream_url'
     ]);
