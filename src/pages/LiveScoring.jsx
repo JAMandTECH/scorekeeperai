@@ -1159,6 +1159,25 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
         </div>
       )}
 
+      {editMode && (
+        <div className="sticky z-40 bg-yellow-100 dark:bg-yellow-900/60 border-b-4 border-yellow-500" style={{ top: game?.is_default ? '164px' : '64px' }}>
+          <div className="max-w-7xl mx-auto p-3 flex items-center justify-between">
+            <div className="text-yellow-900 dark:text-yellow-100 font-bold">Edit Mode: Adjust stats and team totals for a completed game</div>
+            <div className="flex gap-2">
+              <Button onClick={() => { setEditTotals({
+                home_score: game?.home_score ?? 0,
+                away_score: game?.away_score ?? 0,
+                home_timeouts: game?.home_timeouts ?? 0,
+                away_timeouts: game?.away_timeouts ?? 0,
+                home_team_fouls: game?.home_team_fouls ?? 0,
+                away_team_fouls: game?.away_team_fouls ?? 0,
+              }); setShowEditTotals(true); }} className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold">Edit Team Totals</Button>
+              <Button onClick={() => setShowMoveStat(true)} variant="outline" className="border-2 border-yellow-600 text-yellow-700 dark:text-yellow-200">Move Stats</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Scoreboard */}
       <div className="sticky z-40 bg-gradient-to-r from-orange-100 via-orange-200 to-orange-100 dark:from-gray-900 dark:via-orange-900 dark:to-gray-900 border-b-4 border-orange-500 shadow-2xl" style={{ top: game.is_default ? '164px' : '64px' }}>
         <div className="max-w-7xl mx-auto p-4">
