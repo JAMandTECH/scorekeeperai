@@ -64,6 +64,12 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
   // Service-role backed safe game update (validates user is allowed on backend)
   const updateGameSafe = async (patch) => {
     try {
+      // Avoid sending redundant writes to reduce backend load/timeouts
+      if (!game?.id) return;
+      const prev = {};
+      Object.keys(patch || {}).forEach(k => { prev[k] = game[k]; });
+      const same = JSON.stringify(prev) === JSON.stringify(patch || {});
+      if (same) return;
       await base44.functions.invoke('updateGame', { game_id: game.id, patch });
     } catch (e) {
       console.error('updateGame failed', e);
