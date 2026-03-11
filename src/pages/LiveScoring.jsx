@@ -350,11 +350,12 @@ export default function LiveScoring() {
 
     try {
       lastWriteTsRef.current = Date.now();
+      // Persist via server-side upsert to avoid any client RLS races
       const resp = await base44.functions.invoke('upsertPlayerStat', {
         game_id: game.id,
         player_id: playerId,
         team_id: teamId,
-        quarter: quarter,
+        quarter,
         updates: statUpdates,
       });
       const saved = resp?.data?.stat;
