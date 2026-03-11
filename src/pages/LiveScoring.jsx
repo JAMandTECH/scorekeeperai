@@ -331,8 +331,8 @@ export default function LiveScoring() {
       return;
     }
     const key = getPlayerStatKey(playerId, quarter);
-    let statToPersist = null; 
 
+    // Optimistic UI update
     setPlayerStats(prev => {
       const existingStat = prev[key] || {};
       const newStatData = {
@@ -342,45 +342,27 @@ export default function LiveScoring() {
         team_id: teamId,
         quarter: quarter,
       };
-
       statUpdates.forEach(({ statType, value }) => {
         newStatData[statType] = Math.max(0, (newStatData[statType] || 0) + value);
       });
-      
-      statToPersist = newStatData;
-
-      return {
-        ...prev,
-        [key]: newStatData,
-      };
+      return { ...prev, [key]: newStatData };
     });
 
     try {
       lastWriteTsRef.current = Date.now();
-      // Ensure we use existing DB row if present (prevents duplicates on rapid actions/undo)
-      if (!statToPersist.id) {
-        const existing = await base44.entities.PlayerGameStats.filter({
-          game_id: game.id,
-          player_id: playerId,
-          team_id: teamId,
-          quarter: quarter,
-        });
-        if (existing && existing[0]?.id) {
-          statToPersist.id = existing[0].id;
-        }
-      }
-
-      if (statToPersist.id) {
-        await base44.entities.PlayerGameStats.update(statToPersist.id, statToPersist);
-      } else {
-        const created = await base44.entities.PlayerGameStats.create(statToPersist);
-        setPlayerStats(prev => ({
-          ...prev,
-          [key]: { ...prev[key], id: created.id },
-        }));
+      const resp = await base44.functions.invoke('upsertPlayerStat', {
+        game_id: game.id,
+        player_id: playerId,
+        team_id: teamId,
+        quarter: quarter,
+        updates: statUpdates,
+      });
+      const saved = resp?.data?.stat;
+      if (saved?.id) {
+        setPlayerStats(prev => ({ ...prev, [key]: { ...prev[key], id: saved.id } }));
       }
     } catch (error) {
-      console.error("Error saving player stats:", error);
+      console.error('Error saving player stats:', error);
     }
   };
 
