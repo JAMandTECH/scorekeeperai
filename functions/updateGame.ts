@@ -81,6 +81,27 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No allowed fields in patch' }, { status: 400 });
     }
 
+    // Sanitize heavy fields to reduce payload/CPU
+    if ('quarter_scores' in safePatch && Array.isArray(safePatch.quarter_scores)) {
+      safePatch.quarter_scores = safePatch.quarter_scores
+        .map((q) => ({
+          quarter: Number(q?.quarter) || 0,
+          home: Number(q?.home) || 0,
+          away: Number(q?.away) || 0,
+        }))
+        .sort((a, b) => a.quarter - b.quarter)
+        .slice(0, 20); // cap to 20 entries defensively
+    }
+
+    // Short-circuit if no effective change
+    const isEqual = (a, b) => {
+      try { return JSON.stringify(a) === JSON.stringify(b); } catch { return a === b; }
+    };
+    const unchanged = Object.keys(safePatch).every((k) => isEqual(game[k], safePatch[k]));
+    if (unchanged) {
+      return Response.json({ success: true, game });
+    }
+
     const updated = await base44.asServiceRole.entities.Game.update(game_id, safePatch);
     return Response.json({ success: true, game: updated });
   } catch (error) {
