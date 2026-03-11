@@ -757,7 +757,7 @@ export default function LiveScoringVolleyball() {
         </div>
         )}
 
-        {/* DEFAULT GAME ALERT */
+        {/* DEFAULT GAME ALERT */}
       {game.is_default && (
         <div className="sticky z-40 bg-red-900/95 border-b-4 border-red-500" style={{ top: '64px' }}>
           <div className="max-w-7xl mx-auto p-4">
