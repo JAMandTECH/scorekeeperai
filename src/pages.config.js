@@ -92,6 +92,7 @@ import Teams from './pages/Teams';
 import TournamentBracket from './pages/TournamentBracket';
 import VerifyAdminCode from './pages/VerifyAdminCode';
 import WeeklySummary from './pages/WeeklySummary';
+import CoachScoring from './pages/CoachScoring';
 import __Layout from './Layout.jsx';
 
 
@@ -141,6 +142,7 @@ export const PAGES = {
     "TournamentBracket": TournamentBracket,
     "VerifyAdminCode": VerifyAdminCode,
     "WeeklySummary": WeeklySummary,
+    "CoachScoring": CoachScoring,
 }
 
 export const pagesConfig = {
