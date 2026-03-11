@@ -719,20 +719,24 @@ export default function Games() {
             </Link>
           )}
           {showActions && game.status === 'completed' && !game.archived && (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               <Button 
-               onClick={() => handleEditGame(game)}
-               variant="outline"
-               className="border-2 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-bold"
+                onClick={() => handleEditGame(game)}
+                variant="outline"
+                className="border-2 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-bold"
               >
-               <Edit className="w-4 h-4 mr-2" />
-               Edit
+                <Edit className="w-4 h-4 mr-2" />
+                Edit
               </Button>
-              <a href={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}&edit=1`} className="w-full">
-               <Button className="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700 text-white font-bold">
-                 <Edit className="w-4 h-4 mr-2" /> Edit Stats
-               </Button>
-              </a>
+              <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}&edit=1`}>
+                <Button
+                  variant="outline"
+                  className="border-2 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-bold"
+                >
+                  <FileEdit className="w-4 h-4 mr-2" />
+                  Edit Stats
+                </Button>
+              </Link>
               <Button
                 onClick={() => setArchivingGame(game)}
                 variant="outline"
@@ -1188,6 +1192,24 @@ export default function Games() {
                                   >
                                     <Edit className="w-4 h-4" />
                                   </Button>
+                                  <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}&edit=1`}>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon"
+                                      className="text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400"
+                                    >
+                                      <FileEdit className="w-4 h-4" />
+                                    </Button>
+                                  </Link>
+                                  <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}&edit=1`}>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon"
+                                      className="text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400"
+                                    >
+                                      <FileEdit className="w-4 h-4" />
+                                    </Button>
+                                  </Link>
                                   <Button 
                                     variant="ghost" 
                                     size="icon"

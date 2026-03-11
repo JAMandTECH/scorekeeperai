@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     const allowedKeys = new Set([
       'status',
       'home_score', 'away_score',
-      'quarter_scores', 'current_quarter',
+      'quarter_scores', 'current_quarter', 'overtime_count',
       'home_timeouts', 'away_timeouts',
       'home_team_fouls', 'away_team_fouls',
       'is_default', 'defaulted_team_id', 'winning_team_id',

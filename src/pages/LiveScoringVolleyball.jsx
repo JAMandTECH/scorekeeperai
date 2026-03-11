@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlayCircle, ChevronRight, Clock, Target, Shield, Zap, Trophy, RotateCcw, User, Eye, EyeOff, CheckCircle, AlertTriangle, Flag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +20,6 @@ import {
   AlertDescription,
 } from "@/components/ui/alert";
 import VoiceAssistant from "@/components/VoiceAssistant";
-import EditStatsDialog from "../components/stats/EditStatsDialog";
 
 
 export default function LiveScoringVolleyball() {
@@ -42,12 +39,16 @@ export default function LiveScoringVolleyball() {
   const [showSetStats, setShowSetStats] = useState(true);
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(true);
   const navigate = useNavigate();
+const urlParams = new URLSearchParams(window.location.search);
+const editMode = urlParams.get('edit') === '1' || urlParams.get('mode') === 'edit';
+const [showEditTotals, setShowEditTotals] = useState(false);
+const [editTotals, setEditTotals] = useState({ home_score: 0, away_score: 0, home_timeouts: 0, away_timeouts: 0 });
+const [showMoveStat, setShowMoveStat] = useState(false);
+const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, statType: 'attacks', amount: 1, destPlayer: '', destQuarter: 1 });
   const [user, setUser] = useState(null);
   const [activeTimeout, setActiveTimeout] = useState(null); // 'home' | 'away' | null
   const [voiceFeedback, setVoiceFeedback] = useState(null); // {text, status}
   const [actionLock, setActionLock] = useState(false);
-  const [postGameEdit, setPostGameEdit] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
   const performAction = async (fn) => {
     if (actionLock) return;
     setActionLock(true);
@@ -59,10 +60,6 @@ export default function LiveScoringVolleyball() {
   };
 
   useEffect(() => {
-    try {
-      const p = new URLSearchParams(window.location.search);
-      setPostGameEdit(p.get('edit') === '1');
-    } catch (_) {}
     loadGame();
     loadUser();
 
@@ -124,8 +121,6 @@ export default function LiveScoringVolleyball() {
   const loadGame = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const gameId = urlParams.get('game_id');
-    const isEdit = urlParams.get('edit') === '1';
-    setPostGameEdit(isEdit);
     if (!gameId) {
       navigate(createPageUrl("Games"));
       return;
@@ -239,8 +234,8 @@ export default function LiveScoringVolleyball() {
     await updateGameById(game.id, patch);
   };
 
-  const updatePlayerStats = async (playerId, teamId, statUpdates, period = currentSet) => {
-    const key = `${playerId}_${period}`;
+  const updatePlayerStats = async (playerId, teamId, statUpdates) => {
+    const key = getPlayerStatKey(playerId);
     
     setPlayerStats(prev => {
       const existingStat = prev[key] || {};
@@ -625,9 +620,115 @@ export default function LiveScoringVolleyball() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+      {/* Edit Team Totals Dialog */}
+      <Dialog open={showEditTotals} onOpenChange={setShowEditTotals}>
+        <DialogContent className="bg-white dark:bg-gray-900 border-2 border-yellow-500 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 dark:text-white text-2xl font-black">Edit Team Totals</DialogTitle>
+            <DialogDescription className="text-gray-700 dark:text-gray-300 font-bold">Update final scores and timeouts.</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400">Home Score</label>
+              <input type="number" className="w-full rounded-md border px-2 py-1" value={editTotals.home_score} onChange={(e)=>setEditTotals({ ...editTotals, home_score: Number(e.target.value) })} />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400">Away Score</label>
+              <input type="number" className="w-full rounded-md border px-2 py-1" value={editTotals.away_score} onChange={(e)=>setEditTotals({ ...editTotals, away_score: Number(e.target.value) })} />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400">Home TO</label>
+              <input type="number" className="w-full rounded-md border px-2 py-1" value={editTotals.home_timeouts} onChange={(e)=>setEditTotals({ ...editTotals, home_timeouts: Number(e.target.value) })} />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400">Away TO</label>
+              <input type="number" className="w-full rounded-md border px-2 py-1" value={editTotals.away_timeouts} onChange={(e)=>setEditTotals({ ...editTotals, away_timeouts: Number(e.target.value) })} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-3">
+            <Button variant="outline" onClick={() => setShowEditTotals(false)} className="border-2">Cancel</Button>
+            <Button onClick={async () => { await updateGame({
+              home_score: editTotals.home_score,
+              away_score: editTotals.away_score,
+              home_timeouts: editTotals.home_timeouts,
+              away_timeouts: editTotals.away_timeouts,
+            }); setShowEditTotals(false); }}>Save</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Move/Reassign Stats Dialog */}
+      <Dialog open={showMoveStat} onOpenChange={setShowMoveStat}>
+        <DialogContent className="bg-white dark:bg-gray-900 border-2 border-yellow-500 max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 dark:text-white text-2xl font-black">Reassign Stats</DialogTitle>
+            <DialogDescription className="text-gray-700 dark:text-gray-300 font-bold">Move a stat from one player/set to another.</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2 text-sm font-bold text-gray-700 dark:text-gray-300">From</div>
+            <div>
+              <label className="text-xs font-semibold">Player</label>
+              <select className="w-full rounded-md border px-2 py-1" value={moveForm.sourcePlayer} onChange={(e)=>setMoveForm({ ...moveForm, sourcePlayer: e.target.value })}>
+                <option value="">Select player</option>
+                {[...(homePlayers||[]), ...(awayPlayers||[])].map(p => (
+                  <option key={p.id} value={p.id}>#{p.jersey_number} {p.first_name} {p.last_name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold">Set</label>
+              <input type="number" min="1" className="w-full rounded-md border px-2 py-1" value={moveForm.sourceQuarter} onChange={(e)=>setMoveForm({ ...moveForm, sourceQuarter: Number(e.target.value) })} />
+            </div>
+            <div>
+              <label className="text-xs font-semibold">Stat Type</label>
+              <select className="w-full rounded-md border px-2 py-1" value={moveForm.statType} onChange={(e)=>setMoveForm({ ...moveForm, statType: e.target.value })}>
+                <option value="attacks">attacks</option>
+                <option value="blocks">blocks</option>
+                <option value="aces">aces</option>
+                <option value="assists">assists</option>
+                <option value="rebounds">rebounds</option>
+                <option value="rally_errors">rally_errors</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold">Amount</label>
+              <input type="number" min="1" className="w-full rounded-md border px-2 py-1" value={moveForm.amount} onChange={(e)=>setMoveForm({ ...moveForm, amount: Number(e.target.value) })} />
+            </div>
+            <div className="col-span-2 text-sm font-bold text-gray-700 dark:text-gray-300 mt-2">To</div>
+            <div>
+              <label className="text-xs font-semibold">Player</label>
+              <select className="w-full rounded-md border px-2 py-1" value={moveForm.destPlayer} onChange={(e)=>setMoveForm({ ...moveForm, destPlayer: e.target.value })}>
+                <option value="">Select player</option>
+                {[...(homePlayers||[]), ...(awayPlayers||[])].map(p => (
+                  <option key={p.id} value={p.id}>#{p.jersey_number} {p.first_name} {p.last_name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold">Set</label>
+              <input type="number" min="1" className="w-full rounded-md border px-2 py-1" value={moveForm.destQuarter} onChange={(e)=>setMoveForm({ ...moveForm, destQuarter: Number(e.target.value) })} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-3">
+            <Button variant="outline" onClick={() => setShowMoveStat(false)} className="border-2">Cancel</Button>
+            <Button onClick={async () => {
+              const amt = Number(moveForm.amount) || 0;
+              if (!game?.id || !moveForm.sourcePlayer || !moveForm.destPlayer || !amt) return;
+              const all = [...(homePlayers||[]), ...(awayPlayers||[])];
+              const srcP = all.find(p=>p.id===moveForm.sourcePlayer);
+              const dstP = all.find(p=>p.id===moveForm.destPlayer);
+              const srcTeamId = srcP?.team_id;
+              const dstTeamId = dstP?.team_id;
+              await base44.functions.invoke('upsertPlayerStat', { game_id: game.id, player_id: moveForm.sourcePlayer, team_id: srcTeamId, quarter: Number(moveForm.sourceQuarter), updates: [{ statType: moveForm.statType, value: -amt }] });
+              await base44.functions.invoke('upsertPlayerStat', { game_id: game.id, player_id: moveForm.destPlayer, team_id: dstTeamId, quarter: Number(moveForm.destQuarter), updates: [{ statType: moveForm.statType, value: amt }] });
+              setShowMoveStat(false);
+            }}>Move</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       </div>
-    );
-  }
+      );
+      }
 
   const setLabel = `Set ${currentSet}`;
   const currentSetStats = selectedPlayer ? (playerStats[`${selectedPlayer.id}_${currentSet}`] || {}) : {};
@@ -725,39 +826,9 @@ export default function LiveScoringVolleyball() {
             Back to Dashboard
           </Button>
         </div>
-        </div>
+      </div>
 
-        {postGameEdit && (
-        <div className="z-40 bg-yellow-50/20 border-b-4 border-yellow-500">
-          <div className="max-w-7xl mx-auto p-4 flex flex-col gap-3">
-            <div className="text-sm font-black text-yellow-200">Editing Completed Game — adjust team totals or open player stat editor.</div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 items-end">
-              <div>
-                <Label className="text-xs font-bold text-white">Home Score</Label>
-                <Input type="number" value={homeScore} onChange={(e)=>setHomeScore(Number(e.target.value)||0)} />
-              </div>
-              <div>
-                <Label className="text-xs font-bold text-white">Away Score</Label>
-                <Input type="number" value={awayScore} onChange={(e)=>setAwayScore(Number(e.target.value)||0)} />
-              </div>
-              <div>
-                <Label className="text-xs font-bold text-white">Home TO</Label>
-                <Input type="number" value={homeTimeouts} onChange={(e)=>setHomeTimeouts(Math.max(0, Number(e.target.value)||0))} />
-              </div>
-              <div>
-                <Label className="text-xs font-bold text-white">Away TO</Label>
-                <Input type="number" value={awayTimeouts} onChange={(e)=>setAwayTimeouts(Math.max(0, Number(e.target.value)||0))} />
-              </div>
-              <div className="md:col-span-2 flex gap-2">
-                <Button onClick={async ()=>{ await updateGame({ home_score: homeScore, away_score: awayScore, home_timeouts: homeTimeouts, away_timeouts: awayTimeouts }); }} className="bg-yellow-600 hover:bg-yellow-700 text-white font-black w-full">Save Team Totals</Button>
-                <Button variant="outline" onClick={()=>setShowEditDialog(true)} className="font-bold w-full">Edit Player Stats</Button>
-              </div>
-            </div>
-          </div>
-        </div>
-        )}
-
-        {/* DEFAULT GAME ALERT */}
+      {/* DEFAULT GAME ALERT */}
       {game.is_default && (
         <div className="sticky z-40 bg-red-900/95 border-b-4 border-red-500" style={{ top: '64px' }}>
           <div className="max-w-7xl mx-auto p-4">
@@ -1175,19 +1246,6 @@ export default function LiveScoringVolleyball() {
           </div>
         </DialogContent>
       </Dialog>
-
-      <EditStatsDialog
-        isOpen={showEditDialog}
-        onClose={()=>setShowEditDialog(false)}
-        sport="volleyball"
-        players={[
-          ...(homeTeam ? (homePlayers || []).map(p=>({ id: p.id, label: `${homeTeam.name} - #${p.jersey_number} ${p.first_name} ${p.last_name}`, teamId: game.home_team_id })) : []),
-          ...(awayTeam ? (awayPlayers || []).map(p=>({ id: p.id, label: `${awayTeam.name} - #${p.jersey_number} ${p.first_name} ${p.last_name}`, teamId: game.away_team_id })) : []),
-        ]}
-        playerStatsMap={playerStats}
-        currentMaxPeriod={Math.max(5, (setScores||[]).length || 5)}
-        applyUpdates={(pid, tid, s, ups) => updatePlayerStats(pid, tid, ups, s)}
-      />
 
       <Dialog open={showSetEnd} onOpenChange={setShowSetEnd}>
         <DialogContent className="bg-gray-900 border-4 border-blue-500 max-w-md">
