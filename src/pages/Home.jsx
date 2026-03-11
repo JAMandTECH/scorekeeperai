@@ -16,6 +16,7 @@ import AIGameSummary from "@/components/AIGameSummary";
 import AIAssistant from "@/components/AIAssistant";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 import TopAssistLeaders from "@/components/leaders/TopAssistLeaders";
+import GameCompactStats from "@/components/stats/GameCompactStats";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -1268,6 +1269,13 @@ export default function Home() {
                                   </div>
                                 </div>
                               )}
+
+                              <details className="mt-3">
+                                <summary className="cursor-pointer text-sm font-bold text-blue-600 dark:text-blue-400">Player Stats</summary>
+                                <div className="mt-2">
+                                  <GameCompactStats game={game} allPlayerStats={allPlayerStats} allPlayers={allPlayers} sport="basketball" />
+                                </div>
+                              </details>
                               
                               {/* AI Game Summary - ONLY FOR ADMINS */}
                               {isAdmin && homeTeamData && awayTeamData && topPlayersForAI.length > 0 && (
