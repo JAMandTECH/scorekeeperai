@@ -240,7 +240,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
       return;
     }
 
-    if (currentGame.status === 'completed') {
+    if (currentGame.status === 'completed' && !editMode) {
       navigate(createPageUrl("Games"));
       return;
     }
