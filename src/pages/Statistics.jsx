@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, TrendingUp, Target, TrendingDown, Filter, Printer, Sparkles, Loader2, Users } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, PieChart, Pie, Cell } from "recharts";
@@ -27,8 +27,6 @@ export default function Statistics() {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
   const isAdmin = user?.role === 'admin';
-  const queryClient = useQueryClient();
-  const [finalizing, setFinalizing] = useState(false);
 
   useEffect(() => {
     loadUser();
@@ -69,17 +67,6 @@ export default function Statistics() {
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("PublicLanding"));
-  };
-
-  const handleFinalizeMostRecent = async () => {
-    setFinalizing(true);
-    try {
-      await base44.functions.invoke('finalizeMostRecentCompleted', {});
-    } finally {
-      setFinalizing(false);
-      queryClient.invalidateQueries({ queryKey: ['playerGameStats'] });
-      queryClient.invalidateQueries({ queryKey: ['games'] });
-    }
   };
 
   const orgId = user?.organization_id || user?.active_organization_id;
@@ -514,32 +501,13 @@ Please provide:
                     {organization?.name || 'Organization'} Performance Report
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  {isAdmin && (
-                    <Button
-                      onClick={handleFinalizeMostRecent}
-                      variant="outline"
-                      className="font-bold print:hidden"
-                      disabled={finalizing}
-                    >
-                      {finalizing ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Finalizing...
-                        </>
-                      ) : (
-                        <>Force refresh stats</>
-                      )}
-                    </Button>
-                  )}
-                  <Button
-                    onClick={handlePrint}
-                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold shadow-xl print:hidden"
-                  >
-                    <Printer className="w-5 h-5 mr-2" />
-                    Print Report
-                  </Button>
-                </div>
+                <Button
+                  onClick={handlePrint}
+                  className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold shadow-xl print:hidden"
+                >
+                  <Printer className="w-5 h-5 mr-2" />
+                  Print Report
+                </Button>
               </div>
 
               {/* Filters */}
