@@ -491,6 +491,17 @@ Please provide:
         />
 
         <main className="flex-1 min-w-0">
+          {!isAdmin ? (
+            <div className="p-6 lg:p-8 w-full">
+              <div className="max-w-3xl mx-auto text-center bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl p-10 shadow-lg">
+                <h1 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Access restricted</h1>
+                <p className="text-gray-600 dark:text-gray-400 mb-6 font-medium">Statistics are only available to organization admins.</p>
+                <Button onClick={() => (window.location.href = createPageUrl("Home"))} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold">
+                  Go to Home
+                </Button>
+              </div>
+            </div>
+          ) : (
           <div className="p-6 lg:p-8">
             <div className="max-w-7xl mx-auto space-y-8">
               {/* Header with Print Button */}
@@ -1180,6 +1191,7 @@ Please provide:
               </Tabs>
             </div>
           </div>
+          )}
         </main>
       </div>
 
