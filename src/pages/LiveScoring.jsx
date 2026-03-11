@@ -1220,7 +1220,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                 </Avatar>
                 <div className="text-gray-900 dark:text-white text-2xl font-black text-left">{homeTeam.name}</div>
               </div>
-              <div className="text-orange-600 dark:text-orange-500 text-7xl font-black mb-2">{homeScore}</div>
+              <div className="text-orange-600 dark:text-orange-500 text-5xl font-black mb-2">{homeScore}</div>
               <div className="flex justify-center gap-4 text-xs font-bold items-center">
                 <span className={`${inPenalty('home') ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
                   FOULS: {homeTeamFouls}/{game.penalty_limit_per_quarter}
@@ -1234,18 +1234,16 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
 
             {/* QUARTER SCORES */}
             <div className="text-center">
-              <div className="text-gray-900 dark:text-white text-2xl font-black mb-3">{quarterLabel}</div>
-              <div className="bg-white/60 dark:bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4 border-2 border-orange-300 dark:border-transparent">
-                <div className="flex justify-center gap-3 flex-wrap">
-                  {[1, 2, 3, 4].map(q => {
-                    const qScore = quarterScores.find(qs => qs.quarter === q);
-                    return (
-                      <div key={q} className="text-base font-black text-gray-900 dark:text-white">
-                        <span className="text-gray-600 dark:text-gray-400">Q{q}:</span> {qScore ? `${qScore.home}-${qScore.away}` : '-'}
-                      </div>
-                    );
-                  })}
-                </div>
+              <div className="text-gray-900 dark:text-white text-lg font-black mb-1">{quarterLabel}</div>
+              <div className="text-sm text-gray-700 dark:text-gray-300 font-semibold">
+                {[1, 2, 3, 4].map((q, idx) => {
+                  const qScore = quarterScores.find(qs => qs.quarter === q);
+                  return (
+                    <span key={q}>
+                      {`Q${q}:${qScore ? `${qScore.home}-${qScore.away}` : '-'}`}{idx < 3 ? ', ' : ''}
+                    </span>
+                  );
+                })}
               </div>
               
               {/* BUTTONS */}
@@ -1306,16 +1304,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                   </Button>
                 )}
 
-                <Button
-                  onClick={handleUndo}
-                  size="sm"
-                  className="bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-black text-xs px-4 py-2 disabled:opacity-50"
-                  disabled={undoInProgress || actionHistory.length === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
-                >
-                  <RotateCcw className="w-4 h-4 mr-1" />
-                  UNDO
-                </Button>
-                <Button
+<Button
                   onClick={() => navigate(createPageUrl("Games"))}
                   variant="outline"
                   size="sm"
@@ -1338,7 +1327,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                   </AvatarFallback>
                 </Avatar>
               </div>
-              <div className="text-blue-600 dark:text-blue-500 text-7xl font-black mb-2">{awayScore}</div>
+              <div className="text-blue-600 dark:text-blue-500 text-5xl font-black mb-2">{awayScore}</div>
               <div className="flex justify-center gap-4 text-xs font-bold items-center">
                 <span className={`${inPenalty('away') ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
                   FOULS: {awayTeamFouls}/{game.penalty_limit_per_quarter}
@@ -1413,11 +1402,11 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
 
       {/* Control Panel */}
       {selectedPlayer ? (
-        <div className="sticky z-30 bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900" style={{ top: game.is_default ? '564px' : '464px' }}> {/* Updated top value */}
-          <div className="mx-4 my-4">
+        <div className="fixed bottom-0 left-0 right-0 z-30 bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900">
+          <div className="mx-4 my-2">
             <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <Avatar className="w-14 h-14 border-4 border-blue-200 dark:border-blue-800 shadow-lg">
                       <AvatarImage src={selectedPlayer.photo_url} />
@@ -1443,7 +1432,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                   </Button>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-nowrap gap-2 overflow-x-auto whitespace-nowrap">
                   <Button
                     onClick={() => addPoints(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 1)}
                     className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
@@ -1585,7 +1574,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
       )}
 
       {/* Players Section */}
-      <div className="max-w-7xl mx-auto p-4 pb-24">
+      <div className="max-w-7xl mx-auto p-4 pb-40">
         <div className="grid md:grid-cols-2 gap-4"> {/* Changed lg:grid-cols-2 to md:grid-cols-2 */}
           {/* Home Team */}
           <div className="flex flex-col h-[700px] bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/40 dark:to-orange-950/40 border-4 border-orange-500 backdrop-blur-sm rounded-xl">

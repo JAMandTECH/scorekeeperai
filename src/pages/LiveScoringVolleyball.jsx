@@ -37,7 +37,7 @@ export default function LiveScoringVolleyball() {
   const [showDefaultDialog, setShowDefaultDialog] = useState(false);
   const [actionHistory, setActionHistory] = useState([]);
   const [showSetStats, setShowSetStats] = useState(true);
-  const [showVoiceAssistant, setShowVoiceAssistant] = useState(true);
+  const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const navigate = useNavigate();
 const urlParams = new URLSearchParams(window.location.search);
 const editMode = urlParams.get('edit') === '1' || urlParams.get('mode') === 'edit';
@@ -877,25 +877,23 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                 </Avatar>
                 <div className="text-white text-2xl font-black text-left">{homeTeam.name}</div>
               </div>
-              <div className="text-blue-500 text-7xl font-black mb-2">{homeScore}</div>
+              <div className="text-blue-500 text-5xl font-black mb-2">{homeScore}</div>
               <div className="text-white text-xs font-bold">
                 Current Set: {currentSetHomeScore} | Sets Won: {setScores.filter(s => s.home > s.away).length}
               </div>
             </div>
 
             <div className="text-center">
-              <div className="text-white text-2xl font-black mb-3">{setLabel}</div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
-                <div className="flex justify-center gap-3 flex-wrap">
-                  {[1, 2, 3, 4, 5].map(s => {
-                    const setScore = setScores.find(ss => ss.quarter === s);
-                    return (
-                      <div key={s} className="text-base font-black text-white">
-                        <span className="text-gray-400">S{s}:</span> {setScore ? `${setScore.home}-${setScore.away}` : '-'}
-                      </div>
-                    );
-                  })}
-                </div>
+              <div className="text-white text-lg font-black mb-1">{setLabel}</div>
+              <div className="text-sm text-gray-300 font-semibold">
+                {[1, 2, 3, 4, 5].map((s, idx) => {
+                  const sc = setScores.find(ss => ss.quarter === s);
+                  return (
+                    <span key={s}>
+                      {`S${s}:${sc ? `${sc.home}-${sc.away}` : '-'}`}{idx < 4 ? ', ' : ''}
+                    </span>
+                  );
+                })}
               </div>
 
               <div className="flex gap-2 justify-center flex-wrap">
@@ -951,7 +949,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                   </AvatarFallback>
                 </Avatar>
               </div>
-              <div className="text-cyan-500 text-7xl font-black mb-2">{awayScore}</div>
+              <div className="text-cyan-500 text-5xl font-black mb-2">{awayScore}</div>
               <div className="text-white text-xs font-bold">
                 Current Set: {currentSetAwayScore} | Sets Won: {setScores.filter(s => s.away > s.home).length}
               </div>
@@ -998,11 +996,11 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
       </div>
 
       {selectedPlayer ? (
-        <div className="sticky z-30 bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900" style={{ top: game.is_default ? '464px' : '364px' }}>
+        <div className="fixed bottom-0 left-0 right-0 z-30 bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900">
           <div className="mx-4 my-4">
             <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <Avatar className="w-14 h-14 border-4 border-blue-200 dark:border-blue-800 shadow-lg">
                       <AvatarImage src={selectedPlayer?.photo_url} />
@@ -1148,7 +1146,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto p-4 pb-24">
+      <div className="max-w-7xl mx-auto p-4 pb-40">
         <div className="grid md:grid-cols-2 gap-4">
           <div className="flex flex-col h-[700px] bg-gradient-to-br from-blue-900/40 to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm rounded-xl">
             <div className="flex-shrink-0 bg-blue-900/95 backdrop-blur-sm border-b-4 border-blue-500 p-3 rounded-t-xl">
