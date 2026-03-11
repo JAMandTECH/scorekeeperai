@@ -903,7 +903,7 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{player.first_name} {player.last_name}</p>
                               <div className="flex items-center gap-2">
                                 <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
                                   <AvatarImage src={player.teamLogoUrl} />
@@ -967,7 +967,7 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{player.first_name} {player.last_name}</p>
                               <div className="flex items-center gap-2">
                                 <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
                                   <AvatarImage src={player.teamLogoUrl} />
@@ -1031,7 +1031,7 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{player.first_name} {player.last_name}</p>
                               <div className="flex items-center gap-2">
                                 <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
                                   <AvatarImage src={player.teamLogoUrl} />
@@ -1097,7 +1097,7 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{player.first_name} {player.last_name}</p>
                               <div className="flex items-center gap-2">
                                 <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
                                   <AvatarImage src={player.teamLogoUrl} />
@@ -1436,7 +1436,7 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{player.first_name} {player.last_name}</p>
                               <div className="flex items-center gap-2">
                                 <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
                                   <AvatarImage src={player.teamLogoUrl} />
@@ -1500,7 +1500,7 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{player.first_name} {player.last_name}</p>
                               <div className="flex items-center gap-2">
                                 <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
                                   <AvatarImage src={player.teamLogoUrl} />
@@ -1564,7 +1564,7 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{player.first_name} {player.last_name}</p>
                               <div className="flex items-center gap-2">
                                 <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
                                   <AvatarImage src={player.teamLogoUrl} />
@@ -1628,7 +1628,7 @@ export default function Home() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{player.first_name} {player.last_name}</p>
                               <div className="flex items-center gap-2">
                                 <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
                                   <AvatarImage src={player.teamLogoUrl} />
