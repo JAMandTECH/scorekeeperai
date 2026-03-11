@@ -363,7 +363,7 @@ export default function Games() {
     e.preventDefault();
     const formData = new FormData(e.target);
     const weekNumber = formData.get('week_number');
-    const data = {
+    const baseData = {
                 organization_id: user?.organization_id,
                 home_team_id: formData.get('home_team_id'),
                 away_team_id: formData.get('away_team_id'),
@@ -382,9 +382,9 @@ export default function Games() {
                 home_statistician_email: formData.get('home_statistician_email') || null,
                 away_statistician_email: formData.get('away_statistician_email') || null,
                 week_number: weekNumber ? parseInt(weekNumber) : null,
-                status: 'scheduled',
-                archived: false,
               };
+
+              const data = editingGame ? baseData : { ...baseData, status: 'scheduled', archived: false };
 
     if (editingGame) {
       updateMutation.mutate({ id: editingGame.id, data });
@@ -719,7 +719,15 @@ export default function Games() {
             </Link>
           )}
           {showActions && game.status === 'completed' && !game.archived && (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
+              <Button 
+                onClick={() => handleEditGame(game)}
+                variant="outline"
+                className="border-2 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-bold"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit
+              </Button>
               <Button
                 onClick={() => setArchivingGame(game)}
                 variant="outline"
@@ -737,7 +745,7 @@ export default function Games() {
                 Delete
               </Button>
             </div>
-          )}
+          )
           {game.archived && showActions && (
             <div className="grid grid-cols-2 gap-2">
               <Button
@@ -1144,6 +1152,7 @@ export default function Games() {
                             <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Court</th>
                             <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Score</th>
                             <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Week</th>
+                            <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1164,7 +1173,35 @@ export default function Games() {
                               <td className="py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">{game.court_number || '-'}</td>
                               <td className="py-3 px-4 text-sm font-black text-gray-900 dark:text-white">{game.home_score} - {game.away_score}</td>
                               <td className="py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">{game.week_number || '-'}</td>
-                            </tr>
+                              <td className="py-3 px-4">
+                                <div className="flex gap-1">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={() => handleEditGame(game)}
+                                    className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={() => setArchivingGame(game)}
+                                    className="text-gray-400 hover:text-purple-600 dark:hover:text-purple-400"
+                                  >
+                                    <Archive className="w-4 h-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={() => handleDeleteClick(game)}
+                                    className="text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </td>
+                              </tr>
                           ))}
                         </tbody>
                       </table>
