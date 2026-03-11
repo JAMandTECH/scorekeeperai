@@ -1846,6 +1846,13 @@ export default function Home() {
                                 </div>
                               )}
 
+                              <details className="mt-3">
+                                <summary className="cursor-pointer text-sm font-bold text-blue-600 dark:text-blue-400">Player Stats</summary>
+                                <div className="mt-2">
+                                  <GameCompactStats game={game} allPlayerStats={allPlayerStats} allPlayers={allPlayers} sport="volleyball" />
+                                </div>
+                              </details>
+
                               {/* AI Game Summary - ONLY FOR ADMINS */}
                               {isAdmin && homeTeamData && awayTeamData && topPlayersForAI.length > 0 && (
                                 <div className="mt-3">
