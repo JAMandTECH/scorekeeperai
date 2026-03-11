@@ -81,7 +81,7 @@ export default function TopAssistLeaders({ organizationId = null, sport = "baske
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate">#{p.jersey_number} {p.first_name} {p.last_name}</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{p.first_name} {p.last_name}</p>
                   <div className="flex items-center gap-2">
                     <Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700">
                       <AvatarImage src={p.team_logo_url} />
