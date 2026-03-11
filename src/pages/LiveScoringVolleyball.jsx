@@ -215,7 +215,13 @@ export default function LiveScoringVolleyball() {
 
   // Service-backed game updater to avoid client RLS issues
   const updateGameById = async (id, patch) => {
-    await base44.functions.invoke('updateGame', { game_id: id, patch });
+    try {
+      await base44.functions.invoke('updateGame', { game_id: id, patch });
+    } catch (e) {
+      console.error('updateGame failed', e);
+      alert('Failed to save game update. Please check your connection or permissions.');
+      throw e;
+    }
   };
   const updateGame = async (patch) => {
     if (!game?.id) return;
@@ -245,19 +251,25 @@ export default function LiveScoringVolleyball() {
       };
     });
 
-    const resp = await base44.functions.invoke('upsertPlayerStat', {
-      game_id: game.id,
-      player_id: playerId,
-      team_id: teamId,
-      quarter: currentSet,
-      updates: statUpdates,
-    });
-    const saved = resp?.data?.stat;
-    if (saved?.id) {
-      setPlayerStats(prev => ({
-        ...prev,
-        [key]: { ...prev[key], id: saved.id },
-      }));
+    try {
+      const resp = await base44.functions.invoke('upsertPlayerStat', {
+        game_id: game.id,
+        player_id: playerId,
+        team_id: teamId,
+        quarter: currentSet,
+        updates: statUpdates,
+      });
+      const saved = resp?.data?.stat;
+      if (saved?.id) {
+        setPlayerStats(prev => ({
+          ...prev,
+          [key]: { ...prev[key], id: saved.id },
+        }));
+      }
+    } catch (e) {
+      console.error('upsertPlayerStat failed', e);
+      alert('Failed to save player stat. Please check your permissions or connection.');
+      throw e;
     }
   };
 

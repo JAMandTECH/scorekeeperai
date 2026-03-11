@@ -28,8 +28,16 @@ Deno.serve(async (req) => {
     );
     const isSuperAdmin = Boolean(user.is_super_admin);
     const isScorekeeper = Boolean(user.is_scorekeeper);
+    const email = (user.email || '').toLowerCase();
+    const assignedEmails = [
+      game.overall_scorekeeper_email,
+      game.home_statistician_email,
+      game.away_statistician_email,
+      ...(Array.isArray(game.assigned_scorekeeper_emails) ? game.assigned_scorekeeper_emails : [])
+    ].filter(Boolean).map((e) => String(e).toLowerCase());
+    const isGameAssigned = assignedEmails.includes(email);
 
-    if (!(isSuperAdmin || (isAdmin && sameOrg) || (isScorekeeper && sameOrg))) {
+    if (!(isSuperAdmin || (sameOrg && (isAdmin || isScorekeeper || isGameAssigned)))) {
       return Response.json({ error: 'Forbidden: insufficient permissions' }, { status: 403 });
     }
 

@@ -57,10 +57,22 @@ export default function LiveScoring() {
 
   // Service-role backed safe game update (validates user is allowed on backend)
   const updateGameSafe = async (patch) => {
-    await base44.functions.invoke('updateGame', { game_id: game.id, patch });
+    try {
+      await base44.functions.invoke('updateGame', { game_id: game.id, patch });
+    } catch (e) {
+      console.error('updateGame failed', e);
+      alert('Failed to save game update. Please check your connection or permissions.');
+      throw e;
+    }
   };
   const updateGameByIdSafe = async (id, patch) => {
-    await base44.functions.invoke('updateGame', { game_id: id, patch });
+    try {
+      await base44.functions.invoke('updateGame', { game_id: id, patch });
+    } catch (e) {
+      console.error('updateGameById failed', e);
+      alert('Failed to save game update. Please check your connection or permissions.');
+      throw e;
+    }
   };
 
 
@@ -364,6 +376,7 @@ export default function LiveScoring() {
       }
     } catch (error) {
       console.error('Error saving player stats:', error);
+      alert('Failed to save player stats. Please check your permissions or connection.');
     }
   };
 
