@@ -69,15 +69,15 @@ export default function SubscriptionCheckout() {
 
   const handleSubscribe = async (tier) => {
     if (tier === 'free') {
-      // Downgrade to free - cancel subscription
       if (window.confirm('Downgrade to Free? This will cancel your paid subscription.')) {
         try {
-          await base44.functions.invoke('cancelPayPalSubscription', {
-            organization_id: organization.id,
+          await base44.entities.Organization.update(organization.id, {
+            subscription_tier: 'free',
+            subscription_status: 'cancelled'
           });
           window.location.reload();
         } catch (error) {
-          alert('Failed to cancel subscription: ' + error.message);
+          alert('Failed to downgrade: ' + (error?.message || 'Unknown error'));
         }
       }
       return;
@@ -87,14 +87,20 @@ export default function SubscriptionCheckout() {
     setProcessingPayment(true);
 
     try {
-      const response = await base44.functions.invoke('createPayPalSubscription', {
+      const isIframe = window.top !== window.self;
+      if (isIframe) {
+        alert('Checkout must be opened from a published app (not inside the editor). Please open your app in a new tab.');
+        setProcessingPayment(false);
+        return;
+      }
+      const response = await base44.functions.invoke('stripeCheckout', {
         organization_id: organization.id,
-        tier: tier,
+        tier,
         selected_sport: tier === 'basic' ? selectedSport : null,
       });
 
-      // Redirect to PayPal checkout
-      window.location.href = response.data.approval_url;
+      // Redirect to Stripe Checkout
+      window.location.href = response.data.url;
     } catch (error) {
       console.error('=== SUBSCRIPTION ERROR ===');
       console.error('Full error object:', error);
@@ -223,7 +229,7 @@ export default function SubscriptionCheckout() {
               <Alert className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30">
                 <AlertCircle className="w-4 h-4 text-blue-600" />
                 <AlertDescription className="text-blue-900 dark:text-blue-300">
-                  <strong>Setup Complete:</strong> PayPal integration is ready. Make sure to create PayPal billing plans and update the plan IDs in createPayPalSubscription.js
+                  <strong>Setup Complete:</strong> Stripe is in Test Mode. Use 4242 4242 4242 4242 and switch to Live keys in Dashboard → Integrations to go live.
                 </AlertDescription>
               </Alert>
 
