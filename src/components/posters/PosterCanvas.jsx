@@ -7,7 +7,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
   const [dataUrl, setDataUrl] = useState('');
 
   useEffect(() => {
-    if (!backgroundUrl || !game || !players?.length) return;
+    if (!backgroundUrl || !game) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
