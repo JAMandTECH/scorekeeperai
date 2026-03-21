@@ -118,6 +118,79 @@ export default function PosterGenerator() {
     },
   });
 
+  const aiFillMutation = useMutation({
+    mutationFn: async ({ template, game, player, org }) => {
+      const metadata = template?.metadata || {};
+      const prompt = [
+        'You are a strict layout engine that maps data onto a poster template. ',
+        'Analyze the provided template metadata to identify text placeholders/slots and their desired styles/positions. ',
+        'Then produce a list of TEXT elements to render. Do NOT create shapes or images. ',
+        'STRICT REQUIREMENTS:',
+        '- Preserve all provided styling exactly (fontFamily, fontSize, color, align, rotation, bold) when present in the metadata for a slot/element.',
+        '- Preserve spacing/positions: use explicit x/y (or header/bestTitle/stats/scoreRow positions when referenced).',
+        '- Fill content with real values from the given game/player/org: player full name, jersey_number if present, team names, final score, and top stats (basketball: points/rebounds/assists; volleyball: attacks/blocks/aces).',
+        '- Only return elements that should appear as text (no background or logos).',
+        '- If a slot provides style but not text, keep the style and fill the text using the appropriate source.',
+        '',
+        'Template metadata JSON:', JSON.stringify(metadata),
+        'Game JSON:', JSON.stringify(game),
+        'Player JSON:', JSON.stringify(player || {}),
+        'Organization JSON:', JSON.stringify(org || {}),
+        '',
+        'Output MUST follow the provided JSON schema exactly.'
+      ].join('\n');
+
+      const responseSchema = {
+        type: 'object',
+        properties: {
+          elements: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                text: { type: 'string' },
+                x: { type: 'number' },
+                y: { type: 'number' },
+                rotation: { type: 'number', default: 0 },
+                fontFamily: { type: 'string' },
+                fontSize: { type: 'number' },
+                color: { type: 'string' },
+                align: { type: 'string', enum: ['left','center','right'], default: 'left' },
+                bold: { type: 'boolean', default: false }
+              },
+              required: ['text','x','y']
+            }
+          }
+        },
+        required: ['elements']
+      };
+
+      const out = await base44.integrations.Core.InvokeLLM({
+        prompt,
+        response_json_schema: responseSchema
+      });
+      return out;
+    },
+    onSuccess: (out) => {
+      const els = Array.isArray(out?.elements) ? out.elements : [];
+      const withIds = els.map((el, idx) => ({
+        id: 'el_' + Math.random().toString(36).slice(2, 9),
+        type: 'text',
+        text: String(el.text || ''),
+        x: Number(el.x) || 0,
+        y: Number(el.y) || 0,
+        rotation: Number(el.rotation) || 0,
+        fontFamily: el.fontFamily || 'Inter, system-ui, Arial',
+        fontSize: Number(el.fontSize) || 32,
+        color: el.color || '#ffffff',
+        align: ['left','center','right'].includes(el.align) ? el.align : 'left',
+        bold: !!el.bold,
+        zIndex: idx
+      }));
+      setLayout((prev) => ({ ...(prev || {}), elements: withIds }));
+    }
+  });
+
   if (user && user.role !== 'admin') {
     return (
       <div className="p-6 max-w-5xl mx-auto">
@@ -326,6 +399,21 @@ export default function PosterGenerator() {
           }}
         >
           Use Template
+        </Button>
+        <Button
+          variant="secondary"
+          disabled={!selectedTemplateId || !topQ.data}
+          onClick={() => {
+            const t = (templatesQ.data || []).find(x => x.id === selectedTemplateId);
+            if (!t || !topQ.data) return;
+            if (t?.sample_image_url) setImageUrl(t.sample_image_url);
+            if (t?.metadata) setLayout((prev)=> ({...t.metadata, ...(prev||{}) }));
+            aiFillMutation.mutate({ template: t, game: topQ.data.game, player: topQ.data.topPlayers?.[0] || null, org: orgQ.data || null });
+          }}
+          className="gap-2"
+        >
+          {aiFillMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          AI Fill
         </Button>
         {imageUrl && (
           <>
