@@ -147,7 +147,7 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
         if (drag.key === 'bestTitle') { upd.bestTitle.y = Math.max(200, Math.min(H-100, snapAxis(y,'y'))); }
         if (drag.key === 'stats') { upd.stats.y = Math.max(300, Math.min(H-300, snapAxis(y,'y'))); }
         if (drag.key === 'scoreRow') { upd.scoreRow.y = Math.max(600, Math.min(H-100, snapAxis(y,'y'))); }
-        onChange(upd);
+        commit(upd);
       } else if (drag.type === 'element') {
         const els = (L.elements||[]).map(e => ({...e}));
         const keys = drag.keys || [];
