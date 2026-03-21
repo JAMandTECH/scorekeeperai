@@ -297,6 +297,7 @@ export default function PosterGenerator() {
           onClick={() => {
             const t = (templatesQ.data || []).find(x => x.id === selectedTemplateId);
             if (t?.sample_image_url) setImageUrl(t.sample_image_url);
+            if (t?.metadata) setLayout(t.metadata);
           }}
         >
           Use Template
