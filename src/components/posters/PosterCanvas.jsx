@@ -165,6 +165,32 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       ctx.font = `900 ${bestSize}px Inter, system-ui, Arial`;
       ctx.fillText('BEST PLAYER', W / 2, bestY);
 
+      // Render custom editable elements (text boxes)
+      if (Array.isArray(L.elements)) {
+        L.elements.forEach((el) => {
+          if (el.type === 'text' && el.text) {
+            ctx.save();
+            const x = el.x ?? W/2;
+            const y = el.y ?? H/2;
+            const rot = (el.rotation || 0) * Math.PI / 180;
+            ctx.translate(x, y);
+            ctx.rotate(rot);
+            ctx.fillStyle = el.color || '#ffffff';
+            const weight = el.bold ? 800 : 600;
+            const size = el.fontSize || 32;
+            const ff = el.fontFamily || 'Inter, system-ui, Arial';
+            ctx.font = `${weight} ${size}px ${ff}`;
+            ctx.textAlign = (el.align || 'left');
+            const lines = String(el.text).split('\n');
+            const lh = size * 1.2;
+            lines.forEach((line, i) => {
+              ctx.fillText(line, 0, i * lh);
+            });
+            ctx.restore();
+          }
+        });
+      }
+
       // Final Score row
       const hs = Number(game.home_score || 0), as = Number(game.away_score || 0);
       const homeWins = hs >= as;
