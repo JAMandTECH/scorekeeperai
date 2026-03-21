@@ -11,6 +11,7 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import AIInsights from "@/components/AIInsights";
 import AIAssistant from "@/components/AIAssistant";
+import SubscriptionBadge from "@/components/subscription/SubscriptionBadge";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -149,6 +150,16 @@ export default function Dashboard() {
                       ? `Manage ${organization.name}` 
                       : 'Loading organization...'}
                 </p>
+                {organization && (
+                  <div className="mt-3 flex items-center gap-3">
+                    <SubscriptionBadge organization={organization} />
+                    {isSuperAdmin && (
+                      <Link to={createPageUrl("SubscriptionManagement")}>
+                        <Button variant="outline" size="sm">Manage Subscriptions</Button>
+                      </Link>
+                    )}
+                  </div>
+                )}
               </div>
 
               {!organization && !isSuperAdmin && (
