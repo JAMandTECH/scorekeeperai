@@ -132,7 +132,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           ['Rebounds', p.rebounds || 0],
           ['Assists', p.assists || 0],
         ];
-        const startX = 80, gapX = 260, y = 520;
+        const startX = 80, gapX = 260, y = (L.stats?.y ?? 520);
         stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
       } else {
         const stats = [
@@ -140,7 +140,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           ['Blocks', p.blocks || 0],
           ['Aces', p.aces || 0],
         ];
-        const startX = 80, gapX = 260, y = 520;
+        const startX = 80, gapX = 260, y = (L.stats?.y ?? 520);
         stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
       }
 
