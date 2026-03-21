@@ -41,6 +41,7 @@ export default function PosterGenerator() {
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [layout, setLayout] = React.useState({});
   const [posterDataUrl, setPosterDataUrl] = React.useState('');
+  const [previewBusy, setPreviewBusy] = React.useState({});
 
   React.useEffect(() => {
     (async () => {
@@ -89,6 +90,32 @@ export default function PosterGenerator() {
     initialData: [],
     enabled: !!user,
   });
+
+  const generatePreviewForTemplate = React.useCallback(async (tpl) => {
+    if (!tpl?.id || !tpl?.prompt) return;
+    setPreviewBusy(prev => ({ ...prev, [tpl.id]: true }));
+    try {
+      const { url } = await base44.integrations.Core.GenerateImage({ prompt: tpl.prompt });
+      if (url) {
+        await base44.entities.PosterTemplate.update(tpl.id, { sample_image_url: url });
+        qc.setQueryData(['ptemplates', sport], (old) => (old || []).map(x => x.id === tpl.id ? { ...x, sample_image_url: url } : x));
+      }
+    } finally {
+      setPreviewBusy(prev => ({ ...prev, [tpl.id]: false }));
+    }
+  }, [qc, sport]);
+
+  React.useEffect(() => {
+    const run = async () => {
+      const list = templatesQ.data || [];
+      const missing = list.filter(t => !t.sample_image_url);
+      if (!missing.length) return;
+      await Promise.allSettled(missing.map((t) => generatePreviewForTemplate(t)));
+    };
+    if (user && templatesQ.data && templatesQ.data.length) {
+      run();
+    }
+  }, [user, templatesQ.data, generatePreviewForTemplate]);
 
   const topQ = useQuery({
     queryKey: ['topPlayers', selectedGameId],
@@ -211,9 +238,14 @@ export default function PosterGenerator() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {templatesQ.data?.map(t => (
                   <button key={t.id} onClick={() => setSelectedTemplateId(t.id)} className={`border rounded-lg text-left overflow-hidden hover:shadow-md transition ${selectedTemplateId === t.id ? 'ring-2 ring-primary' : ''}`}>
-                    <div className="aspect-video bg-muted flex items-center justify-center text-muted-foreground">
+                    <div className="relative aspect-video bg-muted flex items-center justify-center text-muted-foreground">
                       {t.sample_image_url ? (
                         <img src={t.sample_image_url} alt={t.name} className="w-full h-full object-cover" />
+                      ) : previewBusy[t.id] ? (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-xs">Generating preview…</span>
+                        </div>
                       ) : (
                         <span className="text-xs px-3 py-2">{t.name}</span>
                       )}
