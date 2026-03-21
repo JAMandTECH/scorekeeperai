@@ -221,7 +221,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           ctx.arcTo(x + bw, yy + bh, x, yy + bh, r); ctx.arcTo(x, yy + bh, x, yy, r); ctx.arcTo(x, yy, x + bw, yy, r);
           ctx.closePath(); ctx.fill();
           ctx.fillStyle = '#111827'; ctx.textAlign = 'center';
-        } else {
+        } else if (p) {
           ctx.beginPath(); ctx.moveTo(x, yy); ctx.arcTo(x + bw, yy, x + bw, yy + bh, r);
           ctx.arcTo(x + bw, yy + bh, x, yy + bh, r); ctx.arcTo(x, yy + bh, x, yy, r); ctx.arcTo(x, yy, x + bw, yy, r);
           ctx.closePath();
