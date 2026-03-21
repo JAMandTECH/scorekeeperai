@@ -26,6 +26,11 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
   const [selectedIds, setSelectedIds] = useState([]);
   const [showVGuide, setShowVGuide] = useState(false);
   const [showHGuide, setShowHGuide] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editingField, setEditingField] = useState(null);
+  const [editingValue, setEditingValue] = useState("");
+  const [originalValue, setOriginalValue] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
   // zoom/pan/grid/guides
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -63,6 +68,11 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
 
   const s = stats || {};
   const playerDisplayName = (playerName && String(playerName).trim()) || [s.first_name, s.last_name].filter(Boolean).join(' ').trim();
+  const O = L.overrides || {};
+  const effectiveHeaderText = O.headerText ?? headerText;
+  const effectiveDateStr = O.dateStr ?? dateStr;
+  const effectivePlayerName = O.playerName ?? (playerDisplayName ? String(playerDisplayName).toUpperCase() : '');
+  const effectiveScoreLine = O.scoreLine ?? `${(homeName || 'HOME')} ${(homeScore ?? '0')} - ${(awayScore ?? '0')} ${(awayName || 'AWAY')}`;
 
   const commit = (next) => {
     const merged = { ...L, ...next };
@@ -90,7 +100,7 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
     setSelectedIds([el.id]);
   };
 
-  const startDragFixed = (key, mode) => (e) => {
+  const startDragFixed = (key, mode) => (e) => { if (editingId || editingField) return;
     e.preventDefault();
     const rect = stageRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / scale + pan.x;
@@ -98,7 +108,7 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
     setDrag({ type: 'fixed', key, mode, startX: x, startY: y });
   };
 
-  const startDragElement = (el, mode) => (e) => {
+  const startDragElement = (el, mode) => (e) => { if (editingId || editingField) return;
     if (el.locked) return;
     e.preventDefault(); e.stopPropagation();
     const rect = stageRef.current.getBoundingClientRect();
@@ -194,7 +204,7 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
   useEffect(()=>{ try { const snap = JSON.parse(JSON.stringify(L)); historyRef.current=[snap]; historyIdxRef.current=0; } catch(_){} }, []);
   // keyboard shortcuts
   useEffect(()=>{
-    const onKey = (e) => {
+    const onKey = (e) => { const ae = document.activeElement; if (ae && ((ae.tagName==='INPUT')||(ae.tagName==='TEXTAREA')||ae.isContentEditable)) return;
       const mod = e.ctrlKey || e.metaKey;
       if (mod && e.key.toLowerCase() === 'z') {
         e.preventDefault();
@@ -295,6 +305,20 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
     setElements(els.map((e, idx) => ({...e, zIndex: idx})));
     setSelectedIds(prev => prev.filter(x => x !== id));
   };
+  const saveEditingField = () => {
+    let overrides = { ...(L.overrides||{}) };
+    if (editingField === 'headerText') overrides.headerText = editingValue;
+    else if (editingField === 'dateStr') overrides.dateStr = editingValue;
+    else if (editingField === 'playerName') overrides.playerName = editingValue;
+    else if (editingField === 'scoreLine') overrides.scoreLine = editingValue;
+    else if (editingField && editingField.startsWith('stat_')) {
+      const key = editingField.split('_')[1];
+      overrides.stats = { ...(overrides.stats||{}), [key]: editingValue };
+    }
+    commit({ overrides });
+    setEditingField(null);
+    setShowConfirm(false);
+  };
 
   return (
     <div className="flex gap-6">
@@ -332,7 +356,7 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
           style={{ width: stage.width, height: stage.height, cursor: drag?.type==='pan' ? 'grabbing' : 'default' }}
           onContextMenu={(e)=> e.preventDefault()}
           onWheel={(e)=>{ if (e.ctrlKey){ e.preventDefault(); const rect = stageRef.current.getBoundingClientRect(); const mx = (e.clientX - rect.left)/scale + pan.x; const my = (e.clientY - rect.top)/scale + pan.y; const next = Math.min(3, Math.max(0.5, zoom + (e.deltaY<0?0.1:-0.1))); const k = next/zoom; setZoom(next); setPan(p => ({ x: mx - (mx - p.x)*k, y: my - (my - p.y)*k })); } }}
-          onMouseDown={(e)=>{ if (e.button!==0){ setDrag({ type:'pan', startX:e.clientX, startY:e.clientY, panStart:{...pan} }); return; } setSelectedIds([]); }}
+          onMouseDown={(e)=>{ if (e.button!==0){ setDrag({ type:'pan', startX:e.clientX, startY:e.clientY, panStart:{...pan} }); return; } if (editingId || editingField) { if (!(e.target && ((e.target.tagName==='TEXTAREA')||(e.target.tagName==='INPUT')))) { setShowConfirm(true); } } else { setSelectedIds([]); } }}
           onClick={(e)=>{
             if(!cropMode) return;
             const rect = stageRef.current.getBoundingClientRect();
@@ -388,37 +412,79 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
             onMouseDown={startDragFixed('datePill', 'move')}
 >\n            {dateStr || 'DATE'}\n          </div>
           <div className="absolute left-0 right-0 h-1 bg-white/30 cursor-ns-resize" style={{ top: L.header.y * scale }} onMouseDown={startDragFixed('header', 'move')} />
-          {headerText && (
-            <div className="absolute w-full text-center pointer-events-none select-none" style={{ top: (L.header.y * scale) - ((L.header.fontSize||32)*scale/1.8) }}>
-              <span className="font-extrabold text-white" style={{ fontSize: (L.header.fontSize||32)*scale }}>{headerText}</span>
+          {effectiveHeaderText !== undefined && effectiveHeaderText !== null && (
+            <div className="absolute w-full text-center select-none pointer-events-auto" style={{ top: (L.header.y * scale) - ((L.header.fontSize||32)*scale/1.8) }}>
+              {editingField==='headerText' ? (
+                <textarea
+                  autoFocus
+                  className="bg-white/90 text-slate-900 rounded px-1 py-0.5"
+                  value={editingValue}
+                  onChange={(e)=> setEditingValue(e.target.value)}
+                  onKeyDown={(e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); saveEditingField(); } if(e.key==='Escape'){ e.preventDefault(); setEditingField(null); } }}
+                  onBlur={()=> setShowConfirm(true)}
+                  style={{ fontSize: (L.header.fontSize||32)*scale, fontFamily: 'Inter, system-ui, Arial', lineHeight: 1.1 }} rows={1}
+                />
+              ) : (
+                <span className="font-extrabold text-white" style={{ fontSize: (L.header.fontSize||32)*scale }} onDoubleClick={(e)=>{ e.stopPropagation(); setEditingField('headerText'); setOriginalValue(String(effectiveHeaderText||'')); setEditingValue(String(effectiveHeaderText||'')); setShowConfirm(false); }}>{effectiveHeaderText}</span>
+              )}
             </div>
           )}
           <div className="absolute left-0 right-0 h-1 bg-white/50 cursor-ns-resize" style={{ top: L.bestTitle.y * scale }} onMouseDown={startDragFixed('bestTitle', 'move')} />
           <div className="absolute w-full text-center pointer-events-none select-none" style={{ top: (L.bestTitle.y * scale) - ((L.bestTitle.fontSize||72)*scale/2) }}>
             <span className="font-black text-white" style={{ fontSize: (L.bestTitle.fontSize||72)*scale }}>BEST PLAYER</span>
           </div>
-          {playerDisplayName && (
-            <div className="absolute w-full text-center pointer-events-none select-none" style={{ top: (L.bestTitle.y * scale) + 20 }}>
-              <span className="font-extrabold text-white tracking-wide" style={{ fontSize: 24*scale }}>{String(playerDisplayName).toUpperCase()}</span>
+          {effectivePlayerName && (
+            <div className="absolute w-full text-center pointer-events-auto select-none" style={{ top: (L.bestTitle.y * scale) + 20 }}>
+              {editingField==='playerName' ? (
+                <textarea autoFocus className="bg-white/90 text-slate-900 rounded px-1 py-0.5"
+                  value={editingValue}
+                  onChange={(e)=> setEditingValue(e.target.value)}
+                  onKeyDown={(e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); saveEditingField(); } if(e.key==='Escape'){ e.preventDefault(); setEditingField(null);} }}
+                  onBlur={()=> setShowConfirm(true)}
+                  style={{ fontSize: 24*scale, lineHeight: 1.1 }} rows={1}
+                />
+              ) : (
+                <span className="font-extrabold text-white tracking-wide" style={{ fontSize: 24*scale }} onDoubleClick={(e)=>{ e.stopPropagation(); setEditingField('playerName'); setOriginalValue(String(effectivePlayerName||'')); setEditingValue(String(effectivePlayerName||'')); setShowConfirm(false); }}>{effectivePlayerName}</span>
+              )}
             </div>
           )}
           <div className="absolute left-0 right-0 h-1 bg-green-400/40 cursor-ns-resize" style={{ top: L.stats.y * scale }} onMouseDown={startDragFixed('stats', 'move')} />
-          <div className="absolute w-full flex items-center justify-center gap-3 pointer-events-none select-none" style={{ top: (L.stats.y * scale) - 18 }}>
+          <div className="absolute w-full flex items-center justify-center gap-3 select-none pointer-events-auto" style={{ top: (L.stats.y * scale) - 18 }}>
             {['PTS','REB','AST','BLK'].map((k)=>{
               const map = { PTS: s.points ?? s.pts, REB: s.rebounds, AST: s.assists, BLK: s.blocks };
-              const val = map[k];
+              const current = (O.stats && O.stats[k] !== undefined) ? O.stats[k] : map[k];
               return (
                 <div key={k} className="px-2 py-0.5 rounded bg-white/80 text-slate-900 text-xs font-semibold min-w-[44px] text-center">
-                  {k} <span className="ml-1 font-bold">{String(val ?? '-')}</span>
+                  {k}{' '}
+                  {editingField===`stat_${k}` ? (
+                    <input autoFocus className="w-10 bg-white/90 rounded px-1"
+                      value={editingValue}
+                      onChange={(e)=> setEditingValue(e.target.value)}
+                      onKeyDown={(e)=>{ if(e.key==='Enter'){ e.preventDefault(); saveEditingField(); } if(e.key==='Escape'){ e.preventDefault(); setEditingField(null);} }}
+                      onBlur={()=> setShowConfirm(true)}
+                    />
+                  ) : (
+                    <span className="ml-1 font-bold" onDoubleClick={(e)=>{ e.stopPropagation(); setEditingField(`stat_${k}`); setOriginalValue(String(current ?? '')); setEditingValue(String(current ?? '')); setShowConfirm(false); }}>{String(current ?? '-')}</span>
+                  )}
                 </div>
               );
             })}
           </div>
           <div className="absolute left-0 right-0 h-1 bg-blue-400/40 cursor-ns-resize" style={{ top: L.scoreRow.y * scale }} onMouseDown={startDragFixed('scoreRow', 'move')} />
-          <div className="absolute w-full text-center pointer-events-none select-none" style={{ top: (L.scoreRow.y * scale) - 10 }}>
-            <span className="font-black text-white" style={{ fontSize: 28*scale }}>
-              {(homeName || 'HOME')} {(homeScore ?? '0')} - {(awayScore ?? '0')} {(awayName || 'AWAY')}
-            </span>
+          <div className="absolute w-full text-center pointer-events-auto select-none" style={{ top: (L.scoreRow.y * scale) - 10 }}>
+            {editingField==='scoreLine' ? (
+              <input autoFocus className="bg-white/90 rounded px-2 py-0.5 text-center"
+                value={editingValue}
+                onChange={(e)=> setEditingValue(e.target.value)}
+                onKeyDown={(e)=>{ if(e.key==='Enter'){ e.preventDefault(); saveEditingField(); } if(e.key==='Escape'){ e.preventDefault(); setEditingField(null);} }}
+                onBlur={()=> setShowConfirm(true)}
+                style={{ fontSize: 28*scale }}
+              />
+            ) : (
+              <span className="font-black text-white" style={{ fontSize: 28*scale }} onDoubleClick={(e)=>{ e.stopPropagation(); setEditingField('scoreLine'); setOriginalValue(String(effectiveScoreLine||'')); setEditingValue(String(effectiveScoreLine||'')); setShowConfirm(false); }}>
+                {effectiveScoreLine}
+              </span>
+            )}
           </div>
           <div
             className="absolute rounded-full border-2 border-white/80 cursor-move overflow-hidden"
@@ -446,20 +512,42 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
               }}
               onMouseDown={(e)=>{ if (el.locked) return; e.stopPropagation(); if (e.shiftKey||e.metaKey||e.ctrlKey){ setSelectedIds(prev=> prev.includes(el.id)? prev.filter(id=>id!==el.id): [...prev, el.id]); } else { setSelectedIds([el.id]); } }}
             >
-              <div
-                className="cursor-move"
-                onMouseDown={startDragElement(el, 'move')}
-                style={{
-                  color: el.color || '#fff',
-                  fontWeight: el.bold ? 800 : 600,
-                  fontSize: (el.fontSize||32) * scale,
-                  fontFamily: el.fontFamily || 'Inter, system-ui, Arial',
-                  textAlign: el.align || 'left',
-                  whiteSpace: 'pre',
-                }}
-              >
-                {el.text || 'Text'}
-              </div>
+              {editingId===el.id ? (
+                <textarea
+                  autoFocus
+                  className="bg-white/90 text-slate-900 rounded px-1 py-0.5"
+                  value={editingValue}
+                  onChange={(e)=> setEditingValue(e.target.value)}
+                  onKeyDown={(e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); setElements((L.elements||[]).map(x=> x.id===el.id?{...x, text: editingValue}:x)); setEditingId(null);} if(e.key==='Escape'){ e.preventDefault(); setEditingId(null); setEditingValue(originalValue);} }}
+                  onBlur={()=> setShowConfirm(true)}
+                  style={{
+                    color: el.color || '#fff',
+                    fontWeight: el.bold ? 800 : 600,
+                    fontSize: (el.fontSize||32) * scale,
+                    fontFamily: el.fontFamily || 'Inter, system-ui, Arial',
+                    textAlign: el.align || 'left',
+                    lineHeight: 1.1,
+                    minWidth: 120,
+                  }}
+                  rows={Math.max(1, String(editingValue||'').split('\n').length)}
+                />
+              ) : (
+                <div
+                  className="cursor-move"
+                  onMouseDown={startDragElement(el, 'move')}
+                  onDoubleClick={(e)=>{ e.stopPropagation(); setEditingId(el.id); setOriginalValue(String(el.text||'')); setEditingValue(el.text||''); setShowConfirm(false); }}
+                  style={{
+                    color: el.color || '#fff',
+                    fontWeight: el.bold ? 800 : 600,
+                    fontSize: (el.fontSize||32) * scale,
+                    fontFamily: el.fontFamily || 'Inter, system-ui, Arial',
+                    textAlign: el.align || 'left',
+                    whiteSpace: 'pre',
+                  }}
+                >
+                  {el.text || 'Text'}
+                </div>
+              )
               {!el.locked && selectedIds.includes(el.id) && (
                 <div
                   title="Resize (changes font size)"
