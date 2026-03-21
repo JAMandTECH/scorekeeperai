@@ -191,6 +191,104 @@ export default function PosterGenerator() {
     }
   });
 
+  // Deterministic template fill (reads template requirements and overwrites elements)
+  const getValueByPath = (obj, path) => {
+    if (!obj || !path) return '';
+    return path.split('.').reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : ''), obj);
+  };
+
+  const formatString = (fmt, ctx) => fmt.replace(/\{([^}]+)\}/g, (_, p) => {
+    const parts = p.split('.');
+    const root = parts.shift();
+    const src = ctx[root] ?? {};
+    return String(getValueByPath(src, parts.join('.')) || '');
+  });
+
+  const buildElementsFromTemplate = ({ metadata, game, player, org }) => {
+    const out = [];
+    const slots = Array.isArray(metadata?.slots) ? metadata.slots : [];
+    const elements = Array.isArray(metadata?.elements) ? metadata.elements : [];
+    const items = [
+      ...slots,
+      ...elements.filter((e) => e && (e.data_source || e.data_sources || e.format || e.static_text))
+    ];
+
+    items.forEach((item, idx) => {
+      const x = Number(item.x ?? item.position?.x);
+      const y = Number(item.y ?? item.position?.y);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+
+      let text = '';
+      if (item.format) {
+        text = formatString(String(item.format), { game, player, org });
+      } else if (Array.isArray(item.data_sources)) {
+        for (const ds of item.data_sources) {
+          const parts = String(ds).split('.');
+          const root = parts.shift();
+          const src = { game, player, org }[root];
+          const val = getValueByPath(src, parts.join('.'));
+          if (val !== '' && val !== undefined && val !== null) { text = String(val); break; }
+        }
+      } else if (item.data_source) {
+        const parts = String(item.data_source).split('.');
+        const root = parts.shift();
+        const src = { game, player, org }[root];
+        const val = getValueByPath(src, parts.join('.'));
+        text = val !== undefined && val !== null ? String(val) : '';
+      } else if (item.static_text) {
+        text = String(item.static_text);
+      }
+
+      const style = item.style || item;
+      out.push({
+        id: 'el_' + Math.random().toString(36).slice(2, 9),
+        type: 'text',
+        text,
+        x, y,
+        rotation: Number(style.rotation) || 0,
+        fontFamily: style.fontFamily || 'Inter, system-ui, Arial',
+        fontSize: Number(style.fontSize) || 32,
+        color: style.color || '#ffffff',
+        align: ['left','center','right'].includes(style.align) ? style.align : 'left',
+        bold: !!style.bold,
+        zIndex: idx,
+      });
+    });
+
+    // Fallback: common basketball fields placed at template-provided positions
+    if (out.length === 0) {
+      const common = [
+        { id: 'player_name', text: [player?.first_name, player?.last_name].filter(Boolean).join(' ') || player?.full_name || '' },
+        { id: 'player_points', text: player?.points != null ? String(player.points) : '' },
+        { id: 'player_rebounds', text: player?.rebounds != null ? String(player.rebounds) : '' },
+        { id: 'player_assists', text: player?.assists != null ? String(player.assists) : '' },
+      ];
+      const baseStyle = metadata?.defaultTextStyle || {};
+      const pos = metadata?.common_positions || {};
+      common.forEach((c, i) => {
+        const p = pos[c.id] || {};
+        if (p.x != null && p.y != null) {
+          out.push({
+            id: 'el_' + Math.random().toString(36).slice(2, 9),
+            type: 'text',
+            text: c.text,
+            x: Number(p.x),
+            y: Number(p.y),
+            rotation: Number(baseStyle.rotation) || 0,
+            fontFamily: baseStyle.fontFamily || 'Inter, system-ui, Arial',
+            fontSize: Number(baseStyle.fontSize) || 32,
+            color: baseStyle.color || '#ffffff',
+            align: ['left','center','right'].includes(baseStyle.align) ? baseStyle.align : 'left',
+            bold: !!baseStyle.bold,
+            zIndex: 100 + i,
+          });
+        }
+      });
+    }
+
+    return out;
+  };
+
   if (user && user.role !== 'admin') {
     return (
       <div className="p-6 max-w-5xl mx-auto">
@@ -407,8 +505,13 @@ export default function PosterGenerator() {
             const t = (templatesQ.data || []).find(x => x.id === selectedTemplateId);
             if (!t || !topQ.data) return;
             if (t?.sample_image_url) setImageUrl(t.sample_image_url);
-            if (t?.metadata) setLayout((prev)=> ({...t.metadata, ...(prev||{}) }));
-            aiFillMutation.mutate({ template: t, game: topQ.data.game, player: topQ.data.topPlayers?.[0] || null, org: orgQ.data || null });
+            const computed = buildElementsFromTemplate({ metadata: t.metadata || {}, game: topQ.data.game, player: topQ.data.topPlayers?.[0] || null, org: orgQ.data || null });
+            if (computed?.length) {
+              setLayout((prev) => ({ ...(t.metadata || prev || {}), elements: computed }));
+            } else {
+              if (t?.metadata) setLayout((prev)=> ({...t.metadata, ...(prev||{}) }));
+              aiFillMutation.mutate({ template: t, game: topQ.data.game, player: topQ.data.topPlayers?.[0] || null, org: orgQ.data || null });
+            }
           }}
           className="gap-2"
         >
