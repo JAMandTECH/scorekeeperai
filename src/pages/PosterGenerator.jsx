@@ -361,6 +361,12 @@ export default function PosterGenerator() {
                   orgLogoUrl={orgQ.data?.logo_url || ''}
                   headerText={[orgQ.data?.tournament_name || orgQ.data?.name || '', gameForPoster?.division || ''].filter(Boolean).join(' • ').toUpperCase()}
                   dateStr={(function(){ const d = gameForPoster?.game_date ? new Date(gameForPoster.game_date) : null; return d ? d.toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'}).toUpperCase() : ''; })()}
+                  playerName={topQ.data?.topPlayers?.[0]?.full_name || ''}
+                  stats={topQ.data?.topPlayers?.[0] || {}}
+                  homeName={teamMap[gameForPoster?.home_team_id]}
+                  awayName={teamMap[gameForPoster?.away_team_id]}
+                  homeScore={gameForPoster?.home_score}
+                  awayScore={gameForPoster?.away_score}
                 />
                 <DialogFooter>
                   <Button onClick={() => setEditorOpen(false)}>Done</Button>
