@@ -48,6 +48,21 @@ export default function PosterGenerator() {
     enabled: !!user,
   });
 
+  const teamsQ = useQuery({
+    queryKey: ['pteams', sport],
+    queryFn: async () => {
+      return await base44.entities.Team.filter({ sport });
+    },
+    initialData: [],
+    enabled: !!user,
+  });
+
+  const teamMap = React.useMemo(() => {
+    const m = {};
+    (teamsQ.data || []).forEach(t => { m[t.id] = t.name; });
+    return m;
+  }, [teamsQ.data]);
+
   const templatesQ = useQuery({
     queryKey: ['ptemplates', sport],
     queryFn: async () => {
@@ -132,8 +147,12 @@ export default function PosterGenerator() {
                 <SelectContent className="max-h-72">
                   {gamesQ.data?.map(g => (
                     <SelectItem key={g.id} value={g.id}>
-                      {g.home_team_id === g.away_team_id ? 'Team' : ''}
-                      {g.home_team_id} vs {g.away_team_id} • {g.division || 'N/A'} • {g.game_date ? format(new Date(g.game_date), 'MMM d') : ''}
+                      {(() => {
+                        const home = teamMap[g.home_team_id] || 'Home';
+                        const away = teamMap[g.away_team_id] || 'Away';
+                        const date = g.game_date ? format(new Date(g.game_date), 'MMM d') : '';
+                        return `${home} vs ${away} • ${g.division || 'N/A'} • ${date}`;
+                      })()}
                     </SelectItem>
                   ))}
                 </SelectContent>
