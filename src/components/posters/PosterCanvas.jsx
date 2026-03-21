@@ -126,22 +126,24 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.fillText(String(value), x, y + 34);
       };
 
-      if (p && game.sport === 'basketball') {
-        const stats = [
-          ['Points', p.points || 0],
-          ['Rebounds', p.rebounds || 0],
-          ['Assists', p.assists || 0],
-        ];
-        const startX = 80, gapX = 260, y = (L.stats?.y ?? 520);
-        stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
-      } else {
-        const stats = [
-          ['Attacks', p.attacks || 0],
-          ['Blocks', p.blocks || 0],
-          ['Aces', p.aces || 0],
-        ];
-        const startX = 80, gapX = 260, y = (L.stats?.y ?? 520);
-        stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
+      if (p) {
+        if (game.sport === 'basketball') {
+          const stats = [
+            ['Points', p.points || 0],
+            ['Rebounds', p.rebounds || 0],
+            ['Assists', p.assists || 0],
+          ];
+          const startX = 80, gapX = 260, y = (L.stats?.y ?? 520);
+          stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
+        } else {
+          const stats = [
+            ['Attacks', p.attacks || 0],
+            ['Blocks', p.blocks || 0],
+            ['Aces', p.aces || 0],
+          ];
+          const startX = 80, gapX = 260, y = (L.stats?.y ?? 520);
+          stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
+        }
       }
 
       // Headshot centered
@@ -215,20 +217,21 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const drawScoreBox = (x, y, text, highlight) => {
         const h = 44; const r = 8; ctx.font = '800 22px Inter, system-ui, Arial';
         const tw = ctx.measureText(text).width + 24; const bh = h; const bw = tw; const yy = y - h + 6;
+        ctx.textAlign = 'center';
         if (highlight) {
           ctx.fillStyle = '#facc15';
           ctx.beginPath(); ctx.moveTo(x, yy); ctx.arcTo(x + bw, yy, x + bw, yy + bh, r);
           ctx.arcTo(x + bw, yy + bh, x, yy + bh, r); ctx.arcTo(x, yy + bh, x, yy, r); ctx.arcTo(x, yy, x + bw, yy, r);
           ctx.closePath(); ctx.fill();
-          ctx.fillStyle = '#111827'; ctx.textAlign = 'center';
-        } else if (p) {
+          ctx.fillStyle = '#111827';
+        } else {
           ctx.beginPath(); ctx.moveTo(x, yy); ctx.arcTo(x + bw, yy, x + bw, yy + bh, r);
           ctx.arcTo(x + bw, yy + bh, x, yy + bh, r); ctx.arcTo(x, yy + bh, x, yy, r); ctx.arcTo(x, yy, x + bw, yy, r);
           ctx.closePath();
           ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2; ctx.stroke();
-          ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center';
+          ctx.fillStyle = '#ffffff';
         }
-        ctx.fillText(text, x + bw / 2, yScore);
+        ctx.fillText(text, x + bw / 2, y);
         return bw;
       };
       const bw1 = drawScoreBox(center - 110, yScore, String(hs), homeWins);
