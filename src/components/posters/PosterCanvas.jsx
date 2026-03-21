@@ -58,29 +58,18 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, W, H);
 
-      // Org logo/info box top-left (always show org info)
+      // Org logo only (no background or text)
       {
-        const boxW = L.orgBox?.w ?? 260; const boxH = L.orgBox?.h ?? 86; const pad = 14; const r = 14;
-        const x = (L.orgBox?.x ?? (W - boxW - 24)); const y = L.orgBox?.y ?? 24;
-        ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.arcTo(x + boxW, y, x + boxW, y + boxH, r);
-        ctx.arcTo(x + boxW, y + boxH, x, y + boxH, r);
-        ctx.arcTo(x, y + boxH, x, y, r);
-        ctx.arcTo(x, y, x + boxW, y, r);
-        ctx.closePath();
-        ctx.fill();
-        const lh = boxH - pad * 2;
-        const lw = logoImg ? lh : 0;
-        if (logoImg) ctx.drawImage(logoImg, x + pad, y + pad, lw, lh);
-        ctx.fillStyle = '#0f172a';
-        ctx.font = '700 20px Inter, system-ui, Arial';
-        const name = org?.name || '';
-        ctx.fillText(name, x + pad + lw + 10, y + 34);
-        ctx.font = '500 14px Inter, system-ui, Arial';
-        const tname = org?.tournament_name || '';
-        if (tname) ctx.fillText(tname, x + pad + lw + 10, y + 58);
+        const maxH = L.orgLogo?.h ?? 64;
+        const maxW = L.orgLogo?.w ?? 200;
+        const x = L.orgLogo?.x ?? (W - maxW - 24);
+        const y = L.orgLogo?.y ?? 24;
+        if (logoImg) {
+          const scale = Math.min(maxW / logoImg.width, maxH / logoImg.height);
+          const dw = logoImg.width * scale;
+          const dh = logoImg.height * scale;
+          ctx.drawImage(logoImg, x, y, dw, dh);
+        }
       }
 
       // Header (tournament/division) + date pill
