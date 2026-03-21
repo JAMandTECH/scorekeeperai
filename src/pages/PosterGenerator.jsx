@@ -15,18 +15,27 @@ import { Link } from 'react-router-dom';
 import SocialShare from '@/components/social/SocialShare';
 
 const DEFAULT_TEMPLATES = [
-  // Basketball styles
-  { name: 'Electric Court', sport: 'basketball', prompt: 'Vibrant basketball court abstract background with dynamic diagonal streaks, gritty texture, orange and deep navy accents, spotlight center glow, high-contrast shadows, pro sports poster mood.' },
-  { name: 'Urban Gameday', sport: 'basketball', prompt: 'Graffiti-inspired urban sports poster background, dark asphalt texture, subtle hoop silhouette, neon rim lighting, orange & black palette, cinematic depth of field.' },
-  { name: 'Steel & Fire', sport: 'basketball', prompt: 'Industrial steel textures with fiery orange embers, dramatic smoke, intense lighting, bold geometric shapes framing a central empty area for text overlay.' },
-  { name: 'Minimal Court Lines', sport: 'basketball', prompt: 'Clean minimalist basketball court lines on textured paper, bold color blocks, modern editorial design, soft gradients, high-end magazine poster feel.' },
-  { name: 'Neon Arena', sport: 'basketball', prompt: 'Futuristic neon arena glow, purple/blue gradients, rim light arcs, subtle bokeh particles, energetic composition with center negative space.' },
-  // Volleyball styles
-  { name: 'Beach Storm', sport: 'volleyball', prompt: 'Dramatic volleyball background with sandy texture, teal and gold palette, motion blur streaks like a spiked ball, ocean mist, cinematic sports poster look.' },
-  { name: 'Net Shadows', sport: 'volleyball', prompt: 'High-contrast shadow of volleyball net across textured surface, bold geometric color panels, clean negative space, premium editorial aesthetic.' },
-  { name: 'Aqua Voltage', sport: 'volleyball', prompt: 'Electric turquoise gradients with white energy arcs, subtle ball pattern texture, crisp highlights, dynamic composition for intense volleyball match.' },
-  { name: 'Granite & Glow', sport: 'volleyball', prompt: 'Rugged granite texture with glowing cyan accents, foggy atmosphere, spotlight vignettes, center space reserved for text overlay.' },
-  { name: 'Sunset Court', sport: 'volleyball', prompt: 'Warm sunset gradient with soft grain, volleyball court line hints, gentle light beams, modern sports social graphic background.' },
+  // 9 Design Variants • Basketball
+  { name: 'Angled Slashes', sport: 'basketball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Modern basketball poster with angled slash panels and bold gold accents on charcoal background, clean negative space for typography, subtle grain and vignette, pro sports editorial look.' },
+  { name: 'Editorial Block', sport: 'basketball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Large stacked bold typography over a subtle court-lines texture, grayscale with high contrast, minimal decorative borders, magazine cover aesthetic.' },
+  { name: 'Minimal Gradient Right', sport: 'basketball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Dark-to-warm gradient background with minimalist top-right content area, elegant small stat pills, premium editorial vibe.' },
+  { name: 'Court Blueprint', sport: 'basketball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Schematic court blueprint lines on deep navy with golden stat panels, technical drawing feel, crisp lines and grid.' },
+  { name: 'Radial Arc Meter', sport: 'basketball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Radial arc of stat badges around a central spotlight on warm gradient, cinematic vignette, clean hero title area.' },
+  { name: 'Split Gold Pane', sport: 'basketball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Two-tone split background with rich gold and deep black, structured stat rows, sleek modern layout.' },
+  { name: 'Arena Lights Schematic', sport: 'basketball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Glowing arena lights over a court diagram with luminous edges, dramatic depth, energetic sports poster mood.' },
+  { name: 'Retro Comic', sport: 'basketball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Vintage comic-book layout with halftone texture, speech bubbles, bold outline panels, playful yet premium retro vibe.' },
+  { name: 'Geometric Facets', sport: 'basketball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Faceted polygonal background with red and gold medallions, luxe sports poster feel, high contrast and depth.' },
+
+  // 9 Design Variants • Volleyball
+  { name: 'Angled Slashes', sport: 'volleyball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Modern volleyball poster with angled slash panels and bold gold accents on charcoal background, clean negative space for typography, subtle grain and vignette, pro sports editorial look.' },
+  { name: 'Editorial Block', sport: 'volleyball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Large stacked bold typography over a subtle court-lines texture (volleyball court hints), grayscale with high contrast, magazine cover aesthetic.' },
+  { name: 'Minimal Gradient Right', sport: 'volleyball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Dark-to-warm gradient background with minimalist top-right content area, elegant small stat pills, premium editorial vibe.' },
+  { name: 'Court Blueprint', sport: 'volleyball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Schematic volleyball court blueprint lines on deep navy with golden stat panels, technical drawing feel, crisp lines and grid.' },
+  { name: 'Radial Arc Meter', sport: 'volleyball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Radial arc of stat badges around a central spotlight on warm gradient, cinematic vignette, clean hero title area.' },
+  { name: 'Split Gold Pane', sport: 'volleyball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Two-tone split background with rich gold and deep black, structured stat rows, sleek modern layout.' },
+  { name: 'Arena Lights Schematic', sport: 'volleyball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Glowing arena lights over a volleyball court diagram with luminous edges, dramatic depth, energetic sports poster mood.' },
+  { name: 'Retro Comic', sport: 'volleyball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Vintage comic-book layout with halftone texture, speech bubbles, bold outline panels, playful yet premium retro vibe.' },
+  { name: 'Geometric Facets', sport: 'volleyball', sample_image_url: 'https://media.base44.com/images/public/690476f21c3624553ac82b4f/1ba9a86fc_Gemini_Generated_Image_av7wekav7wekav7w1.png', prompt: 'Faceted polygonal background with red and gold medallions, luxe sports poster feel, high contrast and depth.' },
 ];
 
 export default function PosterGenerator() {
@@ -75,13 +84,19 @@ export default function PosterGenerator() {
   const templatesQ = useQuery({
     queryKey: ['ptemplates', sport],
     queryFn: async () => {
-      const list = await base44.entities.PosterTemplate.filter({ sport });
-      // Seed defaults if none exist
+      let list = await base44.entities.PosterTemplate.filter({ sport });
+      const desired = DEFAULT_TEMPLATES.filter(t => t.sport === sport).map(t => ({ ...t }));
       if (!list || list.length === 0) {
-        const seeds = DEFAULT_TEMPLATES.filter(t => t.sport === sport).map(t => ({ ...t }));
-        if (seeds.length) {
-          await base44.entities.PosterTemplate.bulkCreate(seeds);
-          return await base44.entities.PosterTemplate.filter({ sport });
+        if (desired.length) {
+          await base44.entities.PosterTemplate.bulkCreate(desired);
+          list = await base44.entities.PosterTemplate.filter({ sport });
+        }
+      } else {
+        const existingNames = new Set((list || []).map(t => t.name));
+        const missing = desired.filter(t => !existingNames.has(t.name));
+        if (missing.length) {
+          await base44.entities.PosterTemplate.bulkCreate(missing);
+          list = await base44.entities.PosterTemplate.filter({ sport });
         }
       }
       return list;
