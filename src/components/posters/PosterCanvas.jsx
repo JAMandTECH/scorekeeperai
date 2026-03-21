@@ -126,7 +126,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.fillText(String(value), x, y + 34);
       };
 
-      if (game.sport === 'basketball') {
+      if (p && game.sport === 'basketball') {
         const stats = [
           ['Points', p.points || 0],
           ['Rebounds', p.rebounds || 0],
