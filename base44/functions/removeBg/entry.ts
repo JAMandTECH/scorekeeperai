@@ -30,7 +30,16 @@ Deno.serve(async (req) => {
     }
 
     const arrayBuf = await resp.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuf)));
+    const base64 = (() => {
+      const bytes = new Uint8Array(arrayBuf);
+      let binary = '';
+      const chunkSize = 0x8000; // avoid call stack overflow
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, i + chunkSize);
+        binary += String.fromCharCode.apply(null, chunk);
+      }
+      return btoa(binary);
+    })();
     const dataUrl = `data:image/png;base64,${base64}`;
 
     return Response.json({ dataUrl });

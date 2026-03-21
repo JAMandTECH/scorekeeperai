@@ -244,9 +244,7 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
           <div className="absolute px-3 py-1 bg-yellow-400 text-slate-900 text-xs rounded cursor-move"
             style={{ left: L.datePill.x * scale, top: L.datePill.y * scale }}
             onMouseDown={startDragFixed('datePill', 'move')}
-          >
-            DATE
-          </div>
+>\n            {dateStr || 'DATE'}\n          </div>
           <div className="absolute left-0 right-0 h-1 bg-white/30 cursor-ns-resize" style={{ top: L.header.y * scale }} onMouseDown={startDragFixed('header', 'move')} />
           {headerText && (
             <div className="absolute w-full text-center pointer-events-none select-none" style={{ top: (L.header.y * scale) - ((L.header.fontSize||32)*scale/1.8) }}>
@@ -264,8 +262,8 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
             style={{ left: (L.headshot.cx - L.headshot.r) * scale, top: (L.headshot.cy - L.headshot.r) * scale, width: (L.headshot.r * 2) * scale, height: (L.headshot.r * 2) * scale }}
             onMouseDown={startDragFixed('headshot', 'move')}
           >
-            {headshotImageUrl && (
-              <img src={headshotImageUrl} alt="Headshot" className="absolute inset-0 w-full h-full object-cover rounded-full pointer-events-none select-none" />
+            {(L.headshot?.processedImageUrl || headshotImageUrl) && (
+              <img src={(L.headshot?.processedImageUrl || headshotImageUrl)} alt="Headshot" className="absolute inset-0 w-full h-full object-cover rounded-full pointer-events-none select-none" />
             )}
             <div className="absolute w-3 h-3 bg-slate-700 rounded-sm right-0 top-1/2 -translate-y-1/2 cursor-ew-resize" onMouseDown={startDragFixed('headshot', 'resize')} style={{ transform: 'translate(2px,-50%)' }} />
           </div>
