@@ -126,24 +126,29 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.fillText(String(value), x, y + 34);
       };
 
-      if (p) {
-        if (game.sport === 'basketball') {
-          const stats = [
-            ['Points', p.points || 0],
-            ['Rebounds', p.rebounds || 0],
-            ['Assists', p.assists || 0],
-          ];
-          const startX = 80, gapX = 260, y = (L.stats?.y ?? 520);
-          stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
-        } else {
-          const stats = [
-            ['Attacks', p.attacks || 0],
-            ['Blocks', p.blocks || 0],
-            ['Aces', p.aces || 0],
-          ];
-          const startX = 80, gapX = 260, y = (L.stats?.y ?? 520);
-          stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
-        }
+      if (game.sport === 'basketball') {
+        const stats = [
+          ['Points', p?.points || 0],
+          ['Rebounds', p?.rebounds || 0],
+          ['Assists', p?.assists || 0],
+          ['Blocks', p?.blocks || 0],
+        ];
+        const startX = 60, gapX = 240, y = (L.stats?.y ?? 520);
+        stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
+      } else if (game.sport === 'volleyball') {
+        const stats = [
+          ['Attacks', p?.attacks || 0],
+          ['Blocks', p?.blocks || 0],
+          ['Aces', p?.aces || 0],
+        ];
+        const startX = 80, gapX = 260, y = (L.stats?.y ?? 520);
+        stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
+      } else {
+        const stats = [
+          ['Points', p?.points || 0],
+        ];
+        const startX = 80, gapX = 260, y = (L.stats?.y ?? 520);
+        stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
       }
 
       // Headshot centered
