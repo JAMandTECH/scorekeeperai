@@ -45,6 +45,9 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
   const scale = stage.width / W;
   const centerX = W/2, centerY = H/2;
 
+  // derived sizes for logo to help drag bounds
+  const logoW = (L.orgLogo?.w||200); const logoH = (L.orgLogo?.h||64);
+
   const commit = (next) => onChange({ ...L, ...next });
   const setElements = (els) => commit({ elements: els });
 
@@ -131,6 +134,9 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
   }, [drag, scale, L]);
 
   const selectedEl = useMemo(() => (L.elements||[]).find(e => e.id === selectedId) || null, [L.elements, selectedId]);
+
+  // preload images to avoid flicker
+  useEffect(()=>{ if (headshotImageUrl) { const i=new Image(); i.src=headshotImageUrl; } if (orgLogoUrl) { const i2=new Image(); i2.src=orgLogoUrl; } }, [headshotImageUrl, orgLogoUrl]);
 
   // Layers operations
   const reorder = (id, dir) => {
@@ -226,7 +232,13 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
             style={{ left: L.orgLogo.x * scale, top: L.orgLogo.y * scale, width: L.orgLogo.w * scale, height: L.orgLogo.h * scale }}
             onMouseDown={startDragFixed('orgLogo', 'move')}
           >
-            <div className="p-2">Org Logo</div>
+            <div className="p-1 w-full h-full flex items-center justify-center select-none pointer-events-none">
+              {orgLogoUrl ? (
+                <img src={orgLogoUrl} alt="Logo" className="max-w-full max-h-full object-contain" />
+              ) : (
+                <span className="text-[10px] text-slate-600">Org Logo</span>
+              )}
+            </div>
             <div className="absolute w-3 h-3 bg-slate-700 rounded-sm right-0 bottom-0 cursor-se-resize" onMouseDown={startDragFixed('orgLogo', 'resize')} style={{ transform: 'translate(-2px,-2px)' }} />
           </div>
           <div className="absolute px-3 py-1 bg-yellow-400 text-slate-900 text-xs rounded cursor-move"
@@ -236,14 +248,25 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
             DATE
           </div>
           <div className="absolute left-0 right-0 h-1 bg-white/30 cursor-ns-resize" style={{ top: L.header.y * scale }} onMouseDown={startDragFixed('header', 'move')} />
+          {headerText && (
+            <div className="absolute w-full text-center pointer-events-none select-none" style={{ top: (L.header.y * scale) - ((L.header.fontSize||32)*scale/1.8) }}>
+              <span className="font-extrabold text-white" style={{ fontSize: (L.header.fontSize||32)*scale }}>{headerText}</span>
+            </div>
+          )}
           <div className="absolute left-0 right-0 h-1 bg-white/50 cursor-ns-resize" style={{ top: L.bestTitle.y * scale }} onMouseDown={startDragFixed('bestTitle', 'move')} />
+          <div className="absolute w-full text-center pointer-events-none select-none" style={{ top: (L.bestTitle.y * scale) - ((L.bestTitle.fontSize||72)*scale/2) }}>
+            <span className="font-black text-white" style={{ fontSize: (L.bestTitle.fontSize||72)*scale }}>BEST PLAYER</span>
+          </div>
           <div className="absolute left-0 right-0 h-1 bg-green-400/40 cursor-ns-resize" style={{ top: L.stats.y * scale }} onMouseDown={startDragFixed('stats', 'move')} />
           <div className="absolute left-0 right-0 h-1 bg-blue-400/40 cursor-ns-resize" style={{ top: L.scoreRow.y * scale }} onMouseDown={startDragFixed('scoreRow', 'move')} />
           <div
-            className="absolute rounded-full border-2 border-white/80 cursor-move"
+            className="absolute rounded-full border-2 border-white/80 cursor-move overflow-hidden"
             style={{ left: (L.headshot.cx - L.headshot.r) * scale, top: (L.headshot.cy - L.headshot.r) * scale, width: (L.headshot.r * 2) * scale, height: (L.headshot.r * 2) * scale }}
             onMouseDown={startDragFixed('headshot', 'move')}
           >
+            {headshotImageUrl && (
+              <img src={headshotImageUrl} alt="Headshot" className="absolute inset-0 w-full h-full object-cover rounded-full pointer-events-none select-none" />
+            )}
             <div className="absolute w-3 h-3 bg-slate-700 rounded-sm right-0 top-1/2 -translate-y-1/2 cursor-ew-resize" onMouseDown={startDragFixed('headshot', 'resize')} style={{ transform: 'translate(2px,-50%)' }} />
           </div>
 

@@ -353,7 +353,15 @@ export default function PosterGenerator() {
                 <DialogHeader>
                   <DialogTitle>Poster Editor</DialogTitle>
                 </DialogHeader>
-                <PosterEditor backgroundUrl={imageUrl} layout={layout} onChange={setLayout} headshotImageUrl={bestPlayerImageUrl || (topQ.data?.topPlayers?.[0]?.photo_url || '')} />
+                <PosterEditor
+                  backgroundUrl={imageUrl}
+                  layout={layout}
+                  onChange={setLayout}
+                  headshotImageUrl={bestPlayerImageUrl || (topQ.data?.topPlayers?.[0]?.photo_url || '')}
+                  orgLogoUrl={orgQ.data?.logo_url || ''}
+                  headerText={[orgQ.data?.tournament_name || orgQ.data?.name || '', gameForPoster?.division || ''].filter(Boolean).join(' • ').toUpperCase()}
+                  dateStr={(function(){ const d = gameForPoster?.game_date ? new Date(gameForPoster.game_date) : null; return d ? d.toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'}).toUpperCase() : ''; })()}
+                />
                 <DialogFooter>
                   <Button onClick={() => setEditorOpen(false)}>Done</Button>
                 </DialogFooter>
