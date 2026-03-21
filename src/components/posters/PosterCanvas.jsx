@@ -154,8 +154,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       // Headshot centered
       if (headImg) {
         const cx = L.headshot?.cx ?? (W / 2); const cy = L.headshot?.cy ?? 680; const r = L.headshot?.r ?? 130;
-        ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        ctx.beginPath(); ctx.arc(cx, cy, r + 6, 0, Math.PI * 2); ctx.fill();
+
         ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
         const ar = Math.max((r * 2) / headImg.width, (r * 2) / headImg.height);
         const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
