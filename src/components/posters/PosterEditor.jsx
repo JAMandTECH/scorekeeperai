@@ -19,7 +19,7 @@ const defaultLayout = {
 
 function uid() { return 'el_' + Math.random().toString(36).slice(2, 9); }
 
-export default function PosterEditor({ backgroundUrl, layout, onChange }) {
+export default function PosterEditor({ backgroundUrl, layout, onChange, headshotImageUrl }) {
   const stageRef = useRef(null);
   const [drag, setDrag] = useState(null); // {type: 'fixed'|'element', key, mode, dx, dy}
   const [selectedId, setSelectedId] = useState(null);
