@@ -14,20 +14,7 @@ import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import SocialShare from '@/components/social/SocialShare';
 
-const DEFAULT_TEMPLATES = [
-  // Basketball styles
-  { name: 'Electric Court', sport: 'basketball', prompt: 'Vibrant basketball court abstract background with dynamic diagonal streaks, gritty texture, orange and deep navy accents, spotlight center glow, high-contrast shadows, pro sports poster mood.' },
-  { name: 'Urban Gameday', sport: 'basketball', prompt: 'Graffiti-inspired urban sports poster background, dark asphalt texture, subtle hoop silhouette, neon rim lighting, orange & black palette, cinematic depth of field.' },
-  { name: 'Steel & Fire', sport: 'basketball', prompt: 'Industrial steel textures with fiery orange embers, dramatic smoke, intense lighting, bold geometric shapes framing a central empty area for text overlay.' },
-  { name: 'Minimal Court Lines', sport: 'basketball', prompt: 'Clean minimalist basketball court lines on textured paper, bold color blocks, modern editorial design, soft gradients, high-end magazine poster feel.' },
-  { name: 'Neon Arena', sport: 'basketball', prompt: 'Futuristic neon arena glow, purple/blue gradients, rim light arcs, subtle bokeh particles, energetic composition with center negative space.' },
-  // Volleyball styles
-  { name: 'Beach Storm', sport: 'volleyball', prompt: 'Dramatic volleyball background with sandy texture, teal and gold palette, motion blur streaks like a spiked ball, ocean mist, cinematic sports poster look.' },
-  { name: 'Net Shadows', sport: 'volleyball', prompt: 'High-contrast shadow of volleyball net across textured surface, bold geometric color panels, clean negative space, premium editorial aesthetic.' },
-  { name: 'Aqua Voltage', sport: 'volleyball', prompt: 'Electric turquoise gradients with white energy arcs, subtle ball pattern texture, crisp highlights, dynamic composition for intense volleyball match.' },
-  { name: 'Granite & Glow', sport: 'volleyball', prompt: 'Rugged granite texture with glowing cyan accents, foggy atmosphere, spotlight vignettes, center space reserved for text overlay.' },
-  { name: 'Sunset Court', sport: 'volleyball', prompt: 'Warm sunset gradient with soft grain, volleyball court line hints, gentle light beams, modern sports social graphic background.' },
-];
+
 
 export default function PosterGenerator() {
   const qc = useQueryClient();
@@ -41,7 +28,14 @@ export default function PosterGenerator() {
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [layout, setLayout] = React.useState({});
   const [posterDataUrl, setPosterDataUrl] = React.useState('');
-  const [previewBusy, setPreviewBusy] = React.useState({});
+  // Template upload dialog state
+  const [addOpen, setAddOpen] = React.useState(false);
+  const [newTplName, setNewTplName] = React.useState('');
+  const [newTplSport, setNewTplSport] = React.useState(sport);
+  const [newTplDesc, setNewTplDesc] = React.useState('');
+  const [newTplLayout, setNewTplLayout] = React.useState('{}');
+  const [newTplFile, setNewTplFile] = React.useState(null);
+  const [tplUploading, setTplUploading] = React.useState(false);
 
   React.useEffect(() => {
     (async () => {
@@ -76,46 +70,15 @@ export default function PosterGenerator() {
   const templatesQ = useQuery({
     queryKey: ['ptemplates', sport],
     queryFn: async () => {
-      const list = await base44.entities.PosterTemplate.filter({ sport });
-      // Seed defaults if none exist
-      if (!list || list.length === 0) {
-        const seeds = DEFAULT_TEMPLATES.filter(t => t.sport === sport).map(t => ({ ...t }));
-        if (seeds.length) {
-          await base44.entities.PosterTemplate.bulkCreate(seeds);
-          return await base44.entities.PosterTemplate.filter({ sport });
-        }
-      }
-      return list;
+      return await base44.entities.PosterTemplate.filter({ sport });
     },
     initialData: [],
     enabled: !!user,
   });
 
-  const generatePreviewForTemplate = React.useCallback(async (tpl) => {
-    if (!tpl?.id || !tpl?.prompt) return;
-    setPreviewBusy(prev => ({ ...prev, [tpl.id]: true }));
-    try {
-      const { url } = await base44.integrations.Core.GenerateImage({ prompt: tpl.prompt });
-      if (url) {
-        await base44.entities.PosterTemplate.update(tpl.id, { sample_image_url: url });
-        qc.setQueryData(['ptemplates', sport], (old) => (old || []).map(x => x.id === tpl.id ? { ...x, sample_image_url: url } : x));
-      }
-    } finally {
-      setPreviewBusy(prev => ({ ...prev, [tpl.id]: false }));
-    }
-  }, [qc, sport]);
-
   React.useEffect(() => {
-    const run = async () => {
-      const list = templatesQ.data || [];
-      const missing = list.filter(t => !t.sample_image_url);
-      if (!missing.length) return;
-      await Promise.allSettled(missing.map((t) => generatePreviewForTemplate(t)));
-    };
-    if (user && templatesQ.data && templatesQ.data.length) {
-      run();
-    }
-  }, [user, templatesQ.data, generatePreviewForTemplate]);
+    setNewTplSport(sport);
+  }, [sport]);
 
   const topQ = useQuery({
     queryKey: ['topPlayers', selectedGameId],
@@ -228,8 +191,76 @@ export default function PosterGenerator() {
         </Card>
 
         <Card className="md:col-span-2">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Templates</CardTitle>
+            <Dialog open={addOpen} onOpenChange={setAddOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm">Add Template</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Template</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm text-muted-foreground">Name</label>
+                    <Input className="mt-1" value={newTplName} onChange={(e)=>setNewTplName(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">Sport</label>
+                    <Select value={newTplSport} onValueChange={setNewTplSport}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select sport" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="basketball">Basketball</SelectItem>
+                        <SelectItem value="volleyball">Volleyball</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">Background Image</label>
+                    <Input className="mt-1" type="file" accept="image/*" onChange={(e)=>setNewTplFile(e.target.files?.[0] || null)} />
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">Description (optional)</label>
+                    <Input className="mt-1" value={newTplDesc} onChange={(e)=>setNewTplDesc(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">Layout JSON (optional)</label>
+                    <textarea className="mt-1 w-full border rounded-md p-2 text-sm" rows="4" value={newTplLayout} onChange={(e)=>setNewTplLayout(e.target.value)} />
+                    <p className="text-xs text-muted-foreground mt-1">Define text/element positions for this template.</p>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={()=>setAddOpen(false)}>Cancel</Button>
+                  <Button
+                    onClick={async ()=>{
+                      if (!newTplName || !newTplFile) return;
+                      setTplUploading(true);
+                      try {
+                        const { file_url } = await base44.integrations.Core.UploadFile({ file: newTplFile });
+                        let meta = {};
+                        try { meta = newTplLayout ? JSON.parse(newTplLayout) : {}; } catch (_) {}
+                        await base44.entities.PosterTemplate.create({
+                          name: newTplName,
+                          sport: newTplSport,
+                          description: newTplDesc || undefined,
+                          sample_image_url: file_url,
+                          metadata: meta
+                        });
+                        setAddOpen(false);
+                        setNewTplName(''); setNewTplDesc(''); setNewTplLayout('{}'); setNewTplFile(null);
+                        qc.invalidateQueries({ queryKey: ['ptemplates'] });
+                      } finally {
+                        setTplUploading(false);
+                      }
+                    }}
+                    disabled={tplUploading || !newTplName || !newTplFile}
+                  >
+                    {tplUploading && <Loader2 className="h-4 w-4 animate-spin" />} Save
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardHeader>
           <CardContent>
             {templatesQ.isLoading ? (
@@ -241,11 +272,6 @@ export default function PosterGenerator() {
                     <div className="relative aspect-video bg-muted flex items-center justify-center text-muted-foreground">
                       {t.sample_image_url ? (
                         <img src={t.sample_image_url} alt={t.name} className="w-full h-full object-cover" />
-                      ) : previewBusy[t.id] ? (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="text-xs">Generating preview…</span>
-                        </div>
                       ) : (
                         <span className="text-xs px-3 py-2">{t.name}</span>
                       )}
@@ -267,11 +293,13 @@ export default function PosterGenerator() {
 
       <div className="mt-6 flex items-center gap-3 flex-wrap">
         <Button
-          disabled={!selectedGameId || !selectedTemplateId || genMutation.isPending}
-          onClick={() => genMutation.mutate({ gameId: selectedGameId, templateId: selectedTemplateId })}
+          disabled={!selectedTemplateId}
+          onClick={() => {
+            const t = (templatesQ.data || []).find(x => x.id === selectedTemplateId);
+            if (t?.sample_image_url) setImageUrl(t.sample_image_url);
+          }}
         >
-          {genMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-          Generate Background
+          Use Template
         </Button>
         {imageUrl && (
           <>
