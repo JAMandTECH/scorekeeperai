@@ -12,6 +12,7 @@ import { Loader2, Download, Sparkles } from 'lucide-react';
 import PosterCanvas from '@/components/posters/PosterCanvas';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
+import SocialShare from '@/components/social/SocialShare';
 
 const DEFAULT_TEMPLATES = [
   // Basketball styles
@@ -39,6 +40,7 @@ export default function PosterGenerator() {
   const [uploading, setUploading] = React.useState(false);
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [layout, setLayout] = React.useState({});
+  const [posterDataUrl, setPosterDataUrl] = React.useState('');
 
   React.useEffect(() => {
     (async () => {
@@ -283,16 +285,25 @@ export default function PosterGenerator() {
               {topQ.isLoading ? (
                 <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading top players...</div>
               ) : topQ.data ? (
-                <PosterCanvas
-                  backgroundUrl={imageUrl}
-                  game={topQ.data.game}
-                  players={topQ.data.topPlayers ? [topQ.data.topPlayers[0]] : []}
-                  org={orgQ.data}
-                  bestPlayerImageUrl={bestPlayerImageUrl || (topQ.data.topPlayers?.[0]?.photo_url || '')}
-                  homeName={teamMap[topQ.data.game.home_team_id] || 'Home Team'}
-                  awayName={teamMap[topQ.data.game.away_team_id] || 'Away Team'}
-                  layout={layout}
-                />
+                <>
+                  <PosterCanvas
+                    backgroundUrl={imageUrl}
+                    game={topQ.data.game}
+                    players={topQ.data.topPlayers ? [topQ.data.topPlayers[0]] : []}
+                    org={orgQ.data}
+                    bestPlayerImageUrl={bestPlayerImageUrl || (topQ.data.topPlayers?.[0]?.photo_url || '')}
+                    homeName={teamMap[topQ.data.game.home_team_id] || 'Home Team'}
+                    awayName={teamMap[topQ.data.game.away_team_id] || 'Away Team'}
+                    layout={layout}
+                    onReady={setPosterDataUrl}
+                  />
+                  <div className="mt-4">
+                    <SocialShare
+                      imageUrl={posterDataUrl || imageUrl}
+                      text={`${(teamMap[topQ.data.game.home_team_id] || 'Home')} vs ${(teamMap[topQ.data.game.away_team_id] || 'Away')} • Final ${(topQ.data.game.home_score ?? 0)}-${(topQ.data.game.away_score ?? 0)}`}
+                    />
+                  </div>
+                </>
               ) : (
                 <p className="text-sm text-muted-foreground">Select a game to load best players.</p>
               )}
