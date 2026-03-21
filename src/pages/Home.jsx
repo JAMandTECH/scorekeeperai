@@ -1224,13 +1224,7 @@ export default function Home() {
                               stats: `${bestTotals.points} PTS • ${bestTotals.rebounds || 0} REB • ${bestTotals.assists || 0} AST`
                             });
                           }
-                          if (bestPlayer && bestPlayerStat) {
-                            topPlayersForAI.push({
-                              name: `${bestPlayer.first_name} ${bestPlayer.last_name}`,
-                              team: getTeamName(winningTeamId),
-                              stats: `${bestPlayerStat.points} PTS • ${bestPlayerStat.rebounds || 0} REB • ${bestPlayerStat.assists || 0} AST`
-                            });
-                          }
+
 
                           return (
                             <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
@@ -1269,7 +1263,7 @@ export default function Home() {
                                   </Avatar>
                                 </div>
                               </div>
-                              {bestPlayer && bestPlayerStat && (
+                              {bestPlayer && bestTotals && (
                                 <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                                   <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">⭐ Best Player (Winner):</p>
                                   <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 rounded-lg p-2 border border-yellow-200 dark:border-yellow-800">
@@ -1841,7 +1835,7 @@ export default function Home() {
                                   </div>
                                 </div>
                               </div>
-                              {bestPlayer && bestPlayerStat && (
+                              {bestPlayer && bestTotals && (
                                 <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                                   <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">⭐ Best Player (Winner):</p>
                                   <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 rounded-lg p-2 border border-yellow-200 dark:border-yellow-800">
