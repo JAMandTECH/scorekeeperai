@@ -353,7 +353,7 @@ export default function PosterGenerator() {
                 <DialogHeader>
                   <DialogTitle>Poster Editor</DialogTitle>
                 </DialogHeader>
-                <PosterEditor backgroundUrl={imageUrl} layout={layout} onChange={setLayout} />
+                <PosterEditor backgroundUrl={imageUrl} layout={layout} onChange={setLayout} headshotImageUrl={bestPlayerImageUrl || (topQ.data?.topPlayers?.[0]?.photo_url || '')} />
                 <DialogFooter>
                   <Button onClick={() => setEditorOpen(false)}>Done</Button>
                 </DialogFooter>

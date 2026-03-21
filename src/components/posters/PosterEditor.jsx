@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { base44 } from '@/api/base44Client';
 
 const W = 1080; const H = 1350;
 
@@ -11,7 +12,7 @@ const defaultLayout = {
   headshot: { cx: W/2, cy: 680, r: 130 },
   bestTitle: { y: 950, fontSize: 72, color: '#ffffff' },
   scoreRow: { y: 1030 },
-  orgBox: { x: W - 260 - 24, y: 24, w: 260, h: 86 },
+  orgLogo: { x: W - 200 - 24, y: 24, w: 200, h: 64 },
   stats: { y: 520 },
   elements: [] // PowerPoint-like editable elements (text boxes etc.)
 };
@@ -24,6 +25,8 @@ export default function PosterEditor({ backgroundUrl, layout, onChange }) {
   const [selectedId, setSelectedId] = useState(null);
   const [showVGuide, setShowVGuide] = useState(false);
   const [showHGuide, setShowHGuide] = useState(false);
+  const [cropMode, setCropMode] = useState(false);
+  const [polyPoints, setPolyPoints] = useState([]);
 
   const L = useMemo(() => {
     const base = { ...defaultLayout, ...(layout || {}) };
@@ -32,7 +35,7 @@ export default function PosterEditor({ backgroundUrl, layout, onChange }) {
     base.headshot = { ...defaultLayout.headshot, ...(layout?.headshot||{}) };
     base.bestTitle = { ...defaultLayout.bestTitle, ...(layout?.bestTitle||{}) };
     base.scoreRow = { ...defaultLayout.scoreRow, ...(layout?.scoreRow||{}) };
-    base.orgBox = { ...defaultLayout.orgBox, ...(layout?.orgBox||{}) };
+    base.orgLogo = { ...defaultLayout.orgLogo, ...(layout?.orgLogo||{}) };
     base.stats = { ...defaultLayout.stats, ...(layout?.stats||{}) };
     base.elements = Array.isArray(layout?.elements) ? layout.elements : [];
     return base;
@@ -84,9 +87,9 @@ export default function PosterEditor({ backgroundUrl, layout, onChange }) {
 
       if (drag.type === 'fixed') {
         const upd = { ...L };
-        if (drag.key === 'orgBox') {
-          if (drag.mode === 'move') { upd.orgBox.x = Math.max(0, Math.min(W - upd.orgBox.w, x - upd.orgBox.w/2)); upd.orgBox.y = Math.max(0, Math.min(H - upd.orgBox.h, y - 20)); }
-          if (drag.mode === 'resize') { upd.orgBox.w = Math.max(100, Math.min(W, x - upd.orgBox.x)); upd.orgBox.h = Math.max(50, Math.min(H, y - upd.orgBox.y)); }
+        if (drag.key === 'orgLogo') {
+          if (drag.mode === 'move') { upd.orgLogo.x = Math.max(0, Math.min(W - upd.orgLogo.w, x - upd.orgLogo.w/2)); upd.orgLogo.y = Math.max(0, Math.min(H - upd.orgLogo.h, y - 20)); }
+          if (drag.mode === 'resize') { upd.orgLogo.w = Math.max(60, Math.min(W, x - upd.orgLogo.x)); upd.orgLogo.h = Math.max(40, Math.min(H, y - upd.orgLogo.y)); }
         }
         if (drag.key === 'headshot') {
           if (drag.mode === 'move') { upd.headshot.cx = Math.max(80, Math.min(W-80, x)); upd.headshot.cy = Math.max(80, Math.min(H-80, y)); }
@@ -169,26 +172,62 @@ export default function PosterEditor({ backgroundUrl, layout, onChange }) {
   return (
     <div className="flex gap-6">
       <div>
-        <div className="mb-3 flex gap-2">
+        <div className="mb-3 flex gap-2 flex-wrap">
           <Button size="sm" onClick={addTextBox}>Add Text</Button>
           <Button size="sm" variant="secondary" onClick={()=> onChange(defaultLayout)}>Reset</Button>
+          <Button size="sm" variant="outline" disabled={!headshotImageUrl} onClick={async()=>{
+            if(!headshotImageUrl) return;
+            const res = await base44.functions.invoke('removeBg', { imageUrl: headshotImageUrl });
+            const dataUrl = res?.data?.dataUrl;
+            if (dataUrl) {
+              onChange({ ...L, headshot: { ...L.headshot, processedImageUrl: dataUrl } });
+            }
+          }}>Remove BG</Button>
+          <Button size="sm" variant={cropMode?'default':'outline'} onClick={()=>{ setCropMode(!cropMode); if(!cropMode){ setPolyPoints([]);} }}>
+            {cropMode? 'Finish Crop' : 'Polygon Crop'}
+          </Button>
+          <Button size="sm" variant="outline" onClick={()=>{ setPolyPoints([]); onChange({ ...L, headshot: { ...L.headshot, polygon: [] } }); }}>Clear Crop</Button>
+          {cropMode && polyPoints.length>=3 && (
+            <Button size="sm" onClick={()=>{ onChange({ ...L, headshot: { ...L.headshot, polygon: polyPoints } }); setCropMode(false); }}>Apply Crop</Button>
+          )}
         </div>
         <div
           ref={stageRef}
           className="relative border rounded-md overflow-hidden bg-black/5"
           style={{ width: stage.width, height: stage.height }}
           onMouseDown={()=> setSelectedId(null)}
+          onClick={(e)=>{
+            if(!cropMode) return;
+            const rect = stageRef.current.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / scale;
+            const y = (e.clientY - rect.top) / scale;
+            setPolyPoints(prev=>[...prev, {x, y}]);
+          }}
         >
           <img src={backgroundUrl} alt="bg" className="absolute inset-0 w-full h-full object-cover" />
 
-          {/* Fixed handles (existing positions) */}
+          {/* Fixed handles (existing positions) */} 
+          {/* Polygon overlay */}
+          {cropMode && (
+            <svg className="absolute inset-0" width={stage.width} height={stage.height} style={{pointerEvents:'none'}}>
+              <polyline
+                points={polyPoints.map(p=>`${p.x*scale},${p.y*scale}`).join(' ')}
+                fill="rgba(0,0,0,0.15)"
+                stroke="#22d3ee"
+                strokeWidth="2"
+              />
+              {polyPoints.map((p,i)=> (
+                <circle key={i} cx={p.x*scale} cy={p.y*scale} r="3" fill="#22d3ee" />
+              ))}
+            </svg>
+          )}
           <div
             className="absolute bg-white/70 backdrop-blur-sm border border-white/60 text-xs text-slate-800 cursor-move"
-            style={{ left: L.orgBox.x * scale, top: L.orgBox.y * scale, width: L.orgBox.w * scale, height: L.orgBox.h * scale }}
-            onMouseDown={startDragFixed('orgBox', 'move')}
+            style={{ left: L.orgLogo.x * scale, top: L.orgLogo.y * scale, width: L.orgLogo.w * scale, height: L.orgLogo.h * scale }}
+            onMouseDown={startDragFixed('orgLogo', 'move')}
           >
-            <div className="p-2">Org Logo/Name</div>
-            <div className="absolute w-3 h-3 bg-slate-700 rounded-sm right-0 bottom-0 cursor-se-resize" onMouseDown={startDragFixed('orgBox', 'resize')} style={{ transform: 'translate(-2px,-2px)' }} />
+            <div className="p-2">Org Logo</div>
+            <div className="absolute w-3 h-3 bg-slate-700 rounded-sm right-0 bottom-0 cursor-se-resize" onMouseDown={startDragFixed('orgLogo', 'resize')} style={{ transform: 'translate(-2px,-2px)' }} />
           </div>
           <div className="absolute px-3 py-1 bg-yellow-400 text-slate-900 text-xs rounded cursor-move"
             style={{ left: L.datePill.x * scale, top: L.datePill.y * scale }}

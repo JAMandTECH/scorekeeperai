@@ -34,10 +34,11 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
     });
 
     (async () => {
+      const headSrc = (L?.headshot?.processedImageUrl) || (bestPlayerImageUrl || players?.[0]?.photo_url);
       const [bgImg, logoImg, headImg] = await Promise.all([
         loadImage(backgroundUrl),
         loadImage(org?.logo_url),
-        loadImage(bestPlayerImageUrl || players?.[0]?.photo_url)
+        loadImage(headSrc)
       ]);
       if (!bgImg) return;
 
@@ -140,28 +141,63 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
       }
 
-      // Headshot centered
+      // Headshot with optional polygon crop
       if (headImg) {
-        const cx = L.headshot?.cx ?? (W / 2); const cy = L.headshot?.cy ?? 680; const r = L.headshot?.r ?? 130;
+        const poly = L.headshot?.polygon;
+        if (Array.isArray(poly) && poly.length >= 3) {
+          const xs = poly.map(p=>p.x), ys = poly.map(p=>p.y);
+          const minX = Math.min(...xs), maxX = Math.max(...xs);
+          const minY = Math.min(...ys), maxY = Math.max(...ys);
+          const bw = maxX - minX, bh = maxY - minY;
 
-        ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
-        const ar = Math.max((r * 2) / headImg.width, (r * 2) / headImg.height);
-        const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
-        ctx.drawImage(headImg, cx - dw2 / 2, cy - dh2 / 2, dw2, dh2);
-        ctx.restore();
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(poly[0].x, poly[0].y);
+          for (let i=1;i<poly.length;i++) ctx.lineTo(poly[i].x, poly[i].y);
+          ctx.closePath();
+          ctx.clip();
 
-        // Best player label below headshot (centered) — format: Name #Number
-        const first = (p?.first_name) || (p?.player?.first_name) || '';
-        const last = (p?.last_name) || (p?.player?.last_name) || '';
-        const jersey = (p?.jersey_number) || (p?.player?.jersey_number) || '';
-        const nameStr = [first, last].filter(Boolean).join(' ');
-        const jerseyStr = String(jersey || '').replace(/^#/, '');
-        const label = jerseyStr ? `${nameStr} #${jerseyStr}` : nameStr;
-        if (label) {
-          ctx.textAlign = 'center';
-          ctx.fillStyle = '#ffffff';
-          ctx.font = '800 28px Inter, system-ui, Arial';
-          ctx.fillText(label, cx, cy + r + 30);
+          const ar = Math.max(bw / headImg.width, bh / headImg.height);
+          const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
+          const dx2 = minX + (bw - dw2)/2; const dy2 = minY + (bh - dh2)/2;
+          ctx.drawImage(headImg, dx2, dy2, dw2, dh2);
+          ctx.restore();
+
+          // Label below polygon bbox
+          const midX = minX + bw/2; const labelY = maxY + 30;
+          const first = (p?.first_name) || (p?.player?.first_name) || '';
+          const last = (p?.last_name) || (p?.player?.last_name) || '';
+          const jersey = (p?.jersey_number) || (p?.player?.jersey_number) || '';
+          const nameStr = [first, last].filter(Boolean).join(' ');
+          const jerseyStr = String(jersey || '').replace(/^#/, '');
+          const label = jerseyStr ? `${nameStr} #${jerseyStr}` : nameStr;
+          if (label) {
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '800 28px Inter, system-ui, Arial';
+            ctx.fillText(label, midX, labelY);
+          }
+        } else {
+          const cx = L.headshot?.cx ?? (W / 2); const cy = L.headshot?.cy ?? 680; const r = L.headshot?.r ?? 130;
+          ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+          const ar = Math.max((r * 2) / headImg.width, (r * 2) / headImg.height);
+          const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
+          ctx.drawImage(headImg, cx - dw2 / 2, cy - dh2 / 2, dw2, dh2);
+          ctx.restore();
+
+          // Label below circle
+          const first = (p?.first_name) || (p?.player?.first_name) || '';
+          const last = (p?.last_name) || (p?.player?.last_name) || '';
+          const jersey = (p?.jersey_number) || (p?.player?.jersey_number) || '';
+          const nameStr = [first, last].filter(Boolean).join(' ');
+          const jerseyStr = String(jersey || '').replace(/^#/, '');
+          const label = jerseyStr ? `${nameStr} #${jerseyStr}` : nameStr;
+          if (label) {
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '800 28px Inter, system-ui, Arial';
+            ctx.fillText(label, cx, cy + r + 30);
+          }
         }
       }
 
