@@ -270,7 +270,7 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
               const val = map[k];
               return (
                 <div key={k} className="px-2 py-0.5 rounded bg-white/80 text-slate-900 text-xs font-semibold min-w-[44px] text-center">
-                  {k} <span className="ml-1 font-bold">{(val ?? '-') as any}</span>
+                  {k} <span className="ml-1 font-bold">{String(val ?? '-')}</span>
                 </div>
               );
             })}
