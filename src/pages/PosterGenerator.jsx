@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Download, Sparkles } from 'lucide-react';
+import PosterCanvas from '@/components/posters/PosterCanvas';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 
@@ -63,6 +64,16 @@ export default function PosterGenerator() {
     },
     initialData: [],
     enabled: !!user,
+  });
+
+  const topQ = useQuery({
+    queryKey: ['topPlayers', selectedGameId],
+    queryFn: async () => {
+      const res = await base44.functions.invoke('getTopPlayersForGame', { gameId: selectedGameId });
+      return res.data;
+    },
+    enabled: !!user && !!selectedGameId,
+    initialData: null,
   });
 
   const genMutation = useMutation({
@@ -180,15 +191,30 @@ export default function PosterGenerator() {
       </div>
 
       {imageUrl && (
-        <div className="mt-6">
+        <div className="mt-6 grid lg:grid-cols-2 gap-6 items-start">
           <Card>
             <CardHeader>
-              <CardTitle>Result</CardTitle>
+              <CardTitle>Background</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="w-full max-w-3xl">
+              <div className="w-full max-w-xl">
                 <img src={imageUrl} alt="Generated Poster" className="w-full h-auto rounded-md border" />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Composed Poster (with stats)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {topQ.isLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading top players...</div>
+              ) : topQ.data ? (
+                <PosterCanvas backgroundUrl={imageUrl} game={topQ.data.game} players={topQ.data.topPlayers} />
+              ) : (
+                <p className="text-sm text-muted-foreground">Select a game to load best players.</p>
+              )}
             </CardContent>
           </Card>
         </div>
