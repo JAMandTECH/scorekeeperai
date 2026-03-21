@@ -547,7 +547,7 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
                 >
                   {el.text || 'Text'}
                 </div>
-              )
+              )}
               {!el.locked && selectedIds.includes(el.id) && (
                 <div
                   title="Resize (changes font size)"
