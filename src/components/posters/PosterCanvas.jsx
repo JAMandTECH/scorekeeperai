@@ -83,6 +83,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const headerY = L.header?.y ?? 110;
       ctx.fillStyle = headerColor;
       ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       ctx.font = `800 ${headerSize}px Inter, system-ui, Arial`;
       if (header) ctx.fillText(header, W / 2, headerY);
       // date pill
@@ -107,13 +108,14 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
       // Minimal stat row
       const drawStat = (x, y, label, value) => {
-        ctx.textAlign = 'left';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.fillStyle = '#e5e7eb';
         ctx.font = '600 14px Inter, system-ui, Arial';
-        ctx.fillText(label.toUpperCase(), x, y);
+        ctx.fillText(label.toUpperCase(), x, y - 18);
         ctx.fillStyle = '#ffffff';
         ctx.font = '800 36px Inter, system-ui, Arial';
-        ctx.fillText(String(value), x, y + 34);
+        ctx.fillText(String(value), x, y + 10);
       };
 
       if (game.sport === 'basketball') {
@@ -203,6 +205,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
       // BEST PLAYER heading
       ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       const bestColor = L.bestTitle?.color ?? '#ffffff';
       const bestSize = L.bestTitle?.fontSize ?? 72;
       const bestY = L.bestTitle?.y ?? 950;
@@ -240,18 +243,18 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const hs = Number(game.home_score || 0), as = Number(game.away_score || 0);
       const homeWins = hs >= as;
       const center = W / 2; const yScore = L.scoreRow?.y ?? 1030;
-      ctx.font = '700 28px Inter, system-ui, Arial'; ctx.textAlign = 'right';
+      ctx.font = '700 28px Inter, system-ui, Arial'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
       ctx.fillStyle = '#ffffff';
       ctx.fillText(String(homeName || 'HOME').toUpperCase(), center - 140, yScore);
       const drawScoreBox = (x, y, text, highlight) => {
-        // Free-floating score: no box or outline, just colored text
         ctx.font = '800 22px Inter, system-ui, Arial';
         const pad = 12;
         const bw = ctx.measureText(text).width + pad * 2;
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.fillStyle = highlight ? '#facc15' : '#ffffff';
         ctx.fillText(text, x + bw / 2, y);
-        return bw; // keep width for spacing
+        return bw;
       };
       const bw1 = drawScoreBox(center - 110, yScore, String(hs), homeWins);
       ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.font = '800 18px Inter, system-ui, Arial';
