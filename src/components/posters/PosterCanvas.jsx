@@ -220,24 +220,14 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       ctx.fillStyle = '#ffffff';
       ctx.fillText(String(homeName || 'HOME').toUpperCase(), center - 140, yScore);
       const drawScoreBox = (x, y, text, highlight) => {
-        const h = 44; const r = 8; ctx.font = '800 22px Inter, system-ui, Arial';
-        const tw = ctx.measureText(text).width + 24; const bh = h; const bw = tw; const yy = y - h + 6;
+        // Free-floating score: no box or outline, just colored text
+        ctx.font = '800 22px Inter, system-ui, Arial';
+        const pad = 12;
+        const bw = ctx.measureText(text).width + pad * 2;
         ctx.textAlign = 'center';
-        if (highlight) {
-          ctx.fillStyle = '#facc15';
-          ctx.beginPath(); ctx.moveTo(x, yy); ctx.arcTo(x + bw, yy, x + bw, yy + bh, r);
-          ctx.arcTo(x + bw, yy + bh, x, yy + bh, r); ctx.arcTo(x, yy + bh, x, yy, r); ctx.arcTo(x, yy, x + bw, yy, r);
-          ctx.closePath(); ctx.fill();
-          ctx.fillStyle = '#111827';
-        } else {
-          ctx.beginPath(); ctx.moveTo(x, yy); ctx.arcTo(x + bw, yy, x + bw, yy + bh, r);
-          ctx.arcTo(x + bw, yy + bh, x, yy + bh, r); ctx.arcTo(x, yy + bh, x, yy, r); ctx.arcTo(x, yy, x + bw, yy, r);
-          ctx.closePath();
-          ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2; ctx.stroke();
-          ctx.fillStyle = '#ffffff';
-        }
+        ctx.fillStyle = highlight ? '#facc15' : '#ffffff';
         ctx.fillText(text, x + bw / 2, y);
-        return bw;
+        return bw; // keep width for spacing
       };
       const bw1 = drawScoreBox(center - 110, yScore, String(hs), homeWins);
       ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.font = '800 18px Inter, system-ui, Arial';
