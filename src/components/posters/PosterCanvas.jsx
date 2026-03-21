@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-// Simple canvas composer that overlays game info and top player stats on the background
-export default function PosterCanvas({ backgroundUrl, game, players, onReady }) {
+// Canvas composer that overlays org logo/info and the single best player's headshot + stats
+export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, onReady }) {
   const canvasRef = useRef(null);
   const [dataUrl, setDataUrl] = useState('');
 
@@ -11,7 +11,6 @@ export default function PosterCanvas({ backgroundUrl, game, players, onReady }) 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Target IG portrait size; scale by DPR for sharpness
     const DPR = Math.min(window.devicePixelRatio || 1, 2);
     const W = 1080;
     const H = 1350;
@@ -21,78 +20,121 @@ export default function PosterCanvas({ backgroundUrl, game, players, onReady }) 
     canvas.style.height = H + 'px';
 
     const ctx = canvas.getContext('2d');
-    ctx.scale(DPR, DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      // Cover background
-      const iw = img.width;
-      const ih = img.height;
+    const loadImage = (url) => new Promise((resolve) => {
+      if (!url) return resolve(null);
+      const i = new Image();
+      i.crossOrigin = 'anonymous';
+      i.onload = () => resolve(i);
+      i.onerror = () => resolve(null);
+      i.src = url;
+    });
+
+    (async () => {
+      const [bgImg, logoImg, headImg] = await Promise.all([
+        loadImage(backgroundUrl),
+        loadImage(org?.logo_url),
+        loadImage(bestPlayerImageUrl || players?.[0]?.photo_url)
+      ]);
+      if (!bgImg) return;
+
+      // Draw background (cover)
+      const iw = bgImg.width;
+      const ih = bgImg.height;
       const scale = Math.max(W / iw, H / ih);
       const dw = iw * scale;
       const dh = ih * scale;
       const dx = (W - dw) / 2;
       const dy = (H - dh) / 2;
-      ctx.drawImage(img, dx, dy, dw, dh);
+      ctx.drawImage(bgImg, dx, dy, dw, dh);
 
-      // Dark vignette for readability
+      // Vignette
       const grad = ctx.createLinearGradient(0, 0, 0, H);
       grad.addColorStop(0, 'rgba(0,0,0,0.35)');
       grad.addColorStop(1, 'rgba(0,0,0,0.6)');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, W, H);
 
-      // Header: Teams vs, division, date
+      // Org logo box top-left
+      if (logoImg) {
+        const boxW = 220; const boxH = 80; const pad = 14; const r = 14;
+        const x = 24; const y = 24;
+        // rounded rect
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + boxW, y, x + boxW, y + boxH, r);
+        ctx.arcTo(x + boxW, y + boxH, x, y + boxH, r);
+        ctx.arcTo(x, y + boxH, x, y, r);
+        ctx.arcTo(x, y, x + boxW, y, r);
+        ctx.closePath();
+        ctx.fill();
+        // logo
+        const lh = boxH - pad * 2;
+        const lw = lh; // square
+        ctx.drawImage(logoImg, x + pad, y + pad, lw, lh);
+        // org text
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '700 20px Inter, system-ui, Arial';
+        const name = org?.name || '';
+        ctx.fillText(name, x + pad + lw + 10, y + 30);
+        ctx.font = '500 14px Inter, system-ui, Arial';
+        const tname = org?.tournament_name || '';
+        if (tname) ctx.fillText(tname, x + pad + lw + 10, y + 54);
+      }
+
+      // Header title
       const dateStr = game.game_date ? new Date(game.game_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
-
-      // Title
       ctx.font = 'bold 64px Inter, system-ui, Arial';
-      ctx.fillText(`${game.home_team_name} vs ${game.away_team_name}`, W / 2, 140);
-
-      // Subheader line
+      ctx.fillText(`${game.home_team_name} vs ${game.away_team_name}`, W / 2, 160);
       ctx.font = '500 28px Inter, system-ui, Arial';
       const sub = [game.division || null, dateStr || null, game.location || null].filter(Boolean).join(' • ');
-      if (sub) ctx.fillText(sub, W / 2, 185);
+      if (sub) ctx.fillText(sub, W / 2, 205);
 
-      // Divider
-      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(W * 0.2, 210);
-      ctx.lineTo(W * 0.8, 210);
-      ctx.stroke();
-
-      // Featured players panel
-      const panelX = 90;
-      const panelY = 260;
-      const panelW = W - 180;
-      const rowH = 56;
-      const maxShow = Math.min(players.length, 5);
-
+      // Best Player section (left text + right headshot)
+      const p = players[0];
+      // Panel
+      const panelX = 70; const panelY = 280; const panelW = W - 140; const panelH = 360;
       ctx.fillStyle = 'rgba(0,0,0,0.35)';
-      ctx.fillRect(panelX - 20, panelY - 50, panelW + 40, maxShow * rowH + 110);
+      ctx.fillRect(panelX, panelY, panelW, panelH);
 
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '600 36px Inter, system-ui, Arial';
+      // Text
       ctx.textAlign = 'left';
-      ctx.fillText('Featured Players', panelX, panelY - 10);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 40px Inter, system-ui, Arial';
+      ctx.fillText('Best Player', panelX + 24, panelY + 64);
+      ctx.font = '800 56px Inter, system-ui, Arial';
+      const name = `${p.first_name || ''} ${p.last_name || ''}`.trim();
+      ctx.fillText(name, panelX + 24, panelY + 130);
+      ctx.font = '600 28px Inter, system-ui, Arial';
+      const jersey = p.jersey_number ? `#${p.jersey_number}` : '';
+      let stats = '';
+      if (game.sport === 'basketball') {
+        stats = `${p.points || 0} PTS   ${p.rebounds || 0} REB   ${p.assists || 0} AST`;
+      } else {
+        stats = `${p.attacks || 0} ATK   ${p.blocks || 0} BLK   ${p.aces || 0} ACE`;
+      }
+      ctx.fillText(`${jersey}  •  ${stats}`.trim(), panelX + 24, panelY + 175);
 
-      ctx.font = '500 28px Inter, system-ui, Arial';
-      for (let i = 0; i < maxShow; i++) {
-        const p = players[i];
-        const y = panelY + i * rowH + 40;
-        const name = `${p.first_name || ''} ${p.last_name || ''}`.trim();
-        const jersey = p.jersey_number ? `#${p.jersey_number}` : '';
-        let line = `${name} ${jersey}`.trim();
-        if (game.sport === 'basketball') {
-          line += ` • ${p.points || 0} PTS  ${p.rebounds || 0} REB  ${p.assists || 0} AST`;
-        } else {
-          line += ` • ${p.attacks || 0} ATK  ${p.blocks || 0} BLK  ${p.aces || 0} ACE`;
-        }
-        ctx.fillText(line, panelX, y);
+      // Headshot on right
+      if (headImg) {
+        const cx = panelX + panelW - 170; // center x of circle
+        const cy = panelY + panelH / 2;
+        const r = 120;
+        // Outer ring
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.beginPath(); ctx.arc(cx, cy, r + 8, 0, Math.PI * 2); ctx.fill();
+        // Masked image
+        ctx.save();
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+        const ar = Math.max((r * 2) / headImg.width, (r * 2) / headImg.height);
+        const dw2 = headImg.width * ar;
+        const dh2 = headImg.height * ar;
+        ctx.drawImage(headImg, cx - dw2 / 2, cy - dh2 / 2, dw2, dh2);
+        ctx.restore();
       }
 
       // Footer tag
@@ -106,16 +148,11 @@ export default function PosterCanvas({ backgroundUrl, game, players, onReady }) 
         setDataUrl(url);
         onReady && onReady(url);
       } catch (e) {
-        // Likely CORS taint; still render on-screen
         setDataUrl('');
         onReady && onReady('');
       }
-    };
-    img.onerror = () => {
-      onReady && onReady('');
-    };
-    img.src = backgroundUrl;
-  }, [backgroundUrl, game, players, onReady]);
+    })();
+  }, [backgroundUrl, game, players, org, bestPlayerImageUrl, onReady]);
 
   return (
     <div className="space-y-3">

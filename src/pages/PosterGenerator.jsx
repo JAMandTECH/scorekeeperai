@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +33,8 @@ export default function PosterGenerator() {
   const [selectedGameId, setSelectedGameId] = React.useState('');
   const [selectedTemplateId, setSelectedTemplateId] = React.useState('');
   const [imageUrl, setImageUrl] = React.useState('');
+  const [bestPlayerImageUrl, setBestPlayerImageUrl] = React.useState('');
+  const [uploading, setUploading] = React.useState(false);
 
   React.useEffect(() => {
     (async () => {
@@ -84,10 +87,20 @@ export default function PosterGenerator() {
   const topQ = useQuery({
     queryKey: ['topPlayers', selectedGameId],
     queryFn: async () => {
-      const res = await base44.functions.invoke('getTopPlayersForGame', { gameId: selectedGameId });
+      const res = await base44.functions.invoke('getTopPlayersForGame', { gameId: selectedGameId, topN: 1 });
       return res.data;
     },
     enabled: !!user && !!selectedGameId,
+    initialData: null,
+  });
+
+  const orgQ = useQuery({
+    queryKey: ['orgForGame', topQ.data?.game?.organization_id],
+    queryFn: async () => {
+      const arr = await base44.entities.Organization.filter({ id: topQ.data.game.organization_id });
+      return arr?.[0] || null;
+    },
+    enabled: !!user && !!topQ.data?.game?.organization_id,
     initialData: null,
   });
 
@@ -158,6 +171,26 @@ export default function PosterGenerator() {
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <label className="text-sm text-muted-foreground">Best Player Photo</label>
+              <div className="mt-1 flex items-center gap-3">
+                <Input type="file" accept="image/*" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setUploading(true);
+                  try {
+                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                    setBestPlayerImageUrl(file_url);
+                  } finally {
+                    setUploading(false);
+                  }
+                }} />
+                {uploading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                {bestPlayerImageUrl && <img src={bestPlayerImageUrl} alt="Best player" className="w-12 h-12 rounded-full border object-cover" />}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Optional: overrides player profile photo for this poster.</p>
+            </div>
           </CardContent>
         </Card>
 
@@ -194,17 +227,17 @@ export default function PosterGenerator() {
         </Card>
       </div>
 
-      <div className="mt-6 flex items-center gap-3">
+      <div className="mt-6 flex items-center gap-3 flex-wrap">
         <Button
           disabled={!selectedGameId || !selectedTemplateId || genMutation.isPending}
           onClick={() => genMutation.mutate({ gameId: selectedGameId, templateId: selectedTemplateId })}
         >
           {genMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-          Generate Poster
+          Generate Background
         </Button>
         {imageUrl && (
           <a href={imageUrl} target="_blank" rel="noreferrer">
-            <Button variant="outline" className="gap-2"><Download className="h-4 w-4" /> Download</Button>
+            <Button variant="outline" className="gap-2"><Download className="h-4 w-4" /> Download Background</Button>
           </a>
         )}
       </div>
@@ -230,7 +263,13 @@ export default function PosterGenerator() {
               {topQ.isLoading ? (
                 <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading top players...</div>
               ) : topQ.data ? (
-                <PosterCanvas backgroundUrl={imageUrl} game={topQ.data.game} players={topQ.data.topPlayers} />
+                <PosterCanvas
+                  backgroundUrl={imageUrl}
+                  game={topQ.data.game}
+                  players={topQ.data.topPlayers ? [topQ.data.topPlayers[0]] : []}
+                  org={orgQ.data}
+                  bestPlayerImageUrl={bestPlayerImageUrl || (topQ.data.topPlayers?.[0]?.photo_url || '')}
+                />
               ) : (
                 <p className="text-sm text-muted-foreground">Select a game to load best players.</p>
               )}
