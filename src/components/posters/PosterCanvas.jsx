@@ -56,9 +56,9 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, W, H);
 
-      // Org logo box top-left
-      if (logoImg) {
-        const boxW = 220; const boxH = 80; const pad = 14; const r = 14;
+      // Org logo/info box top-left (always show org info)
+      {
+        const boxW = 260; const boxH = 86; const pad = 14; const r = 14;
         const x = 24; const y = 24;
         // rounded rect
         ctx.fillStyle = 'rgba(255,255,255,0.9)';
@@ -70,18 +70,18 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.arcTo(x, y, x + boxW, y, r);
         ctx.closePath();
         ctx.fill();
-        // logo
+        // logo (optional)
         const lh = boxH - pad * 2;
-        const lw = lh; // square
-        ctx.drawImage(logoImg, x + pad, y + pad, lw, lh);
+        const lw = logoImg ? lh : 0;
+        if (logoImg) ctx.drawImage(logoImg, x + pad, y + pad, lw, lh);
         // org text
         ctx.fillStyle = '#0f172a';
         ctx.font = '700 20px Inter, system-ui, Arial';
         const name = org?.name || '';
-        ctx.fillText(name, x + pad + lw + 10, y + 30);
+        ctx.fillText(name, x + pad + lw + 10, y + 34);
         ctx.font = '500 14px Inter, system-ui, Arial';
         const tname = org?.tournament_name || '';
-        if (tname) ctx.fillText(tname, x + pad + lw + 10, y + 54);
+        if (tname) ctx.fillText(tname, x + pad + lw + 10, y + 58);
       }
 
       // Header title
