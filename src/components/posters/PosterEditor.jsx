@@ -19,7 +19,7 @@ const defaultLayout = {
 
 function uid() { return 'el_' + Math.random().toString(36).slice(2, 9); }
 
-export default function PosterEditor({ backgroundUrl, layout, onChange, headshotImageUrl, orgLogoUrl, headerText, dateStr }) {
+export default function PosterEditor({ backgroundUrl, layout, onChange, headshotImageUrl, orgLogoUrl, headerText, dateStr, playerName, stats, homeName, awayName, homeScore, awayScore }) {
   const stageRef = useRef(null);
   const [drag, setDrag] = useState(null); // {type: 'fixed'|'element', key, mode, dx, dy}
   const [selectedId, setSelectedId] = useState(null);
@@ -47,6 +47,8 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
 
   // derived sizes for logo to help drag bounds
   const logoW = (L.orgLogo?.w||200); const logoH = (L.orgLogo?.h||64);
+
+  const s = stats || {};
 
   const commit = (next) => onChange({ ...L, ...next });
   const setElements = (els) => commit({ elements: els });
@@ -255,8 +257,29 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
           <div className="absolute w-full text-center pointer-events-none select-none" style={{ top: (L.bestTitle.y * scale) - ((L.bestTitle.fontSize||72)*scale/2) }}>
             <span className="font-black text-white" style={{ fontSize: (L.bestTitle.fontSize||72)*scale }}>BEST PLAYER</span>
           </div>
+          {playerName && (
+            <div className="absolute w-full text-center pointer-events-none select-none" style={{ top: (L.bestTitle.y * scale) + 20 }}>
+              <span className="font-extrabold text-white tracking-wide" style={{ fontSize: 24*scale }}>{String(playerName).toUpperCase()}</span>
+            </div>
+          )}
           <div className="absolute left-0 right-0 h-1 bg-green-400/40 cursor-ns-resize" style={{ top: L.stats.y * scale }} onMouseDown={startDragFixed('stats', 'move')} />
+          <div className="absolute w-full flex items-center justify-center gap-3 pointer-events-none select-none" style={{ top: (L.stats.y * scale) - 18 }}>
+            {['PTS','REB','AST','BLK'].map((k)=>{
+              const map = { PTS: s.points ?? s.pts ?? 0, REB: s.rebounds ?? 0, AST: s.assists ?? 0, BLK: s.blocks ?? 0 };
+              const val = map[k];
+              return (
+                <div key={k} className="px-2 py-0.5 rounded bg-white/80 text-slate-900 text-xs font-semibold">
+                  {k} <span className="ml-1 font-bold">{val ?? '-'}</span>
+                </div>
+              );
+            })}
+          </div>
           <div className="absolute left-0 right-0 h-1 bg-blue-400/40 cursor-ns-resize" style={{ top: L.scoreRow.y * scale }} onMouseDown={startDragFixed('scoreRow', 'move')} />
+          <div className="absolute w-full text-center pointer-events-none select-none" style={{ top: (L.scoreRow.y * scale) - 10 }}>
+            <span className="font-black text-white" style={{ fontSize: 28*scale }}>
+              {(homeName || 'HOME')} {(homeScore ?? '0')} - {(awayScore ?? '0')} {(awayName || 'AWAY')}
+            </span>
+          </div>
           <div
             className="absolute rounded-full border-2 border-white/80 cursor-move overflow-hidden"
             style={{ left: (L.headshot.cx - L.headshot.r) * scale, top: (L.headshot.cy - L.headshot.r) * scale, width: (L.headshot.r * 2) * scale, height: (L.headshot.r * 2) * scale }}
