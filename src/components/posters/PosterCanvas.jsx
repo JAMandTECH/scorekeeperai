@@ -51,8 +51,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
       // Vignette
       const grad = ctx.createLinearGradient(0, 0, 0, H);
-      grad.addColorStop(0, 'rgba(0,0,0,0.35)');
-      grad.addColorStop(1, 'rgba(0,0,0,0.6)');
+      grad.addColorStop(0, 'rgba(0,0,0,0.25)');
+      grad.addColorStop(1, 'rgba(0,0,0,0.5)');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, W, H);
 
@@ -107,60 +107,42 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.fillText(dateStr, x + padX, y + bh - 10);
       }
 
-      // Big background last name
       const p = players[0];
-      const last = (p.last_name || `${p.first_name || ''}`).toUpperCase();
-      ctx.save();
-      ctx.globalAlpha = 0.1;
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'center';
-      ctx.font = '900 220px Inter, system-ui, Arial';
-      ctx.fillText(last, W / 2, 560);
-      ctx.restore();
 
-      // Stat pills
-      const drawPills = (x, y, value, label) => {
-        const gap = 10; const h = 44; const r = 8; ctx.font = '800 20px Inter, system-ui, Arial';
-        const vText = String(value).toUpperCase();
-        const lText = String(label).toUpperCase();
-        const vW = ctx.measureText(vText).width + 24;
-        const lW = ctx.measureText(lText).width + 28;
-        // value pill (yellow)
-        ctx.fillStyle = '#facc15';
-        ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + vW, y, x + vW, y + h, r);
-        ctx.arcTo(x + vW, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + vW, y, r);
-        ctx.closePath(); ctx.fill();
-        ctx.fillStyle = '#111827'; ctx.textAlign = 'center'; ctx.fillText(vText, x + vW / 2, y + h - 12);
-        // label pill (light)
-        const lx = x + vW + gap;
+      // Minimal stat row
+      const drawStat = (x, y, label, value) => {
+        ctx.textAlign = 'left';
         ctx.fillStyle = '#e5e7eb';
-        ctx.beginPath(); ctx.moveTo(lx + r, y); ctx.arcTo(lx + lW, y, lx + lW, y + h, r);
-        ctx.arcTo(lx + lW, y + h, lx, y + h, r); ctx.arcTo(lx, y + h, lx, y, r); ctx.arcTo(lx, y, lx + lW, y, r);
-        ctx.closePath(); ctx.fill();
-        ctx.fillStyle = '#111827'; ctx.textAlign = 'center'; ctx.font = '700 18px Inter, system-ui, Arial';
-        ctx.fillText(lText, lx + lW / 2, y + h - 12);
-        return vW + gap + lW;
+        ctx.font = '600 14px Inter, system-ui, Arial';
+        ctx.fillText(label.toUpperCase(), x, y);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 36px Inter, system-ui, Arial';
+        ctx.fillText(String(value), x, y + 34);
       };
 
-      let yStart = 610;
       if (game.sport === 'basketball') {
-        drawPills(80, yStart, p.points || 0, 'POINTS');
-        drawPills(80, yStart + 60, p.rebounds || 0, 'REBOUNDS');
-        drawPills(80, yStart + 120, p.assists || 0, 'ASSISTS');
-        const rx = W - 80 - 280; // approx right column start
-        drawPills(rx, yStart, p.steals || 0, 'STEAL');
-        drawPills(rx, yStart + 60, p.three_pointers || 0, '3PM');
+        const stats = [
+          ['Points', p.points || 0],
+          ['Rebounds', p.rebounds || 0],
+          ['Assists', p.assists || 0],
+        ];
+        const startX = 80, gapX = 260, y = 520;
+        stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
       } else {
-        drawPills(80, yStart, p.attacks || 0, 'ATTACKS');
-        drawPills(80, yStart + 60, p.blocks || 0, 'BLOCKS');
-        drawPills(80, yStart + 120, p.aces || 0, 'ACES');
+        const stats = [
+          ['Attacks', p.attacks || 0],
+          ['Blocks', p.blocks || 0],
+          ['Aces', p.aces || 0],
+        ];
+        const startX = 80, gapX = 260, y = 520;
+        stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
       }
 
       // Headshot centered
       if (headImg) {
-        const cx = W / 2; const cy = 680; const r = 140;
-        ctx.fillStyle = 'rgba(255,255,255,0.95)';
-        ctx.beginPath(); ctx.arc(cx, cy, r + 10, 0, Math.PI * 2); ctx.fill();
+        const cx = W / 2; const cy = 680; const r = 130;
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.beginPath(); ctx.arc(cx, cy, r + 6, 0, Math.PI * 2); ctx.fill();
         ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
         const ar = Math.max((r * 2) / headImg.width, (r * 2) / headImg.height);
         const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
@@ -171,7 +153,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       // BEST PLAYER heading
       ctx.textAlign = 'center';
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 96px Inter, system-ui, Arial';
+      ctx.font = '900 72px Inter, system-ui, Arial';
       ctx.fillText('BEST PLAYER', W / 2, 950);
 
       // Final Score row
@@ -184,11 +166,19 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const drawScoreBox = (x, y, text, highlight) => {
         const h = 44; const r = 8; ctx.font = '800 22px Inter, system-ui, Arial';
         const tw = ctx.measureText(text).width + 24; const bh = h; const bw = tw; const yy = y - h + 6;
-        ctx.fillStyle = highlight ? '#facc15' : 'rgba(255,255,255,0.15)';
-        ctx.beginPath(); ctx.moveTo(x, yy); ctx.arcTo(x + bw, yy, x + bw, yy + bh, r);
-        ctx.arcTo(x + bw, yy + bh, x, yy + bh, r); ctx.arcTo(x, yy + bh, x, yy, r); ctx.arcTo(x, yy, x + bw, yy, r);
-        ctx.closePath(); ctx.fill();
-        ctx.fillStyle = highlight ? '#111827' : '#ffffff'; ctx.textAlign = 'center';
+        if (highlight) {
+          ctx.fillStyle = '#facc15';
+          ctx.beginPath(); ctx.moveTo(x, yy); ctx.arcTo(x + bw, yy, x + bw, yy + bh, r);
+          ctx.arcTo(x + bw, yy + bh, x, yy + bh, r); ctx.arcTo(x, yy + bh, x, yy, r); ctx.arcTo(x, yy, x + bw, yy, r);
+          ctx.closePath(); ctx.fill();
+          ctx.fillStyle = '#111827'; ctx.textAlign = 'center';
+        } else {
+          ctx.beginPath(); ctx.moveTo(x, yy); ctx.arcTo(x + bw, yy, x + bw, yy + bh, r);
+          ctx.arcTo(x + bw, yy + bh, x, yy + bh, r); ctx.arcTo(x, yy + bh, x, yy, r); ctx.arcTo(x, yy, x + bw, yy, r);
+          ctx.closePath();
+          ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2; ctx.stroke();
+          ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center';
+        }
         ctx.fillText(text, x + bw / 2, yScore);
         return bw;
       };
