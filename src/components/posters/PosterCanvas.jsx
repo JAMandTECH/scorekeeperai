@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 // Canvas composer that overlays org logo/info and the single best player's headshot + stats
 export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady }) {
@@ -233,15 +234,4 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       )}
     </div>
   );
-
-  return (
-    <div className="space-y-3">
-      <canvas ref={canvasRef} style={{ width: '100%', height: 'auto', borderRadius: 12 }} />
-      {dataUrl && (
-        <a href={dataUrl} download={`poster_${game?.id || 'game'}.png`} className="inline-block">
-          <button className="px-4 py-2 rounded-md border">Download Final Poster</button>
-        </a>
-      )}
-    </div>
-  );
-}
+  }
