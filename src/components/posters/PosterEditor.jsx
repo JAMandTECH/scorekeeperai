@@ -49,6 +49,7 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
   const logoW = (L.orgLogo?.w||200); const logoH = (L.orgLogo?.h||64);
 
   const s = stats || {};
+  const playerDisplayName = (playerName && String(playerName).trim()) || [s.first_name, s.last_name].filter(Boolean).join(' ').trim();
 
   const commit = (next) => onChange({ ...L, ...next });
   const setElements = (els) => commit({ elements: els });
@@ -241,7 +242,7 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
                 <span className="text-[10px] text-slate-600">Org Logo</span>
               )}
             </div>
-            <div className="absolute w-3 h-3 bg-slate-700 rounded-sm right-0 bottom-0 cursor-se-resize" onMouseDown={startDragFixed('orgLogo', 'resize')} style={{ transform: 'translate(-2px,-2px)' }} />
+            <div title="Drag to resize" className="absolute w-4 h-4 bg-emerald-500 border-2 border-white rounded-sm right-0 bottom-0 cursor-se-resize z-10" onMouseDown={startDragFixed('orgLogo', 'resize')} style={{ transform: 'translate(-2px,-2px)' }} />
           </div>
           <div className="absolute px-3 py-1 bg-yellow-400 text-slate-900 text-xs rounded cursor-move"
             style={{ left: L.datePill.x * scale, top: L.datePill.y * scale }}
@@ -257,19 +258,19 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
           <div className="absolute w-full text-center pointer-events-none select-none" style={{ top: (L.bestTitle.y * scale) - ((L.bestTitle.fontSize||72)*scale/2) }}>
             <span className="font-black text-white" style={{ fontSize: (L.bestTitle.fontSize||72)*scale }}>BEST PLAYER</span>
           </div>
-          {playerName && (
+          {playerDisplayName && (
             <div className="absolute w-full text-center pointer-events-none select-none" style={{ top: (L.bestTitle.y * scale) + 20 }}>
-              <span className="font-extrabold text-white tracking-wide" style={{ fontSize: 24*scale }}>{String(playerName).toUpperCase()}</span>
+              <span className="font-extrabold text-white tracking-wide" style={{ fontSize: 24*scale }}>{String(playerDisplayName).toUpperCase()}</span>
             </div>
           )}
           <div className="absolute left-0 right-0 h-1 bg-green-400/40 cursor-ns-resize" style={{ top: L.stats.y * scale }} onMouseDown={startDragFixed('stats', 'move')} />
           <div className="absolute w-full flex items-center justify-center gap-3 pointer-events-none select-none" style={{ top: (L.stats.y * scale) - 18 }}>
             {['PTS','REB','AST','BLK'].map((k)=>{
-              const map = { PTS: s.points ?? s.pts ?? 0, REB: s.rebounds ?? 0, AST: s.assists ?? 0, BLK: s.blocks ?? 0 };
+              const map = { PTS: s.points ?? s.pts, REB: s.rebounds, AST: s.assists, BLK: s.blocks };
               const val = map[k];
               return (
-                <div key={k} className="px-2 py-0.5 rounded bg-white/80 text-slate-900 text-xs font-semibold">
-                  {k} <span className="ml-1 font-bold">{val ?? '-'}</span>
+                <div key={k} className="px-2 py-0.5 rounded bg-white/80 text-slate-900 text-xs font-semibold min-w-[44px] text-center">
+                  {k} <span className="ml-1 font-bold">{(val ?? '-') as any}</span>
                 </div>
               );
             })}
@@ -288,7 +289,7 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
             {(L.headshot?.processedImageUrl || headshotImageUrl) && (
               <img src={(L.headshot?.processedImageUrl || headshotImageUrl)} alt="Headshot" className="absolute inset-0 w-full h-full object-cover rounded-full pointer-events-none select-none" />
             )}
-            <div className="absolute w-3 h-3 bg-slate-700 rounded-sm right-0 top-1/2 -translate-y-1/2 cursor-ew-resize" onMouseDown={startDragFixed('headshot', 'resize')} style={{ transform: 'translate(2px,-50%)' }} />
+            <div title="Drag to resize" className="absolute w-4 h-4 bg-emerald-500 border-2 border-white rounded-sm right-0 top-1/2 -translate-y-1/2 cursor-ew-resize z-10" onMouseDown={startDragFixed('headshot', 'resize')} style={{ transform: 'translate(2px,-50%)' }} />
           </div>
 
           {/* Alignment guides */}

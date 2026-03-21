@@ -361,7 +361,7 @@ export default function PosterGenerator() {
                   orgLogoUrl={orgQ.data?.logo_url || ''}
                   headerText={[orgQ.data?.tournament_name || orgQ.data?.name || '', gameForPoster?.division || ''].filter(Boolean).join(' • ').toUpperCase()}
                   dateStr={(function(){ const d = gameForPoster?.game_date ? new Date(gameForPoster.game_date) : null; return d ? d.toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'}).toUpperCase() : ''; })()}
-                  playerName={topQ.data?.topPlayers?.[0]?.full_name || ''}
+                  playerName={(() => { const p = topQ.data?.topPlayers?.[0]; return p ? `${p.first_name || ''} ${p.last_name || ''}`.trim() : ''; })()}
                   stats={topQ.data?.topPlayers?.[0] || {}}
                   homeName={teamMap[gameForPoster?.home_team_id]}
                   awayName={teamMap[gameForPoster?.away_team_id]}
