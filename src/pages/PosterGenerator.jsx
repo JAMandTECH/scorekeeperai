@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Download, Sparkles } from 'lucide-react';
+import { Loader2, Download, Sparkles, Trash2 } from 'lucide-react';
 import PosterCanvas from '@/components/posters/PosterCanvas';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
@@ -108,6 +108,14 @@ export default function PosterGenerator() {
     onSuccess: (data) => {
       setImageUrl(data?.url || '');
     }
+  });
+
+  const deleteTplMutation = useMutation({
+    mutationFn: (id) => base44.entities.PosterTemplate.delete(id),
+    onSuccess: (_data, id) => {
+      if (selectedTemplateId === id) { setSelectedTemplateId(''); setImageUrl(''); }
+      qc.invalidateQueries({ queryKey: ['ptemplates'] });
+    },
   });
 
   if (user && user.role !== 'admin') {
@@ -268,7 +276,24 @@ export default function PosterGenerator() {
             ) : (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {templatesQ.data?.map(t => (
-                  <button key={t.id} onClick={() => setSelectedTemplateId(t.id)} className={`border rounded-lg text-left overflow-hidden hover:shadow-md transition ${selectedTemplateId === t.id ? 'ring-2 ring-primary' : ''}`}>
+                  <div
+                    key={t.id}
+                    onClick={() => setSelectedTemplateId(t.id)}
+                    className={`relative border rounded-lg text-left overflow-hidden hover:shadow-md transition ${selectedTemplateId === t.id ? 'ring-2 ring-primary' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div className="absolute top-2 right-2 z-10" onClick={(e)=>e.stopPropagation()}>
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        onClick={() => { if (window.confirm('Delete this template?')) deleteTplMutation.mutate(t.id); }}
+                        disabled={deleteTplMutation.isPending}
+                        title="Delete Template"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <div className="relative aspect-video bg-muted flex items-center justify-center text-muted-foreground">
                       {t.sample_image_url ? (
                         <img src={t.sample_image_url} alt={t.name} className="w-full h-full object-cover" />
@@ -283,7 +308,7 @@ export default function PosterGenerator() {
                       </div>
                       {t.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{t.description}</p>}
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             )}
