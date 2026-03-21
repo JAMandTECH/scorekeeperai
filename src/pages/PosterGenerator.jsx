@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import PosterEditor from '@/components/posters/PosterEditor';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +37,8 @@ export default function PosterGenerator() {
   const [imageUrl, setImageUrl] = React.useState('');
   const [bestPlayerImageUrl, setBestPlayerImageUrl] = React.useState('');
   const [uploading, setUploading] = React.useState(false);
+  const [editorOpen, setEditorOpen] = React.useState(false);
+  const [layout, setLayout] = React.useState({});
 
   React.useEffect(() => {
     (async () => {
@@ -236,9 +240,25 @@ export default function PosterGenerator() {
           Generate Background
         </Button>
         {imageUrl && (
-          <a href={imageUrl} target="_blank" rel="noreferrer">
-            <Button variant="outline" className="gap-2"><Download className="h-4 w-4" /> Download Background</Button>
-          </a>
+          <>
+            <a href={imageUrl} target="_blank" rel="noreferrer">
+              <Button variant="outline" className="gap-2"><Download className="h-4 w-4" /> Download Background</Button>
+            </a>
+            <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+              <DialogTrigger asChild>
+                <Button variant="secondary">Edit Poster</Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-6xl">
+                <DialogHeader>
+                  <DialogTitle>Poster Editor</DialogTitle>
+                </DialogHeader>
+                <PosterEditor backgroundUrl={imageUrl} layout={layout} onChange={setLayout} />
+                <DialogFooter>
+                  <Button onClick={() => setEditorOpen(false)}>Done</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </>
         )}
       </div>
 
@@ -271,6 +291,7 @@ export default function PosterGenerator() {
                   bestPlayerImageUrl={bestPlayerImageUrl || (topQ.data.topPlayers?.[0]?.photo_url || '')}
                   homeName={teamMap[topQ.data.game.home_team_id] || 'Home Team'}
                   awayName={teamMap[topQ.data.game.away_team_id] || 'Away Team'}
+                  layout={layout}
                 />
               ) : (
                 <p className="text-sm text-muted-foreground">Select a game to load best players.</p>
