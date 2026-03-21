@@ -113,7 +113,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.fillText(dateStr, dateX + padX, dateY + bh - 10);
       }
 
-      const p = players[0];
+      const p = (players && players.length > 0) ? players[0] : null;
 
       // Minimal stat row
       const drawStat = (x, y, label, value) => {
