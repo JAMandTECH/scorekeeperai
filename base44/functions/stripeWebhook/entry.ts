@@ -48,21 +48,76 @@ Deno.serve(async (req) => {
       if (tier === 'basic' && selected_sport) update.selected_sport = selected_sport;
       await base44.entities.Organization.update(organizationId, update);
       console.log('Organization activated via checkout.session.completed:', organizationId);
+
+      // Mirror plan to admin users of this organization
+      try {
+        const admins = await base44.entities.User.filter({
+          role: 'admin',
+          $or: [{ organization_id: organizationId }, { active_organization_id: organizationId }]
+        });
+        await Promise.allSettled(
+          admins.map(u => base44.entities.User.update(u.id, {
+            subscription_tier: tier || 'basic',
+            subscription_status: 'active'
+          }))
+        );
+      } catch (e) {
+        console.error('Failed to update admin user subscription on checkout complete:', e?.message || e);
+      }
     }
 
     if (type === 'invoice.paid') {
       await base44.entities.Organization.update(organizationId, { subscription_status: 'active' });
       console.log('Invoice paid; ensured active for org:', organizationId);
+
+      // Ensure admins show active status
+      try {
+        const admins = await base44.entities.User.filter({
+          role: 'admin',
+          $or: [{ organization_id: organizationId }, { active_organization_id: organizationId }]
+        });
+        await Promise.allSettled(
+          admins.map(u => base44.entities.User.update(u.id, { subscription_status: 'active' }))
+        );
+      } catch (e) {
+        console.error('Failed to set admin user status active on invoice.paid:', e?.message || e);
+      }
     }
 
     if (type === 'invoice.payment_failed') {
       await base44.entities.Organization.update(organizationId, { subscription_status: 'expired' });
       console.log('Invoice failed; marked expired for org:', organizationId);
+
+      // Reflect expired on admins
+      try {
+        const admins = await base44.entities.User.filter({
+          role: 'admin',
+          $or: [{ organization_id: organizationId }, { active_organization_id: organizationId }]
+        });
+        await Promise.allSettled(
+          admins.map(u => base44.entities.User.update(u.id, { subscription_status: 'expired' }))
+        );
+      } catch (e) {
+        console.error('Failed to set admin user status expired on payment_failed:', e?.message || e);
+      }
     }
 
     if (type === 'customer.subscription.deleted' || type === 'customer.subscription.canceled') {
       await base44.entities.Organization.update(organizationId, { subscription_status: 'cancelled', subscription_tier: 'free' });
       console.log('Subscription cancelled; downgraded org:', organizationId);
+
+      // Downgrade admins to free and mark cancelled
+      try {
+        const admins = await base44.entities.User.filter({
+          role: 'admin',
+          $or: [{ organization_id: organizationId }, { active_organization_id: organizationId }]
+        });
+        await Promise.allSettled(
+          admins.map(u => base44.entities.User.update(u.id, { subscription_tier: 'free', subscription_status: 'cancelled' }))
+        );
+      } catch (e) {
+        console.error('Failed to downgrade admin users on subscription cancel:', e?.message || e);
+      }
     }
 
     return Response.json({ received: true });
