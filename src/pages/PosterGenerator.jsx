@@ -80,6 +80,16 @@ export default function PosterGenerator() {
     setNewTplSport(sport);
   }, [sport]);
 
+  const gameQ = useQuery({
+    queryKey: ['gameById', selectedGameId],
+    queryFn: async () => {
+      const arr = await base44.entities.Game.filter({ id: selectedGameId });
+      return arr?.[0] || null;
+    },
+    enabled: !!user && !!selectedGameId,
+    initialData: null,
+  });
+
   const topQ = useQuery({
     queryKey: ['topPlayers', selectedGameId],
     queryFn: async () => {
@@ -90,13 +100,16 @@ export default function PosterGenerator() {
     initialData: null,
   });
 
+  const gameForPoster = gameQ.data || topQ.data?.game || null;
+
   const orgQ = useQuery({
-    queryKey: ['orgForGame', topQ.data?.game?.organization_id],
+    queryKey: ['orgForGame', gameForPoster?.organization_id],
     queryFn: async () => {
-      const arr = await base44.entities.Organization.filter({ id: topQ.data.game.organization_id });
+      if (!gameForPoster?.organization_id) return null;
+      const arr = await base44.entities.Organization.filter({ id: gameForPoster.organization_id });
       return arr?.[0] || null;
     },
-    enabled: !!user && !!topQ.data?.game?.organization_id,
+    enabled: !!user && !!gameForPoster?.organization_id,
     initialData: null,
   });
 
@@ -374,19 +387,19 @@ export default function PosterGenerator() {
                 <>
                   <PosterCanvas
                     backgroundUrl={imageUrl}
-                    game={topQ.data.game}
+                    game={gameForPoster}
                     players={topQ.data.topPlayers ? [topQ.data.topPlayers[0]] : []}
                     org={orgQ.data}
                     bestPlayerImageUrl={bestPlayerImageUrl || (topQ.data.topPlayers?.[0]?.photo_url || '')}
-                    homeName={teamMap[topQ.data.game.home_team_id] || 'Home Team'}
-                    awayName={teamMap[topQ.data.game.away_team_id] || 'Away Team'}
+                    homeName={teamMap[gameForPoster?.home_team_id] || 'Home Team'}
+                    awayName={teamMap[gameForPoster?.away_team_id] || 'Away Team'}
                     layout={layout}
                     onReady={setPosterDataUrl}
                   />
                   <div className="mt-4">
                     <SocialShare
                       imageUrl={posterDataUrl || imageUrl}
-                      text={`${(teamMap[topQ.data.game.home_team_id] || 'Home')} vs ${(teamMap[topQ.data.game.away_team_id] || 'Away')} • Final ${(topQ.data.game.home_score ?? 0)}-${(topQ.data.game.away_score ?? 0)}`}
+                      text={`${(teamMap[gameForPoster?.home_team_id] || 'Home')} vs ${(teamMap[gameForPoster?.away_team_id] || 'Away')} • Final ${(gameForPoster?.home_score ?? 0)}-${(gameForPoster?.away_score ?? 0)}`}
                     />
                   </div>
                 </>
