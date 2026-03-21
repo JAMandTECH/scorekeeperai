@@ -1187,22 +1187,43 @@ export default function Home() {
                         {completedBasketballGames.map(game => {
                           // Determine winning team
                           const winningTeamId = game.home_score > game.away_score ? game.home_team_id : game.away_team_id;
-                          
-                          // Find best player from WINNING team only
-                          const gameStats = allPlayerStats.filter(s => s.game_id === game.id && s.team_id === winningTeamId);
-                          const bestPlayerStat = gameStats.reduce((best, current) => {
-                            const currentPoints = current.points || 0;
-                            const bestPoints = best?.points || 0;
-                            return currentPoints > bestPoints ? current : best;
+
+                          // Aggregate per-player totals for the game (winner only)
+                          const statsForGame = allPlayerStats.filter(s => s.game_id === game.id);
+                          const totalsMap = new Map();
+                          statsForGame
+                            .filter(s => s.team_id === winningTeamId)
+                            .forEach(s => {
+                              const id = s.player_id;
+                              if (!totalsMap.has(id)) {
+                                totalsMap.set(id, { points: 0, rebounds: 0, assists: 0, blocks: 0 });
+                              }
+                              const agg = totalsMap.get(id);
+                              agg.points += s.points || 0;
+                              agg.rebounds += s.rebounds || 0;
+                              agg.assists += s.assists || 0;
+                              agg.blocks += s.blocks || 0;
+                            });
+                          const bestEntry = Array.from(totalsMap.entries()).reduce((best, [pid, vals]) => {
+                            if (!best || vals.points > best.vals.points) return { pid, vals };
+                            return best;
                           }, null);
-                          
-                          const bestPlayer = bestPlayerStat ? allPlayers.find(p => p.id === bestPlayerStat.player_id) : null;
-                          
+
+                          const bestPlayer = bestEntry ? allPlayers.find(p => p.id === bestEntry.pid) : null;
+                          const bestTotals = bestEntry?.vals || null;
+
                           const homeTeamData = allTeams.find(t => t.id === game.home_team_id);
                           const awayTeamData = allTeams.find(t => t.id === game.away_team_id);
 
                           // Prepare top players for AI summary
                           const topPlayersForAI = [];
+                          if (bestPlayer && bestTotals) {
+                            topPlayersForAI.push({
+                              name: `${bestPlayer.first_name} ${bestPlayer.last_name}`,
+                              team: getTeamName(winningTeamId),
+                              stats: `${bestTotals.points} PTS • ${bestTotals.rebounds || 0} REB • ${bestTotals.assists || 0} AST`
+                            });
+                          }
                           if (bestPlayer && bestPlayerStat) {
                             topPlayersForAI.push({
                               name: `${bestPlayer.first_name} ${bestPlayer.last_name}`,
@@ -1263,7 +1284,7 @@ export default function Home() {
                                         #{bestPlayer.jersey_number} {bestPlayer.first_name} {bestPlayer.last_name}
                                       </p>
                                       <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
-                                        {bestPlayerStat.points} PTS • {bestPlayerStat.rebounds || 0} REB • {bestPlayerStat.assists || 0} AST
+                                        {bestTotals?.points || 0} PTS • {bestTotals?.rebounds || 0} REB • {bestTotals?.assists || 0} AST
                                       </p>
                                     </div>
                                   </div>
@@ -1738,27 +1759,43 @@ export default function Home() {
                           const winningTeamId = hasSets
                             ? (homeSetsWon > awaySetsWon ? game.home_team_id : game.away_team_id)
                             : (homeTotalPoints >= awayTotalPoints ? game.home_team_id : game.away_team_id);
-                          
-                          // Find best player from WINNING team only
-                          const gameStats = allPlayerStats.filter(s => s.game_id === game.id && s.team_id === winningTeamId);
-                          const bestPlayerStat = gameStats.reduce((best, current) => {
-                            const currentScore = (current.field_goals_made || 0) + (current.blocks || 0) + (current.three_pointers || 0);
-                            const bestScore = best ? ((best.field_goals_made || 0) + (best.blocks || 0) + (best.three_pointers || 0)) : 0;
-                            return currentScore > bestScore ? current : best;
+
+                          // Aggregate per-player totals for the game (winner only)
+                          const statsForGame = allPlayerStats.filter(s => s.game_id === game.id);
+                          const totalsMap = new Map();
+                          statsForGame
+                            .filter(s => s.team_id === winningTeamId)
+                            .forEach(s => {
+                              const id = s.player_id;
+                              if (!totalsMap.has(id)) {
+                                totalsMap.set(id, { points: 0, attacks: 0, aces: 0, blocks: 0 });
+                              }
+                              const agg = totalsMap.get(id);
+                              const vbAttacks = s.attacks ?? s.field_goals_made ?? 0; // legacy support
+                              const vbAces = s.aces ?? s.three_pointers ?? 0;        // legacy support
+                              agg.attacks += vbAttacks;
+                              agg.aces += vbAces;
+                              agg.blocks += s.blocks || 0;
+                              agg.points += vbAttacks + vbAces + (s.blocks || 0);
+                            });
+                          const bestEntry = Array.from(totalsMap.entries()).reduce((best, [pid, vals]) => {
+                            if (!best || vals.points > best.vals.points) return { pid, vals };
+                            return best;
                           }, null);
-                          
-                          const bestPlayer = bestPlayerStat ? allPlayers.find(p => p.id === bestPlayerStat.player_id) : null;
-                          
+
+                          const bestPlayer = bestEntry ? allPlayers.find(p => p.id === bestEntry.pid) : null;
+                          const bestTotals = bestEntry?.vals || null;
+
                           const homeTeamData = allTeams.find(t => t.id === game.home_team_id);
                           const awayTeamData = allTeams.find(t => t.id === game.away_team_id);
 
                           // Prepare top players for AI summary
                           const topPlayersForAI = [];
-                          if (bestPlayer && bestPlayerStat) {
+                          if (bestPlayer && bestTotals) {
                             topPlayersForAI.push({
                               name: `${bestPlayer.first_name} ${bestPlayer.last_name}`,
                               team: getTeamName(winningTeamId),
-                              stats: `${bestPlayerStat.field_goals_made || 0} ATK • ${bestPlayerStat.blocks || 0} BLK • ${bestPlayerStat.three_pointers || 0} ACE`
+                              stats: `${bestTotals.attacks || 0} ATK • ${bestTotals.blocks || 0} BLK • ${bestTotals.aces || 0} ACE`
                             });
                           }
                           
@@ -1819,7 +1856,7 @@ export default function Home() {
                                         #{bestPlayer.jersey_number} {bestPlayer.first_name} {bestPlayer.last_name}
                                       </p>
                                       <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
-                                        {bestPlayerStat.field_goals_made || 0} ATK • {bestPlayerStat.blocks || 0} BLK • {bestPlayerStat.three_pointers || 0} ACE
+                                        {bestTotals?.attacks || 0} ATK • {bestTotals?.blocks || 0} BLK • {bestTotals?.aces || 0} ACE
                                       </p>
                                     </div>
                                   </div>
