@@ -1,8 +1,5 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
-
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
     // Public app support: no auth required to use this helper
     const { imageUrl } = await req.json();
     if (!imageUrl) {
