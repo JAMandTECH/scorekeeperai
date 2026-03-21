@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     }
 
     // Get game + top players via helper function
-    const topRes = await base44.asServiceRole.functions.invoke('getTopPlayersForGame', { gameId });
+    const topRes = await base44.functions.invoke('getTopPlayersForGame', { gameId });
     const { game, topPlayers } = topRes?.data || {};
     if (!game) {
       return Response.json({ error: 'Game not found or inaccessible' }, { status: 404 });
