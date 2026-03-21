@@ -21,12 +21,25 @@ function uid() { return 'el_' + Math.random().toString(36).slice(2, 9); }
 
 export default function PosterEditor({ backgroundUrl, layout, onChange, headshotImageUrl, orgLogoUrl, headerText, dateStr, playerName, stats, homeName, awayName, homeScore, awayScore }) {
   const stageRef = useRef(null);
-  const [drag, setDrag] = useState(null); // {type: 'fixed'|'element', key, mode, dx, dy}
-  const [selectedId, setSelectedId] = useState(null);
+  const [drag, setDrag] = useState(null); // {type: 'fixed'|'element'|'pan', ...}
+  // selection
+  const [selectedIds, setSelectedIds] = useState([]);
   const [showVGuide, setShowVGuide] = useState(false);
   const [showHGuide, setShowHGuide] = useState(false);
+  // zoom/pan/grid/guides
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [gridVisible, setGridVisible] = useState(true);
+  const [snapToGrid, setSnapToGrid] = useState(true);
+  const [gridSize, setGridSize] = useState(20);
+  const [vGuides, setVGuides] = useState([]);
+  const [hGuides, setHGuides] = useState([]);
+  // crop
   const [cropMode, setCropMode] = useState(false);
   const [polyPoints, setPolyPoints] = useState([]);
+  // history for undo/redo
+  const historyRef = useRef([]);
+  const historyIdxRef = useRef(-1);
 
   const L = useMemo(() => {
     const base = { ...defaultLayout, ...(layout || {}) };
@@ -41,7 +54,7 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
     return base;
   }, [layout]);
 
-  const stage = { width: 540, height: Math.round(540 * (H/W)) }; // 50% scale
+  const stage = { width: Math.round(540 * zoom), height: Math.round((540 * zoom) * (H/W)) };
   const scale = stage.width / W;
   const centerX = W/2, centerY = H/2;
 
@@ -51,7 +64,18 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
   const s = stats || {};
   const playerDisplayName = (playerName && String(playerName).trim()) || [s.first_name, s.last_name].filter(Boolean).join(' ').trim();
 
-  const commit = (next) => onChange({ ...L, ...next });
+  const commit = (next) => {
+    const merged = { ...L, ...next };
+    onChange(merged);
+    try {
+      const snapshot = JSON.parse(JSON.stringify(merged));
+      const upto = historyRef.current.slice(0, historyIdxRef.current + 1);
+      upto.push(snapshot);
+      if (upto.length > 50) upto.shift();
+      historyRef.current = upto;
+      historyIdxRef.current = upto.length - 1;
+    } catch (_) {}
+  };
   const setElements = (els) => commit({ elements: els });
 
   const addTextBox = () => {
@@ -63,14 +87,14 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
       locked: false
     };
     setElements([...(L.elements||[]), el]);
-    setSelectedId(el.id);
+    setSelectedIds([el.id]);
   };
 
   const startDragFixed = (key, mode) => (e) => {
     e.preventDefault();
     const rect = stageRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / scale;
-    const y = (e.clientY - rect.top) / scale;
+    const x = (e.clientX - rect.left) / scale + pan.x;
+    const y = (e.clientY - rect.top) / scale + pan.y;
     setDrag({ type: 'fixed', key, mode, startX: x, startY: y });
   };
 
@@ -78,54 +102,76 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
     if (el.locked) return;
     e.preventDefault(); e.stopPropagation();
     const rect = stageRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / scale;
-    const y = (e.clientY - rect.top) / scale;
-    setSelectedId(el.id);
-    setDrag({ type: 'element', key: el.id, mode, startX: x, startY: y, startEl: { ...el } });
+    const x = (e.clientX - rect.left) / scale + pan.x;
+    const y = (e.clientY - rect.top) / scale + pan.y;
+    const ids = (selectedIds.includes(el.id) ? selectedIds : [el.id]);
+    const starts = {};
+    (L.elements||[]).forEach(it => { if (ids.includes(it.id)) starts[it.id] = { x: it.x||0, y: it.y||0, fontSize: it.fontSize||32 }; });
+    setDrag({ type: 'element', keys: ids, mode, startX: x, startY: y, starts });
   };
 
   useEffect(() => {
     const onMove = (e) => {
       if (!drag) return;
       const rect = stageRef.current.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / scale;
-      const y = (e.clientY - rect.top) / scale;
+      const x = (e.clientX - rect.left) / scale + pan.x;
+      const y = (e.clientY - rect.top) / scale + pan.y;
+
+      const snapAxis = (val, axis) => {
+        let r = val;
+        if (snapToGrid) r = Math.round(r / gridSize) * gridSize;
+        const guides = axis === 'x' ? vGuides : hGuides;
+        for (const g of guides) { if (Math.abs(r - g) <= 6) { r = g; break; } }
+        return r;
+      };
+
+      if (drag.type === 'pan') {
+        const dx = (e.clientX - drag.startX) / scale;
+        const dy = (e.clientY - drag.startY) / scale;
+        setPan({ x: drag.panStart.x - dx, y: drag.panStart.y - dy });
+        return;
+      }
 
       if (drag.type === 'fixed') {
         const upd = { ...L };
         if (drag.key === 'orgLogo') {
-          if (drag.mode === 'move') { upd.orgLogo.x = Math.max(0, Math.min(W - upd.orgLogo.w, x - upd.orgLogo.w/2)); upd.orgLogo.y = Math.max(0, Math.min(H - upd.orgLogo.h, y - 20)); }
-          if (drag.mode === 'resize') { upd.orgLogo.w = Math.max(60, Math.min(W, x - upd.orgLogo.x)); upd.orgLogo.h = Math.max(40, Math.min(H, y - upd.orgLogo.y)); }
+          if (drag.mode === 'move') { upd.orgLogo.x = Math.max(0, Math.min(W - upd.orgLogo.w, snapAxis(x - upd.orgLogo.w/2, 'x'))); upd.orgLogo.y = Math.max(0, Math.min(H - upd.orgLogo.h, snapAxis(y - 20, 'y'))); }
+          if (drag.mode === 'resize') { upd.orgLogo.w = Math.max(60, Math.min(W, snapAxis(x - upd.orgLogo.x, 'x'))); upd.orgLogo.h = Math.max(40, Math.min(H, snapAxis(y - upd.orgLogo.y, 'y'))); }
         }
         if (drag.key === 'headshot') {
-          if (drag.mode === 'move') { upd.headshot.cx = Math.max(80, Math.min(W-80, x)); upd.headshot.cy = Math.max(80, Math.min(H-80, y)); }
+          if (drag.mode === 'move') { upd.headshot.cx = Math.max(80, Math.min(W-80, snapAxis(x,'x'))); upd.headshot.cy = Math.max(80, Math.min(H-80, snapAxis(y,'y'))); }
           if (drag.mode === 'resize') { upd.headshot.r = Math.max(60, Math.min(240, Math.hypot(x - upd.headshot.cx, y - upd.headshot.cy))); }
         }
-        if (drag.key === 'datePill') { upd.datePill.x = Math.max(0, x - 40); upd.datePill.y = Math.max(0, y - 10); }
-        if (drag.key === 'header') { upd.header.y = Math.max(40, Math.min(H-40, y)); }
-        if (drag.key === 'bestTitle') { upd.bestTitle.y = Math.max(200, Math.min(H-100, y)); }
-        if (drag.key === 'stats') { upd.stats.y = Math.max(300, Math.min(H-300, y)); }
-        if (drag.key === 'scoreRow') { upd.scoreRow.y = Math.max(600, Math.min(H-100, y)); }
+        if (drag.key === 'datePill') { upd.datePill.x = Math.max(0, snapAxis(x - 40,'x')); upd.datePill.y = Math.max(0, snapAxis(y - 10,'y')); }
+        if (drag.key === 'header') { const ny = Math.max(40, Math.min(H-40, snapAxis(y,'y'))); upd.header.y = ny; setShowHGuide(Math.abs(ny - centerY) <= 10); }
+        if (drag.key === 'bestTitle') { upd.bestTitle.y = Math.max(200, Math.min(H-100, snapAxis(y,'y'))); }
+        if (drag.key === 'stats') { upd.stats.y = Math.max(300, Math.min(H-300, snapAxis(y,'y'))); }
+        if (drag.key === 'scoreRow') { upd.scoreRow.y = Math.max(600, Math.min(H-100, snapAxis(y,'y'))); }
         onChange(upd);
       } else if (drag.type === 'element') {
         const els = (L.elements||[]).map(e => ({...e}));
-        const idx = els.findIndex(e => e.id === drag.key);
-        if (idx >= 0) {
-          const el = els[idx];
-          if (drag.mode === 'move') {
-            let nx = x, ny = y;
-            // Snap to center lines within 10px
-            const sx = Math.abs(nx - centerX) <= 10 ? centerX : nx;
-            const sy = Math.abs(ny - centerY) <= 10 ? centerY : ny;
-            setShowVGuide(Math.abs(nx - centerX) <= 10);
-            setShowHGuide(Math.abs(ny - centerY) <= 10);
-            el.x = sx; el.y = sy;
-          }
-          if (drag.mode === 'resize') {
-            const dy = y - drag.startY;
-            const base = drag.startEl.fontSize || 32;
-            el.fontSize = Math.max(8, Math.min(200, Math.round(base + dy)));
-          }
+        const keys = drag.keys || [];
+        if (drag.mode === 'move') {
+          const dx = x - drag.startX; const dy = y - drag.startY;
+          let vSnap = false, hSnap = false;
+          els.forEach(e => {
+            if (!keys.includes(e.id)) return;
+            let nx = (drag.starts[e.id]?.x || 0) + dx;
+            let ny = (drag.starts[e.id]?.y || 0) + dy;
+            if (Math.abs(nx - centerX) <= 10) { nx = centerX; vSnap = true; }
+            if (Math.abs(ny - centerY) <= 10) { ny = centerY; hSnap = true; }
+            nx = snapAxis(nx,'x'); ny = snapAxis(ny,'y');
+            e.x = nx; e.y = ny;
+          });
+          setShowVGuide(vSnap); setShowHGuide(hSnap);
+        }
+        if (drag.mode === 'resize') {
+          const dy = y - drag.startY;
+          els.forEach(e => {
+            if (!keys.includes(e.id)) return;
+            const base = drag.starts[e.id]?.fontSize || 32;
+            e.fontSize = Math.max(8, Math.min(200, Math.round(base + dy)));
+          });
         }
         setElements(els);
       }
@@ -134,12 +180,54 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
-  }, [drag, scale, L]);
+  }, [drag, scale, L, pan, snapToGrid, gridSize, vGuides, hGuides]);
 
-  const selectedEl = useMemo(() => (L.elements||[]).find(e => e.id === selectedId) || null, [L.elements, selectedId]);
+  const selectedEl = useMemo(() => {
+    const ids = selectedIds || [];
+    if (ids.length !== 1) return null;
+    return (L.elements||[]).find(e => e.id === ids[0]) || null;
+  }, [L.elements, selectedIds]);
 
   // preload images to avoid flicker
   useEffect(()=>{ if (headshotImageUrl) { const i=new Image(); i.src=headshotImageUrl; } if (orgLogoUrl) { const i2=new Image(); i2.src=orgLogoUrl; } }, [headshotImageUrl, orgLogoUrl]);
+  // init history once
+  useEffect(()=>{ try { const snap = JSON.parse(JSON.stringify(L)); historyRef.current=[snap]; historyIdxRef.current=0; } catch(_){} }, []);
+  // keyboard shortcuts
+  useEffect(()=>{
+    const onKey = (e) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          if (historyIdxRef.current < historyRef.current.length - 1) {
+            historyIdxRef.current += 1;
+            onChange(historyRef.current[historyIdxRef.current]);
+          }
+        } else {
+          if (historyIdxRef.current > 0) {
+            historyIdxRef.current -= 1;
+            onChange(historyRef.current[historyIdxRef.current]);
+          }
+        }
+        return;
+      }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.length) {
+        e.preventDefault();
+        const els = (L.elements||[]).filter(x => !selectedIds.includes(x.id));
+        commit({ elements: els });
+        setSelectedIds([]);
+        return;
+      }
+      if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key) && selectedIds.length) {
+        e.preventDefault();
+        const d = e.shiftKey ? 10 : 1;
+        const els = (L.elements||[]).map(el => selectedIds.includes(el.id) ? { ...el, x: el.x + (e.key==='ArrowRight'?d:(e.key==='ArrowLeft'?-d:0)), y: el.y + (e.key==='ArrowDown'?d:(e.key==='ArrowUp'?-d:0)) } : el);
+        commit({ elements: els });
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return ()=> window.removeEventListener('keydown', onKey);
+  }, [L, selectedIds]);
 
   // Layers operations
   const reorder = (id, dir) => {
@@ -162,6 +250,36 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
     if (i < 0) return; const [it] = els.splice(i, 1); els.unshift(it);
     setElements(els.map((e, idx) => ({...e, zIndex: idx})));
   };
+  const alignSelected = (mode) => {
+    const ids = selectedIds;
+    if (!ids || ids.length < 2) return;
+    const els = [...(L.elements||[])];
+    const picks = els.filter(e => ids.includes(e.id));
+    const xs = picks.map(e=>e.x||0), ys = picks.map(e=>e.y||0);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), midX = (minX+maxX)/2;
+    const minY = Math.min(...ys), maxY = Math.max(...ys), midY = (minY+maxY)/2;
+    picks.forEach(e => {
+      if (mode==='left') e.x = minX;
+      if (mode==='right') e.x = maxX;
+      if (mode==='hcenter') e.x = midX;
+      if (mode==='top') e.y = minY;
+      if (mode==='bottom') e.y = maxY;
+      if (mode==='vcenter') e.y = midY;
+    });
+    commit({ elements: els });
+  };
+  const distributeSelected = (axis) => {
+    const ids = selectedIds;
+    if (!ids || ids.length < 3) return;
+    const els = [...(L.elements||[])];
+    const picks = els.filter(e => ids.includes(e.id)).sort((a,b)=> (axis==='h' ? (a.x||0)-(b.x||0) : (a.y||0)-(b.y||0)));
+    const first = picks[0], last = picks[picks.length-1];
+    const start = axis==='h' ? (first.x||0) : (first.y||0);
+    const end = axis==='h' ? (last.x||0) : (last.y||0);
+    const gap = (end - start) / (picks.length - 1);
+    picks.forEach((e, i) => { if (axis==='h') e.x = start + gap * i; else e.y = start + gap * i; });
+    commit({ elements: els });
+  };
   const toggleLock = (id) => setElements((L.elements||[]).map(e => e.id===id?{...e, locked:!e.locked}:e));
   const duplicate = (id) => {
     const els = [...(L.elements||[])];
@@ -170,12 +288,12 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
     const copy = { ...src, id: uid(), x: (src.x||0)+20, y: (src.y||0)+20 };
     els.splice(i+1, 0, copy);
     setElements(els.map((e, idx) => ({...e, zIndex: idx})));
-    setSelectedId(copy.id);
+    setSelectedIds([copy.id]);
   };
   const removeEl = (id) => {
     const els = (L.elements||[]).filter(e => e.id !== id);
     setElements(els.map((e, idx) => ({...e, zIndex: idx})));
-    if (selectedId === id) setSelectedId(null);
+    setSelectedIds(prev => prev.filter(x => x !== id));
   };
 
   return (
@@ -199,21 +317,42 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
           {cropMode && polyPoints.length>=3 && (
             <Button size="sm" onClick={()=>{ onChange({ ...L, headshot: { ...L.headshot, polygon: polyPoints } }); setCropMode(false); }}>Apply Crop</Button>
           )}
+          {/* Grid/Snap & Zoom */}
+          <Button size="sm" variant={gridVisible?'default':'outline'} onClick={()=>setGridVisible(!gridVisible)}>Grid</Button>
+          <Button size="sm" variant={snapToGrid?'default':'outline'} onClick={()=>setSnapToGrid(!snapToGrid)}>Snap</Button>
+          <div className="inline-flex gap-1">
+            <Button size="sm" onClick={()=>setZoom(z=>Math.max(0.5, z-0.1))}>-</Button>
+            <Button size="sm" onClick={()=>setZoom(1)}>100%</Button>
+            <Button size="sm" onClick={()=>setZoom(z=>Math.min(3, z+0.1))}>+</Button>
+          </div>
         </div>
         <div
           ref={stageRef}
           className="relative border rounded-md overflow-hidden bg-black/5"
-          style={{ width: stage.width, height: stage.height }}
-          onMouseDown={()=> setSelectedId(null)}
+          style={{ width: stage.width, height: stage.height, cursor: drag?.type==='pan' ? 'grabbing' : 'default' }}
+          onContextMenu={(e)=> e.preventDefault()}
+          onWheel={(e)=>{ if (e.ctrlKey){ e.preventDefault(); const rect = stageRef.current.getBoundingClientRect(); const mx = (e.clientX - rect.left)/scale + pan.x; const my = (e.clientY - rect.top)/scale + pan.y; const next = Math.min(3, Math.max(0.5, zoom + (e.deltaY<0?0.1:-0.1))); const k = next/zoom; setZoom(next); setPan(p => ({ x: mx - (mx - p.x)*k, y: my - (my - p.y)*k })); } }}
+          onMouseDown={(e)=>{ if (e.button!==0){ setDrag({ type:'pan', startX:e.clientX, startY:e.clientY, panStart:{...pan} }); return; } setSelectedIds([]); }}
           onClick={(e)=>{
             if(!cropMode) return;
             const rect = stageRef.current.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / scale;
-            const y = (e.clientY - rect.top) / scale;
+            const x = (e.clientX - rect.left) / scale + pan.x;
+            const y = (e.clientY - rect.top) / scale + pan.y;
             setPolyPoints(prev=>[...prev, {x, y}]);
           }}
-        >
-          <img src={backgroundUrl} alt="bg" className="absolute inset-0 w-full h-full object-cover" />
+>
+          {/* Rulers */}
+          <div className="absolute left-0 top-0 h-5 w-full bg-slate-100/80 border-b border-slate-200 text-[10px] select-none z-20" onMouseDown={(e)=>{ const rect = e.currentTarget.getBoundingClientRect(); const x = (e.clientX - rect.left)/scale + pan.x; setVGuides(g=>[...g, Math.round(x)]); }} />
+          <div className="absolute left-0 top-0 w-5 h-full bg-slate-100/80 border-r border-slate-200 text-[10px] select-none z-20" onMouseDown={(e)=>{ const rect = e.currentTarget.getBoundingClientRect(); const y = (e.clientY - rect.top)/scale + pan.y; setHGuides(g=>[...g, Math.round(y)]); }} />
+
+          {/* Inner movable/zoomed canvas */}
+          <div className="absolute inset-0" style={{ transform: `translate(${-pan.x*scale}px, ${-pan.y*scale}px)` }}>
+            <img src={backgroundUrl} alt="bg" className="absolute inset-0 w-full h-full object-cover" />
+            {gridVisible && (
+              <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `repeating-linear-gradient(0deg, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 1px, transparent 1px, transparent ${gridSize*scale}px), repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 1px, transparent 1px, transparent ${gridSize*scale}px)` }} />
+            )}
+            {vGuides.map((gx,i)=>(<div key={`vg${i}`} className="absolute top-0 bottom-0 w-px bg-sky-400/70" style={{ left: gx*scale }} />))}
+            {hGuides.map((gy,i)=>(<div key={`hg${i}`} className="absolute left-0 right-0 h-px bg-sky-400/70" style={{ top: gy*scale }} />))}
 
           {/* Fixed handles (existing positions) */} 
           {/* Polygon overlay */}
@@ -300,12 +439,12 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
           {(L.elements||[]).map((el) => (
             <div
               key={el.id}
-              className={`absolute select-none ${selectedId===el.id?'ring-2 ring-primary':''}`}
+              className={`absolute select-none ${selectedIds.includes(el.id)?'ring-2 ring-primary':''}`}
               style={{
                 left: 0, top: 0,
                 transform: `translate(${(el.x||0)*scale}px, ${(el.y||0)*scale}px) rotate(${el.rotation||0}deg)`
               }}
-              onMouseDown={(e)=>{ if (el.locked) return; e.stopPropagation(); setSelectedId(el.id); }}
+              onMouseDown={(e)=>{ if (el.locked) return; e.stopPropagation(); if (e.shiftKey||e.metaKey||e.ctrlKey){ setSelectedIds(prev=> prev.includes(el.id)? prev.filter(id=>id!==el.id): [...prev, el.id]); } else { setSelectedIds([el.id]); } }}
             >
               <div
                 className="cursor-move"
@@ -321,7 +460,7 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
               >
                 {el.text || 'Text'}
               </div>
-              {!el.locked && selectedId===el.id && (
+              {!el.locked && selectedIds.includes(el.id) && (
                 <div
                   title="Resize (changes font size)"
                   className="absolute w-3 h-3 bg-slate-700 rounded-sm right-0 bottom-0 cursor-ns-resize"
@@ -331,6 +470,8 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
               )}
             </div>
           ))}
+        </div>
+        {/* close inner canvas wrapper */}
         </div>
       </div>
 
@@ -395,8 +536,8 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
           <div className="font-semibold mb-2">Layers</div>
           <div className="space-y-1">
             {(L.elements||[]).map((el, idx) => (
-              <div key={el.id} className={`flex items-center justify-between gap-2 p-2 rounded border ${selectedId===el.id?'bg-accent':'bg-card'}`}
-                onClick={()=> setSelectedId(el.id)}
+              <div key={el.id} className={`flex items-center justify-between gap-2 p-2 rounded border ${selectedIds.includes(el.id)?'bg-accent':'bg-card'}`}
+                onClick={(e)=>{ if (e.shiftKey||e.metaKey||e.ctrlKey){ setSelectedIds(prev=> prev.includes(el.id)? prev.filter(id=>id!==el.id): [...prev, el.id]); } else { setSelectedIds([el.id]); } }}
               >
                 <div className="text-sm truncate">{el.type==='text'? (el.text||'Text') : el.type}</div>
                 <div className="flex items-center gap-1">
@@ -410,6 +551,21 @@ export default function PosterEditor({ backgroundUrl, layout, onChange, headshot
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Arrange tools */}
+        <div className="space-y-2">
+          <div className="font-semibold mb-1">Arrange</div>
+          <div className="flex flex-wrap gap-1">
+            <Button size="sm" variant="outline" onClick={()=>alignSelected('left')}>Align L</Button>
+            <Button size="sm" variant="outline" onClick={()=>alignSelected('hcenter')}>Align C</Button>
+            <Button size="sm" variant="outline" onClick={()=>alignSelected('right')}>Align R</Button>
+            <Button size="sm" variant="outline" onClick={()=>alignSelected('top')}>Align T</Button>
+            <Button size="sm" variant="outline" onClick={()=>alignSelected('vcenter')}>Align M</Button>
+            <Button size="sm" variant="outline" onClick={()=>alignSelected('bottom')}>Align B</Button>
+            <Button size="sm" variant="outline" onClick={()=>distributeSelected('h')}>Distribute H</Button>
+            <Button size="sm" variant="outline" onClick={()=>distributeSelected('v')}>Distribute V</Button>
           </div>
         </div>
 
