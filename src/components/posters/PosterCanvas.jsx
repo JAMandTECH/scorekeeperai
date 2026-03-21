@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 // Canvas composer that overlays org logo/info and the single best player's headshot + stats
-export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, onReady }) {
+export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, onReady }) {
   const canvasRef = useRef(null);
   const [dataUrl, setDataUrl] = useState('');
 
@@ -59,8 +59,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       // Org logo/info box top-left (always show org info)
       {
         const boxW = 260; const boxH = 86; const pad = 14; const r = 14;
-        const x = 24; const y = 24;
-        // rounded rect
+        const x = W - boxW - 24; const y = 24;
         ctx.fillStyle = 'rgba(255,255,255,0.9)';
         ctx.beginPath();
         ctx.moveTo(x + r, y);
@@ -70,11 +69,9 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.arcTo(x, y, x + boxW, y, r);
         ctx.closePath();
         ctx.fill();
-        // logo (optional)
         const lh = boxH - pad * 2;
         const lw = logoImg ? lh : 0;
         if (logoImg) ctx.drawImage(logoImg, x + pad, y + pad, lw, lh);
-        // org text
         ctx.fillStyle = '#0f172a';
         ctx.font = '700 20px Inter, system-ui, Arial';
         const name = org?.name || '';
@@ -84,58 +81,130 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         if (tname) ctx.fillText(tname, x + pad + lw + 10, y + 58);
       }
 
-      // Header title
-      const dateStr = game.game_date ? new Date(game.game_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+      // Header (tournament/division) + date pill
+      const dateObj = game.game_date ? new Date(game.game_date) : null;
+      const dateStr = dateObj ? dateObj.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase() : '';
+      const header = [org?.tournament_name || org?.name || '', game.division || '']
+        .filter(Boolean).join(' • ').toUpperCase();
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
-      ctx.font = 'bold 64px Inter, system-ui, Arial';
-      ctx.fillText(`${game.home_team_name} vs ${game.away_team_name}`, W / 2, 160);
-      ctx.font = '500 28px Inter, system-ui, Arial';
-      const sub = [game.division || null, dateStr || null, game.location || null].filter(Boolean).join(' • ');
-      if (sub) ctx.fillText(sub, W / 2, 205);
-
-      // Best Player section (left text + right headshot)
-      const p = players[0];
-      // Panel
-      const panelX = 70; const panelY = 280; const panelW = W - 140; const panelH = 360;
-      ctx.fillStyle = 'rgba(0,0,0,0.35)';
-      ctx.fillRect(panelX, panelY, panelW, panelH);
-
-      // Text
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '700 40px Inter, system-ui, Arial';
-      ctx.fillText('Best Player', panelX + 24, panelY + 64);
-      ctx.font = '800 56px Inter, system-ui, Arial';
-      const name = `${p.first_name || ''} ${p.last_name || ''}`.trim();
-      ctx.fillText(name, panelX + 24, panelY + 130);
-      ctx.font = '600 28px Inter, system-ui, Arial';
-      const jersey = p.jersey_number ? `#${p.jersey_number}` : '';
-      let stats = '';
-      if (game.sport === 'basketball') {
-        stats = `${p.points || 0} PTS   ${p.rebounds || 0} REB   ${p.assists || 0} AST`;
-      } else {
-        stats = `${p.attacks || 0} ATK   ${p.blocks || 0} BLK   ${p.aces || 0} ACE`;
+      ctx.font = '800 32px Inter, system-ui, Arial';
+      if (header) ctx.fillText(header, W / 2, 110);
+      // date pill
+      if (dateStr) {
+        const padX = 16, padY = 8; ctx.font = '700 20px Inter, system-ui, Arial';
+        const tw = ctx.measureText(dateStr).width;
+        const bw = tw + padX * 2, bh = 36; const x = 40, y = 132, r = 8;
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + bw, y, x + bw, y + bh, r);
+        ctx.arcTo(x + bw, y + bh, x, y + bh, r);
+        ctx.arcTo(x, y + bh, x, y, r);
+        ctx.arcTo(x, y, x + bw, y, r);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#111827'; ctx.textAlign = 'left';
+        ctx.fillText(dateStr, x + padX, y + bh - 10);
       }
-      ctx.fillText(`${jersey}  •  ${stats}`.trim(), panelX + 24, panelY + 175);
 
-      // Headshot on right
+      // Big background last name
+      const p = players[0];
+      const last = (p.last_name || `${p.first_name || ''}`).toUpperCase();
+      ctx.save();
+      ctx.globalAlpha = 0.1;
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.font = '900 220px Inter, system-ui, Arial';
+      ctx.fillText(last, W / 2, 560);
+      ctx.restore();
+
+      // Stat pills
+      const drawPills = (x, y, value, label) => {
+        const gap = 10; const h = 44; const r = 8; ctx.font = '800 20px Inter, system-ui, Arial';
+        const vText = String(value).toUpperCase();
+        const lText = String(label).toUpperCase();
+        const vW = ctx.measureText(vText).width + 24;
+        const lW = ctx.measureText(lText).width + 28;
+        // value pill (yellow)
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + vW, y, x + vW, y + h, r);
+        ctx.arcTo(x + vW, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + vW, y, r);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#111827'; ctx.textAlign = 'center'; ctx.fillText(vText, x + vW / 2, y + h - 12);
+        // label pill (light)
+        const lx = x + vW + gap;
+        ctx.fillStyle = '#e5e7eb';
+        ctx.beginPath(); ctx.moveTo(lx + r, y); ctx.arcTo(lx + lW, y, lx + lW, y + h, r);
+        ctx.arcTo(lx + lW, y + h, lx, y + h, r); ctx.arcTo(lx, y + h, lx, y, r); ctx.arcTo(lx, y, lx + lW, y, r);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#111827'; ctx.textAlign = 'center'; ctx.font = '700 18px Inter, system-ui, Arial';
+        ctx.fillText(lText, lx + lW / 2, y + h - 12);
+        return vW + gap + lW;
+      };
+
+      let yStart = 610;
+      if (game.sport === 'basketball') {
+        drawPills(80, yStart, p.points || 0, 'POINTS');
+        drawPills(80, yStart + 60, p.rebounds || 0, 'REBOUNDS');
+        drawPills(80, yStart + 120, p.assists || 0, 'ASSISTS');
+        const rx = W - 80 - 280; // approx right column start
+        drawPills(rx, yStart, p.steals || 0, 'STEAL');
+        drawPills(rx, yStart + 60, p.three_pointers || 0, '3PM');
+      } else {
+        drawPills(80, yStart, p.attacks || 0, 'ATTACKS');
+        drawPills(80, yStart + 60, p.blocks || 0, 'BLOCKS');
+        drawPills(80, yStart + 120, p.aces || 0, 'ACES');
+      }
+
+      // Headshot centered
       if (headImg) {
-        const cx = panelX + panelW - 170; // center x of circle
-        const cy = panelY + panelH / 2;
-        const r = 120;
-        // Outer ring
-        ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        ctx.beginPath(); ctx.arc(cx, cy, r + 8, 0, Math.PI * 2); ctx.fill();
-        // Masked image
-        ctx.save();
-        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+        const cx = W / 2; const cy = 680; const r = 140;
+        ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        ctx.beginPath(); ctx.arc(cx, cy, r + 10, 0, Math.PI * 2); ctx.fill();
+        ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
         const ar = Math.max((r * 2) / headImg.width, (r * 2) / headImg.height);
-        const dw2 = headImg.width * ar;
-        const dh2 = headImg.height * ar;
+        const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
         ctx.drawImage(headImg, cx - dw2 / 2, cy - dh2 / 2, dw2, dh2);
         ctx.restore();
       }
+
+      // BEST PLAYER heading
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 96px Inter, system-ui, Arial';
+      ctx.fillText('BEST PLAYER', W / 2, 950);
+
+      // Final Score row
+      const hs = Number(game.home_score || 0), as = Number(game.away_score || 0);
+      const homeWins = hs >= as;
+      const center = W / 2; const yScore = 1030;
+      ctx.font = '700 28px Inter, system-ui, Arial'; ctx.textAlign = 'right';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(String(homeName || 'HOME').toUpperCase(), center - 140, yScore);
+      const drawScoreBox = (x, y, text, highlight) => {
+        const h = 44; const r = 8; ctx.font = '800 22px Inter, system-ui, Arial';
+        const tw = ctx.measureText(text).width + 24; const bh = h; const bw = tw; const yy = y - h + 6;
+        ctx.fillStyle = highlight ? '#facc15' : 'rgba(255,255,255,0.15)';
+        ctx.beginPath(); ctx.moveTo(x, yy); ctx.arcTo(x + bw, yy, x + bw, yy + bh, r);
+        ctx.arcTo(x + bw, yy + bh, x, yy + bh, r); ctx.arcTo(x, yy + bh, x, yy, r); ctx.arcTo(x, yy, x + bw, yy, r);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = highlight ? '#111827' : '#ffffff'; ctx.textAlign = 'center';
+        ctx.fillText(text, x + bw / 2, yScore);
+        return bw;
+      };
+      const bw1 = drawScoreBox(center - 110, yScore, String(hs), homeWins);
+      ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.font = '800 18px Inter, system-ui, Arial';
+      ctx.fillText('VS', center, yScore);
+      const bw2 = drawScoreBox(center + 20, yScore, String(as), !homeWins);
+      ctx.textAlign = 'left'; ctx.font = '700 28px Inter, system-ui, Arial'; ctx.fillStyle = '#ffffff';
+      ctx.fillText(String(awayName || 'AWAY').toUpperCase(), center + 140, yScore);
+      // Final score label
+      ctx.textAlign = 'left'; ctx.font = '600 16px Inter, system-ui, Arial'; ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.fillText('FINAL SCORE', 40, yScore - 28);
+
+      // Org name bottom-right
+      ctx.textAlign = 'right'; ctx.font = '600 16px Inter, system-ui, Arial'; ctx.fillStyle = '#ffffff';
+      if (org?.name) ctx.fillText(String(org.name).toUpperCase(), W - 24, H - 24);
 
       // Footer tag
       ctx.textAlign = 'center';
@@ -152,7 +221,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         onReady && onReady('');
       }
     })();
-  }, [backgroundUrl, game, players, org, bestPlayerImageUrl, onReady]);
+  }, [backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, onReady]);
 
   return (
     <div className="space-y-3">

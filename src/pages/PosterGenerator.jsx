@@ -269,6 +269,8 @@ export default function PosterGenerator() {
                   players={topQ.data.topPlayers ? [topQ.data.topPlayers[0]] : []}
                   org={orgQ.data}
                   bestPlayerImageUrl={bestPlayerImageUrl || (topQ.data.topPlayers?.[0]?.photo_url || '')}
+                  homeName={teamMap[topQ.data.game.home_team_id] || 'Home Team'}
+                  awayName={teamMap[topQ.data.game.away_team_id] || 'Away Team'}
                 />
               ) : (
                 <p className="text-sm text-muted-foreground">Select a game to load best players.</p>
