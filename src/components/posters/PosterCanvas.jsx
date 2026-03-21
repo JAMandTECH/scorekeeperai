@@ -154,6 +154,20 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
         ctx.drawImage(headImg, cx - dw2 / 2, cy - dh2 / 2, dw2, dh2);
         ctx.restore();
+
+        // Best player label below headshot (centered) — format: Name #Number
+        const first = (p?.first_name) || (p?.player?.first_name) || '';
+        const last = (p?.last_name) || (p?.player?.last_name) || '';
+        const jersey = (p?.jersey_number) || (p?.player?.jersey_number) || '';
+        const nameStr = [first, last].filter(Boolean).join(' ');
+        const jerseyStr = String(jersey || '').replace(/^#/, '');
+        const label = jerseyStr ? `${nameStr} #${jerseyStr}` : nameStr;
+        if (label) {
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '800 28px Inter, system-ui, Arial';
+          ctx.fillText(label, cx, cy + r + 30);
+        }
       }
 
       // BEST PLAYER heading
