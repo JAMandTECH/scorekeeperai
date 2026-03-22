@@ -142,6 +142,13 @@ export default function PosterGenerator() {
     },
   });
 
+  const deletePosterMutation = useMutation({
+    mutationFn: (id) => base44.entities.Poster.delete(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['posters'] });
+    },
+  });
+
   if (user && user.role !== 'admin') {
     return (
       <div className="p-6 max-w-5xl mx-auto">
