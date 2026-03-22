@@ -1,0 +1,129 @@
+import React from "react";
+import { base44 } from "@/api/base44Client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, Send, Eraser, MessageSquare } from "lucide-react";
+
+export default function PosterChatPanel({
+  templateId,
+  game,
+  org,
+  homeName,
+  awayName,
+  backgroundUrl,
+  composedText,
+  onRemoveBg,
+  bestPlayerImageUrl,
+}) {
+  const [conversation, setConversation] = React.useState(null);
+  const [messages, setMessages] = React.useState([]);
+  const [input, setInput] = React.useState("");
+  const [sending, setSending] = React.useState(false);
+
+  // Create conversation and send initial context
+  React.useEffect(() => {
+    let unsubscribe = null;
+    if (!templateId) return;
+    (async () => {
+      const meta = {
+        template_id: templateId,
+        game_id: game?.id || null,
+      };
+      const conv = await base44.agents.createConversation({
+        agent_name: "poster_enhancer",
+        metadata: meta,
+      });
+      setConversation(conv);
+
+      // Subscribe to live updates
+      unsubscribe = base44.agents.subscribeToConversation(conv.id, (data) => {
+        setMessages(data.messages || []);
+      });
+
+      // Provide rich context so the agent can improve layout/colors/spacing/fonts
+      const contextLines = [
+        `Template ID: ${templateId}`,
+        game ? `Game: ${homeName} vs ${awayName} • Final ${(game?.home_score ?? 0)}-${(game?.away_score ?? 0)} • Division ${game?.division || "N/A"}` : "Game: not selected",
+        org?.theme ? `Org Colors: primary ${org.theme.primary_color}, secondary ${org.theme.secondary_color}, accent ${org.theme.accent_color}` : "Org Colors: default",
+        backgroundUrl ? `Background URL available.` : "No background image yet.",
+        bestPlayerImageUrl ? `Best player image provided.` : "No best player image yet.",
+        "Please focus on: text sizing, fonts, spacing, gaps, alignment, arrangement, color contrast, legibility.",
+        "Apply changes by updating PosterTemplate.metadata (and sample_image_url if needed). Keep it simple and production-ready.",
+      ].join("\n");
+
+      await base44.agents.addMessage(conv, {
+        role: "user",
+        content: `Context for improvement:\n${contextLines}\nInstructions: Update the template metadata directly. Reply with a short summary of what you changed and why.`,
+      });
+    })();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [templateId, game?.id]);
+
+  const handleSend = async () => {
+    if (!conversation || !input.trim()) return;
+    setSending(true);
+    try {
+      await base44.agents.addMessage(conversation, {
+        role: "user",
+        content: input.trim(),
+      });
+      setInput("");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-[520px]">
+      <div className="flex items-center justify-between pb-2 border-b">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <MessageSquare className="h-4 w-4" />
+          <span>Poster Enhancer</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={onRemoveBg} disabled={!bestPlayerImageUrl}>
+            <Eraser className="h-4 w-4" /> Remove player background
+          </Button>
+          <a
+            href={base44.agents.getWhatsAppConnectURL("poster_enhancer")}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Button size="sm" variant="secondary">WhatsApp</Button>
+          </a>
+        </div>
+      </div>
+
+      <ScrollArea className="flex-1 my-3 pr-2">
+        <div className="space-y-3">
+          {messages.length === 0 && (
+            <div className="text-xs text-muted-foreground">Start chatting to refine the poster layout and styling.</div>
+          )}
+          {messages.map((m, idx) => (
+            <div key={idx} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`${m.role === 'user' ? 'bg-slate-800 text-white' : 'bg-card border'} rounded-2xl px-3 py-2 text-sm max-w-[80%]`}>
+                {m.content}
+              </div>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+
+      <div className="flex items-center gap-2 pt-2 border-t">
+        <Input
+          placeholder="Ask to adjust spacing, fonts, colors, alignment..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
+        />
+        <Button onClick={handleSend} disabled={!conversation || sending} className="gap-2">
+          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send
+        </Button>
+      </div>
+    </div>
+  );
+}

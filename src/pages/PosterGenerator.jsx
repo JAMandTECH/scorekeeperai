@@ -12,6 +12,7 @@ import PosterCanvas from '@/components/posters/PosterCanvas';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import SocialShare from '@/components/social/SocialShare';
+import PosterChatPanel from '@/components/posters/PosterChatPanel';
 
 
 
@@ -120,6 +121,18 @@ export default function PosterGenerator() {
       setImageUrl(data?.url || '');
     }
   });
+
+  // Auto-apply live changes from agent updates to PosterTemplate
+  React.useEffect(() => {
+    if (!selectedTemplateId) return;
+    const unsubscribe = base44.entities.PosterTemplate.subscribe((event) => {
+      if (event?.id === selectedTemplateId && event?.type === 'update') {
+        if (event.data?.metadata) setLayout(event.data.metadata);
+        if (event.data?.sample_image_url) setImageUrl(event.data.sample_image_url);
+      }
+    });
+    return () => { if (unsubscribe) unsubscribe(); };
+  }, [selectedTemplateId]);
 
   const deleteTplMutation = useMutation({
     mutationFn: (id) => base44.entities.PosterTemplate.delete(id),
@@ -357,7 +370,7 @@ export default function PosterGenerator() {
       </div>
 
       {imageUrl && (
-        <div className="mt-6 grid lg:grid-cols-2 gap-6 items-start">
+        <div className="mt-6 grid lg:grid-cols-3 gap-6 items-start">
           <Card>
             <CardHeader>
               <CardTitle>Background</CardTitle>
@@ -399,6 +412,31 @@ export default function PosterGenerator() {
               ) : (
                 <p className="text-sm text-muted-foreground">Select a game to load best players.</p>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>AI Design Chat</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PosterChatPanel
+                templateId={selectedTemplateId}
+                game={gameForPoster}
+                org={orgQ.data}
+                homeName={teamMap[gameForPoster?.home_team_id] || 'Home Team'}
+                awayName={teamMap[gameForPoster?.away_team_id] || 'Away Team'}
+                backgroundUrl={imageUrl}
+                composedText={`${(teamMap[gameForPoster?.home_team_id] || 'Home')} vs ${(teamMap[gameForPoster?.away_team_id] || 'Away')} • Final ${(gameForPoster?.home_score ?? 0)}-${(gameForPoster?.away_score ?? 0)}`}
+                bestPlayerImageUrl={bestPlayerImageUrl}
+                onRemoveBg={async () => {
+                  if (!bestPlayerImageUrl) return;
+                  const res = await base44.functions.invoke('removeBg', { imageUrl: bestPlayerImageUrl });
+                  if (res?.data?.dataUrl) {
+                    setBestPlayerImageUrl(res.data.dataUrl);
+                  }
+                }}
+              />
             </CardContent>
           </Card>
         </div>
