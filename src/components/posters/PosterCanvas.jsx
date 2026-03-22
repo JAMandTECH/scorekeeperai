@@ -287,9 +287,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       ctx.textAlign = 'left'; ctx.font = '700 28px Inter, system-ui, Arial'; ctx.fillStyle = '#ffffff';
       ctx.fillText(String(awayName || 'AWAY').toUpperCase(), center + 150, yScore);
       ctx.shadowBlur = 0;
-      // Final score label
-      ctx.textAlign = 'left'; ctx.font = '600 16px Inter, system-ui, Arial'; ctx.fillStyle = 'rgba(255,255,255,0.8)';
-      ctx.fillText('FINAL SCORE', 40, yScore - 28);
+
 
       // Org name bottom-right
       ctx.textAlign = 'right'; ctx.font = '600 16px Inter, system-ui, Arial'; ctx.fillStyle = '#ffffff';

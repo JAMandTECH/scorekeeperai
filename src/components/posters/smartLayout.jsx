@@ -42,8 +42,8 @@ export function buildSmartLayout({ sport = 'basketball', meta = {} } = {}) {
   let statsY = stats.y ?? Math.round(cy - r - 70);
   if (statsY < headerY + 80) statsY = headerY + 80;
 
-  // BEST PLAYER below headshot
-  let bestY = bestTitle.y ?? Math.round(cy + r + 70);
+  // BEST PLAYER below headshot (more spacing below name)
+  let bestY = bestTitle.y ?? Math.round(cy + r + 110);
   const bestFontSize = bestTitle.fontSize ?? 72;
 
   // Score row below title, but above bottom
