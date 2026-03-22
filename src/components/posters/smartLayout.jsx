@@ -64,7 +64,9 @@ export function buildSmartLayout({ sport = 'basketball', meta = {} } = {}) {
 
 export function getSportStatsConfig(sport, p = {}) {
   if (sport === 'volleyball') {
+    const points = Number.isFinite(Number(p.points)) ? Number(p.points) : 0;
     return [
+      { label: 'Points', value: points },
       { label: 'Attacks', value: p.attacks ?? 0 },
       { label: 'Blocks', value: p.blocks ?? 0 },
       { label: 'Aces', value: p.aces ?? 0 },
