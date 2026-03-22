@@ -77,6 +77,7 @@ export default function PosterChatPanel({
         "Please focus on: text sizing, fonts, spacing, gaps, alignment, arrangement, color contrast, legibility.",
         "Enhance the CURRENT COMPOSED POSTER in the generator, not a stored template. Do NOT ask for template IDs.",
         "Enhance the CURRENT COMPOSED POSTER in the generator, not a stored template. Do NOT ask for template IDs.",
+        "Enhance the CURRENT COMPOSED POSTER in the generator, not a stored template. Do NOT ask for template IDs.",
         "Enhance the CURRENT COMPOSED POSTER shown in the generator, not a stored template. Do NOT ask for template IDs.",
         "Do NOT persist yet. Propose changes via tool calls: applyLayout {layout: ...}, applyBackground {background_url: ...}. Keep it simple and production-ready. Persist only if user explicitly says 'save template'.",
       ].join("\n");
