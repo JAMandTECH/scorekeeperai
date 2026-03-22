@@ -15,6 +15,8 @@ export default function PosterChatPanel({
   composedText,
   onRemoveBg,
   bestPlayerImageUrl,
+  onApplyLayout,
+  onApplyBackground,
 }) {
   const [conversation, setConversation] = React.useState(null);
   const [messages, setMessages] = React.useState([]);
