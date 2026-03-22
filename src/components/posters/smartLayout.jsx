@@ -64,12 +64,16 @@ export function buildSmartLayout({ sport = 'basketball', meta = {} } = {}) {
 
 export function getSportStatsConfig(sport, p = {}) {
   if (sport === 'volleyball') {
-    const points = Number.isFinite(Number(p.points)) ? Number(p.points) : 0;
+    const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+    const attacks = n(p.attacks);
+    const blocks = n(p.blocks);
+    const aces = n(p.aces);
+    const points = attacks + blocks + aces;
     return [
       { label: 'Points', value: points },
-      { label: 'Attacks', value: p.attacks ?? 0 },
-      { label: 'Blocks', value: p.blocks ?? 0 },
-      { label: 'Aces', value: p.aces ?? 0 },
+      { label: 'Attacks', value: attacks },
+      { label: 'Blocks', value: blocks },
+      { label: 'Aces', value: aces },
     ];
   }
   // default basketball - display ONLY this game's recorded points (no season totals fallback)
