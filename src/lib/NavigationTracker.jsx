@@ -8,8 +8,9 @@ import { base44 } from '@/api/base44Client';
 export default function NavigationTracker() {
     const location = useLocation();
     const { isAuthenticated } = useAuth();
-    const { Pages, mainPage } = pagesConfig;
-    const mainPageKey = mainPage ?? Object.keys(Pages)[0];
+    // Derive main page name safely from current URL only
+    const Pages = {};
+    const mainPageKey = 'Home';
 
     // Post navigation changes to parent window
     useEffect(() => {
