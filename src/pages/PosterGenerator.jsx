@@ -97,6 +97,8 @@ export default function PosterGenerator() {
     },
     enabled: !!user && !!selectedGameId,
     initialData: null,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
   const gameForPoster = gameQ.data || topQ.data?.game || null;

@@ -37,6 +37,7 @@ Deno.serve(async (req) => {
         player_id: s.player_id,
         team_id: s.team_id,
         points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, three_pointers: 0,
+        field_goals_made: 0, free_throws_made: 0,
         aces: 0, attacks: 0, rally_errors: 0,
       };
 
@@ -57,6 +58,8 @@ Deno.serve(async (req) => {
       p.steals += s.steals || 0;
       p.blocks += s.blocks || 0;
       p.three_pointers += s.three_pointers || 0;
+      p.field_goals_made += s.field_goals_made || 0;
+      p.free_throws_made += s.free_throws_made || 0;
       p.aces += s.aces || 0;
       p.attacks += s.attacks || 0;
       p.rally_errors += s.rally_errors || 0;
