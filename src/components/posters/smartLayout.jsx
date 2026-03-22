@@ -70,9 +70,18 @@ export function getSportStatsConfig(sport, p = {}) {
       { label: 'Aces', value: p.aces ?? 0 },
     ];
   }
-  // default basketball
+  // default basketball - derive points from 2s/3s/FTs when available
+  const three = Number(p.three_pointers || 0);
+  const fgm = Number(p.field_goals_made || 0);
+  const ftm = Number(p.free_throws_made || 0);
+  let derivedPoints = null;
+  if (fgm || three || ftm) {
+    const twos = Math.max(0, fgm - three);
+    derivedPoints = twos * 2 + three * 3 + ftm;
+  }
+  const points = (derivedPoints !== null) ? derivedPoints : (p.points ?? 0);
   return [
-    { label: 'Points', value: p.points ?? 0 },
+    { label: 'Points', value: points },
     { label: 'Rebounds', value: p.rebounds ?? 0 },
     { label: 'Assists', value: p.assists ?? 0 },
     { label: 'Blocks', value: p.blocks ?? 0 },
