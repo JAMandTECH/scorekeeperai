@@ -11,6 +11,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import PosterGenerator from './pages/PosterGenerator';
+import PosterChat from './pages/PosterChat';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -54,7 +55,7 @@ const AuthenticatedApp = () => {
           <Route key={path} path={`/${path}`} element={<Page />} />
         ))}
         <Route path="/PosterGenerator" element={<PosterGenerator />} />
-        <Route path="/PosterChat" element={<Pages.PosterChat ? <Pages.PosterChat/> : <></>} />
+        <Route path="/PosterChat" element={<PosterChat />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </LayoutWrapper>
