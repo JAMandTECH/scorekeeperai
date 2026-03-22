@@ -24,8 +24,8 @@ Deno.serve(async (req) => {
 
     // Amounts in cents (AUD)
     const pricing = {
-      basic: 2500,
-      premium: 3500,
+      basic: 3500, // 35 AUD
+      premium: 5000, // 50 AUD
     };
 
     const origin = new URL(req.url).origin;
