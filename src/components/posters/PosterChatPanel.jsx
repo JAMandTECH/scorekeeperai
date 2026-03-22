@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Send, Eraser, MessageSquare } from "lucide-react";
+import { Loader2, Send, Eraser, MessageSquare, Copy } from "lucide-react";
 
 export default function PosterChatPanel({
   templateId,
@@ -24,6 +24,7 @@ export default function PosterChatPanel({
   const [input, setInput] = React.useState("");
   const [sending, setSending] = React.useState(false);
   const autoNudgedRef = React.useRef(false);
+  const [showLayout, setShowLayout] = React.useState(false);
 
   // Create conversation and send initial context
   React.useEffect(() => {
@@ -149,6 +150,9 @@ export default function PosterChatPanel({
           <Button size="sm" variant="outline" onClick={onRemoveBg} disabled={!bestPlayerImageUrl}>
             <Eraser className="h-4 w-4" /> Remove player background
           </Button>
+          <Button size="sm" variant="outline" onClick={() => setShowLayout(v => !v)}>
+            {showLayout ? 'Hide layout' : 'Show layout'}
+          </Button>
           <a
             href={base44.agents.getWhatsAppConnectURL("poster_enhancer")}
             target="_blank"
@@ -158,6 +162,20 @@ export default function PosterChatPanel({
           </a>
         </div>
       </div>
+
+      {showLayout && (
+        <div className="mt-3 p-2 rounded-md border bg-muted/30">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-muted-foreground">Current layout JSON</span>
+            <Button size="sm" variant="ghost" onClick={() => navigator.clipboard.writeText(JSON.stringify(currentLayout || {}, null, 2))} className="gap-1">
+              <Copy className="h-4 w-4" /> Copy
+            </Button>
+          </div>
+          <ScrollArea className="h-40">
+            <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(currentLayout || {}, null, 2)}</pre>
+          </ScrollArea>
+        </div>
+      )}
 
       <ScrollArea className="flex-1 my-3 pr-2">
         <div className="space-y-3">
