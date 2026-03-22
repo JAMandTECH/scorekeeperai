@@ -24,6 +24,7 @@ export default function PosterChatPanel({
   const [input, setInput] = React.useState("");
   const [sending, setSending] = React.useState(false);
   const autoNudgedRef = React.useRef(false);
+  const formatNudgedRef = React.useRef(false);
   const [showLayout, setShowLayout] = React.useState(false);
 
   // Create conversation and send initial context
@@ -53,35 +54,61 @@ export default function PosterChatPanel({
         try {
           const last = (data.messages || []).slice().reverse().find(m => m.role === 'assistant');
           const toolCalls = last?.tool_calls || [];
+          let applied = false;
           toolCalls.forEach((tc) => {
             // Expecting the agent to emit standardized function names and JSON results
             const name = (tc.name || '').toLowerCase();
-            if (!tc.results) return;
             let parsed = tc.results;
             if (typeof parsed === 'string') {
               try { parsed = JSON.parse(parsed); } catch (_) {}
             }
+            // Also try arguments_string if results missing
+            if (!parsed && tc.arguments_string) {
+              try { parsed = JSON.parse(tc.arguments_string); } catch (_) {}
+            }
             if (name.includes('applylayout') && parsed?.layout && onApplyLayout) {
               onApplyLayout(parsed.layout);
+              applied = true;
             }
             if (name.includes('applybackground') && parsed?.background_url && onApplyBackground) {
               onApplyBackground(parsed.background_url);
+              applied = true;
             }
           });
 
-          // Fallback: parse JSON proposals directly from assistant text
-          if (last?.content) {
+          // Fallbacks: parse JSON from code blocks or inline braces
+          if (last?.content && !applied) {
             const text = last.content;
-            const match = text.match(/\{[\s\S]*\}/);
-            if (match) {
+            // ```json ... ```
+            const code = text.match(/```json([\s\S]*?)```/i);
+            if (code?.[1]) {
               try {
-                const obj = JSON.parse(match[0]);
-                if (obj.layout && onApplyLayout) onApplyLayout(obj.layout);
-                if (obj.background_url && onApplyBackground) onApplyBackground(obj.background_url);
+                const obj = JSON.parse(code[1]);
+                if (obj.layout && onApplyLayout) { onApplyLayout(obj.layout); applied = true; }
+                if (obj.background_url && onApplyBackground) { onApplyBackground(obj.background_url); applied = true; }
               } catch (_) {}
+            }
+            if (!applied) {
+              const match = text.match(/\{[\s\S]*\}/);
+              if (match) {
+                try {
+                  const obj = JSON.parse(match[0]);
+                  if (obj.layout && onApplyLayout) { onApplyLayout(obj.layout); applied = true; }
+                  if (obj.background_url && onApplyBackground) { onApplyBackground(obj.background_url); applied = true; }
+                } catch (_) {}
+              }
             }
           }
 
+          if (!applied && !formatNudgedRef.current) {
+            formatNudgedRef.current = true;
+            const hint = 'Output JSON only with keys you change. Example: {"layout": {"stats": {"fontSize": 48, "gap": 8}}}';
+            base44.agents.addMessage(conv, {
+              role: 'user',
+              content: `Please return JSON only with your proposed changes so I can auto-apply. No commentary.\n${hint}`
+            });
+          }
+ 
            // If the assistant asks for a template ID or fails to read a template, auto-respond with live composer state
           const needsTemplate = /template id|template_id|posterTemplate|not found|cannot read/i.test(last?.content || '');
           if (needsTemplate && !autoNudgedRef.current) {
