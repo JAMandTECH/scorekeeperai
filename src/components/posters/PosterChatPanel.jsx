@@ -26,11 +26,15 @@ export default function PosterChatPanel({
   // Create conversation and send initial context
   React.useEffect(() => {
     let unsubscribe = null;
-    if (!templateId) return;
+    if (conversation) return;
     (async () => {
       const meta = {
-        template_id: templateId,
+        ...(templateId ? { template_id: templateId } : {}),
+        mode: "composer_live",
         game_id: game?.id || null,
+        background_url: backgroundUrl || null,
+        composed_text: composedText || null,
+        org_theme: org?.theme || null,
       };
       const conv = await base44.agents.createConversation({
         agent_name: "poster_enhancer",
@@ -65,18 +69,19 @@ export default function PosterChatPanel({
 
       // Provide rich context so the agent can improve layout/colors/spacing/fonts
       const contextLines = [
-        `Template ID: ${templateId}`,
+        templateId ? `Template ID: ${templateId}` : `Mode: Live Composer (no template id)`,
         game ? `Game: ${homeName} vs ${awayName} • Final ${(game?.home_score ?? 0)}-${(game?.away_score ?? 0)} • Division ${game?.division || "N/A"}` : "Game: not selected",
         org?.theme ? `Org Colors: primary ${org.theme.primary_color}, secondary ${org.theme.secondary_color}, accent ${org.theme.accent_color}` : "Org Colors: default",
         backgroundUrl ? `Background URL available.` : "No background image yet.",
         bestPlayerImageUrl ? `Best player image provided.` : "No best player image yet.",
         "Please focus on: text sizing, fonts, spacing, gaps, alignment, arrangement, color contrast, legibility.",
+        "Enhance the CURRENT COMPOSED POSTER shown in the generator, not a stored template. Do NOT ask for template IDs.",
         "Do NOT persist yet. Propose changes via tool calls: applyLayout {layout: ...}, applyBackground {background_url: ...}. Keep it simple and production-ready. Persist only if user explicitly says 'save template'.",
       ].join("\n");
 
       await base44.agents.addMessage(conv, {
         role: "user",
-        content: `Context for improvement:\n${contextLines}\nInstructions: Update the template metadata directly. Reply with a short summary of what you changed and why.`,
+        content: `Context for improvement:\n${contextLines}\nInstructions: Adjust the live composed poster using tool calls (applyLayout/applyBackground). Do not ask for template IDs. Persist only if the user explicitly says \"save template\". Reply with a short summary of what you changed and why.`,
       });
     })();
 
