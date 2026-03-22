@@ -146,7 +146,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const count = Math.max(1, statsConf.length);
       const spacingFactor = 0.7; // tighter spacing between stats
       const step = count === 1 ? 0 : (usable / (count - 1)) * spacingFactor;
-      const y = (L.stats?.y ?? 200);
+      const y = (L.stats?.y ?? 180);
       const totalSpan = count === 1 ? 0 : (count - 1) * step;
       const startX = (W / 2) - (totalSpan / 2);
       for (let i = 0; i < count; i++) {
@@ -352,9 +352,9 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
       // Footer tag
       ctx.textAlign = 'center';
-      ctx.font = '600 24px Inter, system-ui, Arial';
+      ctx.font = '600 20px Inter, system-ui, Arial';
       ctx.fillStyle = 'rgba(255,255,255,0.85)';
-      ctx.fillText('Generated with ScorekeeperAI', W / 2, H - 30);
+      ctx.fillText('Generated with ScorekeeperAI', W / 2, H - 56);
 
       try {
         const url = canvas.toDataURL('image/png');
