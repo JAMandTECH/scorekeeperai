@@ -123,17 +123,18 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
       const p = (players && players.length > 0) ? players[0] : null;
 
-      // Minimal stat row (scaled 2x and tighter)
+      // Minimal stat row (scaled 2x, centered, gold color)
       const drawStat = (x, y, label, value) => {
+        const gold = '#facc15'; // Tailwind amber-300-like gold
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = 'rgba(226,232,240,0.95)'; // slate-200
+        ctx.fillStyle = gold;
         ctx.font = '700 28px Inter, system-ui, Arial';
         ctx.textBaseline = 'alphabetic';
         ctx.fillText(label.toUpperCase(), x, y - 16);
-        ctx.fillStyle = '#ffffff';
         ctx.textBaseline = 'middle';
         ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = 3;
+        ctx.fillStyle = gold;
         ctx.font = '900 76px Inter, system-ui, Arial';
         ctx.fillText(String(value), x, y + 32);
         ctx.shadowBlur = 0;
@@ -146,8 +147,10 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const spacingFactor = 0.7; // tighter spacing between stats
       const step = count === 1 ? 0 : (usable / (count - 1)) * spacingFactor;
       const y = (L.stats?.y ?? 520);
+      const totalSpan = count === 1 ? 0 : (count - 1) * step;
+      const startX = (W / 2) - (totalSpan / 2);
       for (let i = 0; i < count; i++) {
-        const x = count === 1 ? W / 2 : safeL + i * step;
+        const x = count === 1 ? W / 2 : startX + i * step;
         const s = statsConf[i];
         if (s) drawStat(x, y, s.label, s.value);
       }
@@ -220,11 +223,11 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       // BEST PLAYER heading
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const bestColor = L.bestTitle?.color ?? '#ffffff';
+      const bestColor = L.bestTitle?.color ?? '#facc15';
       let bestSize = L.bestTitle?.fontSize ?? 72;
       const bestY = L.bestTitle?.y ?? 950;
       ctx.fillStyle = bestColor;
-      // Auto-fit BEST PLAYER
+      // Auto-fit BEST PLAYER (gold)
       const bestText = 'BEST PLAYER';
       let s = bestSize; const maxBestW = W - 2 * 120;
       while (s >= 28) {
@@ -292,8 +295,24 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       ctx.fillStyle = '#ffffff';
       ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = 4;
 
+      // Auto-fit team names if too long
+      const fitText = (text, maxWidth, maxSize = 28, minSize = 14) => {
+        let s = maxSize;
+        while (s >= minSize) {
+          ctx.font = `700 ${s}px Inter, system-ui, Arial`;
+          if (ctx.measureText(text).width <= maxWidth) return s;
+          s -= 1;
+        }
+        return minSize;
+      };
+
+      // Left name area: from margin 24 to leftX - 30
+      const leftMaxWidth = Math.max(40, (leftX - 30) - 24);
+      const leftName = String(homeName || 'HOME').toUpperCase();
+      const leftSize = fitText(leftName, leftMaxWidth);
+      ctx.font = `700 ${leftSize}px Inter, system-ui, Arial`;
       ctx.textAlign = 'right';
-      ctx.fillText(String(homeName || 'HOME').toUpperCase(), leftX - 20, yScore);
+      ctx.fillText(leftName, leftX - 20, yScore);
 
       // Draw scores and VS centered cluster
       const drawScoreBox = (x, y, text, highlight) => {
@@ -317,8 +336,13 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
       const w2 = drawScoreBox(cursor, yScore, awayScoreText, !homeWins);
 
-      ctx.textAlign = 'left'; ctx.font = '700 28px Inter, system-ui, Arial'; ctx.fillStyle = '#ffffff';
-      ctx.fillText(String(awayName || 'AWAY').toUpperCase(), rightX + 20, yScore);
+      // Right name area: from rightX + 30 to margin 24 from right
+      const rightMaxWidth = Math.max(40, (W - 24) - (rightX + 30));
+      const rightName = String(awayName || 'AWAY').toUpperCase();
+      const rightSize = fitText(rightName, rightMaxWidth);
+      ctx.font = `700 ${rightSize}px Inter, system-ui, Arial`;
+      ctx.textAlign = 'left'; ctx.fillStyle = '#ffffff';
+      ctx.fillText(rightName, rightX + 20, yScore);
       ctx.shadowBlur = 0;
 
 
