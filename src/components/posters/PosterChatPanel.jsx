@@ -90,7 +90,7 @@ export default function PosterChatPanel({
 
       // Provide rich context so the agent can improve layout/colors/spacing/fonts
       const contextLines = [
-        templateId ? `Template ID: ${templateId}` : `Mode: Live Composer (no template id)`;
+        templateId ? `Template ID: ${templateId}` : `Mode: Live Composer (no template id)`,
         game ? `Game: ${homeName} vs ${awayName} • Final ${(game?.home_score ?? 0)}-${(game?.away_score ?? 0)} • Division ${game?.division || "N/A"}` : "Game: not selected",
         org?.theme ? `Org Colors: primary ${org.theme.primary_color}, secondary ${org.theme.secondary_color}, accent ${org.theme.accent_color}` : "Org Colors: default",
         backgroundUrl ? `Background URL available.` : "No background image yet.",
