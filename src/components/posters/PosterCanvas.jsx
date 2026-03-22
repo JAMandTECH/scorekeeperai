@@ -245,6 +245,24 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       ctx.fillText(bestText, W / 2, bestY);
       ctx.shadowBlur = 0;
 
+      // Team indicator below BEST PLAYER
+      const bestTeamId = (p?.team_id) || (p?.player?.team_id) || null;
+      let bestTeamName = '';
+      if (bestTeamId) {
+        if (bestTeamId === game.home_team_id) bestTeamName = String(homeName || 'HOME').toUpperCase();
+        else if (bestTeamId === game.away_team_id) bestTeamName = String(awayName || 'AWAY').toUpperCase();
+      }
+      if (!bestTeamName) {
+        bestTeamName = (p?.team_name || p?.player?.team_name || p?.team?.name || p?.player?.team?.name || '').toString().toUpperCase();
+      }
+      if (bestTeamName) {
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '700 24px Inter, system-ui, Arial';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(`FROM ${bestTeamName}`, W / 2, bestY + 34);
+      }
+
       // Render custom editable elements (text boxes)
       if (Array.isArray(L.elements)) {
         L.elements.forEach((el) => {
