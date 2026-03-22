@@ -141,7 +141,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       // Place stats just below the date with clean spacing
       const dateCenterY = (L.datePill?.y ?? 132) + 18; // matches date rendering center
       const defaultOffset = L.stats?.offset ?? 90; // spacing below date
-      const y = (typeof L.stats?.y === 'number') ? L.stats.y : (dateCenterY + defaultOffset);
+      const y = dateCenterY + defaultOffset;
 
       const totalSpan = count === 1 ? 0 : (count - 1) * step;
       const startX = (W / 2) - (totalSpan / 2);
