@@ -362,13 +362,13 @@ export default function SubscriptionManagement() {
                   <SelectItem value="basic">
                     <div className="flex items-center gap-2">
                       <Star className="w-4 h-4" />
-                      Basic - AUD $25/month
+                      Basic - AUD $35/month
                     </div>
                   </SelectItem>
                   <SelectItem value="premium">
                     <div className="flex items-center gap-2">
                       <Crown className="w-4 h-4" />
-                      Premium - AUD $35/month
+                      Premium - AUD $50/month
                     </div>
                   </SelectItem>
                 </SelectContent>
