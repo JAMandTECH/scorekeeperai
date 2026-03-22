@@ -146,7 +146,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const count = Math.max(1, statsConf.length);
       const spacingFactor = 0.7; // tighter spacing between stats
       const step = count === 1 ? 0 : (usable / (count - 1)) * spacingFactor;
-      const y = (L.stats?.y ?? 520);
+      const y = (L.stats?.y ?? 480);
       const totalSpan = count === 1 ? 0 : (count - 1) * step;
       const startX = (W / 2) - (totalSpan / 2);
       for (let i = 0; i < count; i++) {
