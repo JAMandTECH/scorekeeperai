@@ -101,24 +101,15 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       ctx.font = `800 ${trySize}px Inter, system-ui, Arial`;
       if (header) ctx.fillText(header, W / 2, headerY);
 
-      // date pill (center aligned)
+      // date text (no box), 2x size, white
       if (dateStr) {
-        const padX = 18; const bh = 36; const r = 10;
-        ctx.font = '700 20px Inter, system-ui, Arial';
-        const tw = ctx.measureText(dateStr).width;
-        const bw = tw + padX * 2;
-        const centerX = L.datePill?.x ?? W / 2; const dateY = L.datePill?.y ?? 132;
-        const dateX = Math.round(centerX - bw / 2);
-        ctx.fillStyle = '#f59e0b'; // amber-500
-        ctx.beginPath();
-        ctx.moveTo(dateX + r, dateY);
-        ctx.arcTo(dateX + bw, dateY, dateX + bw, dateY + bh, r);
-        ctx.arcTo(dateX + bw, dateY + bh, dateX, dateY + bh, r);
-        ctx.arcTo(dateX, dateY + bh, dateX, dateY, r);
-        ctx.arcTo(dateX, dateY, dateX + bw, dateY, r);
-        ctx.closePath(); ctx.fill();
-        ctx.fillStyle = '#111827'; ctx.textAlign = 'left';
-        ctx.fillText(dateStr, dateX + padX, dateY + bh - 10);
+        const centerX = L.datePill?.x ?? W / 2;
+        const dateY = (L.datePill?.y ?? 132) + 18; // align with previous pill center
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '700 40px Inter, system-ui, Arial';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(dateStr, centerX, dateY);
       }
 
       const p = (players && players.length > 0) ? players[0] : null;
