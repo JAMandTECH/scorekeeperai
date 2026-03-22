@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Download, Sparkles, Trash2 } from 'lucide-react'; // cleaned: removed AI chat; kept background remover
+import { Loader2, Download, Sparkles, Trash2, FolderOpen, RefreshCcw } from 'lucide-react'; // cleaned: removed AI chat; kept background remover
 import PosterCanvas from '@/components/posters/PosterCanvas';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
@@ -27,6 +27,7 @@ export default function PosterGenerator() {
   const [removeBgLoading, setRemoveBgLoading] = React.useState(false);
   const [layout, setLayout] = React.useState({});
   const [posterDataUrl, setPosterDataUrl] = React.useState('');
+  const [savedOpen, setSavedOpen] = React.useState(false);
   // Template upload dialog state
   const [addOpen, setAddOpen] = React.useState(false);
   const [newTplName, setNewTplName] = React.useState('');
@@ -114,6 +115,15 @@ export default function PosterGenerator() {
     initialData: null,
   });
 
+  const postersQ = useQuery({
+    queryKey: ['posters'],
+    queryFn: async () => {
+      return await base44.entities.Poster.list('-created_date', 50);
+    },
+    initialData: [],
+    enabled: !!user,
+  });
+
   const genMutation = useMutation({
     mutationFn: async ({ gameId, templateId }) => {
       const res = await base44.functions.invoke('generatePosterImage', { gameId, templateId });
@@ -151,8 +161,11 @@ export default function PosterGenerator() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Poster Generator</h1>
-      </div>
+          <h1 className="text-2xl font-bold">Poster Generator</h1>
+          <Button variant="outline" className="gap-2" onClick={() => setSavedOpen(true)}>
+            <FolderOpen className="h-4 w-4" /> Saved
+          </Button>
+        </div>
 
       <div className="grid md:grid-cols-3 gap-4 mt-6">
         <Card>
@@ -427,6 +440,57 @@ export default function PosterGenerator() {
             </Card>
         </div>
       )}
+      <Dialog open={savedOpen} onOpenChange={setSavedOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Saved Posters</DialogTitle>
+          </DialogHeader>
+          <div className="mb-3 flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">{postersQ.data?.length || 0} saved</div>
+            <Button size="sm" variant="outline" className="gap-2" onClick={() => qc.invalidateQueries({ queryKey: ['posters'] })}>
+              <RefreshCcw className="h-4 w-4" /> Refresh
+            </Button>
+          </div>
+          {postersQ.isLoading ? (
+            <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading saved posters...</div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {postersQ.data?.map(p => (
+                <div key={p.id} className="border rounded-lg overflow-hidden">
+                  <div className="relative aspect-[4/5] bg-muted">
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.title || 'Saved poster'} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No image</div>
+                    )}
+                  </div>
+                  <div className="p-3 flex items-center justify-between">
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{p.title || 'Poster'}</div>
+                      <div className="text-xs text-muted-foreground truncate">{new Date(p.created_date).toLocaleString()}</div>
+                    </div>
+                    <div className="shrink-0 flex gap-2">
+                      {p.image_url && (
+                        <>
+                          <a href={p.image_url} target="_blank" rel="noreferrer">
+                            <Button size="sm" variant="outline">Open</Button>
+                          </a>
+                          <a href={p.image_url} download>
+                            <Button size="sm" className="gap-2"><Download className="h-3 w-3" /> Download</Button>
+                          </a>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {(!postersQ.data || postersQ.data.length === 0) && (
+                <div className="text-sm text-muted-foreground">No posters saved yet.</div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
