@@ -487,6 +487,15 @@ export default function PosterGenerator() {
                           </a>
                         </>
                       )}
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => { if (window.confirm('Delete this poster?')) deletePosterMutation.mutate(p.id); }}
+                        disabled={deletePosterMutation.isPending}
+                        title="Delete Poster"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
                     </div>
                   </div>
                 </div>
