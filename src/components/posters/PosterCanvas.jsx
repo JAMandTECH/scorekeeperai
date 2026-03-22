@@ -260,7 +260,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.textBaseline = 'middle';
         ctx.font = '700 24px Inter, system-ui, Arial';
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(`FROM ${bestTeamName}`, W / 2, bestY + 34);
+        ctx.fillText(bestTeamName, W / 2, bestY + 44);
       }
 
       // Render custom editable elements (text boxes)
