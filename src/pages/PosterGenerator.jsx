@@ -12,7 +12,6 @@ import PosterCanvas from '@/components/posters/PosterCanvas';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import SocialShare from '@/components/social/SocialShare';
-import PosterChatPanel from '@/components/posters/PosterChatPanel';
 
 
 
@@ -25,6 +24,7 @@ export default function PosterGenerator() {
   const [imageUrl, setImageUrl] = React.useState('');
   const [bestPlayerImageUrl, setBestPlayerImageUrl] = React.useState('');
   const [uploading, setUploading] = React.useState(false);
+  const [removeBgLoading, setRemoveBgLoading] = React.useState(false);
   const [layout, setLayout] = React.useState({});
   const [posterDataUrl, setPosterDataUrl] = React.useState('');
   // Template upload dialog state
@@ -204,6 +204,25 @@ export default function PosterGenerator() {
                 }} />
                 {uploading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                 {bestPlayerImageUrl && <img src={bestPlayerImageUrl} alt="Best player" className="w-12 h-12 rounded-full border object-cover" />}
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  disabled={!bestPlayerImageUrl || removeBgLoading}
+                  onClick={async () => {
+                    if (!bestPlayerImageUrl) return;
+                    setRemoveBgLoading(true);
+                    try {
+                      const res = await base44.functions.invoke('removeBg', { imageUrl: bestPlayerImageUrl });
+                      if (res?.data?.dataUrl) {
+                        setBestPlayerImageUrl(res.data.dataUrl);
+                      }
+                    } finally {
+                      setRemoveBgLoading(false);
+                    }
+                  }}
+                >
+                  {removeBgLoading && <Loader2 className="h-4 w-4 animate-spin" />} Remove Background
+                </Button>
               </div>
               <p className="text-xs text-muted-foreground mt-1">Optional: overrides player profile photo for this poster.</p>
             </div>
@@ -358,7 +377,7 @@ export default function PosterGenerator() {
       </div>
 
       {imageUrl && (
-        <div className="mt-6 grid lg:grid-cols-3 gap-6 items-start">
+        <div className="mt-6 grid lg:grid-cols-2 gap-6 items-start">
           <Card>
             <CardHeader>
               <CardTitle>Background</CardTitle>
@@ -401,35 +420,7 @@ export default function PosterGenerator() {
                 <p className="text-sm text-muted-foreground">Select a game to load best players.</p>
               )}
             </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Design Chat</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PosterChatPanel
-                templateId={selectedTemplateId}
-                game={gameForPoster}
-                org={orgQ.data}
-                homeName={teamMap[gameForPoster?.home_team_id] || 'Home Team'}
-                awayName={teamMap[gameForPoster?.away_team_id] || 'Away Team'}
-                backgroundUrl={imageUrl}
-                composedText={`${(teamMap[gameForPoster?.home_team_id] || 'Home')} vs ${(teamMap[gameForPoster?.away_team_id] || 'Away')} • Final ${(gameForPoster?.home_score ?? 0)}-${(gameForPoster?.away_score ?? 0)}`}
-                bestPlayerImageUrl={bestPlayerImageUrl}
-                onRemoveBg={async () => {
-                  if (!bestPlayerImageUrl) return;
-                  const res = await base44.functions.invoke('removeBg', { imageUrl: bestPlayerImageUrl });
-                  if (res?.data?.dataUrl) {
-                    setBestPlayerImageUrl(res.data.dataUrl);
-                  }
-                }}
-                currentLayout={layout}
-                onApplyLayout={(newLayout) => setLayout((prev) => ({ ...prev, ...newLayout }))}
-                onApplyBackground={(url) => setImageUrl(url)}
-              />
-            </CardContent>
-          </Card>
+            </Card>
         </div>
       )}
     </div>
