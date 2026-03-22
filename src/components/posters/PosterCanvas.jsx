@@ -264,7 +264,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.textBaseline = 'middle';
         ctx.font = '700 24px Inter, system-ui, Arial';
         ctx.fillStyle = '#ffffff';
-        const teamY = (L.nameLabel?.y ?? ((L.bestTitle?.y ?? 950) - 70)) - 32; // increased spacing to avoid overlap
+        const teamY = (L.nameLabel?.y ?? ((L.bestTitle?.y ?? 950) - 70)) - 56; // extra spacing above name
         ctx.fillText(bestTeamName, W / 2, teamY);
       }
 
