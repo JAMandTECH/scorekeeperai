@@ -1,11 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { buildSmartLayout, getSportStatsConfig } from './smartLayout';
+import { base44 } from '@/api/base44Client';
+import { Save, Loader2 } from 'lucide-react';
 
 // Canvas composer that overlays org logo/info and the single best player's headshot + stats
 export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady }) {
   const canvasRef = useRef(null);
   const [dataUrl, setDataUrl] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [savedId, setSavedId] = useState(null);
 
   useEffect(() => {
     if (!backgroundUrl || !game) return;
@@ -395,6 +399,42 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
     })();
   }, [backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady]);
 
+  const dataURLtoBlob = (dataURL) => {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) u8arr[n] = bstr.charCodeAt(n);
+    return new Blob([u8arr], { type: mime });
+  };
+
+  const handleSave = async () => {
+    if (!dataUrl) return;
+    setSaving(true);
+    try {
+      const blob = dataURLtoBlob(dataUrl);
+      const file = new File([blob], `poster-${Date.now()}.png`, { type: 'image/png' });
+      const upload = await base44.integrations.Core.UploadFile({ file });
+      const image_url = upload.file_url;
+      const payload = {
+        organization_id: org?.id || null,
+        game_id: game?.id || null,
+        sport: game?.sport || null,
+        player_id: players?.[0]?.id || players?.[0]?.player_id || null,
+        team_id: players?.[0]?.team_id || null,
+        image_url,
+        width: 1080,
+        height: 1350,
+        title: `${String(homeName||'HOME')} vs ${String(awayName||'AWAY')} - Best Player`
+      };
+      const rec = await base44.entities.Poster.create(payload);
+      setSavedId(rec.id);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-[600px] mx-auto">
       <canvas ref={canvasRef} className="w-full h-auto rounded-md shadow-futuristic" />
@@ -403,6 +443,10 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           <a href={dataUrl} download="poster.png">
             <Button variant="outline">Download Poster</Button>
           </a>
+          <Button onClick={handleSave} disabled={saving || !dataUrl} className="gap-2">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {savedId ? 'Saved' : 'Save Poster'}
+          </Button>
         </div>
       )}
     </div>
