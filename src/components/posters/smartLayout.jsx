@@ -16,35 +16,39 @@ export function buildSmartLayout({ sport = 'basketball', meta = {} } = {}) {
   const datePill = meta.datePill || {};
 
   // Optional hints from template metadata
-  const headPos = meta.headshotPosition || 'center'; // 'left' | 'center' | 'right'
-  const statsPos = meta.statsPosition || 'middle'; // 'top' | 'middle' | 'bottom'
+  const headPos = 'center';
+  const cx = W * 0.5;
 
-  // Compute headshot center
-  const cx = headPos === 'left' ? W * 0.28 : headPos === 'right' ? W * 0.72 : W * 0.5;
-  const cy = headshot.cy ?? (H * 0.50);
-  const r = headshot.r ?? 150;
-
-  // Stats row Y based on preference
-  const statsY = stats.y ?? (statsPos === 'top' ? H * 0.40 : statsPos === 'bottom' ? H * 0.64 : H * 0.52);
-
-  // Score row slightly above footer
-  const scoreY = scoreRow.y ?? Math.round(H * 0.78);
-
-  // Header and title
-  const headerY = header.y ?? 110;
-  const headerFontSize = header.fontSize ?? 34;
-  const bestY = bestTitle.y ?? 930;
-  const bestFontSize = bestTitle.fontSize ?? 72;
-
-  // Org logo box (kept within safe area)
-  const logoW = Math.min(logo.w ?? 220, 320);
-  const logoH = Math.min(logo.h ?? 72, 120);
-  const logoX = logo.x ?? (W - logoW - margin);
+  // Bigger logo (2x default), centered
+  const logoW = Math.min(logo.w ?? 400, 440);
+  const logoH = Math.min(logo.h ?? 128, 160);
+  const logoX = Math.max(margin, Math.min(W - margin - logoW, (W - logoW) / 2));
   const logoY = logo.y ?? margin;
 
-  // Date pill near top-left by default
-  const dateX = datePill.x ?? margin;
-  const dateY = datePill.y ?? headerY + 16;
+  // Header below logo
+  const headerY = header.y ?? (logoY + logoH + 36);
+  const headerFontSize = header.fontSize ?? 36;
+
+  // Date pill below header (centered in draw)
+  const dateY = datePill.y ?? (headerY + 42);
+
+  // Headshot roughly middle, ensure spacing from header
+  const r = headshot.r ?? 170;
+  let cy = headshot.cy ?? Math.round(H * 0.56);
+  const minCy = headerY + 140 + r; // keep away from header/date
+  if (cy < minCy) cy = minCy;
+
+  // Stats above headshot
+  let statsY = stats.y ?? Math.round(cy - r - 70);
+  if (statsY < headerY + 80) statsY = headerY + 80;
+
+  // BEST PLAYER below headshot
+  let bestY = bestTitle.y ?? Math.round(cy + r + 70);
+  const bestFontSize = bestTitle.fontSize ?? 72;
+
+  // Score row below title, but above bottom
+  let scoreY = scoreRow.y ?? Math.round(bestY + 110);
+  if (scoreY > H - 120) scoreY = H - 120;
 
   return {
     orgLogo: { x: logoX, y: logoY, w: logoW, h: logoH },
@@ -53,7 +57,7 @@ export function buildSmartLayout({ sport = 'basketball', meta = {} } = {}) {
     stats: { y: statsY },
     scoreRow: { y: scoreY },
     headshot: { cx, cy, r, polygon: headshot.polygon },
-    datePill: { x: dateX, y: dateY },
+    datePill: { x: cx, y: dateY },
     sport,
   };
 }

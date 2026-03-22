@@ -56,10 +56,10 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const dy = (H - dh) / 2;
       ctx.drawImage(bgImg, dx, dy, dw, dh);
 
-      // Vignette
+      // Stronger vignette for readability
       const grad = ctx.createLinearGradient(0, 0, 0, H);
-      grad.addColorStop(0, 'rgba(0,0,0,0.25)');
-      grad.addColorStop(1, 'rgba(0,0,0,0.5)');
+      grad.addColorStop(0, 'rgba(0,0,0,0.35)');
+      grad.addColorStop(1, 'rgba(0,0,0,0.6)');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, W, H);
 
@@ -73,7 +73,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const scale = Math.min(maxW / logoImg.width, maxH / logoImg.height);
           const dw = logoImg.width * scale;
           const dh = logoImg.height * scale;
-          ctx.drawImage(logoImg, x, y, dw, dh);
+          const drawX = Math.round((W - dw) / 2); // center horizontally
+          ctx.drawImage(logoImg, drawX, y, dw, dh);
         }
       }
 
@@ -100,14 +101,15 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       ctx.font = `800 ${trySize}px Inter, system-ui, Arial`;
       if (header) ctx.fillText(header, W / 2, headerY);
 
-      // date pill
+      // date pill (center aligned)
       if (dateStr) {
-        const padX = 16; const bh = 36; const r = 8;
+        const padX = 18; const bh = 36; const r = 10;
         ctx.font = '700 20px Inter, system-ui, Arial';
         const tw = ctx.measureText(dateStr).width;
         const bw = tw + padX * 2;
-        const dateX = L.datePill?.x ?? 40, dateY = L.datePill?.y ?? 132;
-        ctx.fillStyle = '#facc15';
+        const centerX = L.datePill?.x ?? W / 2; const dateY = L.datePill?.y ?? 132;
+        const dateX = Math.round(centerX - bw / 2);
+        ctx.fillStyle = '#f59e0b'; // amber-500
         ctx.beginPath();
         ctx.moveTo(dateX + r, dateY);
         ctx.arcTo(dateX + bw, dateY, dateX + bw, dateY + bh, r);
@@ -125,12 +127,16 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const drawStat = (x, y, label, value) => {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#e5e7eb';
-        ctx.font = '600 14px Inter, system-ui, Arial';
-        ctx.fillText(label.toUpperCase(), x, y - 18);
+        ctx.fillStyle = 'rgba(226,232,240,0.95)'; // slate-200
+        ctx.font = '700 14px Inter, system-ui, Arial';
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillText(label.toUpperCase(), x, y - 8);
         ctx.fillStyle = '#ffffff';
-        ctx.font = '800 36px Inter, system-ui, Arial';
-        ctx.fillText(String(value), x, y + 10);
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = 3;
+        ctx.font = '900 38px Inter, system-ui, Arial';
+        ctx.fillText(String(value), x, y + 16);
+        ctx.shadowBlur = 0;
       };
 
       // Smart stat layout (evenly spaced across safe width)
@@ -182,7 +188,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
             ctx.fillText(label, midX, labelY);
           }
         } else {
-          const cx = L.headshot?.cx ?? (W / 2); const cy = L.headshot?.cy ?? 680; const r = L.headshot?.r ?? 130;
+          const cx = L.headshot?.cx ?? (W / 2); const cy = L.headshot?.cy ?? 680; const r = L.headshot?.r ?? 170;
           ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
           const ar = Math.max((r * 2) / headImg.width, (r * 2) / headImg.height);
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
@@ -214,11 +220,21 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const bestColor = L.bestTitle?.color ?? '#ffffff';
-      const bestSize = L.bestTitle?.fontSize ?? 72;
+      let bestSize = L.bestTitle?.fontSize ?? 72;
       const bestY = L.bestTitle?.y ?? 950;
       ctx.fillStyle = bestColor;
-      ctx.font = `900 ${bestSize}px Inter, system-ui, Arial`;
-      ctx.fillText('BEST PLAYER', W / 2, bestY);
+      // Auto-fit BEST PLAYER
+      const bestText = 'BEST PLAYER';
+      let s = bestSize; const maxBestW = W - 2 * 120;
+      while (s >= 28) {
+        ctx.font = `900 ${s}px Inter, system-ui, Arial`;
+        if (ctx.measureText(bestText).width <= maxBestW) break;
+        s -= 2;
+      }
+      ctx.shadowColor = 'rgba(0,0,0,0.4)';
+      ctx.shadowBlur = 6;
+      ctx.fillText(bestText, W / 2, bestY);
+      ctx.shadowBlur = 0;
 
       // Render custom editable elements (text boxes)
       if (Array.isArray(L.elements)) {
@@ -252,7 +268,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const center = W / 2; const yScore = L.scoreRow?.y ?? 1030;
       ctx.font = '700 28px Inter, system-ui, Arial'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(String(homeName || 'HOME').toUpperCase(), center - 140, yScore);
+      ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = 4;
+      ctx.fillText(String(homeName || 'HOME').toUpperCase(), center - 150, yScore);
       const drawScoreBox = (x, y, text, highlight) => {
         ctx.font = '800 22px Inter, system-ui, Arial';
         const pad = 12;
@@ -263,12 +280,13 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.fillText(text, x + bw / 2, y);
         return bw;
       };
-      const bw1 = drawScoreBox(center - 110, yScore, String(hs), homeWins);
+      const bw1 = drawScoreBox(center - 120, yScore, String(hs), homeWins);
       ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.font = '800 18px Inter, system-ui, Arial';
       ctx.fillText('VS', center, yScore);
       const bw2 = drawScoreBox(center + 20, yScore, String(as), !homeWins);
       ctx.textAlign = 'left'; ctx.font = '700 28px Inter, system-ui, Arial'; ctx.fillStyle = '#ffffff';
-      ctx.fillText(String(awayName || 'AWAY').toUpperCase(), center + 140, yScore);
+      ctx.fillText(String(awayName || 'AWAY').toUpperCase(), center + 150, yScore);
+      ctx.shadowBlur = 0;
       // Final score label
       ctx.textAlign = 'left'; ctx.font = '600 16px Inter, system-ui, Arial'; ctx.fillStyle = 'rgba(255,255,255,0.8)';
       ctx.fillText('FINAL SCORE', 40, yScore - 28);
