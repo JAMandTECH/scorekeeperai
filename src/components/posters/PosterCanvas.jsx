@@ -123,19 +123,19 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
       const p = (players && players.length > 0) ? players[0] : null;
 
-      // Minimal stat row
+      // Minimal stat row (scaled 2x and tighter)
       const drawStat = (x, y, label, value) => {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = 'rgba(226,232,240,0.95)'; // slate-200
-        ctx.font = '700 14px Inter, system-ui, Arial';
+        ctx.font = '700 28px Inter, system-ui, Arial';
         ctx.textBaseline = 'alphabetic';
-        ctx.fillText(label.toUpperCase(), x, y - 8);
+        ctx.fillText(label.toUpperCase(), x, y - 16);
         ctx.fillStyle = '#ffffff';
         ctx.textBaseline = 'middle';
         ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = 3;
-        ctx.font = '900 38px Inter, system-ui, Arial';
-        ctx.fillText(String(value), x, y + 16);
+        ctx.font = '900 76px Inter, system-ui, Arial';
+        ctx.fillText(String(value), x, y + 32);
         ctx.shadowBlur = 0;
       };
 
@@ -143,7 +143,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const statsConf = getSportStatsConfig(game.sport, p);
       const safeL = 80; const safeR = 80; const usable = W - safeL - safeR;
       const count = Math.max(1, statsConf.length);
-      const step = count === 1 ? 0 : usable / (count - 1);
+      const spacingFactor = 0.7; // tighter spacing between stats
+      const step = count === 1 ? 0 : (usable / (count - 1)) * spacingFactor;
       const y = (L.stats?.y ?? 520);
       for (let i = 0; i < count; i++) {
         const x = count === 1 ? W / 2 : safeL + i * step;
