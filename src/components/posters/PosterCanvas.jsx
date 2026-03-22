@@ -151,7 +151,11 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         if (s) drawStat(x, y, s.label, s.value);
       }
 
-      // Headshot with optional polygon crop
+      // Position headshot between stats (y) and player name with equal spacing, keeping stats above name
+      const bestTitleY = L.bestTitle?.y ?? 950;
+      const nameY = L.nameLabel?.y ?? (bestTitleY - 70); // lock player name above BEST PLAYER
+      const midY = Math.round((y + nameY) / 2);
+
       if (headImg) {
         const poly = L.headshot?.polygon;
         if (Array.isArray(poly) && poly.length >= 3) {
@@ -159,8 +163,11 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const minX = Math.min(...xs), maxX = Math.max(...xs);
           const minY = Math.min(...ys), maxY = Math.max(...ys);
           const bw = maxX - minX, bh = maxY - minY;
+          const curCenterY = minY + bh/2;
+          const deltaY = midY - curCenterY;
 
           ctx.save();
+          ctx.translate(0, deltaY);
           ctx.beginPath();
           ctx.moveTo(poly[0].x, poly[0].y);
           for (let i=1;i<poly.length;i++) ctx.lineTo(poly[i].x, poly[i].y);
@@ -173,29 +180,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           ctx.drawImage(headImg, dx2, dy2, dw2, dh2);
           ctx.restore();
 
-          // Label below polygon bbox
-          const midX = minX + bw/2; const labelY = maxY + 30;
-          const first = (p?.first_name) || (p?.player?.first_name) || '';
-          const last = (p?.last_name) || (p?.player?.last_name) || '';
-          const jersey = (p?.jersey_number) || (p?.player?.jersey_number) || '';
-          const nameStr = [first, last].filter(Boolean).join(' ');
-          const jerseyStr = String(jersey || '').replace(/^#/, '');
-          const label = jerseyStr ? `${nameStr} #${jerseyStr}` : nameStr;
-          if (label) {
-            ctx.textAlign = 'center';
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '800 28px Inter, system-ui, Arial';
-            ctx.fillText(label, midX, labelY);
-          }
-        } else {
-          const cx = L.headshot?.cx ?? (W / 2); const cy = L.headshot?.cy ?? 680; const r = L.headshot?.r ?? 170;
-          ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
-          const ar = Math.max((r * 2) / headImg.width, (r * 2) / headImg.height);
-          const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
-          ctx.drawImage(headImg, cx - dw2 / 2, cy - dh2 / 2, dw2, dh2);
-          ctx.restore();
-
-          // Label below circle with auto-fit
+          // Player name label at locked nameY
+          const midX = minX + bw/2;
           const first = (p?.first_name) || (p?.player?.first_name) || '';
           const last = (p?.last_name) || (p?.player?.last_name) || '';
           const jersey = (p?.jersey_number) || (p?.player?.jersey_number) || '';
@@ -211,7 +197,34 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
               if (ctx.measureText(label).width <= maxW) break;
               size -= 1;
             }
-            ctx.fillText(label, cx, cy + r + 30);
+            ctx.fillText(label, midX, nameY);
+          }
+        } else {
+          const cx = L.headshot?.cx ?? (W / 2); const r = L.headshot?.r ?? 170;
+          const cy = midY; // center between stats and name
+          ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+          const ar = Math.max((r * 2) / headImg.width, (r * 2) / headImg.height);
+          const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
+          ctx.drawImage(headImg, cx - dw2 / 2, cy - dh2 / 2, dw2, dh2);
+          ctx.restore();
+
+          // Player name label at locked nameY with auto-fit
+          const first = (p?.first_name) || (p?.player?.first_name) || '';
+          const last = (p?.last_name) || (p?.player?.last_name) || '';
+          const jersey = (p?.jersey_number) || (p?.player?.jersey_number) || '';
+          const nameStr = [first, last].filter(Boolean).join(' ');
+          const jerseyStr = String(jersey || '').replace(/^#/, '');
+          const label = jerseyStr ? `${nameStr} #${jerseyStr}` : nameStr;
+          if (label) {
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffffff';
+            let size = 28; const maxW = W - 2 * 140;
+            while (size >= 18) {
+              ctx.font = `800 ${size}px Inter, system-ui, Arial`;
+              if (ctx.measureText(label).width <= maxW) break;
+              size -= 1;
+            }
+            ctx.fillText(label, cx, nameY);
           }
         }
       }
