@@ -41,6 +41,26 @@ export default function PosterChatPanel({
       // Subscribe to live updates
       unsubscribe = base44.agents.subscribeToConversation(conv.id, (data) => {
         setMessages(data.messages || []);
+        // Auto-apply results if the assistant returned structured tool results
+        try {
+          const last = (data.messages || []).slice().reverse().find(m => m.role === 'assistant');
+          const toolCalls = last?.tool_calls || [];
+          toolCalls.forEach((tc) => {
+            // Expecting the agent to emit standardized function names and JSON results
+            const name = (tc.name || '').toLowerCase();
+            if (!tc.results) return;
+            let parsed = tc.results;
+            if (typeof parsed === 'string') {
+              try { parsed = JSON.parse(parsed); } catch (_) {}
+            }
+            if (name.includes('applylayout') && parsed?.layout && onApplyLayout) {
+              onApplyLayout(parsed.layout);
+            }
+            if (name.includes('applybackground') && parsed?.background_url && onApplyBackground) {
+              onApplyBackground(parsed.background_url);
+            }
+          });
+        } catch (_) {}
       });
 
       // Provide rich context so the agent can improve layout/colors/spacing/fonts
