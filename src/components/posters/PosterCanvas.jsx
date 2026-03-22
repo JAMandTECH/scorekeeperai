@@ -139,7 +139,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const step = count === 1 ? 0 : (usable / (count - 1)) * spacingFactor;
 
       // Equal spacing around headshot: compute image bounds and place stats below the image
-      const gap = L.headshot?.gap ?? 40;
+      const headGap = L.headshot?.gap ?? 40;
       const hsPoly = L.headshot?.polygon;
       let imgTop, imgBottom;
       if (Array.isArray(hsPoly) && hsPoly.length >= 3) {
@@ -151,7 +151,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         imgTop = cy - r;
         imgBottom = cy + r;
       }
-      const y = imgBottom + gap;
+      const y = imgBottom + headGap;
 
       const totalSpan = count === 1 ? 0 : (count - 1) * step;
       const startX = (W / 2) - (totalSpan / 2);
