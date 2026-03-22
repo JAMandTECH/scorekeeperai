@@ -138,10 +138,20 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const spacingFactor = 0.7; // tighter spacing between stats
       const step = count === 1 ? 0 : (usable / (count - 1)) * spacingFactor;
 
-      // Place stats just below the date with clean spacing
-      const dateCenterY = (L.datePill?.y ?? 132) + 18; // matches date rendering center
-      const defaultOffset = L.stats?.offset ?? 90; // spacing below date
-      const y = dateCenterY + defaultOffset;
+      // Equal spacing around headshot: compute image bounds and place stats below the image
+      const gap = L.headshot?.gap ?? 40;
+      const hsPoly = L.headshot?.polygon;
+      let imgTop, imgBottom;
+      if (Array.isArray(hsPoly) && hsPoly.length >= 3) {
+        const ys = hsPoly.map(pt => pt.y);
+        imgTop = Math.min(...ys);
+        imgBottom = Math.max(...ys);
+      } else {
+        const cy = L.headshot?.cy ?? 680; const r = L.headshot?.r ?? 170;
+        imgTop = cy - r;
+        imgBottom = cy + r;
+      }
+      const y = imgBottom + gap;
 
       const totalSpan = count === 1 ? 0 : (count - 1) * step;
       const startX = (W / 2) - (totalSpan / 2);
@@ -173,8 +183,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           ctx.drawImage(headImg, dx2, dy2, dw2, dh2);
           ctx.restore();
 
-          // Label below polygon bbox
-          const midX = minX + bw/2; const labelY = maxY + 30;
+          // Label above polygon bbox with equal gap
+          const midX = minX + bw/2; const labelY = imgTop - (L.headshot?.gap ?? 40);
           const first = (p?.first_name) || (p?.player?.first_name) || '';
           const last = (p?.last_name) || (p?.player?.last_name) || '';
           const jersey = (p?.jersey_number) || (p?.player?.jersey_number) || '';
@@ -211,7 +221,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
               if (ctx.measureText(label).width <= maxW) break;
               size -= 1;
             }
-            ctx.fillText(label, cx, cy + r + 30);
+            ctx.fillText(label, cx, (typeof imgTop === 'number' ? imgTop : (cy - r)) - (L.headshot?.gap ?? 40));
           }
         }
       }
