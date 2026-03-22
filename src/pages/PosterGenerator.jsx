@@ -340,6 +340,14 @@ export default function PosterGenerator() {
         >
           Use Template
         </Button>
+        <Button
+          variant="secondary"
+          disabled={!selectedTemplateId || !selectedGameId || genMutation.isPending}
+          onClick={() => genMutation.mutate({ gameId: selectedGameId, templateId: selectedTemplateId })}
+          className="gap-2"
+        >
+          {genMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Generate Background
+        </Button>
         {imageUrl && (
           <>
             <a href={imageUrl} target="_blank" rel="noreferrer">

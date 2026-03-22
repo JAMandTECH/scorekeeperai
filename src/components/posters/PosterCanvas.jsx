@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { buildSmartLayout, getSportStatsConfig } from './smartLayout';
 
 // Canvas composer that overlays org logo/info and the single best player's headshot + stats
 export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady }) {
@@ -15,7 +16,10 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
     const DPR = Math.min(window.devicePixelRatio || 1, 2);
     const W = 1080;
     const H = 1350;
-    const L = layout || {};
+    const baseMeta = layout || {};
+    const smart = buildSmartLayout({ sport: game.sport, meta: baseMeta });
+    // Smart layout takes precedence; template metadata can still override unique fields
+    const L = { ...baseMeta, ...smart };
     canvas.width = W * DPR;
     canvas.height = H * DPR;
     canvas.style.width = W + 'px';
@@ -73,24 +77,35 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         }
       }
 
-      // Header (tournament/division) + date pill
+      // Header (tournament/division) + date pill with auto-fit
       const dateObj = game.game_date ? new Date(game.game_date) : null;
       const dateStr = dateObj ? dateObj.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase() : '';
       const header = [org?.tournament_name || org?.name || '', game.division || '']
         .filter(Boolean).join(' • ').toUpperCase();
       const headerColor = L.header?.color ?? '#ffffff';
-      const headerSize = L.header?.fontSize ?? 32;
+      let headerSize = L.header?.fontSize ?? 34;
       const headerY = L.header?.y ?? 110;
       ctx.fillStyle = headerColor;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.font = `800 ${headerSize}px Inter, system-ui, Arial`;
+
+      // Auto-fit header text to safe width
+      const maxHeaderWidth = W - 2 * 80;
+      let trySize = headerSize;
+      while (header && trySize >= 18) {
+        ctx.font = `800 ${trySize}px Inter, system-ui, Arial`;
+        if (ctx.measureText(header).width <= maxHeaderWidth) break;
+        trySize -= 2;
+      }
+      ctx.font = `800 ${trySize}px Inter, system-ui, Arial`;
       if (header) ctx.fillText(header, W / 2, headerY);
+
       // date pill
       if (dateStr) {
-        const padX = 16, padY = 8; ctx.font = '700 20px Inter, system-ui, Arial';
+        const padX = 16; const bh = 36; const r = 8;
+        ctx.font = '700 20px Inter, system-ui, Arial';
         const tw = ctx.measureText(dateStr).width;
-        const bw = tw + padX * 2, bh = 36; const r = 8;
+        const bw = tw + padX * 2;
         const dateX = L.datePill?.x ?? 40, dateY = L.datePill?.y ?? 132;
         ctx.fillStyle = '#facc15';
         ctx.beginPath();
@@ -118,29 +133,16 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.fillText(String(value), x, y + 10);
       };
 
-      if (game.sport === 'basketball') {
-        const stats = [
-          ['Points', p?.points || 0],
-          ['Rebounds', p?.rebounds || 0],
-          ['Assists', p?.assists || 0],
-          ['Blocks', p?.blocks || 0],
-        ];
-        const startX = 60, gapX = 240, y = (L.stats?.y ?? 520);
-        stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
-      } else if (game.sport === 'volleyball') {
-        const stats = [
-          ['Attacks', p?.attacks || 0],
-          ['Blocks', p?.blocks || 0],
-          ['Aces', p?.aces || 0],
-        ];
-        const startX = 80, gapX = 260, y = (L.stats?.y ?? 520);
-        stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
-      } else {
-        const stats = [
-          ['Points', p?.points || 0],
-        ];
-        const startX = 80, gapX = 260, y = (L.stats?.y ?? 520);
-        stats.forEach((s, i) => drawStat(startX + i * gapX, y, s[0], s[1]));
+      // Smart stat layout (evenly spaced across safe width)
+      const statsConf = getSportStatsConfig(game.sport, p);
+      const safeL = 80; const safeR = 80; const usable = W - safeL - safeR;
+      const count = Math.max(1, statsConf.length);
+      const step = count === 1 ? 0 : usable / (count - 1);
+      const y = (L.stats?.y ?? 520);
+      for (let i = 0; i < count; i++) {
+        const x = count === 1 ? W / 2 : safeL + i * step;
+        const s = statsConf[i];
+        if (s) drawStat(x, y, s.label, s.value);
       }
 
       // Headshot with optional polygon crop
@@ -187,7 +189,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           ctx.drawImage(headImg, cx - dw2 / 2, cy - dh2 / 2, dw2, dh2);
           ctx.restore();
 
-          // Label below circle
+          // Label below circle with auto-fit
           const first = (p?.first_name) || (p?.player?.first_name) || '';
           const last = (p?.last_name) || (p?.player?.last_name) || '';
           const jersey = (p?.jersey_number) || (p?.player?.jersey_number) || '';
@@ -197,7 +199,12 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           if (label) {
             ctx.textAlign = 'center';
             ctx.fillStyle = '#ffffff';
-            ctx.font = '800 28px Inter, system-ui, Arial';
+            let size = 28; const maxW = W - 2 * 140;
+            while (size >= 18) {
+              ctx.font = `800 ${size}px Inter, system-ui, Arial`;
+              if (ctx.measureText(label).width <= maxW) break;
+              size -= 1;
+            }
             ctx.fillText(label, cx, cy + r + 30);
           }
         }
