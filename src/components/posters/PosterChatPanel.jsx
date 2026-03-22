@@ -71,7 +71,7 @@ export default function PosterChatPanel({
         backgroundUrl ? `Background URL available.` : "No background image yet.",
         bestPlayerImageUrl ? `Best player image provided.` : "No best player image yet.",
         "Please focus on: text sizing, fonts, spacing, gaps, alignment, arrangement, color contrast, legibility.",
-        "Apply changes by updating PosterTemplate.metadata (and sample_image_url if needed). Keep it simple and production-ready.",
+        "Do NOT persist yet. Propose changes via tool calls: applyLayout {layout: ...}, applyBackground {background_url: ...}. Keep it simple and production-ready. Persist only if user explicitly says 'save template'.",
       ].join("\n");
 
       await base44.agents.addMessage(conv, {

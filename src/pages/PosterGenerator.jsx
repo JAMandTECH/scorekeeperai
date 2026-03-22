@@ -122,18 +122,6 @@ export default function PosterGenerator() {
     }
   });
 
-  // Auto-apply live changes from agent updates to PosterTemplate
-  React.useEffect(() => {
-    if (!selectedTemplateId) return;
-    const unsubscribe = base44.entities.PosterTemplate.subscribe((event) => {
-      if (event?.id === selectedTemplateId && event?.type === 'update') {
-        if (event.data?.metadata) setLayout(event.data.metadata);
-        if (event.data?.sample_image_url) setImageUrl(event.data.sample_image_url);
-      }
-    });
-    return () => { if (unsubscribe) unsubscribe(); };
-  }, [selectedTemplateId]);
-
   const deleteTplMutation = useMutation({
     mutationFn: (id) => base44.entities.PosterTemplate.delete(id),
     onSuccess: (_data, id) => {
