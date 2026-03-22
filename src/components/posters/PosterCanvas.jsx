@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { buildSmartLayout, getSportStatsConfig } from './smartLayout';
+import { buildSmartLayout, getSportStatsConfig } from './smartLayout.js';
 
 // Canvas composer that overlays org logo/info and the single best player's headshot + stats
 export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady }) {
