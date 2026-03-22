@@ -7,16 +7,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Download, Sparkles, Trash2, FolderOpen, RefreshCcw } from 'lucide-react'; // cleaned: removed AI chat; kept background remover
+import { Loader2, Download, Sparkles, Trash2, FolderOpen, RefreshCcw, ArrowLeft } from 'lucide-react'; // cleaned: removed AI chat; kept background remover
 import PosterCanvas from '@/components/posters/PosterCanvas';
 import { format } from 'date-fns';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import SocialShare from '@/components/social/SocialShare';
 
 
 
 export default function PosterGenerator() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [user, setUser] = React.useState(null);
   const [sport, setSport] = React.useState('basketball');
   const [selectedGameId, setSelectedGameId] = React.useState('');
@@ -169,9 +170,14 @@ export default function PosterGenerator() {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Poster Generator</h1>
-          <Button variant="outline" className="gap-2" onClick={() => setSavedOpen(true)}>
-            <FolderOpen className="h-4 w-4" /> Saved
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" className="gap-2" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-4 w-4" /> Back
+            </Button>
+            <Button variant="outline" className="gap-2" onClick={() => setSavedOpen(true)}>
+              <FolderOpen className="h-4 w-4" /> Saved
+            </Button>
+          </div>
         </div>
 
       <div className="grid md:grid-cols-3 gap-4 mt-6">
