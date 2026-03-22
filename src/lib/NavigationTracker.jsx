@@ -33,12 +33,8 @@ export default function NavigationTracker() {
             const pathSegment = pathname.replace(/^\//, '').split('/')[0];
             
             // Try case-insensitive lookup in Pages config
-            const pageKeys = Object.keys(Pages);
-            const matchedKey = pageKeys.find(
-                key => key.toLowerCase() === pathSegment.toLowerCase()
-            );
-            
-            pageName = matchedKey || null;
+            // Best-effort: use URL segment as pageName
+            pageName = pathSegment || null;
         }
 
         if (isAuthenticated && pageName) {
