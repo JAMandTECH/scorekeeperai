@@ -424,6 +424,7 @@ export default function PosterGenerator() {
                     setBestPlayerImageUrl(res.data.dataUrl);
                   }
                 }}
+                currentLayout={layout}
                 onApplyLayout={(newLayout) => setLayout((prev) => ({ ...prev, ...newLayout }))}
                 onApplyBackground={(url) => setImageUrl(url)}
               />

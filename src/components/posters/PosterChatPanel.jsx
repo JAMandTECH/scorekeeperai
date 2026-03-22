@@ -13,6 +13,7 @@ export default function PosterChatPanel({
   awayName,
   backgroundUrl,
   composedText,
+  currentLayout,
   onRemoveBg,
   bestPlayerImageUrl,
   onApplyLayout,
@@ -22,6 +23,7 @@ export default function PosterChatPanel({
   const [messages, setMessages] = React.useState([]);
   const [input, setInput] = React.useState("");
   const [sending, setSending] = React.useState(false);
+  const autoNudgedRef = React.useRef(false);
 
   // Create conversation and send initial context
   React.useEffect(() => {
@@ -35,6 +37,7 @@ export default function PosterChatPanel({
         background_url: backgroundUrl || null,
         composed_text: composedText || null,
         org_theme: org?.theme || null,
+        current_layout: currentLayout || null,
       };
       const conv = await base44.agents.createConversation({
         agent_name: "poster_enhancer",
@@ -64,21 +67,36 @@ export default function PosterChatPanel({
               onApplyBackground(parsed.background_url);
             }
           });
+
+          // If the assistant asks for a template ID or fails to read a template, auto-respond with live composer state
+          const needsTemplate = /template id|template_id|posterTemplate|not found|cannot read/i.test(last?.content || '');
+          if (needsTemplate && !autoNudgedRef.current) {
+            autoNudgedRef.current = true;
+            const state = {
+              layout: currentLayout || {},
+              background_url: backgroundUrl || null,
+              composed_text: composedText || null,
+              org_theme: org?.theme || null,
+              mode: 'composer_live'
+            };
+            // Fire-and-forget helper message to steer the agent
+            base44.agents.addMessage(conv, {
+              role: 'user',
+              content: `Do not use templates. Work in composer_live on the current poster. Here is the current state JSON to modify:\n\n${JSON.stringify(state, null, 2)}`
+            });
+          }
         } catch (_) {}
       });
 
       // Provide rich context so the agent can improve layout/colors/spacing/fonts
       const contextLines = [
-        templateId ? `Template ID: ${templateId}` : `Mode: Live Composer (no template id)`,
+        templateId ? `Template ID: ${templateId}` : `Mode: Live Composer (no template id)`;
         game ? `Game: ${homeName} vs ${awayName} • Final ${(game?.home_score ?? 0)}-${(game?.away_score ?? 0)} • Division ${game?.division || "N/A"}` : "Game: not selected",
         org?.theme ? `Org Colors: primary ${org.theme.primary_color}, secondary ${org.theme.secondary_color}, accent ${org.theme.accent_color}` : "Org Colors: default",
         backgroundUrl ? `Background URL available.` : "No background image yet.",
         bestPlayerImageUrl ? `Best player image provided.` : "No best player image yet.",
         "Please focus on: text sizing, fonts, spacing, gaps, alignment, arrangement, color contrast, legibility.",
         "Enhance the CURRENT COMPOSED POSTER in the generator, not a stored template. Do NOT ask for template IDs.",
-        "Enhance the CURRENT COMPOSED POSTER in the generator, not a stored template. Do NOT ask for template IDs.",
-        "Enhance the CURRENT COMPOSED POSTER in the generator, not a stored template. Do NOT ask for template IDs.",
-        "Enhance the CURRENT COMPOSED POSTER shown in the generator, not a stored template. Do NOT ask for template IDs.",
         "Do NOT persist yet. Propose changes via tool calls: applyLayout {layout: ...}, applyBackground {background_url: ...}. Keep it simple and production-ready. Persist only if user explicitly says 'save template'.",
       ].join("\n");
 
