@@ -191,7 +191,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           if (label) {
             ctx.textAlign = 'center';
             ctx.fillStyle = '#ffffff';
-            let size = 28; const maxW = W - 2 * 140;
+            let size = 56; const maxW = W - 2 * 140;
             while (size >= 18) {
               ctx.font = `800 ${size}px Inter, system-ui, Arial`;
               if (ctx.measureText(label).width <= maxW) break;
@@ -218,7 +218,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           if (label) {
             ctx.textAlign = 'center';
             ctx.fillStyle = '#ffffff';
-            let size = 28; const maxW = W - 2 * 140;
+            let size = 56; const maxW = W - 2 * 140;
             while (size >= 18) {
               ctx.font = `800 ${size}px Inter, system-ui, Arial`;
               if (ctx.measureText(label).width <= maxW) break;
