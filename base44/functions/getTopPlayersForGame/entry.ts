@@ -39,7 +39,19 @@ Deno.serve(async (req) => {
         points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, three_pointers: 0,
         aces: 0, attacks: 0, rally_errors: 0,
       };
-      p.points += s.points || 0;
+
+      // Derive basketball points from made shots to avoid any double-counted 'points' fields
+      if (game.sport === 'basketball') {
+        const three = s.three_pointers || 0;
+        const fgm = s.field_goals_made || 0; // includes 2s and 3s
+        const ftm = s.free_throws_made || 0;
+        const twos = Math.max(0, fgm - three);
+        const derived = twos * 2 + three * 3 + ftm;
+        p.points += derived;
+      } else {
+        p.points += s.points || 0;
+      }
+
       p.rebounds += s.rebounds || 0;
       p.assists += s.assists || 0;
       p.steals += s.steals || 0;
