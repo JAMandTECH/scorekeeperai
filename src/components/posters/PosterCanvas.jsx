@@ -228,7 +228,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       // BEST PLAYER heading
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const bestColor = L.bestTitle?.color ?? '#facc15';
+      const bestColor = '#facc15';
       let bestSize = L.bestTitle?.fontSize ?? 72;
       const bestY = L.bestTitle?.y ?? 950;
       ctx.fillStyle = bestColor;
