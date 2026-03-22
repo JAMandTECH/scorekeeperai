@@ -262,30 +262,62 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         });
       }
 
-      // Final Score row
+      // Final Score row (center the score cluster precisely)
       const hs = Number(game.home_score || 0), as = Number(game.away_score || 0);
       const homeWins = hs >= as;
-      const center = W / 2; const yScore = L.scoreRow?.y ?? 1030;
-      ctx.font = '700 28px Inter, system-ui, Arial'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      const yScore = L.scoreRow?.y ?? 1030;
+      const center = W / 2;
+
+      // Measure elements
+      ctx.font = '800 22px Inter, system-ui, Arial';
+      const pad = 12;
+      const homeScoreText = String(hs);
+      const awayScoreText = String(as);
+      const bw1 = ctx.measureText(homeScoreText).width + pad * 2;
+      const bw2 = ctx.measureText(awayScoreText).width + pad * 2;
+
+      ctx.font = '800 18px Inter, system-ui, Arial';
+      const vsText = 'VS';
+      const vsWidth = ctx.measureText(vsText).width;
+
+      const gap = 24;
+      const total = bw1 + gap + vsWidth + gap + bw2;
+      const leftX = Math.round(center - total / 2);
+      const rightX = leftX + total;
+
+      // Draw names flanking the score cluster
+      ctx.font = '700 28px Inter, system-ui, Arial';
+      ctx.textBaseline = 'middle';
       ctx.fillStyle = '#ffffff';
       ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = 4;
-      ctx.fillText(String(homeName || 'HOME').toUpperCase(), center - 150, yScore);
+
+      ctx.textAlign = 'right';
+      ctx.fillText(String(homeName || 'HOME').toUpperCase(), leftX - 20, yScore);
+
+      // Draw scores and VS centered cluster
       const drawScoreBox = (x, y, text, highlight) => {
         ctx.font = '800 22px Inter, system-ui, Arial';
-        const pad = 12;
-        const bw = ctx.measureText(text).width + pad * 2;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = highlight ? '#facc15' : '#ffffff';
-        ctx.fillText(text, x + bw / 2, y);
-        return bw;
+        const w = ctx.measureText(text).width + pad * 2;
+        ctx.fillText(text, x + w / 2, y);
+        return w;
       };
-      const bw1 = drawScoreBox(center - 120, yScore, String(hs), homeWins);
-      ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.font = '800 18px Inter, system-ui, Arial';
-      ctx.fillText('VS', center, yScore);
-      const bw2 = drawScoreBox(center + 20, yScore, String(as), !homeWins);
+
+      let cursor = leftX;
+      const w1 = drawScoreBox(cursor, yScore, homeScoreText, homeWins);
+      cursor += w1 + gap;
+
+      ctx.font = '800 18px Inter, system-ui, Arial';
+      ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
+      ctx.fillText(vsText, cursor + vsWidth / 2, yScore);
+      cursor += vsWidth + gap;
+
+      const w2 = drawScoreBox(cursor, yScore, awayScoreText, !homeWins);
+
       ctx.textAlign = 'left'; ctx.font = '700 28px Inter, system-ui, Arial'; ctx.fillStyle = '#ffffff';
-      ctx.fillText(String(awayName || 'AWAY').toUpperCase(), center + 150, yScore);
+      ctx.fillText(String(awayName || 'AWAY').toUpperCase(), rightX + 20, yScore);
       ctx.shadowBlur = 0;
 
 
