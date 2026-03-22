@@ -137,7 +137,21 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const count = Math.max(1, statsConf.length);
       const spacingFactor = 0.7; // tighter spacing between stats
       const step = count === 1 ? 0 : (usable / (count - 1)) * spacingFactor;
-      const y = (L.stats?.y ?? 180);
+
+      // Dynamically place stats midway between the date text and the top of the headshot
+      const dateCenterY = (L.datePill?.y ?? 132) + 18; // matches date rendering center
+      let photoTop = (() => {
+        const poly = L.headshot?.polygon;
+        if (Array.isArray(poly) && poly.length >= 3) {
+          return Math.min(...poly.map(pt => pt.y));
+        }
+        const cy = L.headshot?.cy ?? 680; const r = L.headshot?.r ?? 170;
+        return cy - r;
+      })();
+
+      const computedY = Math.round(dateCenterY + (photoTop - dateCenterY) * 0.5) - 8; // slight nudge upward
+      const y = (typeof L.stats?.y === 'number') ? L.stats.y : computedY;
+
       const totalSpan = count === 1 ? 0 : (count - 1) * step;
       const startX = (W / 2) - (totalSpan / 2);
       for (let i = 0; i < count; i++) {
