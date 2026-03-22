@@ -68,7 +68,20 @@ export default function PosterChatPanel({
             }
           });
 
-          // If the assistant asks for a template ID or fails to read a template, auto-respond with live composer state
+          // Fallback: parse JSON proposals directly from assistant text
+          if (last?.content) {
+            const text = last.content;
+            const match = text.match(/\{[\s\S]*\}/);
+            if (match) {
+              try {
+                const obj = JSON.parse(match[0]);
+                if (obj.layout && onApplyLayout) onApplyLayout(obj.layout);
+                if (obj.background_url && onApplyBackground) onApplyBackground(obj.background_url);
+              } catch (_) {}
+            }
+          }
+
+           // If the assistant asks for a template ID or fails to read a template, auto-respond with live composer state
           const needsTemplate = /template id|template_id|posterTemplate|not found|cannot read/i.test(last?.content || '');
           if (needsTemplate && !autoNudgedRef.current) {
             autoNudgedRef.current = true;
