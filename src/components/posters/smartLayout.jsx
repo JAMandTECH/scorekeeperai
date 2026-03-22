@@ -70,12 +70,15 @@ export function getSportStatsConfig(sport, p = {}) {
       { label: 'Aces', value: p.aces ?? 0 },
     ];
   }
-  // default basketball - use final total points from the record to match other stats
-  const points = p.points ?? p.total_points ?? p.player?.points ?? p.player?.total_points ?? 0;
+  // default basketball - display ONLY this game's recorded points (no season totals fallback)
+  const points = (() => {
+    const n = Number(p?.points);
+    return Number.isFinite(n) ? n : 0;
+  })();
   return [
     { label: 'Points', value: points },
-    { label: 'Rebounds', value: p.rebounds ?? 0 },
-    { label: 'Assists', value: p.assists ?? 0 },
-    { label: 'Blocks', value: p.blocks ?? 0 },
+    { label: 'Rebounds', value: Number.isFinite(Number(p.rebounds)) ? Number(p.rebounds) : 0 },
+    { label: 'Assists', value: Number.isFinite(Number(p.assists)) ? Number(p.assists) : 0 },
+    { label: 'Blocks', value: Number.isFinite(Number(p.blocks)) ? Number(p.blocks) : 0 },
   ];
 }
