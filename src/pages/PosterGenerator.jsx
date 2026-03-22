@@ -353,10 +353,12 @@ export default function PosterGenerator() {
         <Button
           disabled={!selectedTemplateId}
           onClick={() => {
-            const t = (templatesQ.data || []).find(x => x.id === selectedTemplateId);
-            if (t?.sample_image_url) setImageUrl(t.sample_image_url);
-            if (t?.metadata) setLayout(t.metadata);
-          }}
+                        const t = (templatesQ.data || []).find(x => x.id === selectedTemplateId);
+                        if (t?.sample_image_url) setImageUrl(t.sample_image_url);
+                        if (t?.metadata) setLayout(t.metadata);
+                        // Ensure freshest top player stats after backend change
+                        qc.invalidateQueries({ queryKey: ['topPlayers', selectedGameId] });
+                      }}
         >
           Use Template
         </Button>
