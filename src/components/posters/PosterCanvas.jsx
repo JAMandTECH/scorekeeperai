@@ -249,7 +249,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       ctx.fillText(bestText, W / 2, bestY);
       ctx.shadowBlur = 0;
 
-      // Team indicator below BEST PLAYER
+      // Team indicator moved above player name (16px spacing)
       const bestTeamId = (p?.team_id) || (p?.player?.team_id) || null;
       let bestTeamName = '';
       if (bestTeamId) {
@@ -264,7 +264,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.textBaseline = 'middle';
         ctx.font = '700 24px Inter, system-ui, Arial';
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(bestTeamName, W / 2, bestY + 44);
+        const teamY = (L.nameLabel?.y ?? ((L.bestTitle?.y ?? 950) - 70)) - 16; // medium spacing above name
+        ctx.fillText(bestTeamName, W / 2, teamY);
       }
 
       // Render custom editable elements (text boxes)
