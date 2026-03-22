@@ -54,6 +54,7 @@ const AuthenticatedApp = () => {
           <Route key={path} path={`/${path}`} element={<Page />} />
         ))}
         <Route path="/PosterGenerator" element={<PosterGenerator />} />
+        <Route path="/PosterChat" element={<Pages.PosterChat ? <Pages.PosterChat/> : <></>} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </LayoutWrapper>
