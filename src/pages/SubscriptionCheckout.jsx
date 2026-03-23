@@ -161,7 +161,7 @@ export default function SubscriptionCheckout() {
     {
       name: 'Premium',
       value: 'premium',
-      price: 'AUD $35',
+      price: 'AUD $50',
       period: '/month',
       icon: Crown,
       color: 'purple',
