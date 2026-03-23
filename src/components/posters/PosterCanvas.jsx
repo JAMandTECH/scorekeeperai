@@ -135,24 +135,28 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.shadowBlur = 0;
       };
 
-      // Smart stat layout (evenly spaced across safe width)
-      const statsConf = getSportStatsConfig(game.sport, p);
-      const safeL = 80; const safeR = 80; const usable = W - safeL - safeR;
-      const count = Math.max(1, statsConf.length);
-      const spacingFactor = 0.7; // tighter spacing between stats
-      const step = count === 1 ? 0 : (usable / (count - 1)) * spacingFactor;
+      // Smart stat layout (evenly spaced across safe width) - hide zero values and center remaining
+      const rawStats = getSportStatsConfig(game.sport, p) || [];
+      const statsConf = rawStats.filter(s => s && Number(s.value) !== 0);
 
       // Place stats just below the date with clean spacing
       const dateCenterY = (L.datePill?.y ?? 132) + 18; // matches date rendering center
       const defaultOffset = L.stats?.offset ?? 90; // spacing below date
       const y = dateCenterY + defaultOffset;
 
-      const totalSpan = count === 1 ? 0 : (count - 1) * step;
-      const startX = (W / 2) - (totalSpan / 2);
-      for (let i = 0; i < count; i++) {
-        const x = count === 1 ? W / 2 : startX + i * step;
-        const s = statsConf[i];
-        if (s) drawStat(x, y, s.label, s.value);
+      if (statsConf.length > 0) {
+        const safeL = 80; const safeR = 80; const usable = W - safeL - safeR;
+        const count = statsConf.length;
+        const spacingFactor = 0.7; // tighter spacing between stats
+        const step = count === 1 ? 0 : (usable / (count - 1)) * spacingFactor;
+
+        const totalSpan = count === 1 ? 0 : (count - 1) * step;
+        const startX = (W / 2) - (totalSpan / 2);
+        for (let i = 0; i < count; i++) {
+          const x = count === 1 ? W / 2 : startX + i * step;
+          const s = statsConf[i];
+          if (s) drawStat(x, y, s.label, s.value);
+        }
       }
 
       // Position headshot between stats (y) and player name with equal spacing, keeping stats above name
