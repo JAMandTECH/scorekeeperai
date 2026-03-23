@@ -144,7 +144,7 @@ export default function SubscriptionCheckout() {
     {
       name: 'Basic',
       value: 'basic',
-      price: 'AUD $25',
+      price: 'AUD $35',
       period: '/month',
       icon: Star,
       color: 'blue',
