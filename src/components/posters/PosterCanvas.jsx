@@ -173,7 +173,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           // Draw headshot without clipping; fit entire image within polygon bounds (contain)
           ctx.save();
           ctx.translate(0, deltaY);
-          const ar = Math.min(bw / headImg.width, bh / headImg.height);
+          const scale = 1.5;
+          const ar = Math.min(bw / headImg.width, bh / headImg.height) * scale;
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
           const dx2 = minX + (bw - dw2) / 2; const dy2 = minY + (bh - dh2) / 2;
           ctx.drawImage(headImg, dx2, dy2, dw2, dh2);
@@ -204,7 +205,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           // Draw headshot without circular clipping; fit entire image within square box
           ctx.save();
           const box = r * 2;
-          const ar = Math.min(box / headImg.width, box / headImg.height);
+          const scale = 1.5;
+          const ar = Math.min(box / headImg.width, box / headImg.height) * scale;
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
           ctx.drawImage(headImg, cx - dw2 / 2, cy - dh2 / 2, dw2, dh2);
           ctx.restore();
