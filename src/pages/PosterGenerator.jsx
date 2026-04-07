@@ -192,11 +192,42 @@ export default function PosterGenerator() {
   });
 
   const deletePosterMutation = useMutation({
-    mutationFn: (id) => base44.entities.Poster.delete(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['posters'] });
-    },
-  });
+      mutationFn: (id) => base44.entities.Poster.delete(id),
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: ['posters'] });
+      },
+    });
+
+  const handlePosterDownload = async (poster) => {
+    if (!poster?.image_url) return;
+    const url = poster.image_url;
+    try {
+      const res = await fetch(url, { mode: 'cors' });
+      const blob = await res.blob();
+      const type = blob.type || 'image/jpeg';
+      const ext = (type.split('/')?.[1] || 'jpg').split(';')[0];
+      const safeTitle = (poster.title || 'poster')
+        .toString()
+        .replace(/[^a-z0-9-_ ]/gi, '')
+        .trim()
+        .replace(/\s+/g, '_')
+        .toLowerCase();
+      const datePart = poster.created_date ? new Date(poster.created_date).toISOString().slice(0, 10) : '';
+      const filename = [safeTitle || 'poster', datePart].filter(Boolean).join('_') + '.' + ext;
+
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (_) {
+      // Fallback: open in new tab if direct download is blocked
+      window.open(url, '_blank');
+    }
+  };
 
   if (user && user.role !== 'admin') {
     return (
@@ -581,9 +612,7 @@ export default function PosterGenerator() {
                             <a href={p.image_url} target="_blank" rel="noreferrer">
                               <Button size="sm" variant="outline">Open</Button>
                             </a>
-                            <a href={p.image_url} download>
-                              <Button size="sm" className="gap-2"><Download className="h-3 w-3" /> Download</Button>
-                            </a>
+                            <Button size="sm" className="gap-2" onClick={() => handlePosterDownload(p)}><Download className="h-3 w-3" /> Download</Button>
                           </>
                         )}
                         <Button
@@ -644,9 +673,7 @@ export default function PosterGenerator() {
                                   <a href={p.image_url} target="_blank" rel="noreferrer">
                                     <Button size="sm" variant="outline">Open</Button>
                                   </a>
-                                  <a href={p.image_url} download>
-                                    <Button size="sm" className="gap-2"><Download className="h-3 w-3" /> Download</Button>
-                                  </a>
+                                  <Button size="sm" className="gap-2" onClick={() => handlePosterDownload(p)}><Download className="h-3 w-3" /> Download</Button>
                                 </>
                               )}
                               <Button
