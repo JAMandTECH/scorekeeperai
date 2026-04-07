@@ -19,6 +19,7 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
+  const currentOrgId = user?.active_organization_id || user?.organization_id;
 
   useEffect(() => {
     loadUser();
@@ -70,12 +71,14 @@ export default function Dashboard() {
   };
 
   const { data: organization } = useQuery({
-    queryKey: ['organization', user?.organization_id],
+    queryKey: ['organization', currentOrgId],
     queryFn: async () => {
       const orgs = await base44.entities.Organization.list();
-      return orgs.find(o => o.id === user?.organization_id);
+      return orgs.find(o => o.id === currentOrgId);
     },
-    enabled: !!user?.organization_id,
+    enabled: !!currentOrgId,
+    refetchOnWindowFocus: true,
+    refetchInterval: 10000,
   });
 
   const { data: allOrganizations = [] } = useQuery({
@@ -85,22 +88,22 @@ export default function Dashboard() {
   });
 
   const { data: teams = [] } = useQuery({
-    queryKey: ['teams', user?.organization_id],
-    queryFn: () => base44.entities.Team.filter({ organization_id: user?.organization_id }),
-    enabled: !!user?.organization_id,
+    queryKey: ['teams', currentOrgId],
+    queryFn: () => base44.entities.Team.filter({ organization_id: currentOrgId }),
+    enabled: !!currentOrgId,
     refetchInterval: 15000,
   });
 
   const { data: players = [] } = useQuery({
-    queryKey: ['players', user?.organization_id],
+    queryKey: ['players', currentOrgId],
     queryFn: async () => {
-      const orgTeams = await base44.entities.Team.filter({ organization_id: user?.organization_id });
+      const orgTeams = await base44.entities.Team.filter({ organization_id: currentOrgId });
       const teamIds = orgTeams.map(t => t.id);
       if (teamIds.length === 0) return [];
       const allPlayers = await base44.entities.Player.list();
       return allPlayers.filter(p => teamIds.includes(p.team_id));
     },
-    enabled: !!user?.organization_id,
+    enabled: !!currentOrgId,
     refetchInterval: 15000,
   });
 
