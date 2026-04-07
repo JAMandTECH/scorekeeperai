@@ -853,6 +853,15 @@ export default function Home() {
                       </div>
                     </CardHeader>
                     <CardContent className="p-0">
+                      <div className="flex items-center gap-3 p-4">
+                        <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+                          <Globe className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-extrabold text-gray-900 dark:text-white">Basketball</h3>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 -mt-0.5">League Standings & Player Stats</p>
+                        </div>
+                      </div>
                       <div className="overflow-x-auto">
                         <table className="w-full">
                           <thead>
@@ -1230,7 +1239,7 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-3">
-                        {completedBasketballGames.map(game => {
+                        {completedBasketballGamesOpen.map(game => {
                           // Determine winning team
                           const winningTeamId = game.home_score > game.away_score ? game.home_team_id : game.away_team_id;
 
