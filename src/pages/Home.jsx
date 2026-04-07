@@ -268,6 +268,7 @@ export default function Home() {
         .map(team => {
           const teamGames = games.filter(g => 
             g.status === 'completed' &&
+            g.sport === sport &&
             g.archived !== true &&
             (g.home_team_id === team.id || g.away_team_id === team.id)
           );
