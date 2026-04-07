@@ -319,7 +319,10 @@ export default function Statistics() {
 
   // Team statistics with fouls, timeouts, etc.
   const teamStats = filteredTeams.map(team => {
-    const teamGames = completedGames.filter(g => g.home_team_id === team.id || g.away_team_id === team.id);
+    // Strict: only completed games that match the team and the team's sport
+    const teamGames = games.filter(
+      (g) => g.status === 'completed' && (g.home_team_id === team.id || g.away_team_id === team.id) && g.sport === team.sport
+    );
     
     let wins = 0, losses = 0, totalFouls = 0, totalTimeouts = 0;
     let totalPointsFor = 0, totalPointsAgainst = 0;
