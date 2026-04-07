@@ -378,7 +378,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
     }
   };
 
-  const useTimeout = async (team) => {
+  const handleTimeout = async (team) => {
     if (game) {
       const action = {
         type: 'timeout',
@@ -1155,7 +1155,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                   {homeTeam.name} - HOME
                 </h2>
                 <Button
-                  onClick={() => useTimeout('home')}
+                  onClick={() => handleTimeout('home')}
                   disabled={homeTimeouts === 0}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
                 >
@@ -1183,7 +1183,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                   {awayTeam.name} - AWAY
                 </h2>
                 <Button
-                  onClick={() => useTimeout('away')}
+                  onClick={() => handleTimeout('away')}
                   disabled={awayTimeouts === 0}
                   className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
                 >

@@ -545,7 +545,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
     }
   };
 
-  const useTimeout = async (team) => {
+  const handleTimeout = async (team) => {
     // Only overall scorekeeper can manage timeouts for basketball
     if (game.sport === 'basketball' && userRole !== 'overall') {
       alert("Only the Overall Scorekeeper can manage timeouts.");
@@ -1591,7 +1591,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                   {homeTeam.name} - HOME
                 </h2>
                 <Button
-                  onClick={() => useTimeout('home')}
+                  onClick={() => handleTimeout('home')}
                   disabled={undoInProgress || homeTimeouts === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
                   className="bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
                 >
@@ -1620,7 +1620,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                   {awayTeam.name} - AWAY
                 </h2>
                 <Button
-                  onClick={() => useTimeout('away')}
+                  onClick={() => handleTimeout('away')}
                   disabled={undoInProgress || awayTimeouts === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
                 >
