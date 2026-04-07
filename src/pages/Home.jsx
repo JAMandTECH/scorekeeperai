@@ -195,8 +195,10 @@ export default function Home() {
   });
 
   // Calculate top players for a given stat type and sport
-  const getTopPlayers = (statType, sport = 'basketball', limit = 10) => {
-    const sportTeamIds = teams.filter(t => t.sport === sport).map(t => t.id);
+  const getTopPlayers = (statType, sport = 'basketball', limit = 10, division = null) => {
+    const sportTeamIds = teams
+      .filter(t => t.sport === sport && (!division || (t.division || 'No Division') === division))
+      .map(t => t.id);
     const sportPlayers = players.filter(p => sportTeamIds.includes(p.team_id));
 
     const includeArchived = organization?.settings?.include_archived_in_leaders === true;
@@ -354,6 +356,8 @@ export default function Home() {
   };
 
   const basketballStandings = getTeamStandings('basketball');
+  const basketballStandingsOpen = basketballStandings.filter(d => (d.division || 'No Division') === 'Open');
+  const basketballStandingsVeterans = basketballStandings.filter(d => (d.division || 'No Division') === 'Veterans');
   const volleyballStandings = getTeamStandings('volleyball');
 
   const topScorers = getTopPlayers('points', 'basketball', 10);
@@ -361,6 +365,19 @@ export default function Home() {
   const topAssisters = getTopPlayers('assists', 'basketball', 10);
   const topBlockers = getTopPlayers('blocks', 'basketball', 10);
   const top3Pointers = getTopPlayers('three_pointers', 'basketball', 10);
+
+  // Division-specific leaders (Basketball)
+  const topScorersOpen = getTopPlayers('points', 'basketball', 10, 'Open');
+  const topReboundersOpen = getTopPlayers('rebounds', 'basketball', 10, 'Open');
+  const topAssistersOpen = getTopPlayers('assists', 'basketball', 10, 'Open');
+  const topBlockersOpen = getTopPlayers('blocks', 'basketball', 10, 'Open');
+  const top3PointersOpen = getTopPlayers('three_pointers', 'basketball', 10, 'Open');
+
+  const topScorersVeterans = getTopPlayers('points', 'basketball', 10, 'Veterans');
+  const topReboundersVeterans = getTopPlayers('rebounds', 'basketball', 10, 'Veterans');
+  const topAssistersVeterans = getTopPlayers('assists', 'basketball', 10, 'Veterans');
+  const topBlockersVeterans = getTopPlayers('blocks', 'basketball', 10, 'Veterans');
+  const top3PointersVeterans = getTopPlayers('three_pointers', 'basketball', 10, 'Veterans');
 
   const topVolleyballScorers = getTopPlayers('points', 'volleyball', 10);
   const topVolleyballAttackers = getTopPlayers('attacks', 'volleyball', 10);
@@ -374,6 +391,30 @@ export default function Home() {
 
   const completedBasketballGames = games
     .filter(g => g.sport === 'basketball' && g.status === 'completed')
+    .sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime())
+    .slice(0, 10);
+
+  // Division-specific schedules (Basketball)
+  const openTeamIds = teams.filter(t => t.sport === 'basketball' && (t.division || 'No Division') === 'Open').map(t => t.id);
+  const veteransTeamIds = teams.filter(t => t.sport === 'basketball' && (t.division || 'No Division') === 'Veterans').map(t => t.id);
+
+  const upcomingBasketballGamesOpen = games
+    .filter(g => g.sport === 'basketball' && g.status === 'scheduled' && (openTeamIds.includes(g.home_team_id) || openTeamIds.includes(g.away_team_id)))
+    .sort((a, b) => new Date(a.game_date).getTime() - new Date(b.game_date).getTime())
+    .slice(0, 10);
+
+  const completedBasketballGamesOpen = games
+    .filter(g => g.sport === 'basketball' && g.status === 'completed' && (openTeamIds.includes(g.home_team_id) || openTeamIds.includes(g.away_team_id)))
+    .sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime())
+    .slice(0, 10);
+
+  const upcomingBasketballGamesVeterans = games
+    .filter(g => g.sport === 'basketball' && g.status === 'scheduled' && (veteransTeamIds.includes(g.home_team_id) || veteransTeamIds.includes(g.away_team_id)))
+    .sort((a, b) => new Date(a.game_date).getTime() - new Date(b.game_date).getTime())
+    .slice(0, 10);
+
+  const completedBasketballGamesVeterans = games
+    .filter(g => g.sport === 'basketball' && g.status === 'completed' && (veteransTeamIds.includes(g.home_team_id) || veteransTeamIds.includes(g.away_team_id)))
     .sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime())
     .slice(0, 10);
 
