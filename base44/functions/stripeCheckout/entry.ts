@@ -1,9 +1,8 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 import Stripe from 'npm:stripe@14.23.0';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
+    // Public app: no Base44 auth required here
     // Public app: do not require auth; trust payload + handle on webhook
     const { tier, organization_id, selected_sport } = await req.json();
 
@@ -32,8 +31,8 @@ Deno.serve(async (req) => {
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      success_url: `${origin}/`,
-      cancel_url: `${origin}/`,
+      success_url: `${origin}/Dashboard`,
+      cancel_url: `${origin}/Dashboard`,
       line_items: [
         {
           price_data: {
