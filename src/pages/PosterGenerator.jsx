@@ -94,7 +94,7 @@ export default function PosterGenerator() {
   const topQ = useQuery({
     queryKey: ['topPlayers', selectedGameId],
     queryFn: async () => {
-      const res = await base44.functions.invoke('getTopPlayersForGame', { gameId: selectedGameId, topN: 1 });
+      const res = await base44.functions.invoke('getTopPlayersForGame', { gameId: selectedGameId, topN: 10 });
       return res.data;
     },
     enabled: !!user && !!selectedGameId,
