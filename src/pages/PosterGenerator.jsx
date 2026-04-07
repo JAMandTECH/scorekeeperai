@@ -431,9 +431,9 @@ export default function PosterGenerator() {
                   <PosterCanvas
                     backgroundUrl={imageUrl}
                     game={gameForPoster}
-                    players={topQ.data.topPlayers ? [topQ.data.topPlayers[0]] : []}
+                    players={[(() => { const gp = gameForPoster; const tops = topQ.data?.topPlayers || []; if (!gp || tops.length === 0) return null; const winTeamId = gp.winning_team_id || (() => { if (gp.sport === 'volleyball' && Array.isArray(gp.quarter_scores)) { let hw=0, aw=0; gp.quarter_scores.forEach(s=>{ const h=(s?.home ?? 0), a=(s?.away ?? 0); if (h>a) hw++; else if (a>h) aw++; }); if (hw !== aw) return hw>aw ? gp.home_team_id : gp.away_team_id; } return ( (gp.home_score ?? 0) > (gp.away_score ?? 0) ) ? gp.home_team_id : gp.away_team_id; })(); const winnerTop = tops.find(p => p.team_id === winTeamId) || tops[0]; return winnerTop; })()].filter(Boolean)}
                     org={orgQ.data}
-                    bestPlayerImageUrl={bestPlayerImageUrl || (topQ.data.topPlayers?.[0]?.photo_url || '')}
+                    bestPlayerImageUrl={(() => { if (bestPlayerImageUrl) return bestPlayerImageUrl; const gp = gameForPoster; const tops = topQ.data?.topPlayers || []; if (!gp || tops.length === 0) return ''; const winTeamId = gp.winning_team_id || (() => { if (gp.sport === 'volleyball' && Array.isArray(gp.quarter_scores)) { let hw=0, aw=0; gp.quarter_scores.forEach(s=>{ const h=(s?.home ?? 0), a=(s?.away ?? 0); if (h>a) hw++; else if (a>h) aw++; }); if (hw !== aw) return hw>aw ? gp.home_team_id : gp.away_team_id; } return ( (gp.home_score ?? 0) > (gp.away_score ?? 0) ) ? gp.home_team_id : gp.away_team_id; })(); const winnerTop = tops.find(p => p.team_id === winTeamId) || tops[0]; return winnerTop?.photo_url || ''; })()}
                     homeName={teamMap[gameForPoster?.home_team_id] || 'Home Team'}
                     awayName={teamMap[gameForPoster?.away_team_id] || 'Away Team'}
                     layout={layout}
