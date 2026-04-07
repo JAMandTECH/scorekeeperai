@@ -6,13 +6,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 
-export default function TopAssistLeaders({ organizationId = null, sport = "basketball", limit = 10, title = "Top 10 Assist Leaders", orgName = null, orgLogoUrl = null }) {
+export default function TopAssistLeaders({ organizationId = null, sport = "basketball", limit = 10, title = "Top 10 Assist Leaders", orgName = null, orgLogoUrl = null, division = null }) {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["top-assist-leaders", organizationId, sport, limit],
+    queryKey: ["top-assist-leaders", organizationId, sport, division, limit],
     queryFn: async () => {
       const res = await base44.functions.invoke("getTopAssistLeaders", {
         organization_id: organizationId,
         sport,
+        division,
         limit,
       });
       const leaders = res?.data?.leaders;

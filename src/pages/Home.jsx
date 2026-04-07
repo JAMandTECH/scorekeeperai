@@ -1053,7 +1053,10 @@ export default function Home() {
                     </CardContent>
                   </Card>
 
-                  <TopAssistLeaders organizationId={orgId} sport="basketball" title="Top 10 Assist Leaders" orgName={organization?.name} orgLogoUrl={organization?.logo_url} />
+                  <div className="space-y-6">
+                    <TopAssistLeaders organizationId={orgId} sport="basketball" division="Open" title="Top 10 Assist Leaders — Open" orgName={organization?.name} orgLogoUrl={organization?.logo_url} />
+                    <TopAssistLeaders organizationId={orgId} sport="basketball" division="Veterans" title="Top 10 Assist Leaders — Veterans" orgName={organization?.name} orgLogoUrl={organization?.logo_url} />
+                  </div>
 
                   {/* Top 3-Pointer Leaders */}
                   <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">

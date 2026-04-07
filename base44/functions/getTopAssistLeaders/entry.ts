@@ -13,9 +13,10 @@ Deno.serve(async (req) => {
     const organizationId: string | null = payload.organization_id || null;
     const limit: number = Math.max(1, Math.min(Number(payload.limit) || 10, 50));
     const sport: string = (payload.sport || 'basketball').toLowerCase();
+    const division: string | null = payload.division ? String(payload.division).toLowerCase() : null;
 
     // Fetch only what we need with service role to avoid RLS/rate-limits
-    const [teams, games] = await Promise.all([
+    const [teamsRaw, games] = await Promise.all([
       organizationId
         ? base44.asServiceRole.entities.Team.filter({ organization_id: organizationId, sport })
         : base44.asServiceRole.entities.Team.filter({ sport }),
@@ -23,6 +24,13 @@ Deno.serve(async (req) => {
         ? base44.asServiceRole.entities.Game.filter({ organization_id: organizationId, sport, status: 'completed' })
         : base44.asServiceRole.entities.Game.filter({ sport, status: 'completed' })
     ]);
+
+    // Optional division filter (case-insensitive)
+    const teams = (teamsRaw || []).filter((t: any) => {
+      if (!division) return true;
+      const div = (t.division || 'No Division').toString().toLowerCase();
+      return div === division;
+    });
 
     if (!teams || teams.length === 0 || !games || games.length === 0) {
       return Response.json({ leaders: [], count: 0, sport, organization_id: organizationId });
@@ -91,7 +99,7 @@ Deno.serve(async (req) => {
       .sort((a, b) => b.total_assists - a.total_assists)
       .slice(0, limit);
 
-    return Response.json({ leaders, count: leaders.length, sport, organization_id: organizationId });
+    return Response.json({ leaders, count: leaders.length, sport, division, organization_id: organizationId });
   } catch (error: any) {
     return Response.json({ error: error?.message || 'Internal Server Error' }, { status: 500 });
   }
