@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Download, Sparkles, Trash2, FolderOpen, RefreshCcw, ArrowLeft } from 'lucide-react'; // cleaned: removed AI chat; kept background remover
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Loader2, Download, Sparkles, Trash2, FolderOpen, RefreshCcw, ArrowLeft, LayoutGrid, List } from 'lucide-react'; // cleaned: removed AI chat; kept background remover
 import PosterCanvas from '@/components/posters/PosterCanvas';
 import { format } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
@@ -37,6 +38,12 @@ export default function PosterGenerator() {
   const [newTplLayout, setNewTplLayout] = React.useState('{}');
   const [newTplFile, setNewTplFile] = React.useState(null);
   const [tplUploading, setTplUploading] = React.useState(false);
+  // Saved posters view/filter state
+  const [viewMode, setViewMode] = React.useState('cards'); // 'cards' | 'table'
+  const [filterSport, setFilterSport] = React.useState('all');
+  const [filterDivision, setFilterDivision] = React.useState('all');
+  const [dateFrom, setDateFrom] = React.useState('');
+  const [dateTo, setDateTo] = React.useState('');
 
   React.useEffect(() => {
     (async () => {
@@ -124,6 +131,47 @@ export default function PosterGenerator() {
     initialData: [],
     enabled: !!user,
   });
+
+  // Load related games for the saved posters to enable division/sport/date filtering
+  const posterGamesQ = useQuery({
+    queryKey: ['posterGames', (postersQ.data || []).map(p => p.game_id || '').join(',')],
+    queryFn: async () => {
+      const ids = Array.from(new Set((postersQ.data || []).map(p => p.game_id).filter(Boolean)));
+      const results = await Promise.all(ids.map(async (id) => {
+        const arr = await base44.entities.Game.filter({ id });
+        return arr?.[0] || null;
+      }));
+      const map = {};
+      results.forEach(g => { if (g) map[g.id] = g; });
+      return map;
+    },
+    enabled: !!user && !!postersQ.data && postersQ.data.length > 0,
+    initialData: {},
+  });
+
+  const gameById = posterGamesQ.data || {};
+  const divisionOptions = React.useMemo(() => {
+    const set = new Set();
+    Object.values(gameById).forEach((g) => { if (g?.division) set.add(g.division); });
+    return Array.from(set);
+  }, [posterGamesQ.data]);
+
+  const filteredPosters = React.useMemo(() => {
+    const from = dateFrom ? new Date(dateFrom) : null;
+    const to = dateTo ? new Date(dateTo) : null;
+    return (postersQ.data || []).filter((p) => {
+      const g = p.game_id ? gameById[p.game_id] : null;
+      const sportVal = (p.sport || g?.sport || '').toLowerCase();
+      const divVal = g?.division || '';
+      const dateStr = g?.game_date || p.created_date;
+      const d = dateStr ? new Date(dateStr) : null;
+      if (filterSport !== 'all' && sportVal !== filterSport) return false;
+      if (filterDivision !== 'all' && divVal !== filterDivision) return false;
+      if (from && d && d < from) return false;
+      if (to && d && d > new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59, 999)) return false;
+      return true;
+    });
+  }, [postersQ.data, gameById, filterSport, filterDivision, dateFrom, dateTo]);
 
   const genMutation = useMutation({
     mutationFn: async ({ gameId, templateId }) => {
@@ -458,58 +506,169 @@ export default function PosterGenerator() {
           <DialogHeader>
             <DialogTitle>Saved Posters</DialogTitle>
           </DialogHeader>
-          <div className="mb-3 flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">{postersQ.data?.length || 0} saved</div>
-            <Button size="sm" variant="outline" className="gap-2" onClick={() => qc.invalidateQueries({ queryKey: ['posters'] })}>
-              <RefreshCcw className="h-4 w-4" /> Refresh
-            </Button>
+          <div className="mb-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">{filteredPosters.length} shown</div>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant={viewMode === 'cards' ? 'default' : 'outline'} className="gap-2" onClick={() => setViewMode('cards')}>
+                  <LayoutGrid className="h-4 w-4" /> Cards
+                </Button>
+                <Button size="sm" variant={viewMode === 'table' ? 'default' : 'outline'} className="gap-2" onClick={() => setViewMode('table')}>
+                  <List className="h-4 w-4" /> Table
+                </Button>
+                <Button size="sm" variant="outline" className="gap-2" onClick={() => qc.invalidateQueries({ queryKey: ['posters'] })}>
+                  <RefreshCcw className="h-4 w-4" /> Refresh
+                </Button>
+              </div>
+            </div>
+            <div className="grid md:grid-cols-4 gap-2">
+              <div>
+                <label className="text-xs text-muted-foreground">Sport</label>
+                <Select value={filterSport} onValueChange={setFilterSport}>
+                  <SelectTrigger className="h-9 mt-1"><SelectValue placeholder="All sports" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="basketball">Basketball</SelectItem>
+                    <SelectItem value="volleyball">Volleyball</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Division</label>
+                <Select value={filterDivision} onValueChange={setFilterDivision}>
+                  <SelectTrigger className="h-9 mt-1"><SelectValue placeholder="All divisions" /></SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    <SelectItem value="all">All</SelectItem>
+                    {divisionOptions.map((d) => (
+                      <SelectItem key={String(d)} value={String(d)}>{String(d)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">From date</label>
+                <Input type="date" className="mt-1 h-9" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">To date</label>
+                <Input type="date" className="mt-1 h-9" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+              </div>
+            </div>
           </div>
           {postersQ.isLoading ? (
             <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading saved posters...</div>
           ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {postersQ.data?.map(p => (
-                <div key={p.id} className="border rounded-lg overflow-hidden">
-                  <div className="relative aspect-[4/5] bg-muted">
-                    {p.image_url ? (
-                      <img src={p.image_url} alt={p.title || 'Saved poster'} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No image</div>
-                    )}
-                  </div>
-                  <div className="p-3 flex items-center justify-between">
-                    <div className="min-w-0">
-                      <div className="font-medium truncate">{p.title || 'Poster'}</div>
-                      <div className="text-xs text-muted-foreground truncate">{new Date(p.created_date).toLocaleString()}</div>
-                    </div>
-                    <div className="shrink-0 flex gap-2">
-                      {p.image_url && (
-                        <>
-                          <a href={p.image_url} target="_blank" rel="noreferrer">
-                            <Button size="sm" variant="outline">Open</Button>
-                          </a>
-                          <a href={p.image_url} download>
-                            <Button size="sm" className="gap-2"><Download className="h-3 w-3" /> Download</Button>
-                          </a>
-                        </>
+            viewMode === 'cards' ? (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredPosters.map(p => (
+                  <div key={p.id} className="border rounded-lg overflow-hidden">
+                    <div className="relative aspect-[4/5] bg-muted">
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.title || 'Saved poster'} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No image</div>
                       )}
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => { if (window.confirm('Delete this poster?')) deletePosterMutation.mutate(p.id); }}
-                        disabled={deletePosterMutation.isPending}
-                        title="Delete Poster"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                    </div>
+                    <div className="p-3 flex items-center justify-between">
+                      <div className="min-w-0">
+                        <div className="font-medium truncate">{p.title || 'Poster'}</div>
+                        <div className="text-xs text-muted-foreground truncate">{new Date(p.created_date).toLocaleString()}</div>
+                      </div>
+                      <div className="shrink-0 flex gap-2">
+                        {p.image_url && (
+                          <>
+                            <a href={p.image_url} target="_blank" rel="noreferrer">
+                              <Button size="sm" variant="outline">Open</Button>
+                            </a>
+                            <a href={p.image_url} download>
+                              <Button size="sm" className="gap-2"><Download className="h-3 w-3" /> Download</Button>
+                            </a>
+                          </>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => { if (window.confirm('Delete this poster?')) deletePosterMutation.mutate(p.id); }}
+                          disabled={deletePosterMutation.isPending}
+                          title="Delete Poster"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              {(!postersQ.data || postersQ.data.length === 0) && (
-                <div className="text-sm text-muted-foreground">No posters saved yet.</div>
-              )}
-            </div>
+                ))}
+                {filteredPosters.length === 0 && (
+                  <div className="text-sm text-muted-foreground">No posters match filters.</div>
+                )}
+              </div>
+            ) : (
+              <div className="overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Preview</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Sport</TableHead>
+                      <TableHead>Division</TableHead>
+                      <TableHead>Game date</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPosters.map((p) => {
+                      const g = (posterGamesQ.data || {})[p.game_id] || null;
+                      const div = g?.division || '-';
+                      const gameDate = g?.game_date ? format(new Date(g.game_date), 'PP') : '-';
+                      const sportVal = (p.sport || g?.sport || '-');
+                      return (
+                        <TableRow key={p.id}>
+                          <TableCell>
+                            {p.image_url ? (
+                              <img src={p.image_url} alt="preview" className="h-14 w-11 rounded object-cover" />
+                            ) : (
+                              <span className="text-xs text-muted-foreground">No image</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="max-w-[240px] truncate">{p.title || 'Poster'}</TableCell>
+                          <TableCell className="capitalize">{sportVal}</TableCell>
+                          <TableCell>{div}</TableCell>
+                          <TableCell>{gameDate}</TableCell>
+                          <TableCell className="whitespace-nowrap">{new Date(p.created_date).toLocaleString()}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              {p.image_url && (
+                                <>
+                                  <a href={p.image_url} target="_blank" rel="noreferrer">
+                                    <Button size="sm" variant="outline">Open</Button>
+                                  </a>
+                                  <a href={p.image_url} download>
+                                    <Button size="sm" className="gap-2"><Download className="h-3 w-3" /> Download</Button>
+                                  </a>
+                                </>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => { if (window.confirm('Delete this poster?')) deletePosterMutation.mutate(p.id); }}
+                                disabled={deletePosterMutation.isPending}
+                                title="Delete Poster"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+                {filteredPosters.length === 0 && (
+                  <div className="text-sm text-muted-foreground mt-2">No posters match filters.</div>
+                )}
+              </div>
+            )
           )}
         </DialogContent>
       </Dialog>
