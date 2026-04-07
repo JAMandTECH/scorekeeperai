@@ -45,6 +45,15 @@ export default function SubscriptionManagement() {
     }
   }, []);
 
+  // Realtime: auto-refresh when orgs change (Stripe webhook updates)
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = base44.entities.Organization.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['all-organizations-subscriptions'] });
+    });
+    return unsubscribe;
+  }, [user]);
+
   const checkAccess = async () => {
     try {
       const currentUser = await base44.auth.me();
@@ -78,6 +87,8 @@ export default function SubscriptionManagement() {
     queryKey: ['all-organizations-subscriptions'],
     queryFn: () => base44.entities.Organization.list('-created_date'),
     enabled: !!user,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
   });
 
   const { data: allTeams = [] } = useQuery({
@@ -105,7 +116,7 @@ export default function SubscriptionManagement() {
     });
   };
 
-  const handleSaveSubscription = () => {
+  const handleSaveSubscription = async () => {
     if (!editingOrg) return;
 
     const updateData = {
@@ -129,6 +140,22 @@ export default function SubscriptionManagement() {
       orgId: editingOrg.id,
       data: updateData,
     });
+
+    // Mirror changes to admin users of the org so dashboards reflect immediately
+    try {
+      const admins = await base44.entities.User.filter({
+        role: 'admin',
+        $or: [{ organization_id: editingOrg.id }, { active_organization_id: editingOrg.id }]
+      });
+      await Promise.allSettled(
+        admins.map(u => base44.entities.User.update(u.id, {
+          subscription_tier: editingOrg.subscription_tier,
+          subscription_status: editingOrg.subscription_status
+        }))
+      );
+    } catch (e) {
+      console.warn('Could not mirror admin users on manual change:', e?.message || e);
+    }
   };
 
   const getTierIcon = (tier) => {

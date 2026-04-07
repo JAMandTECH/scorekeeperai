@@ -53,6 +53,14 @@ Deno.serve(async (req) => {
         tier,
         selected_sport: selected_sport || '',
       },
+      subscription_data: {
+        metadata: {
+          base44_app_id: Deno.env.get('BASE44_APP_ID') || '',
+          organization_id,
+          tier,
+          selected_sport: selected_sport || '',
+        }
+      },
       allow_promotion_codes: true,
     });
 

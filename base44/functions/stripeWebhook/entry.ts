@@ -102,6 +102,42 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Handle mid-cycle plan changes and metadata-carrying subscription events
+    if (type === 'customer.subscription.updated') {
+      try {
+        const items = data.items?.data || [];
+        const amount = items[0]?.price?.unit_amount ?? items[0]?.plan?.amount;
+        const computedTier = amount === 3500 ? 'basic' : amount === 5000 ? 'premium' : (data.metadata?.tier || null);
+        const subOrgId = data.metadata?.organization_id || organizationId; // fallback if webhook provided one earlier
+        if (subOrgId) {
+          const update = { subscription_status: data.status || 'active' };
+          if (computedTier) update.subscription_tier = computedTier;
+          await base44.entities.Organization.update(subOrgId, update);
+          console.log('Subscription updated; synced org:', subOrgId, update);
+
+          // Mirror to admins
+          try {
+            const admins = await base44.entities.User.filter({
+              role: 'admin',
+              $or: [{ organization_id: subOrgId }, { active_organization_id: subOrgId }]
+            });
+            await Promise.allSettled(
+              admins.map(u => base44.entities.User.update(u.id, {
+                subscription_tier: computedTier || u.subscription_tier,
+                subscription_status: data.status || 'active'
+              }))
+            );
+          } catch (e) {
+            console.error('Failed to mirror admin user state on subscription.updated:', e?.message || e);
+          }
+        } else {
+          console.warn('subscription.updated without organization id');
+        }
+      } catch (e) {
+        console.error('Error handling customer.subscription.updated:', e?.message || e);
+      }
+    }
+
     if (type === 'customer.subscription.deleted' || type === 'customer.subscription.canceled') {
       await base44.entities.Organization.update(organizationId, { subscription_status: 'cancelled', subscription_tier: 'free' });
       console.log('Subscription cancelled; downgraded org:', organizationId);
