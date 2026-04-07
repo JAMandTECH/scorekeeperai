@@ -381,7 +381,7 @@ export default function PosterGenerator() {
             {templatesQ.isLoading ? (
               <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading templates...</div>
             ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {templatesQ.data?.map(t => (
                   <div
                     key={t.id}
@@ -502,7 +502,7 @@ export default function PosterGenerator() {
         </div>
       )}
       <Dialog open={savedOpen} onOpenChange={setSavedOpen}>
-        <DialogContent className="max-w-4xl max-h-[85vh]">
+        <DialogContent className="w-[95vw] max-w-5xl max-h-[85vh]">
           <DialogHeader>
             <DialogTitle>Saved Posters</DialogTitle>
           </DialogHeader>
@@ -555,12 +555,12 @@ export default function PosterGenerator() {
               </div>
             </div>
           </div>
-          <div className="max-h-[70vh] overflow-y-auto pr-1">
+          <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden pr-1">
           {postersQ.isLoading ? (
             <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading saved posters...</div>
           ) : (
             viewMode === 'cards' ? (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredPosters.map(p => (
                   <div key={p.id} className="border rounded-lg overflow-hidden">
                     <div className="relative aspect-[4/5] bg-muted">
