@@ -20,6 +20,7 @@ export default function SubscriptionCheckout() {
   const [selectedTier, setSelectedTier] = useState(null);
   const [selectedSport, setSelectedSport] = useState('basketball');
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [billingCycle, setBillingCycle] = useState('monthly');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -131,7 +132,8 @@ export default function SubscriptionCheckout() {
     {
       name: 'Free',
       value: 'free',
-      price: 'AUD $0',
+      monthly: 0,
+      yearly: 0,
       icon: Gift,
       color: 'gray',
       features: [
@@ -144,8 +146,8 @@ export default function SubscriptionCheckout() {
     {
       name: 'Basic',
       value: 'basic',
-      price: 'AUD $35',
-      period: '/month',
+      monthly: 35,
+      yearly: 35 * 12,
       icon: Star,
       color: 'blue',
       popular: currentTier === 'free',
@@ -161,11 +163,11 @@ export default function SubscriptionCheckout() {
     {
       name: 'Premium',
       value: 'premium',
-      price: 'AUD $50',
-      period: '/month',
+      monthly: 50,
+      yearly: 50 * 12,
       icon: Crown,
       color: 'purple',
-      popular: currentTier === 'basic',
+      popular: true,
       features: [
         'Everything in Basic',
         'Multiple sports support',
@@ -212,6 +214,19 @@ export default function SubscriptionCheckout() {
                 </p>
               </div>
 
+              {/* Billing Cycle Toggle */}
+              <div className="flex items-center justify-center gap-2">
+                <Button variant={billingCycle === 'monthly' ? 'default' : 'outline'} size="sm" onClick={() => setBillingCycle('monthly')}>
+                  Monthly
+                </Button>
+                <Button variant={billingCycle === 'yearly' ? 'default' : 'outline'} size="sm" onClick={() => setBillingCycle('yearly')}>
+                  Yearly
+                </Button>
+                {billingCycle === 'yearly' && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Yearly billing coming soon</span>
+                )}
+              </div>
+
               {/* Current Status */}
               {currentTier !== 'free' && (
                 <Alert className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30">
@@ -225,16 +240,10 @@ export default function SubscriptionCheckout() {
                 </Alert>
               )}
 
-              {/* Setup Instructions */}
-              <Alert className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30">
-                <AlertCircle className="w-4 h-4 text-blue-600" />
-                <AlertDescription className="text-blue-900 dark:text-blue-300">
-                  <strong>Setup Complete:</strong> Stripe is in Test Mode. Use 4242 4242 4242 4242 and switch to Live keys in Dashboard → Integrations to go live.
-                </AlertDescription>
-              </Alert>
+
 
               {/* Pricing Cards */}
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid md:grid-cols-3 gap-4">
                 {tiers.map((tier) => {
                   const Icon = tier.icon;
                   const isCurrentTier = currentTier === tier.value;
@@ -243,10 +252,10 @@ export default function SubscriptionCheckout() {
                     <Card
                       key={tier.value}
                       className={`relative ${
-                        tier.popular
-                          ? 'border-4 border-purple-400 dark:border-purple-600 shadow-2xl scale-105'
-                          : 'border-2 border-gray-200 dark:border-gray-700'
-                      } bg-white dark:bg-gray-800 transition-all hover:shadow-xl`}
+                         tier.popular
+                           ? 'border-4 border-purple-400 dark:border-purple-600 shadow-2xl scale-105'
+                           : 'border-2 border-gray-200 dark:border-gray-700'
+                       } bg-white dark:bg-gray-800 ${tier.value === 'premium' ? 'neon-glow-purple shadow-futuristic-lg' : ''} transition-all hover:shadow-xl`}
                     >
                       {tier.popular && (
                         <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -255,8 +264,15 @@ export default function SubscriptionCheckout() {
                           </Badge>
                         </div>
                       )}
+                      {tier.value === 'premium' && (
+                        <div className="absolute -top-4 right-4">
+                          <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 px-3 py-1 font-bold">
+                            BEST VALUE
+                          </Badge>
+                        </div>
+                      )}
 
-                      <CardHeader className="text-center pb-8 pt-6">
+                      <CardHeader className="text-center pb-6 pt-5">
                         <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-gradient-to-br ${
                           tier.color === 'purple' ? 'from-purple-500 to-pink-500' :
                           tier.color === 'blue' ? 'from-blue-500 to-cyan-500' :
@@ -268,17 +284,15 @@ export default function SubscriptionCheckout() {
                           {tier.name}
                         </CardTitle>
                         <div className="text-4xl font-black text-gray-900 dark:text-white">
-                          {tier.price}
-                          {tier.period && (
-                            <span className="text-lg font-normal text-gray-500 dark:text-gray-400">
-                              {tier.period}
-                            </span>
-                          )}
+                          AUD ${billingCycle === 'monthly' ? tier.monthly : tier.yearly}
+                          <span className="text-lg font-normal text-gray-500 dark:text-gray-400">
+                            /{billingCycle === 'monthly' ? 'month' : 'year'}
+                          </span>
                         </div>
                       </CardHeader>
 
-                      <CardContent className="space-y-6">
-                        <div className="space-y-3">
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2.5">
                           {tier.features.map((feature, idx) => (
                             <div key={idx} className="flex items-start gap-2">
                               <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
@@ -315,7 +329,7 @@ export default function SubscriptionCheckout() {
 
                         <Button
                           onClick={() => handleSubscribe(tier.value)}
-                          disabled={isCurrentTier || processingPayment}
+                          disabled={isCurrentTier || processingPayment || (billingCycle === 'yearly' && tier.value !== 'free')}
                           className={`w-full font-bold ${
                             isCurrentTier
                               ? 'bg-gray-400 cursor-not-allowed'
@@ -326,7 +340,9 @@ export default function SubscriptionCheckout() {
                               : 'bg-gray-600 hover:bg-gray-700'
                           } text-white`}
                         >
-                          {isCurrentTier ? (
+                          {billingCycle === 'yearly' && tier.value !== 'free' ? (
+                            'Yearly billing coming soon'
+                          ) : isCurrentTier ? (
                             'Current Plan'
                           ) : processingPayment && selectedTier === tier.value ? (
                             'Processing...'
