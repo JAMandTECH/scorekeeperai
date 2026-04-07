@@ -502,11 +502,11 @@ export default function PosterGenerator() {
         </div>
       )}
       <Dialog open={savedOpen} onOpenChange={setSavedOpen}>
-        <DialogContent className="w-[95vw] max-w-5xl max-h-[85vh]">
+        <DialogContent className="w-[95vw] max-w-5xl h-[85vh] grid grid-rows-[auto,auto,1fr,auto] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Saved Posters</DialogTitle>
           </DialogHeader>
-          <div className="mb-3 space-y-3">
+          <div className="mb-3 space-y-3 shrink-0 row-start-2">
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">{filteredPosters.length} shown</div>
               <div className="flex items-center gap-2">
@@ -555,7 +555,7 @@ export default function PosterGenerator() {
               </div>
             </div>
           </div>
-          <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden pr-1">
+          <div className="row-start-3 min-h-0 overflow-y-auto overflow-x-hidden pr-2 pb-4">
           {postersQ.isLoading ? (
             <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading saved posters...</div>
           ) : (
@@ -604,7 +604,7 @@ export default function PosterGenerator() {
                 )}
               </div>
             ) : (
-              <div className="overflow-auto">
+              <div className="min-w-0">
                 <Table>
                   <TableHeader>
                     <TableRow>
