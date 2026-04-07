@@ -159,10 +159,13 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         }
       }
 
-      // Position headshot between stats (y) and player name with equal spacing, keeping stats above name
+      // Position headshot exactly between stats and team name with equal spacing
       const bestTitleY = L.bestTitle?.y ?? 950;
-      const nameY = L.nameLabel?.y ?? (bestTitleY - 70); // lock player name above BEST PLAYER
-      const midY = Math.round((y + nameY) / 2);
+      const nameY = L.nameLabel?.y ?? (bestTitleY - 70); // player name stays above BEST PLAYER
+      const teamLabelY = (L.nameLabel?.y ?? ((L.bestTitle?.y ?? 950) - 70)) - 56; // team label sits above name
+      const anchorTopY = y; // stats row center
+      const anchorBottomY = teamLabelY; // team name center
+      const midY = Math.round((anchorTopY + anchorBottomY) / 2);
 
       if (headImg) {
         const poly = L.headshot?.polygon;
@@ -177,7 +180,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           // Draw headshot without clipping; fit entire image within polygon bounds (contain)
           ctx.save();
           ctx.translate(0, deltaY);
-          const scale = 1.5;
+          const scale = 1.5; // 1.5x size
           const ar = Math.min(bw / headImg.width, bh / headImg.height) * scale;
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
           const dx2 = minX + (bw - dw2) / 2; const dy2 = minY + (bh - dh2) / 2;
@@ -209,7 +212,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           // Draw headshot without circular clipping; fit entire image within square box
           ctx.save();
           const box = r * 2;
-          const scale = 1.5;
+          const scale = 1.5; // 1.5x size
           const ar = Math.min(box / headImg.width, box / headImg.height) * scale;
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
           ctx.drawImage(headImg, cx - dw2 / 2, cy - dh2 / 2, dw2, dh2);
