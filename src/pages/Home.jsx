@@ -198,7 +198,7 @@ export default function Home() {
   // Calculate top players for a given stat type and sport
   const getTopPlayers = (statType, sport = 'basketball', limit = 10, division = null) => {
     const sportTeamIds = teams
-      .filter(t => t.sport === sport && (!division || (t.division || 'No Division') === division))
+      .filter(t => t.sport === sport && (!division || ((t.division || 'No Division').toString().trim().toLowerCase() === division.toString().trim().toLowerCase())))
       .map(t => t.id);
     const sportPlayers = players.filter(p => sportTeamIds.includes(p.team_id));
 
@@ -357,8 +357,8 @@ export default function Home() {
   };
 
   const basketballStandings = getTeamStandings('basketball');
-  const basketballStandingsOpen = basketballStandings.filter(d => (d.division || 'No Division') === 'Open');
-  const basketballStandingsVeterans = basketballStandings.filter(d => (d.division || 'No Division') === 'Veterans');
+  const basketballStandingsOpen = basketballStandings.filter(d => ((d.division || 'No Division').toString().trim().toLowerCase() === 'open'));
+  const basketballStandingsVeterans = basketballStandings.filter(d => ((d.division || 'No Division').toString().trim().toLowerCase() === 'veterans'));
   const volleyballStandings = getTeamStandings('volleyball');
 
   const topScorers = getTopPlayers('points', 'basketball', 10);
@@ -396,8 +396,8 @@ export default function Home() {
     .slice(0, 10);
 
   // Division-specific schedules (Basketball)
-  const openTeamIds = teams.filter(t => t.sport === 'basketball' && (t.division || 'No Division') === 'Open').map(t => t.id);
-  const veteransTeamIds = teams.filter(t => t.sport === 'basketball' && (t.division || 'No Division') === 'Veterans').map(t => t.id);
+  const openTeamIds = teams.filter(t => t.sport === 'basketball' && ((t.division || 'No Division').toString().trim().toLowerCase() === 'open')).map(t => t.id);
+  const veteransTeamIds = teams.filter(t => t.sport === 'basketball' && ((t.division || 'No Division').toString().trim().toLowerCase() === 'veterans')).map(t => t.id);
 
   const upcomingBasketballGamesOpen = games
     .filter(g => g.sport === 'basketball' && g.status === 'scheduled' && (openTeamIds.includes(g.home_team_id) || openTeamIds.includes(g.away_team_id)))
