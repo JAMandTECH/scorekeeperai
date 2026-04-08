@@ -822,21 +822,21 @@ export default function Home() {
 
 
             <Tabs defaultValue="standings" className="space-y-8">
-              <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl shadow-sm flex flex-wrap items-center justify-between">
+              <TabsList className="relative w-full bg-white/80 dark:bg-gray-800/70 backdrop-blur-sm border border-gray-200/80 dark:border-gray-700/70 p-1.5 rounded-2xl shadow-futuristic flex flex-wrap items-center justify-between gap-2">
                 <div className="flex gap-1">
-                  <TabsTrigger value="standings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
+                  <TabsTrigger value="standings" className="px-6 py-2 rounded-xl font-semibold text-gray-700 dark:text-gray-300 transition-all data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:scale-[1.02] data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 hover:bg-gray-100 dark:hover:bg-gray-700">
                     Standings
                   </TabsTrigger>
-                  <TabsTrigger value="leaders" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
+                  <TabsTrigger value="leaders" className="px-6 py-2 rounded-xl font-semibold text-gray-700 dark:text-gray-300 transition-all data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:scale-[1.02] data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 hover:bg-gray-100 dark:hover:bg-gray-700">
                     Player Leaders
                   </TabsTrigger>
-                  <TabsTrigger value="schedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
+                  <TabsTrigger value="schedule" className="px-6 py-2 rounded-xl font-semibold text-gray-700 dark:text-gray-300 transition-all data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:scale-[1.02] data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 hover:bg-gray-100 dark:hover:bg-gray-700">
                     Schedule & Results
                   </TabsTrigger>
                 </div>
                 <div className="flex gap-2 pr-1">
-                  <Button type="button" variant={bbDivTab === 'open' ? 'default' : 'outline'} className="h-8 px-3" onClick={() => setBbDivTab('open')}>Open</Button>
-                  <Button type="button" variant={bbDivTab === 'veterans' ? 'default' : 'outline'} className="h-8 px-3" onClick={() => setBbDivTab('veterans')}>Veterans</Button>
+                  <Button type="button" variant={bbDivTab === 'open' ? 'default' : 'outline'} className={`h-8 px-3 rounded-xl transition-all ${bbDivTab === 'open' ? 'bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-md' : 'bg-white/70 dark:bg-gray-800/70 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'}`} onClick={() => setBbDivTab('open')}>Open</Button>
+                  <Button type="button" variant={bbDivTab === 'veterans' ? 'default' : 'outline'} className={`h-8 px-3 rounded-xl transition-all ${bbDivTab === 'veterans' ? 'bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-md' : 'bg-white/70 dark:bg-gray-800/70 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'}`} onClick={() => setBbDivTab('veterans')}>Veterans</Button>
                 </div>
               </TabsList>
 
