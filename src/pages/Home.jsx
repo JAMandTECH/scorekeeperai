@@ -198,13 +198,13 @@ export default function Home() {
   // Calculate top players for a given stat type and sport
   const getTopPlayers = (statType, sport = 'basketball', limit = 10, division = null) => {
     const sportTeamIds = teams
-      .filter(t => t.sport === sport && (!division || ((t.division || 'No Division').toString().trim().toLowerCase() === division.toString().trim().toLowerCase())))
+      .filter(t => ((t.sport || '').toLowerCase() === (sport || '').toLowerCase()) && (!division || ((t.division || 'No Division').toString().trim().toLowerCase().includes((division || '').toString().trim().toLowerCase()))))
       .map(t => t.id);
     const sportPlayers = players.filter(p => sportTeamIds.includes(p.team_id));
 
     const includeArchived = organization?.settings?.include_archived_in_leaders === true;
     const eligibleGameIds = sport === 'volleyball'
-      ? new Set(games.filter(g => g.sport === 'volleyball' && g.status === 'completed' && (includeArchived || !g.archived)).map(g => g.id))
+      ? new Set(games.filter(g => (g.sport || '').toLowerCase() === 'volleyball' && g.status === 'completed' && (includeArchived || !g.archived)).map(g => g.id))
       : new Set(games.map(g => g.id));
 
     const playerTotals = sportPlayers.map(player => {
@@ -262,7 +262,7 @@ export default function Home() {
 
   // Calculate team standings by division and sport
   const getTeamStandings = (sport) => {
-    const sportTeams = teams.filter(t => t.sport === sport);
+    const sportTeams = teams.filter(t => ((t.sport || '').toLowerCase() === (sport || '').toLowerCase()));
     const divisions = [...new Set(sportTeams.map(t => t.division || 'No Division'))];
     
     return divisions.map(division => {
@@ -271,7 +271,7 @@ export default function Home() {
         .map(team => {
           const teamGames = games.filter(g => 
             g.status === 'completed' &&
-            g.sport === sport &&
+            ((g.sport || '').toLowerCase() === (sport || '').toLowerCase()) &&
             g.archived !== true &&
             (g.home_team_id === team.id || g.away_team_id === team.id)
           );
@@ -357,8 +357,8 @@ export default function Home() {
   };
 
   const basketballStandings = getTeamStandings('basketball');
-  const basketballStandingsOpen = basketballStandings.filter(d => ((d.division || 'No Division').toString().trim().toLowerCase() === 'open'));
-  const basketballStandingsVeterans = basketballStandings.filter(d => ((d.division || 'No Division').toString().trim().toLowerCase() === 'veterans'));
+  const basketballStandingsOpen = basketballStandings.filter(d => ((d.division || 'No Division').toString().trim().toLowerCase().includes('open')));
+  const basketballStandingsVeterans = basketballStandings.filter(d => ((d.division || 'No Division').toString().trim().toLowerCase().includes('veteran')));
   const volleyballStandings = getTeamStandings('volleyball');
 
   const topScorers = getTopPlayers('points', 'basketball', 10);
@@ -386,46 +386,46 @@ export default function Home() {
   const topVolleyballAces = getTopPlayers('three_pointers', 'volleyball', 10);
 
   const upcomingBasketballGames = games
-    .filter(g => g.sport === 'basketball' && g.status === 'scheduled')
+    .filter(g => (g.sport || '').toLowerCase() === 'basketball' && g.status === 'scheduled')
     .sort((a, b) => new Date(a.game_date).getTime() - new Date(b.game_date).getTime())
     .slice(0, 10);
 
   const completedBasketballGames = games
-    .filter(g => g.sport === 'basketball' && g.status === 'completed')
+    .filter(g => (g.sport || '').toLowerCase() === 'basketball' && g.status === 'completed')
     .sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime())
     .slice(0, 10);
 
   // Division-specific schedules (Basketball)
-  const openTeamIds = teams.filter(t => t.sport === 'basketball' && ((t.division || 'No Division').toString().trim().toLowerCase() === 'open')).map(t => t.id);
-  const veteransTeamIds = teams.filter(t => t.sport === 'basketball' && ((t.division || 'No Division').toString().trim().toLowerCase() === 'veterans')).map(t => t.id);
+  const openTeamIds = teams.filter(t => (t.sport || '').toLowerCase() === 'basketball' && ((t.division || 'No Division').toString().trim().toLowerCase().includes('open'))).map(t => t.id);
+  const veteransTeamIds = teams.filter(t => (t.sport || '').toLowerCase() === 'basketball' && ((t.division || 'No Division').toString().trim().toLowerCase().includes('veteran'))).map(t => t.id);
 
   const upcomingBasketballGamesOpen = games
-    .filter(g => g.sport === 'basketball' && g.status === 'scheduled' && (openTeamIds.includes(g.home_team_id) || openTeamIds.includes(g.away_team_id)))
+    .filter(g => (g.sport || '').toLowerCase() === 'basketball' && g.status === 'scheduled' && (openTeamIds.includes(g.home_team_id) || openTeamIds.includes(g.away_team_id)))
     .sort((a, b) => new Date(a.game_date).getTime() - new Date(b.game_date).getTime())
     .slice(0, 10);
 
   const completedBasketballGamesOpen = games
-    .filter(g => g.sport === 'basketball' && g.status === 'completed' && (openTeamIds.includes(g.home_team_id) || openTeamIds.includes(g.away_team_id)))
+    .filter(g => (g.sport || '').toLowerCase() === 'basketball' && g.status === 'completed' && (openTeamIds.includes(g.home_team_id) || openTeamIds.includes(g.away_team_id)))
     .sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime())
     .slice(0, 10);
 
   const upcomingBasketballGamesVeterans = games
-    .filter(g => g.sport === 'basketball' && g.status === 'scheduled' && (veteransTeamIds.includes(g.home_team_id) || veteransTeamIds.includes(g.away_team_id)))
+    .filter(g => (g.sport || '').toLowerCase() === 'basketball' && g.status === 'scheduled' && (veteransTeamIds.includes(g.home_team_id) || veteransTeamIds.includes(g.away_team_id)))
     .sort((a, b) => new Date(a.game_date).getTime() - new Date(b.game_date).getTime())
     .slice(0, 10);
 
   const completedBasketballGamesVeterans = games
-    .filter(g => g.sport === 'basketball' && g.status === 'completed' && (veteransTeamIds.includes(g.home_team_id) || veteransTeamIds.includes(g.away_team_id)))
+    .filter(g => (g.sport || '').toLowerCase() === 'basketball' && g.status === 'completed' && (veteransTeamIds.includes(g.home_team_id) || veteransTeamIds.includes(g.away_team_id)))
     .sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime())
     .slice(0, 10);
 
   const upcomingVolleyballGames = games
-    .filter(g => g.sport === 'volleyball' && g.status === 'scheduled')
+    .filter(g => (g.sport || '').toLowerCase() === 'volleyball' && g.status === 'scheduled')
     .sort((a, b) => new Date(a.game_date).getTime() - new Date(b.game_date).getTime())
     .slice(0, 10);
 
   const completedVolleyballGames = games
-    .filter(g => g.sport === 'volleyball' && g.status === 'completed')
+    .filter(g => (g.sport || '').toLowerCase() === 'volleyball' && g.status === 'completed')
     .sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime())
     .slice(0, 10);
 
@@ -667,7 +667,7 @@ export default function Home() {
                             <Trophy className="w-4 h-4 text-white" />
                           </div>
                           <div>
-                            <div className="text-xl font-black text-gray-900 dark:text-white">{teams.filter(t => t.sport === 'basketball').length}</div>
+                            <div className="text-xl font-black text-gray-900 dark:text-white">{teams.filter(t => (t.sport || '').toLowerCase() === 'basketball').length}</div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Basketball</div>
                           </div>
                         </div>
@@ -677,7 +677,7 @@ export default function Home() {
                             <Trophy className="w-4 h-4 text-white" />
                           </div>
                           <div>
-                            <div className="text-xl font-black text-gray-900 dark:text-white">{teams.filter(t => t.sport === 'volleyball').length}</div>
+                            <div className="text-xl font-black text-gray-900 dark:text-white">{teams.filter(t => (t.sport || '').toLowerCase() === 'volleyball').length}</div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Volleyball</div>
                           </div>
                         </div>

@@ -16,20 +16,23 @@ Deno.serve(async (req) => {
     const division: string | null = payload.division ? String(payload.division).toLowerCase() : null;
 
     // Fetch only what we need with service role to avoid RLS/rate-limits
-    const [teamsRaw, games] = await Promise.all([
+    const [teamsRaw, gamesRaw] = await Promise.all([
       organizationId
-        ? base44.asServiceRole.entities.Team.filter({ organization_id: organizationId, sport })
-        : base44.asServiceRole.entities.Team.filter({ sport }),
+        ? base44.asServiceRole.entities.Team.filter({ organization_id: organizationId })
+        : base44.asServiceRole.entities.Team.list(),
       organizationId
-        ? base44.asServiceRole.entities.Game.filter({ organization_id: organizationId, sport, status: 'completed' })
-        : base44.asServiceRole.entities.Game.filter({ sport, status: 'completed' })
+        ? base44.asServiceRole.entities.Game.filter({ organization_id: organizationId, status: 'completed' })
+        : base44.asServiceRole.entities.Game.filter({ status: 'completed' })
     ]);
 
-    // Optional division filter (case-insensitive)
+    const teamsAll = teamsRaw || [];
+    const games = (gamesRaw || []).filter((g: any) => (g.sport || '').toLowerCase() === sport);
+
+    // Optional division filter (case-insensitive, substring match so 'Open Division' works)
     const teams = (teamsRaw || []).filter((t: any) => {
       if (!division) return true;
       const div = (t.division || 'No Division').toString().toLowerCase();
-      return div === division;
+      return div.includes(division);
     });
 
     if (!teams || teams.length === 0 || !games || games.length === 0) {
