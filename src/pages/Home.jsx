@@ -26,6 +26,7 @@ export default function Home() {
 
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [bbDivTab, setBbDivTab] = useState('open');
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -821,20 +822,26 @@ export default function Home() {
 
 
             <Tabs defaultValue="standings" className="space-y-8">
-              <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl shadow-sm">
-                <TabsTrigger value="standings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
-                  Standings
-                </TabsTrigger>
-                <TabsTrigger value="leaders" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
-                  Player Leaders
-                </TabsTrigger>
-                <TabsTrigger value="schedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
-                  Schedule & Results
-                </TabsTrigger>
+              <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl shadow-sm flex flex-wrap items-center justify-between">
+                <div className="flex gap-1">
+                  <TabsTrigger value="standings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
+                    Standings
+                  </TabsTrigger>
+                  <TabsTrigger value="leaders" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
+                    Player Leaders
+                  </TabsTrigger>
+                  <TabsTrigger value="schedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">
+                    Schedule & Results
+                  </TabsTrigger>
+                </div>
+                <div className="flex gap-2 pr-1">
+                  <Button type="button" variant={bbDivTab === 'open' ? 'default' : 'outline'} className="h-8 px-3" onClick={() => setBbDivTab('open')}>Open</Button>
+                  <Button type="button" variant={bbDivTab === 'veterans' ? 'default' : 'outline'} className="h-8 px-3" onClick={() => setBbDivTab('veterans')}>Veterans</Button>
+                </div>
               </TabsList>
 
               <TabsContent value="standings">
-                {basketballStandings.map((divisionData, idx) => (
+                {(bbDivTab === 'open' ? basketballStandingsOpen : basketballStandingsVeterans).map((divisionData, idx) => (
                   <Card key={idx} className="mb-6 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
                     <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
                       <div className="flex items-center justify-between">
@@ -927,10 +934,10 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-2">
-                        {topScorers.length === 0 && (
+                        {(bbDivTab === 'open' ? topScorersOpen : topScorersVeterans).length === 0 && (
                         <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
                       )}
-                      {topScorers.map((player, i) => (
+                      {(bbDivTab === 'open' ? topScorersOpen : topScorersVeterans).map((player, i) => (
                           <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                               i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
@@ -991,10 +998,10 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-2">
-                        {topRebounders.length === 0 && (
+                        {(bbDivTab === 'open' ? topReboundersOpen : topReboundersVeterans).length === 0 && (
                         <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
                       )}
-                      {topRebounders.map((player, i) => (
+                      {(bbDivTab === 'open' ? topReboundersOpen : topReboundersVeterans).map((player, i) => (
                           <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                               i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
@@ -1055,10 +1062,10 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-2">
-                        {topBlockers.length === 0 && (
+                        {(bbDivTab === 'open' ? topBlockersOpen : topBlockersVeterans).length === 0 && (
                         <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
                       )}
-                      {topBlockers.map((player, i) => (
+                      {(bbDivTab === 'open' ? topBlockersOpen : topBlockersVeterans).map((player, i) => (
                           <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                               i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
@@ -1095,8 +1102,14 @@ export default function Home() {
                   </Card>
 
                   <div className="space-y-6">
-                    <TopAssistLeaders organizationId={orgId} sport="basketball" division="Open" title="Top 10 Assist Leaders — Open" orgName={organization?.name} orgLogoUrl={organization?.logo_url} />
-                    <TopAssistLeaders organizationId={orgId} sport="basketball" division="Veterans" title="Top 10 Assist Leaders — Veterans" orgName={organization?.name} orgLogoUrl={organization?.logo_url} />
+                    <TopAssistLeaders
+                      organizationId={orgId}
+                      sport="basketball"
+                      division={bbDivTab === 'open' ? 'Open' : 'Veterans'}
+                      title={`Top 10 Assist Leaders — ${bbDivTab === 'open' ? 'Open' : 'Veterans'}`}
+                      orgName={organization?.name}
+                      orgLogoUrl={organization?.logo_url}
+                    />
                   </div>
 
                   {/* Top 3-Pointer Leaders */}
@@ -1124,10 +1137,10 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-2">
-                        {top3Pointers.length === 0 && (
+                        {(bbDivTab === 'open' ? top3PointersOpen : top3PointersVeterans).length === 0 && (
                         <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
                       )}
-                      {top3Pointers.map((player, i) => (
+                      {(bbDivTab === 'open' ? top3PointersOpen : top3PointersVeterans).map((player, i) => (
                           <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${
                               i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' :
@@ -1187,7 +1200,7 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-3">
-                        {upcomingBasketballGames.map(game => (
+                        {(bbDivTab === 'open' ? upcomingBasketballGamesOpen : upcomingBasketballGamesVeterans).map(game => (
                           <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
                             <div className="flex justify-between items-center mb-3">
                               <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold flex items-center gap-1">
@@ -1230,7 +1243,7 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="space-y-3">
-                        {completedBasketballGamesOpen.map(game => {
+                        {(bbDivTab === 'open' ? completedBasketballGamesOpen : completedBasketballGamesVeterans).map(game => {
                           // Determine winning team
                           const winningTeamId = game.home_score > game.away_score ? game.home_team_id : game.away_team_id;
 
