@@ -51,6 +51,8 @@ export default function Games() {
   const [selectedScorekeeperEmails, setSelectedScorekeeperEmails] = useState([]);
   const [aiScheduleView, setAiScheduleView] = useState('card');
   const [expandedWeeks, setExpandedWeeks] = useState({});
+  const [formDivision, setFormDivision] = useState('');
+  const [formSport, setFormSport] = useState('');
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { hasPermission, loading: permissionsLoading, isAdmin } = usePermissions();
@@ -402,8 +404,10 @@ export default function Games() {
       const form = document.getElementById('game-form');
       if (form) {
         form.sport.value = game.sport || '';
+        setFormSport(game.sport || '');
         form.game_type.value = game.game_type || 'regular_season';
         form.division.value = game.division || '';
+        setFormDivision(game.division || '');
         form.home_team_id.value = game.home_team_id || '';
         form.away_team_id.value = game.away_team_id || '';
         form.location.value = game.location || '';
@@ -603,6 +607,18 @@ export default function Games() {
     setSelectedDivision('all');
     setSelectedTeam('all');
   };
+
+  // Filter teams for form selects based on currently selected sport/division in the dialog
+  const teamsForSelect = React.useMemo(() => {
+    const d = (formDivision || '').trim().toLowerCase();
+    const s = (formSport || '').trim().toLowerCase();
+    return teams.filter((t) => {
+      const sportOk = s ? String(t.sport || '').toLowerCase() === s : true;
+      const divVal = String(t.division || '').toLowerCase();
+      const divOk = d ? divVal.includes(d) : true;
+      return sportOk && divOk;
+    });
+  }, [teams, formDivision, formSport]);
 
   const GameCard = ({ game, showActions = true }) => {
     const sportColor = game.sport === 'basketball' ? 'orange' : 'blue';
@@ -1304,6 +1320,7 @@ export default function Games() {
                         id="sport"
                         name="sport"
                         required
+                        onChange={(e) => setFormSport(e.target.value)}
                         className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
                       >
                         <option value="">Select sport</option>
@@ -1333,6 +1350,7 @@ export default function Games() {
                       <select
                         id="division"
                         name="division"
+                        onChange={(e) => setFormDivision(e.target.value)}
                         className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
                       >
                         <option value="">Select division</option>
@@ -1482,7 +1500,7 @@ export default function Games() {
                         className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
                       >
                         <option value="">Select team</option>
-                        {teams.map(team => (
+                        {teamsForSelect.map(team => (
                           <option key={team.id} value={team.id}>{team.name} ({team.sport})</option>
                         ))}
                       </select>
@@ -1496,7 +1514,7 @@ export default function Games() {
                         className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
                       >
                         <option value="">Select team</option>
-                        {teams.map(team => (
+                        {teamsForSelect.map(team => (
                           <option key={team.id} value={team.id}>{team.name} ({team.sport})</option>
                         ))}
                       </select>
