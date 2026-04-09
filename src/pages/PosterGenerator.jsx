@@ -11,7 +11,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, Download, Sparkles, Trash2, FolderOpen, RefreshCcw, ArrowLeft, LayoutGrid, List } from 'lucide-react'; // cleaned: removed AI chat; kept background remover
 import PosterCanvas from '@/components/posters/PosterCanvas';
-import BackgroundEraser from '@/components/posters/BackgroundEraser';
 import { format } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
 import SocialShare from '@/components/social/SocialShare';
@@ -30,7 +29,6 @@ export default function PosterGenerator() {
   const [bestPlayerImageUrl, setBestPlayerImageUrl] = React.useState('');
   const [uploading, setUploading] = React.useState(false);
   const [removeBgLoading, setRemoveBgLoading] = React.useState(false);
-  const [bgEraserOpen, setBgEraserOpen] = React.useState(false);
   const [layout, setLayout] = React.useState({});
   const [posterDataUrl, setPosterDataUrl] = React.useState('');
   const [savedOpen, setSavedOpen] = React.useState(false);
@@ -343,14 +341,6 @@ export default function PosterGenerator() {
                 >
                   {removeBgLoading && <Loader2 className="h-4 w-4 animate-spin" />} Remove Background
                 </Button>
-                <Button
-                  variant="secondary"
-                  className="gap-2"
-                  disabled={!bestPlayerImageUrl}
-                  onClick={() => setBgEraserOpen(true)}
-                >
-                  Manual Remove Background
-                </Button>
               </div>
               <p className="text-xs text-muted-foreground mt-1">Optional: overrides player profile photo for this poster.</p>
             </div>
@@ -553,21 +543,6 @@ export default function PosterGenerator() {
             </Card>
         </div>
       )}
-      <Dialog open={bgEraserOpen} onOpenChange={setBgEraserOpen}>
-        <DialogContent className="w-[95vw] max-w-4xl h-[85vh]">
-          <DialogHeader>
-            <DialogTitle>Manual Background Removal</DialogTitle>
-          </DialogHeader>
-          <div className="h-[60vh]">
-            <BackgroundEraser
-              imageUrl={bestPlayerImageUrl}
-              onCancel={() => setBgEraserOpen(false)}
-              onApply={(dataUrl) => { setBestPlayerImageUrl(dataUrl); setBgEraserOpen(false); }}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={savedOpen} onOpenChange={setSavedOpen}>
         <DialogContent className="w-[95vw] max-w-5xl h-[85vh] grid grid-rows-[auto,auto,1fr,auto] overflow-hidden">
           <DialogHeader>
