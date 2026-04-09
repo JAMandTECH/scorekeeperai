@@ -26,7 +26,11 @@ Deno.serve(async (req) => {
     if (!resp.ok) {
       const text = await resp.text();
       console.error('remove.bg error', resp.status, text);
-      return Response.json({ error: 'Background removal failed', details: text }, { status: 500 });
+      let body = null;
+      try { body = JSON.parse(text); } catch (_) {}
+      const msg = body?.errors?.[0]?.title || 'Background removal failed';
+      const code = body?.errors?.[0]?.code || undefined;
+      return Response.json({ error: msg, code, details: body || text }, { status: resp.status });
     }
 
     const arrayBuf = await resp.arrayBuffer();

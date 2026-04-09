@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/components/ui/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, Download, Sparkles, Trash2, FolderOpen, RefreshCcw, ArrowLeft, LayoutGrid, List } from 'lucide-react'; // cleaned: removed AI chat; kept background remover
 import PosterCanvas from '@/components/posters/PosterCanvas';
@@ -19,6 +20,7 @@ import SocialShare from '@/components/social/SocialShare';
 export default function PosterGenerator() {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [user, setUser] = React.useState(null);
   const [sport, setSport] = React.useState('basketball');
   const [selectedGameId, setSelectedGameId] = React.useState('');
@@ -106,8 +108,8 @@ export default function PosterGenerator() {
     },
     enabled: !!user && !!selectedGameId,
     initialData: null,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   const gameForPoster = gameQ.data || topQ.data?.game || null;
@@ -180,6 +182,10 @@ export default function PosterGenerator() {
     },
     onSuccess: (data) => {
       setImageUrl(data?.url || '');
+    },
+    onError: (err) => {
+      const msg = err?.response?.data?.error || err?.message || 'Please try again later.';
+      toast({ variant: 'destructive', title: 'Generation failed', description: String(msg).slice(0, 300) });
     }
   });
 
@@ -322,7 +328,12 @@ export default function PosterGenerator() {
                       const res = await base44.functions.invoke('removeBg', { imageUrl: bestPlayerImageUrl });
                       if (res?.data?.dataUrl) {
                         setBestPlayerImageUrl(res.data.dataUrl);
+                      } else {
+                        toast({ variant: 'destructive', title: 'Background removal failed', description: 'No image returned from service.' });
                       }
+                    } catch (err) {
+                      const msg = err?.response?.data?.error || err?.response?.data?.details || err?.message || 'Service unavailable.';
+                      toast({ variant: 'destructive', title: 'Background removal failed', description: String(msg).slice(0, 300) });
                     } finally {
                       setRemoveBgLoading(false);
                     }
