@@ -9,7 +9,7 @@ export default function Layout({ children, currentPageName }) {
       const src = s.getAttribute('src') || '';
       if (src.includes('cdn.tailwindcss.com')) {
         try { s.parentElement?.removeChild(s); } catch (_) {}
-        console.warn('Removed Tailwind CDN script. Tailwind is bundled via globals.css.');
+        // Tailwind CDN script removed — using bundled CSS
       }
     });
   }, []);

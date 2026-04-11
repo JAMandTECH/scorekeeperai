@@ -18,8 +18,8 @@ export function usePermissions() {
   const loadUser = async () => {
     try {
       const currentUser = await base44.auth.me();
-      console.log("usePermissions - Loaded user:", currentUser);
-      console.log("usePermissions - User role_id:", currentUser?.role_id);
+      // console.log("usePermissions - Loaded user:", currentUser);
+      // console.log("usePermissions - User role_id:", currentUser?.role_id);
       setUser(currentUser);
     } catch (error) {
       console.error("Error loading user:", error);
@@ -36,14 +36,14 @@ export function usePermissions() {
     queryKey: ['user-role', user?.role_id],
     queryFn: async () => {
       if (!user?.role_id) {
-        console.log("usePermissions - No role_id found");
+        // console.log("usePermissions - No role_id found");
         return null;
       }
-      console.log("usePermissions - Fetching role for role_id:", user.role_id);
+      // console.log("usePermissions - Fetching role for role_id:", user.role_id);
       const roles = await base44.entities.Role.list();
-      console.log("usePermissions - All roles:", roles);
+      // console.log("usePermissions - All roles:", roles);
       const foundRole = roles.find(r => r.id === user.role_id);
-      console.log("usePermissions - Found role:", foundRole);
+      // console.log("usePermissions - Found role:", foundRole);
       return foundRole;
     },
     enabled: !!user?.role_id,

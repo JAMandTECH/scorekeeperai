@@ -38,7 +38,7 @@ export default function AdminHeader({
       document.documentElement.style.setProperty('--org-secondary-light', `${secondary}20`);
       document.documentElement.style.setProperty('--org-accent-light', `${accent}20`);
       
-      console.log('Theme applied:', { primary, secondary, accent });
+      // console.log('Theme applied:', { primary, secondary, accent });
     }
   }, [organization?.theme]);
 

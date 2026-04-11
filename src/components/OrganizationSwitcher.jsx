@@ -26,7 +26,7 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
       const userMemberships = await base44.entities.UserOrganization.filter({ 
         user_id: user?.id 
       });
-      console.log('OrganizationSwitcher - User memberships:', userMemberships);
+      // console.log('OrganizationSwitcher - User memberships:', userMemberships);
       return userMemberships;
     },
     enabled: !!user?.id,
@@ -46,8 +46,8 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
       if (user?.active_organization_id) orgIds.add(user.active_organization_id);
       
       const filtered = allOrgs.filter(org => orgIds.has(org.id));
-      console.log('OrganizationSwitcher - Org IDs:', [...orgIds]);
-      console.log('OrganizationSwitcher - Filtered orgs:', filtered.map(o => o.name));
+      // console.log('OrganizationSwitcher - Org IDs:', [...orgIds]);
+      // console.log('OrganizationSwitcher - Filtered orgs:', filtered.map(o => o.name));
       
       return filtered;
     },
@@ -57,12 +57,12 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
   // Switch organization mutation
   const switchOrgMutation = useMutation({
     mutationFn: async (orgId) => {
-      console.log('OrganizationSwitcher - Switching to org:', orgId);
+      // console.log('OrganizationSwitcher - Switching to org:', orgId);
       await base44.auth.updateMe({ active_organization_id: orgId });
-      console.log('OrganizationSwitcher - Switch complete');
+      // console.log('OrganizationSwitcher - Switch complete');
     },
     onSuccess: () => {
-      console.log('OrganizationSwitcher - Mutation success, reloading...');
+      // console.log('OrganizationSwitcher - Mutation success, reloading...');
       queryClient.invalidateQueries();
       if (onSwitch) onSwitch();
       setTimeout(() => {
@@ -77,12 +77,12 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
   const handleSwitchOrg = (orgId) => {
     // Priority: currentOrganization (passed from parent) > active_organization_id > organization_id
     const currentActiveOrgId = currentOrganization?.id || user?.active_organization_id || user?.organization_id;
-    console.log('OrganizationSwitcher - handleSwitchOrg called with:', orgId, 'currentActive:', currentActiveOrgId);
+    // console.log('OrganizationSwitcher - handleSwitchOrg called with:', orgId, 'currentActive:', currentActiveOrgId);
     if (orgId === currentActiveOrgId) {
-      console.log('OrganizationSwitcher - Same org, skipping');
+      // console.log('OrganizationSwitcher - Same org, skipping');
       return;
     }
-    console.log('OrganizationSwitcher - Proceeding with switch');
+    // console.log('OrganizationSwitcher - Proceeding with switch');
     switchOrgMutation.mutate(orgId);
   };
 
@@ -138,7 +138,7 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
           const isActive = org.id === currentOrganization?.id;
           const role = getMembershipRole(org.id);
           
-          console.log('Rendering org:', org.name, 'isActive:', isActive, 'org.id:', org.id, 'currentOrg.id:', currentOrganization?.id);
+          // console.log('Rendering org:', org.name, 'isActive:', isActive, 'org.id:', org.id, 'currentOrg.id:', currentOrganization?.id);
           
           return (
             <DropdownMenuItem
@@ -148,7 +148,7 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
                 e.preventDefault();
                 e.stopPropagation();
                 if (!isActive) {
-                  console.log('Switching to org:', org.id, org.name);
+                  // console.log('Switching to org:', org.id, org.name);
                   switchOrgMutation.mutate(org.id);
                 }
               }}
