@@ -32,6 +32,17 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
     const ctx = canvas.getContext('2d');
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
+    // Gold gradient utilities to mimic poster style
+    const makeGoldGradient = (yTop, yBottom) => {
+      const g = ctx.createLinearGradient(0, yTop, 0, yBottom);
+      g.addColorStop(0, '#F9E6A1');   // light highlight
+      g.addColorStop(0.35, '#F2C14E'); // mid gold
+      g.addColorStop(0.7, '#D79A1E');  // deep gold
+      g.addColorStop(1, '#8C5A00');    // shadow
+      return g;
+    };
+    const goldStroke = '#6E4300';
+
     const loadImage = (url) => new Promise((resolve) => {
       if (!url) return resolve(null);
       const i = new Image();
@@ -103,7 +114,20 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         trySize -= 2;
       }
       ctx.font = `800 ${trySize}px Inter, system-ui, Arial`;
-      if (header) ctx.fillText(header, W / 2, headerY);
+      if (header) {
+        ctx.fillText(header, W / 2, headerY);
+        // Decorative gold divider lines
+        const hw = ctx.measureText(header).width;
+        const lineLen = 70; const gap = 18;
+        ctx.strokeStyle = '#D9B24C';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo((W/2) - hw/2 - gap, headerY);
+        ctx.lineTo((W/2) - hw/2 - gap - lineLen, headerY);
+        ctx.moveTo((W/2) + hw/2 + gap, headerY);
+        ctx.lineTo((W/2) + hw/2 + gap + lineLen, headerY);
+        ctx.stroke();
+      }
 
       // date text (no box), 2x size, white
       if (dateStr) {
@@ -120,18 +144,27 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
       // Minimal stat row (scaled 2x, centered, gold color)
       const drawStat = (x, y, label, value) => {
-        const gold = '#facc15'; // Tailwind amber-300-like gold
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = gold;
-        ctx.font = '700 28px Inter, system-ui, Arial';
+        // Label (white with subtle stroke)
         ctx.textBaseline = 'alphabetic';
-        ctx.fillText(label.toUpperCase(), x, y - 16);
+        ctx.font = '800 30px Inter, system-ui, Arial';
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+        ctx.lineWidth = 2;
+        ctx.strokeText(label.toUpperCase(), x, y - 18);
+        ctx.fillText(label.toUpperCase(), x, y - 18);
+
+        // Value (gold gradient with stroke and glow)
         ctx.textBaseline = 'middle';
-        ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = 3;
-        ctx.fillStyle = gold;
-        ctx.font = '900 76px Inter, system-ui, Arial';
-        ctx.fillText(String(value), x, y + 32);
+        ctx.shadowColor = 'rgba(0,0,0,0.35)';
+        ctx.shadowBlur = 6;
+        ctx.font = 'italic 900 86px Inter, system-ui, Arial';
+        const grad = makeGoldGradient(y - 40, y + 60);
+        ctx.fillStyle = grad;
+        ctx.strokeStyle = goldStroke;
+        ctx.lineWidth = 3;
+        ctx.strokeText(String(value), x, y + 28);
+        ctx.fillText(String(value), x, y + 28);
         ctx.shadowBlur = 0;
       };
 
@@ -247,20 +280,22 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       // BEST PLAYER heading
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const bestColor = '#facc15';
       let bestSize = L.bestTitle?.fontSize ?? 72;
       const bestY = L.bestTitle?.y ?? 950;
-      ctx.fillStyle = bestColor;
-      // Auto-fit BEST PLAYER (gold)
+      // Auto-fit BEST PLAYER with italic heavy font and gold gradient
       const bestText = 'BEST PLAYER';
       let s = bestSize; const maxBestW = W - 2 * 120;
       while (s >= 28) {
-        ctx.font = `900 ${s}px Inter, system-ui, Arial`;
+        ctx.font = `italic 900 ${s}px Inter, system-ui, Arial`;
         if (ctx.measureText(bestText).width <= maxBestW) break;
         s -= 2;
       }
-      ctx.shadowColor = 'rgba(0,0,0,0.4)';
-      ctx.shadowBlur = 6;
+      ctx.shadowColor = 'rgba(0,0,0,0.45)';
+      ctx.shadowBlur = 8;
+      const gradBest = makeGoldGradient(bestY - s, bestY + s/2);
+      ctx.strokeStyle = goldStroke; ctx.lineWidth = 4;
+      ctx.strokeText(bestText, W / 2, bestY);
+      ctx.fillStyle = gradBest;
       ctx.fillText(bestText, W / 2, bestY);
       ctx.shadowBlur = 0;
 
