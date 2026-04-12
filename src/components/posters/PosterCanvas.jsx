@@ -170,7 +170,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
       // Smart stat layout (evenly spaced across safe width) - hide zero values and center remaining
       const rawStats = getSportStatsConfig(game.sport, p) || [];
-      const statsConf = rawStats.filter(Boolean); // keep zeros too
+      const statsConf = rawStats.filter(s => s && Number(s.value) !== 0); // hide zero-valued stats
 
       // Place stats just below the date with clean spacing
       const dateCenterY = (L.datePill?.y ?? 132) + 18; // matches date rendering center
@@ -178,15 +178,18 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const y = dateCenterY + defaultOffset;
 
       if (statsConf.length > 0) {
-        // Right-side vertical stats column (including zeros)
-        const colX = W - (L.stats?.rightMargin ?? 120);
-        const startY = (L.stats?.y ?? (dateCenterY + 40));
-        const gapY = L.stats?.gap ?? 112; // more breathing room
-        for (let i = 0; i < statsConf.length; i++) {
+        // Stats row above the player's picture (zeros hidden)
+        const centerX = (L.headshot?.cx ?? Math.round(W * 0.26));
+        const y = L.stats?.y ?? Math.round(H * 0.38);
+        const stepX = L.stats?.step ?? 170;
+        const count = statsConf.length;
+        const total = (count - 1) * stepX;
+        const startX = centerX - total / 2;
+        for (let i = 0; i < count; i++) {
           const s = statsConf[i];
           if (!s) continue;
-          const rowY = startY + i * gapY;
-          drawStat(colX, rowY, s.label, s.value ?? 0);
+          const x = startX + i * stepX;
+          drawStat(x, y, s.label, s.value);
         }
       }
 
