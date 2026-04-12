@@ -168,6 +168,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const midY = Math.round((anchorTopY + anchorBottomY) / 2);
 
       if (headImg) {
+        const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 0.7); // reduce size by 30%
+        const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 24; // ensure image doesn't cover stats
         const poly = L.headshot?.polygon;
         if (Array.isArray(poly) && poly.length >= 3) {
           const xs = poly.map(p=>p.x), ys = poly.map(p=>p.y);
@@ -179,11 +181,12 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
           // Draw headshot without clipping; fit entire image within polygon bounds (contain)
           ctx.save();
-          ctx.translate(0, deltaY);
-          const scale = 2; // 2x size
-          const ar = Math.min(bw / headImg.width, bh / headImg.height) * scale;
+          const ar = Math.min(bw / headImg.width, bh / headImg.height) * HEAD_SCALE;
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
           const dx2 = minX + (bw - dw2) / 2; const dy2 = minY + (bh - dh2) / 2;
+          const drawTop = dy2 + deltaY;
+          const extraShift = Math.max(0, (y + MIN_GAP_FROM_STATS) - drawTop);
+          ctx.translate(0, deltaY + extraShift);
           ctx.drawImage(headImg, dx2, dy2, dw2, dh2);
           ctx.restore();
 
@@ -212,10 +215,12 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           // Draw headshot without circular clipping; fit entire image within square box
           ctx.save();
           const box = r * 2;
-          const scale = 2; // 2x size
-          const ar = Math.min(box / headImg.width, box / headImg.height) * scale;
+          const ar = Math.min(box / headImg.width, box / headImg.height) * HEAD_SCALE;
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
-          ctx.drawImage(headImg, cx - dw2 / 2, cy - dh2 / 2, dw2, dh2);
+          const topY = cy - dh2 / 2;
+          const minTop = y + MIN_GAP_FROM_STATS;
+          const cyAdjusted = topY < minTop ? (minTop + dh2 / 2) : cy;
+          ctx.drawImage(headImg, cx - dw2 / 2, cyAdjusted - dh2 / 2, dw2, dh2);
           ctx.restore();
 
           // Player name label at locked nameY with auto-fit
