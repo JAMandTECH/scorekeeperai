@@ -17,20 +17,20 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const DPR = Math.min(window.devicePixelRatio || 1, 2);
     const W = 1080;
     const H = 1350;
+    const SCALE = 4; // Render at 4x for 4K-quality output
     const baseMeta = layout || {};
     const smart = buildSmartLayout({ sport: game.sport, meta: baseMeta });
     // Smart layout takes precedence; template metadata can still override unique fields
     const L = { ...baseMeta, ...smart };
-    canvas.width = W * DPR;
-    canvas.height = H * DPR;
+    canvas.width = W * SCALE;
+    canvas.height = H * SCALE;
     canvas.style.width = W + 'px';
     canvas.style.height = H + 'px';
 
     const ctx = canvas.getContext('2d');
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
 
     // Gold gradient utilities to mimic poster style
     const makeGoldGradient = (yTop, yBottom) => {
