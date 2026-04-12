@@ -278,6 +278,27 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const drawTop = dy2 + deltaY;
           const extraShift = Math.max(0, (y + MIN_GAP_FROM_STATS) - drawTop);
           ctx.translate(0, deltaY + extraShift);
+          // Ghost blur clones behind main
+          {
+            const clones = [
+              { dx: -14, dy: -10, blur: 6, alpha: 0.25, scale: 1.03 },
+              { dx: 16,  dy: -4,  blur: 10, alpha: 0.18, scale: 1.06 },
+              { dx: -8,  dy: 12,  blur: 14, alpha: 0.12, scale: 1.10 },
+            ];
+            const prevAlpha = ctx.globalAlpha;
+            const prevFilter = ctx.filter || 'none';
+            clones.forEach(c => {
+              ctx.globalAlpha = c.alpha;
+              ctx.filter = `blur(${c.blur}px)`;
+              const w = dw2 * c.scale, h = dh2 * c.scale;
+              const x = dx2 - (w - dw2) / 2 + c.dx;
+              const y = dy2 - (h - dh2) / 2 + c.dy;
+              ctx.drawImage(headImg, x, y, w, h);
+            });
+            ctx.globalAlpha = 1;
+            ctx.filter = prevFilter;
+          }
+          // Main headshot
           ctx.drawImage(headImg, dx2, dy2, dw2, dh2);
           ctx.restore();
 
@@ -313,6 +334,28 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const cyAdjusted = topY < minTop ? (minTop + dh2 / 2) : cy;
           // Halo behind headshot (circle mode)
           drawSwirlHalo(cx, cyAdjusted, box * 0.6);
+          // Ghost blur clones behind main (circle mode)
+          {
+            const centerX = cx, centerY = cyAdjusted;
+            const clones = [
+              { dx: -12, dy: -10, blur: 6,  alpha: 0.25, scale: 1.03 },
+              { dx:  14, dy:  -6, blur: 10, alpha: 0.18, scale: 1.06 },
+              { dx:  -6, dy:  12, blur: 14, alpha: 0.12, scale: 1.10 },
+            ];
+            const prevAlpha = ctx.globalAlpha;
+            const prevFilter = ctx.filter || 'none';
+            clones.forEach(c => {
+              ctx.globalAlpha = c.alpha;
+              ctx.filter = `blur(${c.blur}px)`;
+              const w = dw2 * c.scale, h = dh2 * c.scale;
+              const x = centerX - w / 2 + c.dx;
+              const y = centerY - h / 2 + c.dy;
+              ctx.drawImage(headImg, x, y, w, h);
+            });
+            ctx.globalAlpha = 1;
+            ctx.filter = prevFilter;
+          }
+          // Main headshot
           ctx.drawImage(headImg, cx - dw2 / 2, cyAdjusted - dh2 / 2, dw2, dh2);
           ctx.restore();
 
