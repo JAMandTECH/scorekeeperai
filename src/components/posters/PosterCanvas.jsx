@@ -170,7 +170,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
       // Smart stat layout (evenly spaced across safe width) - hide zero values and center remaining
       const rawStats = getSportStatsConfig(game.sport, p) || [];
-      const statsConf = rawStats.filter(s => s && Number(s.value) !== 0);
+      const statsConf = rawStats.filter(Boolean); // keep zeros too
 
       // Place stats just below the date with clean spacing
       const dateCenterY = (L.datePill?.y ?? 132) + 18; // matches date rendering center
@@ -178,17 +178,15 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const y = dateCenterY + defaultOffset;
 
       if (statsConf.length > 0) {
-        const safeL = 80; const safeR = 80; const usable = W - safeL - safeR;
-        const count = statsConf.length;
-        const spacingFactor = 0.7; // tighter spacing between stats
-        const step = count === 1 ? 0 : (usable / (count - 1)) * spacingFactor;
-
-        const totalSpan = count === 1 ? 0 : (count - 1) * step;
-        const startX = (W / 2) - (totalSpan / 2);
-        for (let i = 0; i < count; i++) {
-          const x = count === 1 ? W / 2 : startX + i * step;
+        // Right-side vertical stats column (including zeros)
+        const colX = W - (L.stats?.rightMargin ?? 120);
+        const startY = (L.stats?.y ?? (dateCenterY + 40));
+        const gapY = L.stats?.gap ?? 96;
+        for (let i = 0; i < statsConf.length; i++) {
           const s = statsConf[i];
-          if (s) drawStat(x, y, s.label, s.value);
+          if (!s) continue;
+          const rowY = startY + i * gapY;
+          drawStat(colX, rowY, s.label, s.value ?? 0);
         }
       }
 
@@ -201,10 +199,12 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const midY = Math.round((anchorTopY + anchorBottomY) / 2);
 
       if (headImg) {
-        const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 0.63); // reduce size by ~37% total (extra 10% smaller)
+        const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 0.63 * 2.5); // enlarge 2.5x beyond current size
         const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 24; // ensure image doesn't cover stats
+        const leftLayout = true; // move portrait to the left side
+        const LEFT_CX = L.headshot?.cx ?? Math.round(W * 0.26);
         const poly = L.headshot?.polygon;
-        if (Array.isArray(poly) && poly.length >= 3) {
+        if (!leftLayout && Array.isArray(poly) && poly.length >= 3) {
           const xs = poly.map(p=>p.x), ys = poly.map(p=>p.y);
           const minX = Math.min(...xs), maxX = Math.max(...xs);
           const minY = Math.min(...ys), maxY = Math.max(...ys);
@@ -243,7 +243,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
             ctx.fillText(label, midX, nameY);
           }
         } else {
-          const cx = L.headshot?.cx ?? (W / 2); const r = L.headshot?.r ?? 170;
+          const cx = leftLayout ? LEFT_CX : (L.headshot?.cx ?? (W / 2)); const r = L.headshot?.r ?? (leftLayout ? 220 : 170);
           const cy = midY; // center between stats and name
           // Draw headshot without circular clipping; fit entire image within square box
           ctx.save();
