@@ -147,7 +147,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.textAlign = 'center';
         // Label (white with subtle stroke)
         ctx.textBaseline = 'alphabetic';
-        ctx.font = '800 22px Inter, system-ui, Arial'; // 25% smaller labels
+        ctx.font = '800 30px Inter, system-ui, Arial';
         ctx.fillStyle = '#ffffff';
         ctx.strokeStyle = 'rgba(0,0,0,0.35)';
         ctx.lineWidth = 2;
@@ -158,7 +158,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.textBaseline = 'middle';
         ctx.shadowColor = 'rgba(0,0,0,0.35)';
         ctx.shadowBlur = 6;
-        ctx.font = 'italic 900 64px Inter, system-ui, Arial'; // 25% smaller values
+        ctx.font = 'italic 900 86px Inter, system-ui, Arial';
         const grad = makeGoldGradient(y - 40, y + 60);
         ctx.fillStyle = grad;
         ctx.strokeStyle = goldStroke;
@@ -170,26 +170,25 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
       // Smart stat layout (evenly spaced across safe width) - hide zero values and center remaining
       const rawStats = getSportStatsConfig(game.sport, p) || [];
-      const statsConf = rawStats.filter(s => s && Number(s.value) !== 0); // hide zero-valued stats
+      const statsConf = rawStats.filter(s => s && Number(s.value) !== 0);
 
-      // Place stats just below the date with generous spacing
+      // Place stats just below the date with clean spacing
       const dateCenterY = (L.datePill?.y ?? 132) + 18; // matches date rendering center
-      const defaultOffset = L.stats?.offset ?? 140; // extra space below date
+      const defaultOffset = L.stats?.offset ?? 90; // spacing below date
       const y = dateCenterY + defaultOffset;
 
       if (statsConf.length > 0) {
-        // Stats row above the player's picture (zeros hidden)
-        const centerX = (L.headshot?.cx ?? Math.round(W * 0.26));
-        const rowY = L.stats?.y ?? y; // directly below the date with extra offset
-        const stepX = L.stats?.step ?? 170;
+        const safeL = 80; const safeR = 80; const usable = W - safeL - safeR;
         const count = statsConf.length;
-        const total = (count - 1) * stepX;
-        const startX = centerX - total / 2;
+        const spacingFactor = 0.7; // tighter spacing between stats
+        const step = count === 1 ? 0 : (usable / (count - 1)) * spacingFactor;
+
+        const totalSpan = count === 1 ? 0 : (count - 1) * step;
+        const startX = (W / 2) - (totalSpan / 2);
         for (let i = 0; i < count; i++) {
+          const x = count === 1 ? W / 2 : startX + i * step;
           const s = statsConf[i];
-          if (!s) continue;
-          const x = startX + i * stepX;
-          drawStat(x, rowY, s.label, s.value);
+          if (s) drawStat(x, y, s.label, s.value);
         }
       }
 
@@ -202,12 +201,10 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const midY = Math.round((anchorTopY + anchorBottomY) / 2);
 
       if (headImg) {
-        const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 0.63 * 2.0); // adjust to 2x size
+        const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 0.63); // reduce size by ~37% total (extra 10% smaller)
         const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 24; // ensure image doesn't cover stats
-        const leftLayout = true; // move portrait to the left side
-        const LEFT_CX = L.headshot?.cx ?? Math.round(W * 0.26);
         const poly = L.headshot?.polygon;
-        if (!leftLayout && Array.isArray(poly) && poly.length >= 3) {
+        if (Array.isArray(poly) && poly.length >= 3) {
           const xs = poly.map(p=>p.x), ys = poly.map(p=>p.y);
           const minX = Math.min(...xs), maxX = Math.max(...xs);
           const minY = Math.min(...ys), maxY = Math.max(...ys);
@@ -246,7 +243,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
             ctx.fillText(label, midX, nameY);
           }
         } else {
-          const cx = leftLayout ? LEFT_CX : (L.headshot?.cx ?? (W / 2)); const r = L.headshot?.r ?? (leftLayout ? 220 : 170);
+          const cx = L.headshot?.cx ?? (W / 2); const r = L.headshot?.r ?? 170;
           const cy = midY; // center between stats and name
           // Draw headshot without circular clipping; fit entire image within square box
           ctx.save();
