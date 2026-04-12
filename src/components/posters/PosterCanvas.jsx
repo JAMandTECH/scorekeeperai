@@ -43,6 +43,61 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
     };
     const goldStroke = '#6E4300';
 
+    // Swirl/Halo effect behind best player – mimics animated light trails
+    const drawSwirlHalo = (cx, cy, baseR = 220) => {
+      ctx.save();
+      const prevComp = ctx.globalCompositeOperation;
+      ctx.globalCompositeOperation = 'lighter';
+
+      // Soft radial glow
+      const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, baseR * 1.25);
+      rg.addColorStop(0, 'rgba(255,230,160,0.45)');
+      rg.addColorStop(0.5, 'rgba(240,180,60,0.18)');
+      rg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = rg;
+      ctx.beginPath();
+      ctx.arc(cx, cy, baseR * 1.25, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Gold elliptical rings (dashed for motion feel)
+      const strokeGrad = makeGoldGradient(cy - baseR, cy + baseR);
+      const rings = [
+        { rx: baseR * 1.2,  ry: baseR * 0.55, rot: -0.2, width: 5, alpha: 0.8,  dash: [18, 14], offset: 0 },
+        { rx: baseR * 1.45, ry: baseR * 0.70, rot:  0.15, width: 4, alpha: 0.55, dash: [14, 16], offset: 10 },
+        { rx: baseR * 1.70, ry: baseR * 0.85, rot:  0.00, width: 3, alpha: 0.35, dash: [10, 18], offset: 20 },
+      ];
+      rings.forEach(r => {
+        ctx.save();
+        ctx.strokeStyle = strokeGrad;
+        ctx.globalAlpha = r.alpha;
+        ctx.lineWidth = r.width;
+        ctx.setLineDash(r.dash);
+        ctx.lineDashOffset = r.offset;
+        ctx.shadowColor = 'rgba(255,200,80,0.45)';
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, r.rx, r.ry, r.rot, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      // Sparkles along inner ring
+      const sparkle = (ang) => {
+        const x = cx + Math.cos(ang) * baseR * 1.2;
+        const y = cy + Math.sin(ang) * baseR * 0.55;
+        ctx.fillStyle = 'rgba(255,240,200,0.95)';
+        ctx.shadowColor = 'rgba(255,210,120,0.95)';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      };
+      [-0.9, -0.2, 0.35, 1.1].forEach(sparkle);
+
+      ctx.globalCompositeOperation = prevComp;
+      ctx.restore();
+    };
+
     const loadImage = (url) => new Promise((resolve) => {
       if (!url) return resolve(null);
       const i = new Image();
@@ -211,6 +266,9 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const bw = maxX - minX, bh = maxY - minY;
           const curCenterY = minY + bh/2;
           const deltaY = midY - curCenterY;
+          // Halo behind headshot (polygon mode)
+          const swirlX = minX + bw / 2;
+          drawSwirlHalo(swirlX, midY, Math.max(bw, bh) * 0.65);
 
           // Draw headshot without clipping; fit entire image within polygon bounds (contain)
           ctx.save();
@@ -253,6 +311,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const topY = cy - dh2 / 2;
           const minTop = y + MIN_GAP_FROM_STATS;
           const cyAdjusted = topY < minTop ? (minTop + dh2 / 2) : cy;
+          // Halo behind headshot (circle mode)
+          drawSwirlHalo(cx, cyAdjusted, box * 0.6);
           ctx.drawImage(headImg, cx - dw2 / 2, cyAdjusted - dh2 / 2, dw2, dh2);
           ctx.restore();
 
