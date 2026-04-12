@@ -277,8 +277,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.fillStyle = '#ffffff';
         ctx.strokeStyle = 'rgba(0,0,0,0.35)';
         ctx.lineWidth = 2;
-        ctx.strokeText(label.toUpperCase(), x, y - 18);
-        ctx.fillText(label.toUpperCase(), x, y - 18);
+        ctx.strokeText(label.toUpperCase(), x, y - 28);
+        ctx.fillText(label.toUpperCase(), x, y - 28);
 
         // Value (gold gradient with stroke and glow)
         ctx.textBaseline = 'middle';
@@ -289,8 +289,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.fillStyle = grad;
         ctx.strokeStyle = goldStroke;
         ctx.lineWidth = 3;
-        ctx.strokeText(String(value), x, y + 28);
-        ctx.fillText(String(value), x, y + 28);
+        ctx.strokeText(String(value), x, y + 40);
+        ctx.fillText(String(value), x, y + 40);
         ctx.shadowBlur = 0;
       };
 
