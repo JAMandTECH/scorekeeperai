@@ -337,9 +337,11 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const bw = maxX - minX, bh = maxY - minY;
           const curCenterY = minY + bh/2;
           const deltaY = midY - curCenterY;
+          const curCenterX = minX + bw / 2;
+          const deltaX = (W / 2) - curCenterX;
           // Halo behind headshot (polygon mode)
-          const swirlX = minX + bw / 2;
-          drawSwirlHalo(swirlX, midY, Math.max(bw, bh) * 0.65);
+          const swirlX = W / 2;
+          drawSwirlHalo(W / 2, midY, Math.max(bw, bh) * 0.65);
 
           // Draw headshot without clipping; fit entire image within polygon bounds (contain)
           ctx.save();
@@ -348,7 +350,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const dx2 = minX + (bw - dw2) / 2; const dy2 = minY + (bh - dh2) / 2;
           const drawTop = dy2 + deltaY;
           const extraShift = Math.max(0, (y + MIN_GAP_FROM_STATS) - drawTop);
-          ctx.translate(0, deltaY + extraShift);
+          ctx.translate(deltaX, deltaY + extraShift);
           // Floor glow and waist ring behind player (polygon mode)
           drawFloorGlow(minX + bw / 2, maxY + extraShift - 8, Math.max(60, bw * 0.55), 14);
           drawWaistRing(minX + bw / 2, minY + bh * 0.46 + extraShift, Math.max(80, bw * 0.62), 18, 6);
@@ -379,7 +381,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           ctx.restore();
 
           // Player name label at locked nameY
-          const midX = minX + bw/2;
+          const midX = W / 2;
           const first = (p?.first_name) || (p?.player?.first_name) || '';
           const last = (p?.last_name) || (p?.player?.last_name) || '';
           const jersey = (p?.jersey_number) || (p?.player?.jersey_number) || '';
