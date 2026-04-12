@@ -147,7 +147,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.textAlign = 'center';
         // Label (white with subtle stroke)
         ctx.textBaseline = 'alphabetic';
-        ctx.font = '800 30px Inter, system-ui, Arial';
+        ctx.font = '800 22px Inter, system-ui, Arial'; // 25% smaller labels
         ctx.fillStyle = '#ffffff';
         ctx.strokeStyle = 'rgba(0,0,0,0.35)';
         ctx.lineWidth = 2;
@@ -158,7 +158,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.textBaseline = 'middle';
         ctx.shadowColor = 'rgba(0,0,0,0.35)';
         ctx.shadowBlur = 6;
-        ctx.font = 'italic 900 86px Inter, system-ui, Arial';
+        ctx.font = 'italic 900 64px Inter, system-ui, Arial'; // 25% smaller values
         const grad = makeGoldGradient(y - 40, y + 60);
         ctx.fillStyle = grad;
         ctx.strokeStyle = goldStroke;
@@ -181,7 +181,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         // Right-side vertical stats column (including zeros)
         const colX = W - (L.stats?.rightMargin ?? 120);
         const startY = (L.stats?.y ?? (dateCenterY + 40));
-        const gapY = L.stats?.gap ?? 96;
+        const gapY = L.stats?.gap ?? 112; // more breathing room
         for (let i = 0; i < statsConf.length; i++) {
           const s = statsConf[i];
           if (!s) continue;
@@ -199,7 +199,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const midY = Math.round((anchorTopY + anchorBottomY) / 2);
 
       if (headImg) {
-        const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 0.63 * 2.5); // enlarge 2.5x beyond current size
+        const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 0.63 * 2.0); // adjust to 2x size
         const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 24; // ensure image doesn't cover stats
         const leftLayout = true; // move portrait to the left side
         const LEFT_CX = L.headshot?.cx ?? Math.round(W * 0.26);
