@@ -27,6 +27,7 @@ export default function PosterGenerator() {
   const [selectedTemplateId, setSelectedTemplateId] = React.useState('');
   const [imageUrl, setImageUrl] = React.useState('');
   const [bestPlayerImageUrl, setBestPlayerImageUrl] = React.useState('');
+  const [selectedBestPlayerId, setSelectedBestPlayerId] = React.useState('');
   const [uploading, setUploading] = React.useState(false);
   const [removeBgLoading, setRemoveBgLoading] = React.useState(false);
   const [layout, setLayout] = React.useState({});
@@ -111,6 +112,8 @@ export default function PosterGenerator() {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
+
+  React.useEffect(() => { setSelectedBestPlayerId(''); }, [selectedGameId]);
 
   const gameForPoster = gameQ.data || topQ.data?.game || null;
 
@@ -299,6 +302,21 @@ export default function PosterGenerator() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div>
+              <label className="text-sm text-muted-foreground">Best Player (override)</label>
+              <Select value={selectedBestPlayerId} onValueChange={(v)=>setSelectedBestPlayerId(v)} disabled={!selectedGameId || topQ.isLoading || !(topQ.data?.topPlayers?.length)}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder={topQ.isLoading ? 'Loading players...' : 'Auto (top performer)'} /></SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {(topQ.data?.topPlayers || []).map((p)=> (
+                    <SelectItem key={String(p.id || p.player_id || p.player?.id)} value={String(p.id || p.player_id || p.player?.id)}>
+                      {String([p.first_name || p.player?.first_name || '', p.last_name || p.player?.last_name || ''].filter(Boolean).join(' ') || 'Player')}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">Optional: choose a specific player (e.g., Arne Lopez).</p>
             </div>
 
             <div>
@@ -521,9 +539,9 @@ export default function PosterGenerator() {
                   <PosterCanvas
                     backgroundUrl={imageUrl}
                     game={gameForPoster}
-                    players={[(() => { const gp = gameForPoster; const tops = topQ.data?.topPlayers || []; if (!gp || tops.length === 0) return null; const winTeamId = gp.winning_team_id || (() => { if (gp.sport === 'volleyball' && Array.isArray(gp.quarter_scores)) { let hw=0, aw=0; gp.quarter_scores.forEach(s=>{ const h=(s?.home ?? 0), a=(s?.away ?? 0); if (h>a) hw++; else if (a>h) aw++; }); if (hw !== aw) return hw>aw ? gp.home_team_id : gp.away_team_id; } return ( (gp.home_score ?? 0) > (gp.away_score ?? 0) ) ? gp.home_team_id : gp.away_team_id; })(); const winnerTop = tops.find(p => p.team_id === winTeamId) || tops[0]; return winnerTop; })()].filter(Boolean)}
+                    players={[(() => { const gp = gameForPoster; const tops = topQ.data?.topPlayers || []; if (!gp || tops.length === 0) return null; const winTeamId = gp.winning_team_id || (() => { if (gp.sport === 'volleyball' && Array.isArray(gp.quarter_scores)) { let hw=0, aw=0; gp.quarter_scores.forEach(s=>{ const h=(s?.home ?? 0), a=(s?.away ?? 0); if (h>a) hw++; else if (a>h) aw++; }); if (hw !== aw) return hw>aw ? gp.home_team_id : gp.away_team_id; } return ((gp.home_score ?? 0) > (gp.away_score ?? 0)) ? gp.home_team_id : gp.away_team_id; })(); const matchId = (pl) => String(pl.id || pl.player_id || pl.player?.id || '') === String(selectedBestPlayerId || ''); const chosen = selectedBestPlayerId ? (tops.find(matchId) || tops[0]) : (tops.find(p => p.team_id === winTeamId) || tops[0]); return chosen; })()].filter(Boolean)}
                     org={orgQ.data}
-                    bestPlayerImageUrl={(() => { if (bestPlayerImageUrl) return bestPlayerImageUrl; const gp = gameForPoster; const tops = topQ.data?.topPlayers || []; if (!gp || tops.length === 0) return ''; const winTeamId = gp.winning_team_id || (() => { if (gp.sport === 'volleyball' && Array.isArray(gp.quarter_scores)) { let hw=0, aw=0; gp.quarter_scores.forEach(s=>{ const h=(s?.home ?? 0), a=(s?.away ?? 0); if (h>a) hw++; else if (a>h) aw++; }); if (hw !== aw) return hw>aw ? gp.home_team_id : gp.away_team_id; } return ( (gp.home_score ?? 0) > (gp.away_score ?? 0) ) ? gp.home_team_id : gp.away_team_id; })(); const winnerTop = tops.find(p => p.team_id === winTeamId) || tops[0]; return winnerTop?.photo_url || ''; })()}
+                    bestPlayerImageUrl={(() => { if (bestPlayerImageUrl) return bestPlayerImageUrl; const gp = gameForPoster; const tops = topQ.data?.topPlayers || []; if (!gp || tops.length === 0) return ''; const winTeamId = gp.winning_team_id || (() => { if (gp.sport === 'volleyball' && Array.isArray(gp.quarter_scores)) { let hw=0, aw=0; gp.quarter_scores.forEach(s=>{ const h=(s?.home ?? 0), a=(s?.away ?? 0); if (h>a) hw++; else if (a>h) aw++; }); if (hw !== aw) return hw>aw ? gp.home_team_id : gp.away_team_id; } return ((gp.home_score ?? 0) > (gp.away_score ?? 0)) ? gp.home_team_id : gp.away_team_id; })(); const matchId = (pl) => String(pl.id || pl.player_id || pl.player?.id || '') === String(selectedBestPlayerId || ''); const chosen = selectedBestPlayerId ? (tops.find(matchId) || tops[0]) : (tops.find(p => p.team_id === winTeamId) || tops[0]); return chosen?.photo_url || ''; })()}
                     homeName={teamMap[gameForPoster?.home_team_id] || 'Home Team'}
                     awayName={teamMap[gameForPoster?.away_team_id] || 'Away Team'}
                     layout={layout}
