@@ -98,6 +98,77 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       ctx.restore();
     };
 
+    // Soft floor glow ellipse under player
+    const drawFloorGlow = (cx, y, rx, ry = 14) => {
+      ctx.save();
+      const prevComp = ctx.globalCompositeOperation;
+      ctx.globalCompositeOperation = 'screen';
+      ctx.translate(cx, y);
+      ctx.scale(1, Math.max(0.0001, ry / rx));
+      const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+      grd.addColorStop(0, 'rgba(255,230,160,0.42)');
+      grd.addColorStop(0.55, 'rgba(240,180,60,0.22)');
+      grd.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.arc(0, 0, rx, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalCompositeOperation = prevComp;
+      ctx.restore();
+    };
+
+    // Bright waist ring (partial arcs) around the player
+    const drawWaistRing = (cx, cy, rx, ry, thickness = 5) => {
+      ctx.save();
+      const prevComp = ctx.globalCompositeOperation;
+      ctx.globalCompositeOperation = 'screen';
+      ctx.lineWidth = thickness;
+      ctx.shadowColor = 'rgba(255,200,90,0.55)';
+      ctx.shadowBlur = 14;
+      const grad = makeGoldGradient(cy - ry, cy + ry);
+      ctx.strokeStyle = grad;
+      // Two partial arcs for a broken-ring look
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, 0.0, -1.2, -0.1);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, 0.0, 0.3, 1.2);
+      ctx.stroke();
+      ctx.globalCompositeOperation = prevComp;
+      ctx.restore();
+    };
+
+    // Foreground gold swoosh in front of player (rounded capsule)
+    const drawFrontStreak = (cx, cy, length = 300, thickness = 12, rotation = 0) => {
+      ctx.save();
+      const prevComp = ctx.globalCompositeOperation;
+      ctx.globalCompositeOperation = 'screen';
+      ctx.translate(cx, cy);
+      ctx.rotate(rotation);
+      const w = length, h = thickness;
+      const r = h / 2;
+      const grad = ctx.createLinearGradient(-w/2, 0, w/2, 0);
+      grad.addColorStop(0.0, 'rgba(255,220,120,0.0)');
+      grad.addColorStop(0.15, 'rgba(255,220,120,0.25)');
+      grad.addColorStop(0.5, 'rgba(255,210,90,0.85)');
+      grad.addColorStop(0.85, 'rgba(255,220,120,0.25)');
+      grad.addColorStop(1.0, 'rgba(255,220,120,0.0)');
+      ctx.fillStyle = grad;
+      ctx.shadowColor = 'rgba(255,200,90,0.6)';
+      ctx.shadowBlur = 16;
+      // Rounded capsule path
+      ctx.beginPath();
+      ctx.moveTo(-w/2 + r, -h/2);
+      ctx.lineTo(w/2 - r, -h/2);
+      ctx.arc(w/2 - r, 0, r, -Math.PI/2, Math.PI/2);
+      ctx.lineTo(-w/2 + r, h/2);
+      ctx.arc(-w/2 + r, 0, r, Math.PI/2, -Math.PI/2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalCompositeOperation = prevComp;
+      ctx.restore();
+    };
+
     const loadImage = (url) => new Promise((resolve) => {
       if (!url) return resolve(null);
       const i = new Image();
@@ -278,12 +349,15 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const drawTop = dy2 + deltaY;
           const extraShift = Math.max(0, (y + MIN_GAP_FROM_STATS) - drawTop);
           ctx.translate(0, deltaY + extraShift);
-          // Ghost blur clones behind main
+          // Floor glow and waist ring behind player (polygon mode)
+          drawFloorGlow(minX + bw / 2, maxY + extraShift - 8, Math.max(60, bw * 0.55), 14);
+          drawWaistRing(minX + bw / 2, minY + bh * 0.46 + extraShift, Math.max(80, bw * 0.62), 18, 6);
+          // Ghost blur clones behind main (aligned upward like reference)
           {
             const clones = [
-              { dx: -14, dy: -10, blur: 6, alpha: 0.25, scale: 1.03 },
-              { dx: 16,  dy: -4,  blur: 10, alpha: 0.18, scale: 1.06 },
-              { dx: -8,  dy: 12,  blur: 14, alpha: 0.12, scale: 1.10 },
+              { dx: 10, dy: -8,  blur: 7,  alpha: 0.25, scale: 1.03 },
+              { dx: 20, dy: -16, blur: 11, alpha: 0.18, scale: 1.06 },
+              { dx: 32, dy: -24, blur: 16, alpha: 0.12, scale: 1.10 },
             ];
             const prevAlpha = ctx.globalAlpha;
             const prevFilter = ctx.filter || 'none';
@@ -292,14 +366,16 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
               ctx.filter = `blur(${c.blur}px)`;
               const w = dw2 * c.scale, h = dh2 * c.scale;
               const x = dx2 - (w - dw2) / 2 + c.dx;
-              const y = dy2 - (h - dh2) / 2 + c.dy;
-              ctx.drawImage(headImg, x, y, w, h);
+              const yClone = dy2 - (h - dh2) / 2 + c.dy;
+              ctx.drawImage(headImg, x, yClone, w, h);
             });
             ctx.globalAlpha = 1;
             ctx.filter = prevFilter;
           }
           // Main headshot
           ctx.drawImage(headImg, dx2, dy2, dw2, dh2);
+          // Foreground swoosh across waist (polygon mode)
+          drawFrontStreak(minX + bw / 2, minY + bh * 0.46 + deltaY + extraShift, Math.max(180, bw * 0.95), 14, -0.1);
           ctx.restore();
 
           // Player name label at locked nameY
@@ -337,6 +413,9 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           // Ghost blur clones behind main (circle mode)
           {
             const centerX = cx, centerY = cyAdjusted;
+            // Floor glow and waist ring behind player (circle mode)
+            drawFloorGlow(centerX, centerY + dh2 / 2 - 10, Math.max(60, dw2 * 0.45), 14);
+            drawWaistRing(centerX, centerY + dh2 * 0.05, Math.max(80, dw2 * 0.50), 16, 6);
             const clones = [
               { dx: -12, dy: -10, blur: 6,  alpha: 0.25, scale: 1.03 },
               { dx:  14, dy:  -6, blur: 10, alpha: 0.18, scale: 1.06 },
@@ -349,14 +428,16 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
               ctx.filter = `blur(${c.blur}px)`;
               const w = dw2 * c.scale, h = dh2 * c.scale;
               const x = centerX - w / 2 + c.dx;
-              const y = centerY - h / 2 + c.dy;
-              ctx.drawImage(headImg, x, y, w, h);
+              const yClone = centerY - h / 2 + c.dy;
+              ctx.drawImage(headImg, x, yClone, w, h);
             });
             ctx.globalAlpha = 1;
             ctx.filter = prevFilter;
           }
           // Main headshot
           ctx.drawImage(headImg, cx - dw2 / 2, cyAdjusted - dh2 / 2, dw2, dh2);
+          // Foreground swoosh across waist (circle mode)
+          drawFrontStreak(cx, cyAdjusted + dh2 * 0.05, Math.max(180, dw2 * 0.95), 14, 0.08);
           ctx.restore();
 
           // Player name label at locked nameY with auto-fit
@@ -427,9 +508,9 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           if (el.type === 'text' && el.text) {
             ctx.save();
             const x = el.x ?? W/2;
-            const y = el.y ?? H/2;
+            const yEl = el.y ?? H/2;
             const rot = (el.rotation || 0) * Math.PI / 180;
-            ctx.translate(x, y);
+            ctx.translate(x, yEl);
             ctx.rotate(rot);
             ctx.fillStyle = el.color || '#ffffff';
             const weight = el.bold ? 800 : 600;
@@ -496,14 +577,14 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       ctx.fillText(leftName, leftX - 20, yScore);
 
       // Draw scores and VS centered cluster
-      const drawScoreBox = (x, y, text, highlight) => {
+      const drawScoreBox = (x, yVal, text, highlight) => {
         ctx.font = '800 22px Inter, system-ui, Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = highlight ? '#facc15' : '#ffffff';
-        const w = ctx.measureText(text).width + pad * 2;
-        ctx.fillText(text, x + w / 2, y);
-        return w;
+        const wBox = ctx.measureText(text).width + pad * 2;
+        ctx.fillText(text, x + wBox / 2, yVal);
+        return wBox;
       };
 
       let cursor = leftX;
@@ -600,4 +681,4 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       )}
     </div>
   );
-  }
+}
