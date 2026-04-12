@@ -172,15 +172,15 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const rawStats = getSportStatsConfig(game.sport, p) || [];
       const statsConf = rawStats.filter(s => s && Number(s.value) !== 0); // hide zero-valued stats
 
-      // Place stats just below the date with clean spacing
+      // Place stats just below the date with generous spacing
       const dateCenterY = (L.datePill?.y ?? 132) + 18; // matches date rendering center
-      const defaultOffset = L.stats?.offset ?? 90; // spacing below date
+      const defaultOffset = L.stats?.offset ?? 140; // extra space below date
       const y = dateCenterY + defaultOffset;
 
       if (statsConf.length > 0) {
         // Stats row above the player's picture (zeros hidden)
         const centerX = (L.headshot?.cx ?? Math.round(W * 0.26));
-        const y = L.stats?.y ?? Math.round(H * 0.38);
+        const rowY = L.stats?.y ?? y; // directly below the date with extra offset
         const stepX = L.stats?.step ?? 170;
         const count = statsConf.length;
         const total = (count - 1) * stepX;
@@ -189,7 +189,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const s = statsConf[i];
           if (!s) continue;
           const x = startX + i * stepX;
-          drawStat(x, y, s.label, s.value);
+          drawStat(x, rowY, s.label, s.value);
         }
       }
 
