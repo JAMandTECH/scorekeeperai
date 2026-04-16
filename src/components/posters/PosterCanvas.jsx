@@ -318,17 +318,18 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         }
       }
 
-      // Position headshot exactly between stats and team name with equal spacing
+      // Position headshot closer to stats while keeping comfortable spacing
       const bestTitleY = L.bestTitle?.y ?? 950;
       const nameY = L.nameLabel?.y ?? (bestTitleY - 70); // player name stays above BEST PLAYER
       const teamLabelY = (L.nameLabel?.y ?? ((L.bestTitle?.y ?? 950) - 70)) - 56; // team label sits above name
       const anchorTopY = y; // stats row center
       const anchorBottomY = teamLabelY; // team name center
-      const midY = Math.round((anchorTopY + anchorBottomY) / 2);
+      const HEADSHOT_BIAS_TOWARDS_STATS = L.headshot?.biasTowardsStats ?? 0.35; // 0 (at stats) .. 1 (at team label)
+      const midY = Math.round(anchorTopY + (anchorBottomY - anchorTopY) * HEADSHOT_BIAS_TOWARDS_STATS);
 
       if (headImg) {
         const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 1.4175); // 2.25x larger best-player image
-        const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 24; // ensure image doesn't cover stats
+        const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 36; // ensure extra breathing room near stats
         const poly = L.headshot?.polygon;
         if (Array.isArray(poly) && poly.length >= 3) {
           const xs = poly.map(p=>p.x), ys = poly.map(p=>p.y);
@@ -408,7 +409,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const ar = Math.min(box / headImg.width, box / headImg.height) * HEAD_SCALE;
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
           const topY = cy - dh2 / 2;
-          const minTop = y + MIN_GAP_FROM_STATS;
+          const minTop = y + MIN_GAP_FROM_STATS; // keep enough space so stats remain readable
           const cyAdjusted = topY < minTop ? (minTop + dh2 / 2) : cy;
           // Halo behind headshot (circle mode)
           drawSwirlHalo(cx, cyAdjusted, box * 0.6);
