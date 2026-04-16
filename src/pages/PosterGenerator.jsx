@@ -14,6 +14,7 @@ import PosterCanvas from '@/components/posters/PosterCanvas';
 import { format } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
 import SocialShare from '@/components/social/SocialShare';
+import { removeBackground } from '@imgly/background-removal';
 
 
 
@@ -27,6 +28,7 @@ export default function PosterGenerator() {
   const [selectedTemplateId, setSelectedTemplateId] = React.useState('');
   const [imageUrl, setImageUrl] = React.useState('');
   const [bestPlayerImageUrl, setBestPlayerImageUrl] = React.useState('');
+  const [bestPlayerFile, setBestPlayerFile] = React.useState(null);
   const [uploading, setUploading] = React.useState(false);
   const [removeBgLoading, setRemoveBgLoading] = React.useState(false);
   const [layout, setLayout] = React.useState({});
@@ -305,34 +307,47 @@ export default function PosterGenerator() {
               <label className="text-sm text-muted-foreground">Best Player Photo</label>
               <div className="mt-1 flex items-center gap-3">
                 <Input type="file" accept="image/*" onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  setUploading(true);
-                  try {
-                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                    setBestPlayerImageUrl(file_url);
-                  } finally {
-                    setUploading(false);
-                  }
+                 const file = e.target.files?.[0];
+                 if (!file) return;
+                 setBestPlayerFile(file);
+                 setUploading(true);
+                 try {
+                   const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                   setBestPlayerImageUrl(file_url);
+                 } finally {
+                   setUploading(false);
+                 }
                 }} />
                 {uploading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                 {bestPlayerImageUrl && <img src={bestPlayerImageUrl} alt="Best player" className="w-12 h-12 rounded-full border object-cover" />}
                 <Button
                   variant="outline"
                   className="gap-2"
-                  disabled={!bestPlayerImageUrl || removeBgLoading}
+                  disabled={(!bestPlayerFile && !bestPlayerImageUrl) || removeBgLoading}
                   onClick={async () => {
-                    if (!bestPlayerImageUrl) return;
                     setRemoveBgLoading(true);
                     try {
-                      const res = await base44.functions.invoke('removeBg', { imageUrl: bestPlayerImageUrl });
-                      if (res?.data?.dataUrl) {
-                        setBestPlayerImageUrl(res.data.dataUrl);
-                      } else {
-                        toast({ variant: 'destructive', title: 'Background removal failed', description: 'No image returned from service.' });
+                      let file = bestPlayerFile;
+                      if (!file && bestPlayerImageUrl) {
+                        const r = await fetch(bestPlayerImageUrl);
+                        const b = await r.blob();
+                        file = new File([b], 'player.png', { type: b.type || 'image/png' });
                       }
+                      if (!file) throw new Error('No image selected');
+
+                      const blob = await removeBackground(file, {
+                        model: 'isnet_fp16',
+                        progress: (key, current, total) => {
+                          console.log(`Downloading ${key}: ${Math.round((current/total)*100)}%`);
+                        }
+                      });
+
+                      const processedFile = new File([blob], `player-nobg-${Date.now()}.png`, { type: 'image/png' });
+                      const upload = await base44.integrations.Core.UploadFile({ file: processedFile });
+                      setBestPlayerImageUrl(upload.file_url);
+                      setBestPlayerFile(processedFile);
                     } catch (err) {
-                      const msg = err?.response?.data?.error || err?.response?.data?.details || err?.message || 'Service unavailable.';
+                      const msg = err?.message || 'Background removal failed.';
                       toast({ variant: 'destructive', title: 'Background removal failed', description: String(msg).slice(0, 300) });
                     } finally {
                       setRemoveBgLoading(false);
