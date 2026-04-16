@@ -6,7 +6,7 @@ import base44 from '@base44/vite-plugin'
 export default defineConfig({
   plugins: [react(), base44()],
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router', 'react-router-dom'],
+    include: ['react', 'react-dom', 'react-router', 'react-router-dom', 'onnxruntime-web', 'onnxruntime-web/dist/ort.bundle.min.js', '@imgly/background-removal'],
     dedupe: ['react', 'react-dom', 'react-router', 'react-router-dom']
   },
   resolve: {

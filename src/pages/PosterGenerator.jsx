@@ -14,6 +14,7 @@ import PosterCanvas from '@/components/posters/PosterCanvas';
 import { format } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
 import SocialShare from '@/components/social/SocialShare';
+import 'onnxruntime-web/dist/ort.bundle.min.js';
 
 
 
@@ -357,7 +358,11 @@ export default function PosterGenerator() {
                         }
                       }
                     } catch (err) {
-                      const msg = err?.message || 'Background removal failed.';
+                      const status = err?.response?.status;
+                      const details = err?.response?.data?.error || err?.response?.data?.details;
+                      const msg = status === 402
+                        ? 'Background removal credits are exhausted. Please try again later or contact support.'
+                        : (details || err?.message || 'Background removal failed.');
                       toast({ variant: 'destructive', title: 'Background removal failed', description: String(msg).slice(0, 300) });
                     } finally {
                       setRemoveBgLoading(false);
