@@ -327,7 +327,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const midY = Math.round((anchorTopY + anchorBottomY) / 2);
 
       if (headImg) {
-        const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 1.4175); // 2.25x larger best-player image
+        const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 1.4175 * 1.5); // 1.5x bigger best-player image
         const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 24; // ensure image doesn't cover stats
         const poly = L.headshot?.polygon;
         if (Array.isArray(poly) && poly.length >= 3) {
