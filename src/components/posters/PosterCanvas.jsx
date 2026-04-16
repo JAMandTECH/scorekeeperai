@@ -330,7 +330,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       if (headImg) {
         const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 1.4175); // 2.25x larger best-player image
         const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 36; // ensure extra breathing room near stats
-        const poly = L.headshot?.polygon;
+        const freeMove = L.headshot?.freeMove ?? true;
+        const poly = freeMove ? null : L.headshot?.polygon;
         if (Array.isArray(poly) && poly.length >= 3) {
           const xs = poly.map(p=>p.x), ys = poly.map(p=>p.y);
           const minX = Math.min(...xs), maxX = Math.max(...xs);
@@ -402,15 +403,15 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           }
         } else {
           const cx = L.headshot?.cx ?? (W / 2); const r = L.headshot?.r ?? 170;
-          const cy = midY; // center between stats and name
+          let cy = L.headshot?.cy ?? midY; // allow free vertical movement (and horizontal via cx)
           // Draw headshot without circular clipping; fit entire image within square box
           ctx.save();
           const box = r * 2;
           const ar = Math.min(box / headImg.width, box / headImg.height) * HEAD_SCALE;
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
-          const topY = cy - dh2 / 2;
+          const topY = cy - dh2 / 2; // compute from overridable cy
           const minTop = y + MIN_GAP_FROM_STATS; // keep enough space so stats remain readable
-          const cyAdjusted = topY < minTop ? (minTop + dh2 / 2) : cy;
+          const cyAdjusted = topY < minTop ? (minTop + dh2 / 2) : cy; // free-move but not overlapping stats
           // Halo behind headshot (circle mode)
           drawSwirlHalo(cx, cyAdjusted, box * 0.6);
           // Ghost blur clones behind main (circle mode)
@@ -437,7 +438,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
             ctx.globalAlpha = 1;
             ctx.filter = prevFilter;
           }
-          // Main headshot
+          // Main headshot (no clipping boundary — free to move within canvas)
           ctx.drawImage(headImg, cx - dw2 / 2, cyAdjusted - dh2 / 2, dw2, dh2);
           // Foreground swoosh across waist (circle mode)
           drawFrontStreak(cx, cyAdjusted + dh2 * 0.05, Math.max(180, dw2 * 0.95), 14, 0.08);
