@@ -10,11 +10,6 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
   const [dataUrl, setDataUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState(null);
-  // Drag-to-move state for best player image
-  const [headPos, setHeadPos] = useState(null);
-  const dragRef = useRef({ dragging: false, offsetX: 0, offsetY: 0 });
-  const lastDrawRef = useRef({ cx: 0, cy: 0, w: 0, h: 0 });
-  const listenersAttachedRef = useRef(false);
 
   useEffect(() => {
     if (!backgroundUrl || !game) return;
@@ -36,32 +31,6 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
     const ctx = canvas.getContext('2d');
     ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
-    // Pointer handlers for drag
-    if (!listenersAttachedRef.current) {
-      const handleDown = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left);
-      const y = (e.clientY - rect.top);
-      const box = lastDrawRef.current;
-      if (x >= box.cx - box.w/2 && x <= box.cx + box.w/2 && y >= box.cy - box.h/2 && y <= box.cy + box.h/2) {
-        dragRef.current.dragging = true;
-        dragRef.current.offsetX = x - box.cx;
-        dragRef.current.offsetY = y - box.cy;
-      }
-    };
-    const handleMove = (e) => {
-      if (!dragRef.current.dragging) return;
-      const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left) - dragRef.current.offsetX;
-      const y = (e.clientY - rect.top) - dragRef.current.offsetY;
-      setHeadPos({ cx: Math.max(0, Math.min(W, x)), cy: Math.max(0, Math.min(H, y)) });
-    };
-    const handleUp = () => { dragRef.current.dragging = false; };
-    canvas.addEventListener('pointerdown', handleDown);
-    window.addEventListener('pointermove', handleMove);
-    window.addEventListener('pointerup', handleUp);
-    listenersAttachedRef.current = true;
-    }
 
     // Gold gradient utilities to mimic poster style
     const makeGoldGradient = (yTop, yBottom) => {
@@ -211,8 +180,6 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
     (async () => {
       const headSrc = (L?.headshot?.processedImageUrl) || (bestPlayerImageUrl || players?.[0]?.photo_url);
-      const forcedCx = headPos?.cx ?? null;
-      const forcedCy = headPos?.cy ?? null;
       const [bgImg, logoImg, headImg] = await Promise.all([
         loadImage(backgroundUrl),
         loadImage(org?.logo_url),
@@ -411,8 +378,6 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           }
           // Main headshot
           ctx.drawImage(headImg, dx2, dy2, dw2, dh2);
-          // save last drawn bounds for hit-testing in polygon mode
-          lastDrawRef.current = { cx: minX + bw/2 + deltaX, cy: minY + bh/2 + deltaY, w: dw2, h: dh2 };
           // Foreground swoosh across waist (polygon mode)
           drawFrontStreak(minX + bw / 2, minY + bh * 0.46 + deltaY + extraShift, Math.max(180, bw * 0.95), 14, -0.1);
           ctx.restore();
@@ -437,8 +402,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
             ctx.fillText(label, midX, nameY);
           }
         } else {
-          const cx = (forcedCx ?? L.headshot?.cx ?? (W / 2)); const r = L.headshot?.r ?? 170;
-          let cy = (forcedCy ?? L.headshot?.cy ?? midY); // allow free vertical movement (and horizontal via cx)
+          const cx = L.headshot?.cx ?? (W / 2); const r = L.headshot?.r ?? 170;
+          let cy = L.headshot?.cy ?? midY; // allow free vertical movement (and horizontal via cx)
           // Draw headshot without circular clipping; fit entire image within square box
           ctx.save();
           const box = r * 2;
@@ -475,8 +440,6 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           }
           // Main headshot (no clipping boundary — free to move within canvas)
           ctx.drawImage(headImg, cx - dw2 / 2, cyAdjusted - dh2 / 2, dw2, dh2);
-          // save last drawn bounds for hit-testing
-          lastDrawRef.current = { cx, cy: cyAdjusted, w: dw2, h: dh2 };
           // Foreground swoosh across waist (circle mode)
           drawFrontStreak(cx, cyAdjusted + dh2 * 0.05, Math.max(180, dw2 * 0.95), 14, 0.08);
           ctx.restore();
@@ -668,7 +631,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         onReady && onReady('');
       }
     })();
-  }, [backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady, headPos]);
+  }, [backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady]);
 
   const dataURLtoBlob = (dataURL) => {
     const arr = dataURL.split(',');
