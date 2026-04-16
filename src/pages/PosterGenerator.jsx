@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, Download, Sparkles, Trash2, FolderOpen, RefreshCcw, ArrowLeft, LayoutGrid, List } from 'lucide-react'; // cleaned: removed AI chat; kept background remover
@@ -34,6 +35,7 @@ export default function PosterGenerator() {
   const [layout, setLayout] = React.useState({});
   const [posterDataUrl, setPosterDataUrl] = React.useState('');
   const [savedOpen, setSavedOpen] = React.useState(false);
+  const [localOnlyBgRemove, setLocalOnlyBgRemove] = React.useState(true);
   // Template upload dialog state
   const [addOpen, setAddOpen] = React.useState(false);
   const [newTplName, setNewTplName] = React.useState('');
@@ -348,7 +350,10 @@ export default function PosterGenerator() {
                         setBestPlayerImageUrl(upload.file_url);
                         setBestPlayerFile(processedFile);
                       } catch (localErr) {
-                        console.warn('Local background removal failed; falling back to server', localErr);
+                        console.warn('Local background removal failed', localErr);
+                        if (localOnlyBgRemove) {
+                          throw new Error('Local mode: background removal failed; not using server fallback.');
+                        }
                         const srcUrl = bestPlayerImageUrl;
                         const res = await base44.functions.invoke('removeBg', { imageUrl: srcUrl });
                         if (res?.data?.dataUrl) {
@@ -371,6 +376,12 @@ export default function PosterGenerator() {
                 >
                   {removeBgLoading && <Loader2 className="h-4 w-4 animate-spin" />} Remove Background
                 </Button>
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <Switch id="local-only-bg" checked={localOnlyBgRemove} onCheckedChange={setLocalOnlyBgRemove} />
+                <label htmlFor="local-only-bg" className="text-sm text-muted-foreground select-none">
+                  Local-only background removal
+                </label>
               </div>
               <p className="text-xs text-muted-foreground mt-1">Optional: overrides player profile photo for this poster.</p>
             </div>
