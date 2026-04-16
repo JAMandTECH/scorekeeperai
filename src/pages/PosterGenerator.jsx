@@ -14,7 +14,7 @@ import PosterCanvas from '@/components/posters/PosterCanvas';
 import { format } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
 import SocialShare from '@/components/social/SocialShare';
-import 'onnxruntime-web/dist/ort.bundle.min.js';
+import 'onnxruntime-web';
 
 
 
