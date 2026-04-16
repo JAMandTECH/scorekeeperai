@@ -328,7 +328,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const midY = Math.round(anchorTopY + (anchorBottomY - anchorTopY) * HEADSHOT_BIAS_TOWARDS_STATS);
 
       if (headImg) {
-        const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 1.4175 * 1.3 * 0.8); // size reduced by 20% from previous boost
+        const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 1.4175 * 1.3 * 0.8 * 0.85); // additional 15% reduction
         const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 14; // tight, safe gap below stats (~reference)
         const freeMove = L.headshot?.freeMove ?? true;
         const poly = freeMove ? null : L.headshot?.polygon;
