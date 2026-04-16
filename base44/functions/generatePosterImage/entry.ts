@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 Deno.serve(async (req) => {
   try {
@@ -40,8 +40,7 @@ Deno.serve(async (req) => {
 
     // Build the final prompt combining template and context
     const lines = [];
-    const tmplPrompt = (tmpl?.prompt || '').trim();
-    if (tmplPrompt) lines.push(tmplPrompt);
+    lines.push(tmpl.prompt.trim());
     lines.push(`Design a bold, high-energy ${game.sport} game day background for social media.`);
     lines.push(`Focus: ${game.home_team_name} vs ${game.away_team_name} (Division: ${game.division || 'N/A'}) on ${dateStr} at ${game.location || 'TBD'}.`);
     if (org?.name) lines.push(`Incorporate subtle branding for ${org.name}${org.tournament_name ? ' • ' + org.tournament_name : ''}.`);
