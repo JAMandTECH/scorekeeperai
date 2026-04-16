@@ -16,6 +16,9 @@ Deno.serve(async (req) => {
     form.append('size', 'auto');
     form.append('format', 'png');
     form.append('type', 'auto');
+    // Enable tight subject cropping
+    form.append('crop', 'true');
+    form.append('crop_margin', '0');
 
     const resp = await fetch('https://api.remove.bg/v1.0/removebg', {
       method: 'POST',
