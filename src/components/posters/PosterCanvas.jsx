@@ -324,12 +324,12 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const teamLabelY = (L.nameLabel?.y ?? ((L.bestTitle?.y ?? 950) - 70)) - 56; // team label sits above name
       const anchorTopY = y; // stats row center
       const anchorBottomY = teamLabelY; // team name center
-      const HEADSHOT_BIAS_TOWARDS_STATS = L.headshot?.biasTowardsStats ?? 0.08; // 0 (at stats) .. 1 (at team label)
+      const HEADSHOT_BIAS_TOWARDS_STATS = L.headshot?.biasTowardsStats ?? 0.2; // 0 (at stats) .. 1 (at team label) — shifted lower
       const midY = Math.round(anchorTopY + (anchorBottomY - anchorTopY) * HEADSHOT_BIAS_TOWARDS_STATS);
 
       if (headImg) {
         const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 1.4175 * 1.3 * 0.8 * 0.85); // additional 15% reduction
-        const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 14; // tight, safe gap below stats (~reference)
+        const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 36; // larger safe gap below stats
         const freeMove = L.headshot?.freeMove ?? true;
         const poly = freeMove ? null : L.headshot?.polygon;
         if (Array.isArray(poly) && poly.length >= 3) {
