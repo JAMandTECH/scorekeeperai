@@ -14,7 +14,6 @@ import PosterCanvas from '@/components/posters/PosterCanvas';
 import { format } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
 import SocialShare from '@/components/social/SocialShare';
-import { removeBackground } from '@imgly/background-removal';
 
 
 
@@ -335,17 +334,28 @@ export default function PosterGenerator() {
                       }
                       if (!file) throw new Error('No image selected');
 
-                      const blob = await removeBackground(file, {
-                        model: 'isnet_fp16',
-                        progress: (key, current, total) => {
-                          console.log(`Downloading ${key}: ${Math.round((current/total)*100)}%`);
+                      try {
+                        const mod = await import('@imgly/background-removal');
+                        const blob = await mod.removeBackground(file, {
+                          model: 'isnet_fp16',
+                          progress: (key, current, total) => {
+                            console.log(`Downloading ${key}: ${Math.round((current/total)*100)}%`);
+                          }
+                        });
+                        const processedFile = new File([blob], `player-nobg-${Date.now()}.png`, { type: 'image/png' });
+                        const upload = await base44.integrations.Core.UploadFile({ file: processedFile });
+                        setBestPlayerImageUrl(upload.file_url);
+                        setBestPlayerFile(processedFile);
+                      } catch (localErr) {
+                        console.warn('Local background removal failed; falling back to server', localErr);
+                        const srcUrl = bestPlayerImageUrl;
+                        const res = await base44.functions.invoke('removeBg', { imageUrl: srcUrl });
+                        if (res?.data?.dataUrl) {
+                          setBestPlayerImageUrl(res.data.dataUrl);
+                        } else {
+                          throw new Error('Fallback service did not return an image');
                         }
-                      });
-
-                      const processedFile = new File([blob], `player-nobg-${Date.now()}.png`, { type: 'image/png' });
-                      const upload = await base44.integrations.Core.UploadFile({ file: processedFile });
-                      setBestPlayerImageUrl(upload.file_url);
-                      setBestPlayerFile(processedFile);
+                      }
                     } catch (err) {
                       const msg = err?.message || 'Background removal failed.';
                       toast({ variant: 'destructive', title: 'Background removal failed', description: String(msg).slice(0, 300) });
