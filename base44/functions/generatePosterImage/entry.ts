@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
@@ -72,6 +72,7 @@ Deno.serve(async (req) => {
 
     return Response.json({ url: gen?.url || null }, { status: 200 });
   } catch (error) {
+    console.error('generatePosterImage error', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
