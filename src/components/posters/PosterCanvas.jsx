@@ -329,7 +329,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
       if (headImg) {
         const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 1.4175 * 1.5); // 1.5x bigger best-player image
-        const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 10; // ensure image doesn't cover stats
+        const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 8; // ensure image doesn't cover stats
         const poly = L.headshot?.polygon;
         if (Array.isArray(poly) && poly.length >= 3) {
           const xs = poly.map(p=>p.x), ys = poly.map(p=>p.y);
@@ -349,12 +349,12 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const ar = Math.min(bw / headImg.width, bh / headImg.height) * HEAD_SCALE;
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
           const dx2 = minX + (bw - dw2) / 2; const dy2 = minY + (bh - dh2) / 2;
-          const drawTop = dy2 + deltaY;
-          const extraShift = Math.max(0, (y + MIN_GAP_FROM_STATS) - drawTop);
-          ctx.translate(deltaX, deltaY + extraShift);
+          const targetTop = y + MIN_GAP_FROM_STATS;
+          const shiftY = targetTop - dy2;
+          ctx.translate(deltaX, shiftY);
           // Floor glow and waist ring behind player (polygon mode)
-          drawFloorGlow(minX + bw / 2, maxY + extraShift - 8, Math.max(60, bw * 0.55), 14);
-          drawWaistRing(minX + bw / 2, minY + bh * 0.46 + extraShift, Math.max(80, bw * 0.62), 18, 6);
+          drawFloorGlow(minX + bw / 2, maxY + shiftY - 8, Math.max(60, bw * 0.55), 14);
+          drawWaistRing(minX + bw / 2, minY + bh * 0.46 + shiftY, Math.max(80, bw * 0.62), 18, 6);
           // Ghost blur clones behind main (aligned upward like reference)
           {
             const clones = [
@@ -378,7 +378,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           // Main headshot
           ctx.drawImage(headImg, dx2, dy2, dw2, dh2);
           // Foreground swoosh across waist (polygon mode)
-          drawFrontStreak(minX + bw / 2, minY + bh * 0.46 + deltaY + extraShift, Math.max(180, bw * 0.95), 14, -0.1);
+          drawFrontStreak(minX + bw / 2, minY + bh * 0.46 + shiftY, Math.max(180, bw * 0.95), 14, -0.1);
           ctx.restore();
 
           // Player name label at locked nameY
@@ -408,9 +408,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const box = r * 2;
           const ar = Math.min(box / headImg.width, box / headImg.height) * HEAD_SCALE;
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
-          const topY = cy - dh2 / 2;
           const minTop = y + MIN_GAP_FROM_STATS;
-          const cyAdjusted = topY < minTop ? (minTop + dh2 / 2) : cy;
+          const cyAdjusted = minTop + dh2 / 2;
           // Halo behind headshot (circle mode)
           drawSwirlHalo(cx, cyAdjusted, box * 0.6);
           // Ghost blur clones behind main (circle mode)
