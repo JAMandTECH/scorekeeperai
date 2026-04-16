@@ -324,11 +324,12 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const teamLabelY = (L.nameLabel?.y ?? ((L.bestTitle?.y ?? 950) - 70)) - 56; // team label sits above name
       const anchorTopY = y; // stats row center
       const anchorBottomY = teamLabelY; // team name center
-      const midY = Math.round((anchorTopY + anchorBottomY) / 2);
+      // Bias the headshot anchor closer to the stats row (POINTS) for tighter composition
+      const midY = Math.round(anchorTopY + (anchorBottomY - anchorTopY) * 0.4);
 
       if (headImg) {
-        const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 1.4175); // 2.25x larger best-player image
-        const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 24; // ensure image doesn't cover stats
+        const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 1.5); // 1.5x bigger headshot
+        const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 20; // allow slightly closer to POINTS
         const poly = L.headshot?.polygon;
         if (Array.isArray(poly) && poly.length >= 3) {
           const xs = poly.map(p=>p.x), ys = poly.map(p=>p.y);
@@ -405,7 +406,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           // Draw headshot without circular clipping; fit entire image within square box
           ctx.save();
           const box = r * 2;
-          const ar = Math.min(box / headImg.width, box / headImg.height) * HEAD_SCALE;
+          const ar = Math.min(box / headImg.width, box / headImg.height) * (HEAD_SCALE * 1.0);
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
           const topY = cy - dh2 / 2;
           const minTop = y + MIN_GAP_FROM_STATS;
