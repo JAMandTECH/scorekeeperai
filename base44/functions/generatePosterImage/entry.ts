@@ -40,7 +40,9 @@ Deno.serve(async (req) => {
 
     // Build the final prompt combining template and context
     const lines = [];
-    lines.push(tmpl.prompt.trim());
+    if (typeof tmpl.prompt === 'string' && tmpl.prompt.trim()) {
+      lines.push(tmpl.prompt.trim());
+    }
     lines.push(`Design a bold, high-energy ${game.sport} game day background for social media.`);
     lines.push(`Focus: ${game.home_team_name} vs ${game.away_team_name} (Division: ${game.division || 'N/A'}) on ${dateStr} at ${game.location || 'TBD'}.`);
     if (org?.name) lines.push(`Incorporate subtle branding for ${org.name}${org.tournament_name ? ' • ' + org.tournament_name : ''}.`);
