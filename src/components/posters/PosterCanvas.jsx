@@ -324,12 +324,12 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const teamLabelY = (L.nameLabel?.y ?? ((L.bestTitle?.y ?? 950) - 70)) - 56; // team label sits above name
       const anchorTopY = y; // stats row center
       const anchorBottomY = teamLabelY; // team name center
-      const HEADSHOT_BIAS_TOWARDS_STATS = L.headshot?.biasTowardsStats ?? 0.35; // 0 (at stats) .. 1 (at team label)
+      const HEADSHOT_BIAS_TOWARDS_STATS = L.headshot?.biasTowardsStats ?? 0.15; // 0 (at stats) .. 1 (at team label)
       const midY = Math.round(anchorTopY + (anchorBottomY - anchorTopY) * HEADSHOT_BIAS_TOWARDS_STATS);
 
       if (headImg) {
         const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 1.4175 * 1.3); // +30% size boost for best-player image
-        const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 36; // ensure extra breathing room near stats
+        const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 28; // tight, safe gap below stats (≈ reference)
         const freeMove = L.headshot?.freeMove ?? true;
         const poly = freeMove ? null : L.headshot?.polygon;
         if (Array.isArray(poly) && poly.length >= 3) {
@@ -409,9 +409,13 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const box = r * 2;
           const ar = Math.min(box / headImg.width, box / headImg.height) * HEAD_SCALE;
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
-          const topY = cy - dh2 / 2; // compute from overridable cy
+          // Prefer head top close to stats with a safe gap (matches reference)
+          const desiredGap = L.headshot?.gapFromStats ?? MIN_GAP_FROM_STATS; // px below stats center
+          const cyDesired = (y + desiredGap) + dh2 / 2; // center needed to place top at desired gap
+          const cyPre = Math.min(cy, cyDesired); // if current center is lower, pull upward toward target
+          const topY = cyPre - dh2 / 2; // compute from adjusted cy
           const minTop = y + MIN_GAP_FROM_STATS; // keep enough space so stats remain readable
-          const cyAdjusted = topY < minTop ? (minTop + dh2 / 2) : cy; // free-move but not overlapping stats
+          const cyAdjusted = topY < minTop ? (minTop + dh2 / 2) : cyPre; // snap to exact safe gap when too close
           // Halo behind headshot (circle mode)
           drawSwirlHalo(cx, cyAdjusted, box * 0.6);
           // Ghost blur clones behind main (circle mode)
