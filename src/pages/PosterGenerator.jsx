@@ -51,6 +51,58 @@ export default function PosterGenerator() {
   const [dateFrom, setDateFrom] = React.useState('');
   const [dateTo, setDateTo] = React.useState('');
 
+  // Trim transparent margins to keep only the main subject area
+  const trimTransparentPNG = async (inBlob, threshold = 10, margin = 8) => {
+    try {
+      let img;
+      if ('createImageBitmap' in window) {
+        img = await createImageBitmap(inBlob);
+      } else {
+        const url = URL.createObjectURL(inBlob);
+        img = await new Promise((resolve) => {
+          const i = new Image();
+          i.crossOrigin = 'anonymous';
+          i.onload = () => { URL.revokeObjectURL(url); resolve(i); };
+          i.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+          i.src = url;
+        });
+      }
+      if (!img) return inBlob;
+      const w = img.width, h = img.height;
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const cx = c.getContext('2d');
+      cx.drawImage(img, 0, 0);
+      const { data } = cx.getImageData(0, 0, w, h);
+      let minX = w, minY = h, maxX = -1, maxY = -1;
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const a = data[(y * w + x) * 4 + 3];
+          if (a > threshold) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+      }
+      if (maxX < 0) return inBlob; // nothing opaque — return original
+      minX = Math.max(0, minX - margin);
+      minY = Math.max(0, minY - margin);
+      maxX = Math.min(w - 1, maxX + margin);
+      maxY = Math.min(h - 1, maxY + margin);
+      const cropW = maxX - minX + 1;
+      const cropH = maxY - minY + 1;
+      const out = document.createElement('canvas');
+      out.width = cropW; out.height = cropH;
+      out.getContext('2d').drawImage(c, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
+      const outBlob = await new Promise((resolve) => out.toBlob((b) => resolve(b || inBlob), 'image/png'));
+      return outBlob || inBlob;
+    } catch (_) {
+      return inBlob;
+    }
+  };
+
   React.useEffect(() => {
     (async () => {
       try { const me = await base44.auth.me(); setUser(me); } catch (_) { setUser(null); }
@@ -345,7 +397,9 @@ export default function PosterGenerator() {
                             console.log(`Downloading ${key}: ${Math.round((current/total)*100)}%`);
                           }
                         });
-                        const processedFile = new File([blob], `player-nobg-${Date.now()}.png`, { type: 'image/png' });
+                        // Auto-trim to main subject (remove transparent margins)
+                        const trimmed = await trimTransparentPNG(blob, 10, 8);
+                        const processedFile = new File([trimmed], `player-nobg-${Date.now()}.png`, { type: 'image/png' });
                         const upload = await base44.integrations.Core.UploadFile({ file: processedFile });
                         setBestPlayerImageUrl(upload.file_url);
                         setBestPlayerFile(processedFile);
@@ -357,7 +411,13 @@ export default function PosterGenerator() {
                         const srcUrl = bestPlayerImageUrl;
                         const res = await base44.functions.invoke('removeBg', { imageUrl: srcUrl });
                         if (res?.data?.dataUrl) {
-                          setBestPlayerImageUrl(res.data.dataUrl);
+                          // Convert dataURL → Blob, trim to subject, then upload for a clean URL
+                          const rawBlob = await (await fetch(res.data.dataUrl)).blob();
+                          const trimmed = await trimTransparentPNG(rawBlob, 10, 8);
+                          const processedFile = new File([trimmed], `player-nobg-${Date.now()}.png`, { type: 'image/png' });
+                          const upload = await base44.integrations.Core.UploadFile({ file: processedFile });
+                          setBestPlayerImageUrl(upload.file_url);
+                          setBestPlayerFile(processedFile);
                         } else {
                           throw new Error('Fallback service did not return an image');
                         }
