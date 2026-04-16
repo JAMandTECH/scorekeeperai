@@ -176,7 +176,44 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       i.onload = () => resolve(i);
       i.onerror = () => resolve(null);
       i.src = url;
-    });
+      });
+
+      // Compute tight crop rectangle of non-transparent pixels
+      const computeTrimRect = (img, alphaThreshold = 16, padding = 8) => {
+      try {
+        const w = img.naturalWidth || img.width;
+        const h = img.naturalHeight || img.height;
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const cx = c.getContext('2d');
+        cx.drawImage(img, 0, 0);
+        const { data } = cx.getImageData(0, 0, w, h);
+        let minX = w, minY = h, maxX = 0, maxY = 0; let found = false;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const a = data[(y * w + x) * 4 + 3];
+            if (a > alphaThreshold) {
+              if (x < minX) minX = x;
+              if (y < minY) minY = y;
+              if (x > maxX) maxX = x;
+              if (y > maxY) maxY = y;
+              found = true;
+            }
+          }
+        }
+        if (!found) return { sx: 0, sy: 0, sw: w, sh: h };
+        minX = Math.max(0, minX - padding);
+        minY = Math.max(0, minY - padding);
+        maxX = Math.min(w - 1, maxX + padding);
+        maxY = Math.min(h - 1, maxY + padding);
+        const sw = Math.max(1, maxX - minX + 1);
+        const sh = Math.max(1, maxY - minY + 1);
+        return { sx: minX, sy: minY, sw, sh };
+      } catch (_) {
+        const w = img.width || 1, h = img.height || 1;
+        return { sx: 0, sy: 0, sw: w, sh: h };
+      }
+      };
 
     (async () => {
       const headSrc = (L?.headshot?.processedImageUrl) || (bestPlayerImageUrl || players?.[0]?.photo_url);
@@ -186,6 +223,13 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         loadImage(headSrc)
       ]);
       if (!bgImg) return;
+
+      // Auto-trim transparent margins from headshot (tight crop with padding)
+      const _trim = headImg ? computeTrimRect(headImg, 16, L.headshot?.cropPadding ?? 8) : null;
+      const SRC_X = _trim?.sx ?? 0;
+      const SRC_Y = _trim?.sy ?? 0;
+      const SRC_W = _trim?.sw ?? (headImg ? headImg.width : 1);
+      const SRC_H = _trim?.sh ?? (headImg ? headImg.height : 1);
 
       // Draw background (cover)
       const iw = bgImg.width;
@@ -346,7 +390,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
           // Draw headshot without clipping; fit entire image within polygon bounds (contain)
           ctx.save();
-          const ar = Math.min(bw / headImg.width, bh / headImg.height) * HEAD_SCALE;
+          const ar = Math.min(bw / SRC_W, bh / SRC_H) * HEAD_SCALE;
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
           const dx2 = minX + (bw - dw2) / 2; const dy2 = minY + (bh - dh2) / 2;
           const targetTop = y + MIN_GAP_FROM_STATS;
@@ -370,13 +414,13 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
               const w = dw2 * c.scale, h = dh2 * c.scale;
               const x = dx2 - (w - dw2) / 2 + c.dx;
               const yClone = dy2 - (h - dh2) / 2 + c.dy;
-              ctx.drawImage(headImg, x, yClone, w, h);
+              ctx.drawImage(headImg, SRC_X, SRC_Y, SRC_W, SRC_H, x, yClone, w, h);
             });
             ctx.globalAlpha = 1;
             ctx.filter = prevFilter;
           }
           // Main headshot
-          ctx.drawImage(headImg, dx2, dy2, dw2, dh2);
+          ctx.drawImage(headImg, SRC_X, SRC_Y, SRC_W, SRC_H, dx2, dy2, dw2, dh2);
           // Foreground swoosh across waist (polygon mode)
           drawFrontStreak(minX + bw / 2, minY + bh * 0.46 + shiftY, Math.max(180, bw * 0.95), 14, -0.1);
           ctx.restore();
@@ -406,7 +450,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           // Draw headshot without circular clipping; fit entire image within square box
           ctx.save();
           const box = r * 2;
-          const ar = Math.min(box / headImg.width, box / headImg.height) * HEAD_SCALE;
+          const ar = Math.min(box / SRC_W, box / SRC_H) * HEAD_SCALE;
           const dw2 = headImg.width * ar; const dh2 = headImg.height * ar;
           const minTop = y + MIN_GAP_FROM_STATS;
           const cyAdjusted = minTop + dh2 / 2;
@@ -431,13 +475,13 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
               const w = dw2 * c.scale, h = dh2 * c.scale;
               const x = centerX - w / 2 + c.dx;
               const yClone = centerY - h / 2 + c.dy;
-              ctx.drawImage(headImg, x, yClone, w, h);
+              ctx.drawImage(headImg, SRC_X, SRC_Y, SRC_W, SRC_H, x, yClone, w, h);
             });
             ctx.globalAlpha = 1;
             ctx.filter = prevFilter;
           }
           // Main headshot
-          ctx.drawImage(headImg, cx - dw2 / 2, cyAdjusted - dh2 / 2, dw2, dh2);
+          ctx.drawImage(headImg, SRC_X, SRC_Y, SRC_W, SRC_H, cx - dw2 / 2, cyAdjusted - dh2 / 2, dw2, dh2);
           // Foreground swoosh across waist (circle mode)
           drawFrontStreak(cx, cyAdjusted + dh2 * 0.05, Math.max(180, dw2 * 0.95), 14, 0.08);
           ctx.restore();
