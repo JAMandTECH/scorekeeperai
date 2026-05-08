@@ -121,21 +121,7 @@ export default function Home() {
     queryFn: () => orgId ? base44.entities.Team.filter({ organization_id: orgId }) : base44.entities.Team.list(),
     enabled: isAuthenticated === true,
   });
-  const { data: allPlayers = [] } = useQuery({
-    queryKey: ['all-players-home', orgId],
-    queryFn: async () => {
-      // Mirror Statistics page: fetch players per team_id (avoids Player.list() pagination cap missing records)
-      if (!orgId) return base44.entities.Player.list();
-      const orgTeams = await base44.entities.Team.filter({ organization_id: orgId });
-      const teamIds = orgTeams.map(t => t.id);
-      if (teamIds.length === 0) return [];
-      const results = await Promise.all(teamIds.map(id => base44.entities.Player.filter({ team_id: id })));
-      const merged = new Map();
-      results.flat().forEach(p => { if (!merged.has(p.id)) merged.set(p.id, p); });
-      return Array.from(merged.values());
-    },
-    enabled: isAuthenticated === true,
-  });
+  const { data: allPlayers = [] } = useQuery({ queryKey: ['all-players-home'], queryFn: () => base44.entities.Player.list(), enabled: isAuthenticated === true });
   const { data: allGames = [] } = useQuery({
     queryKey: ['all-games-home', orgId],
     queryFn: () => orgId ? base44.entities.Game.filter({ organization_id: orgId }) : base44.entities.Game.list('-game_date'),
