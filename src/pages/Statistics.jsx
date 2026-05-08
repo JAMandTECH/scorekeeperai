@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import TopAssistLeaders from "@/components/leaders/TopAssistLeaders";
-import TopStatLeaders from "@/components/leaders/TopStatLeaders";
 import { createPageUrl } from "@/utils";
 
 export default function Statistics() {
@@ -421,7 +420,6 @@ export default function Statistics() {
   const topAssists = createPlayerLeaderboard('assists', 'Assists');
   const topBlocks = createPlayerLeaderboard('blocks', 'Blocks');
   const topSteals = createPlayerLeaderboard('steals', 'Steals');
-  const topThreePointers = createPlayerLeaderboard('three_pointers', '3-Pointers');
   const topAces = createPlayerLeaderboard('aces', 'Aces');
   const topAttacks = createPlayerLeaderboard('attacks', 'Attacks');
 
@@ -742,70 +740,95 @@ Please provide:
                 {/* PLAYER LEADERS TAB */}
                 <TabsContent value="players" className="space-y-6">
                   <div className="grid lg:grid-cols-2 gap-6 print:grid-cols-2 print:gap-4">
-                    {selectedSport !== 'volleyball' ? (
-                      <>
-                        <TopStatLeaders
-                          functionName="getTopScorers"
-                          organizationId={orgId}
-                          sport="basketball"
-                          division={selectedDivision !== 'all' ? selectedDivision : null}
-                          title="Top Scorers"
-                          orgName={organization?.name}
-                          orgLogoUrl={organization?.logo_url}
-                          accent="blue"
-                          icon={<Trophy className="w-5 h-5 text-white" />}
-                          enabled={!!orgId}
-                        />
+                    {/* Top Scorers */}
+                    <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
+                      <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
+                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">🏆 Top Scorers</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6 print:p-4">
+                        <div className="space-y-2">
+                          {topScorers.length === 0 && (
+                             <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                           )}
+                           {topScorers.map((player, index) => (
+                            <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black ${
+                                index === 0 ? 'bg-yellow-400 text-gray-900' :
+                                index === 1 ? 'bg-gray-300 text-white' :
+                                index === 2 ? 'bg-orange-600 text-white' :
+                                'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                              }`}>
+                                {index + 1}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
+                              </div>
+                              <div className="text-xl font-black text-blue-600 dark:text-blue-400 print:text-lg">{player.value}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                        <TopStatLeaders
-                          functionName="getTopRebounders"
-                          organizationId={orgId}
-                          sport="basketball"
-                          division={selectedDivision !== 'all' ? selectedDivision : null}
-                          title="Top Rebounders"
-                          orgName={organization?.name}
-                          orgLogoUrl={organization?.logo_url}
-                          accent="green"
-                          icon={<TrendingUp className="w-5 h-5 text-white" />}
-                          enabled={!!orgId}
-                        />
+                    {/* Top Rebounders */}
+                    {selectedSport !== 'volleyball' && (
+                      <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
+                        <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
+                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">💪 Top Rebounders</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6 print:p-4">
+                          <div className="space-y-2">
+                            {topRebounders.length === 0 && (
+                               <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                             )}
+                             {topRebounders.slice(0, 10).map((player, index) => (
+                              <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-green-500 text-white">
+                                  {index + 1}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
+                                </div>
+                                <div className="text-xl font-black text-green-600 dark:text-green-400 print:text-lg">{player.value}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
 
-                        <TopAssistLeaders
-                          organizationId={orgId}
-                          sport="basketball"
-                          division={selectedDivision !== 'all' ? selectedDivision : null}
-                          title="Top Assist Leaders"
-                          orgName={organization?.name}
-                          orgLogoUrl={organization?.logo_url}
-                        />
+                    {/* Top Assists (Basketball) */}
+                    {selectedSport !== 'volleyball' && (
+                      <TopAssistLeaders organizationId={orgId} sport={selectedSport === 'all' ? 'basketball' : selectedSport} orgName={organization?.name} orgLogoUrl={organization?.logo_url} />
+                    )}
 
-                        <TopStatLeaders
-                          functionName="getTopBlockers"
-                          organizationId={orgId}
-                          sport="basketball"
-                          division={selectedDivision !== 'all' ? selectedDivision : null}
-                          title="Top Blocks"
-                          orgName={organization?.name}
-                          orgLogoUrl={organization?.logo_url}
-                          accent="red"
-                          icon={<TrendingDown className="w-5 h-5 text-white" />}
-                          enabled={!!orgId}
-                        />
-
-                        <TopStatLeaders
-                          functionName="getTopThreePointLeaders"
-                          organizationId={orgId}
-                          sport="basketball"
-                          division={selectedDivision !== 'all' ? selectedDivision : null}
-                          title="Top 3-Pointers"
-                          orgName={organization?.name}
-                          orgLogoUrl={organization?.logo_url}
-                          accent="yellow"
-                          icon={<Target className="w-5 h-5 text-white" />}
-                          enabled={!!orgId}
-                        />
-                      </>
-                    ) : null}
+                    {/* Top Blocks */}
+                    <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
+                      <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
+                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">🛡️ Top Blocks</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6 print:p-4">
+                        <div className="space-y-2">
+                          {topBlocks.length === 0 && (
+                             <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                           )}
+                           {topBlocks.slice(0, 10).map((player, index) => (
+                            <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-orange-500 text-white">
+                                {index + 1}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
+                              </div>
+                              <div className="text-xl font-black text-orange-600 dark:text-orange-400 print:text-lg">{player.value}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
 
                   {selectedSport === 'volleyball' && (
