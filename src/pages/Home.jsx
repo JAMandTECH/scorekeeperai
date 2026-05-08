@@ -210,6 +210,15 @@ export default function Home() {
       const team = teamsById.get(s.team_id);
       const statSport = (team?.sport || sport || '').toLowerCase();
 
+      // Cross-division safety: in a game involving both an Open and a Veterans team,
+      // only the team(s) actually in the selected division should contribute stats.
+      // Without this, e.g. FOCUS (Open) playing a Veterans team would leak FOCUS players
+      // (like Nicho Robinson) into the Veterans leaderboard.
+      if (division) {
+        const statDiv = team?.division || 'No Division';
+        if (statDiv !== division) return;
+      }
+
       let add = 0;
       if (statType === 'points') {
         if (statSport === 'volleyball') {
