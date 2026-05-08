@@ -169,7 +169,6 @@ export default function AdminSidebar({
               <>
                 {/* Main Navigation Items */}
                 {navStructure.main.map((item) => {
-                  if (!isAdmin && !isSuperAdmin && item.title === "Statistics") return null;
                   if (item.permission && !hasPermission(item.permission)) return null;
                   const isActive = window.location.pathname === item.url;
                   return (
@@ -198,7 +197,6 @@ export default function AdminSidebar({
                 {navStructure.groups.map((group) => {
                   if (group.key === 'organization' && !hasPermission('manage_organization')) return null;
                   const visibleItems = group.items.filter(item =>
-                    (isAdmin || isSuperAdmin || item.title !== "Statistics") &&
                     (!item.permission || hasPermission(item.permission))
                   );
                   if (visibleItems.length === 0) return null;
