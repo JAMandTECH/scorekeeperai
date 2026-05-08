@@ -4,7 +4,17 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function fetchWithRetry(base44, filter, attempt = 1) {
   try {
-    return await base44.asServiceRole.entities.PlayerGameStats.filter(filter);
+    const PAGE_SIZE = 500;
+    const all = [];
+    let page = 1;
+    while (page <= 50) {
+      const batch = await base44.asServiceRole.entities.PlayerGameStats.filter(filter, '-created_date', PAGE_SIZE, (page - 1) * PAGE_SIZE);
+      if (!Array.isArray(batch) || batch.length === 0) break;
+      all.push(...batch);
+      if (batch.length < PAGE_SIZE) break;
+      page += 1;
+    }
+    return all;
   } catch (err) {
     const msg = String(err?.message || '');
     const isRateLimited = /429|rate limit/i.test(msg);
