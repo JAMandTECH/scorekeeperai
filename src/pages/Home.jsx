@@ -17,7 +17,6 @@ import AIAssistant from "@/components/AIAssistant";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 import TopAssistLeaders from "@/components/leaders/TopAssistLeaders";
 import GameCompactStats from "@/components/stats/GameCompactStats";
-import PublicLanding from "./PublicLanding";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -425,5 +424,5 @@ export default function Home() {
     );
   }
 
-  return <PublicLanding />;
+  return <div />;
 }
