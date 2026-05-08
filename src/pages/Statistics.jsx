@@ -206,7 +206,19 @@ export default function Statistics() {
   const gameById = new Map(games.map(g => [g.id, g]));
 
   const completedGameIdsSet = new Set(completedGames.map(g => g.id));
-  const relevantPlayerGameStats = playerGameStats.filter((s) => completedGameIdsSet.has(s.game_id));
+  // Only count stats from teams that match the selected sport + division.
+  // This prevents an Open-division team's stats from leaking into the Veterans view
+  // when the two divisions play a cross-division game (and vice versa).
+  const relevantPlayerGameStats = playerGameStats.filter((s) => {
+    if (!completedGameIdsSet.has(s.game_id)) return false;
+    const statTeam = teamById.get(s.team_id);
+    if (selectedSport !== 'all' && statTeam?.sport !== selectedSport) return false;
+    if (selectedDivision !== 'all') {
+      const statDiv = statTeam?.division || 'No Division';
+      if (statDiv !== selectedDivision) return false;
+    }
+    return true;
+  });
 
   // Team players filter
   const teamPlayersFilteredByTeam = selectedTeamForPlayers === 'all' 
