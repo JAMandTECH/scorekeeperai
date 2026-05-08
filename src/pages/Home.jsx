@@ -135,8 +135,10 @@ export default function Home() {
   });
 
   const teamIds = teams.map(t => t.id);
-  const players = allPlayers.filter(p => teamIds.includes(p.team_id));
-  const playerStats = allPlayerStats.filter(s => players.some(p => p.id === s.player_id));
+  const teamIdsSet = new Set(teamIds);
+  const players = allPlayers.filter(p => teamIdsSet.has(p.team_id));
+  const playerIdsSet = new Set(players.map((p) => p.id));
+  const playerStats = allPlayerStats.filter(s => playerIdsSet.has(s.player_id));
 
   const getTopPlayers = (statType, sport = 'basketball', limit = 10, division = null) => {
     const normalizedSport = sport.toLowerCase();
@@ -147,69 +149,75 @@ export default function Home() {
       return sportMatch && divisionMatch;
     });
     const divisionTeamIds = new Set(divisionTeams.map((team) => team.id));
-    const sportPlayers = players.filter((player) => divisionTeamIds.has(player.team_id));
-    const eligibleGameIds = new Set(
-      games
-        .filter((game) => {
-          if ((game.sport || '').toLowerCase() !== normalizedSport) return false;
-          if (game.status !== 'completed') return false;
-          if (!includeArchived && game.archived) return false;
-          if (!division) return true;
-          return divisionTeamIds.has(game.home_team_id) || divisionTeamIds.has(game.away_team_id);
-        })
-        .map((game) => game.id)
-    );
+    const playersById = new Map(players.map((player) => [player.id, player]));
+    const teamById = new Map(allTeams.map((team) => [team.id, team]));
+    const totals = new Map();
+    const gamesByPlayer = new Map();
 
-    return sportPlayers.map(player => {
-      const playerStatsList = playerStats.filter(s => s.player_id === player.id && eligibleGameIds.has(s.game_id));
-      let total = 0;
-      let averageLabel = '';
+    playerStats.forEach((stat) => {
+      if (!divisionTeamIds.has(stat.team_id)) return;
+      const game = games.find((entry) => entry.id === stat.game_id);
+      if (!game) return;
+      if ((game.sport || '').toLowerCase() !== normalizedSport) return;
+      if (game.status !== 'completed') return;
+      if (!includeArchived && game.archived) return;
 
+      let add = 0;
       if (statType === 'points') {
-        if (sport === 'basketball') {
-          total = playerStatsList.reduce((sum, s) => {
-            const stored = Number(s.points || 0);
-            if (stored > 0) return sum + stored;
-            const threes = Number(s.three_pointers || 0);
-            const fgm = Number(s.field_goals_made || 0);
-            const twos = Math.max(fgm - threes, 0);
-            return sum + (twos * 2) + (threes * 3) + Number(s.free_throws_made || 0);
-          }, 0);
-          averageLabel = 'PPG';
+        if (normalizedSport === 'volleyball') {
+          add = Number(stat.attacks || 0) + Number(stat.aces || 0) + Number(stat.blocks || 0);
         } else {
-          total = playerStatsList.reduce((sum, s) => sum + Number(s.attacks || 0) + Number(s.aces || 0) + Number(s.blocks || 0), 0);
-          averageLabel = 'Score/G';
+          const stored = Number(stat.points || 0);
+          if (stored > 0) add = stored;
+          else {
+            const threes = Number(stat.three_pointers || 0);
+            const fgm = Number(stat.field_goals_made || 0);
+            const twos = Math.max(fgm - threes, 0);
+            add = (twos * 2) + (threes * 3) + Number(stat.free_throws_made || 0);
+          }
         }
-      } else if (statType === 'rebounds') {
-        total = playerStatsList.reduce((sum, s) => sum + Number(s.rebounds || 0), 0);
-        averageLabel = 'RPG';
-      } else if (statType === 'assists') {
-        total = playerStatsList.reduce((sum, s) => sum + Number(s.assists || 0), 0);
-        averageLabel = 'APG';
-      } else if (statType === 'blocks') {
-        total = playerStatsList.reduce((sum, s) => sum + Number(s.blocks || 0), 0);
-        averageLabel = 'BPG';
       } else if (statType === 'three_pointers') {
-        total = playerStatsList.reduce((sum, s) => sum + Number(s.three_pointers || s.aces || 0), 0);
-        averageLabel = sport === 'basketball' ? '3PG' : 'ACE/G';
-      } else if (statType === 'attacks') {
-        total = playerStatsList.reduce((sum, s) => sum + Number(s.attacks || 0), 0);
-        averageLabel = 'ATK/G';
+        add = normalizedSport === 'basketball' ? Number(stat.three_pointers || 0) : Number(stat.aces || 0);
+      } else {
+        add = Number(stat[statType] || 0);
       }
 
-      const team = allTeams.find(t => t.id === player.team_id);
-      const gamesPlayed = [...new Set(playerStatsList.map(s => s.game_id))].length;
+      totals.set(stat.player_id, (totals.get(stat.player_id) || 0) + add);
+      if (!gamesByPlayer.has(stat.player_id)) gamesByPlayer.set(stat.player_id, new Set());
+      gamesByPlayer.get(stat.player_id).add(stat.game_id);
+    });
 
-      return {
-        ...player,
-        total,
-        gamesPlayed,
-        average: gamesPlayed > 0 ? (total / gamesPlayed).toFixed(1) : 0,
-        averageLabel,
-        teamName: team?.name || 'Unknown',
-        teamLogoUrl: team?.logo_url || '',
-      };
-    }).filter(p => p.total > 0).sort((a, b) => b.total - a.total).slice(0, limit);
+    const averageLabelMap = {
+      points: normalizedSport === 'basketball' ? 'PPG' : 'Score/G',
+      rebounds: 'RPG',
+      assists: 'APG',
+      blocks: 'BPG',
+      three_pointers: normalizedSport === 'basketball' ? '3PG' : 'ACE/G',
+      attacks: 'ATK/G',
+    };
+
+    return Array.from(totals.entries())
+      .map(([playerId, total]) => {
+        const player = playersById.get(playerId);
+        const team = teamById.get(player?.team_id) || teamById.get(playerStats.find((s) => s.player_id === playerId)?.team_id);
+        const gamesPlayed = gamesByPlayer.get(playerId)?.size || 0;
+        return {
+          id: playerId,
+          first_name: player?.first_name || 'Player',
+          last_name: player?.last_name || String(playerId).slice(-4),
+          jersey_number: player?.jersey_number || '',
+          photo_url: player?.photo_url || '',
+          total,
+          gamesPlayed,
+          average: gamesPlayed > 0 ? (total / gamesPlayed).toFixed(1) : '0.0',
+          averageLabel: averageLabelMap[statType] || '',
+          teamName: team?.name || 'Unknown',
+          teamLogoUrl: team?.logo_url || '',
+        };
+      })
+      .filter((player) => player.total > 0)
+      .sort((a, b) => b.total - a.total)
+      .slice(0, limit);
   };
 
   const getTeamStandings = (sport) => {
