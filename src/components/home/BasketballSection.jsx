@@ -165,7 +165,7 @@ export default function BasketballSection({
               />
             ) : null}
 
-            {orgId ? <TopAssistLeaders organizationId={orgId} sport="basketball" division={bbDivTab === 'open' ? 'Open Division' : 'Veterans Division'} title={`Top 10 Assist Leaders — ${bbDivTab === 'open' ? 'Open' : 'Veterans'}`} orgName={organization?.name} orgLogoUrl={organization?.logo_url} /> : null}
+            {orgId ? <TopAssistLeaders organizationId={orgId} sport="basketball" division={bbDivTab === 'open' ? 'Open' : 'Veterans'} title={`Top 10 Assist Leaders — ${bbDivTab === 'open' ? 'Open' : 'Veterans'}`} orgName={organization?.name} orgLogoUrl={organization?.logo_url} /> : null}
           </div>
         </TabsContent>
 
