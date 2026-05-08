@@ -142,34 +142,31 @@ export default function Home() {
   const getTopPlayers = (statType, sport = 'basketball', limit = 10, division = null) => {
     const normalizedSport = sport.toLowerCase();
     const divisionLabel = division ? division.toLowerCase() : null;
-    const includeArchived = organization?.settings?.include_archived_in_leaders === true;
-    const divisionTeams = teams.filter((team) => {
-      const sportMatch = (team.sport || '').toLowerCase() === normalizedSport;
-      const teamDivision = (team.division || 'No Division').toLowerCase();
-      const divisionMatch = !divisionLabel || teamDivision === divisionLabel;
-      return sportMatch && divisionMatch;
-    });
-    const divisionTeamIds = new Set(divisionTeams.map((team) => team.id));
-    const filteredCompletedGames = games.filter((game) => {
-      if (game.status !== 'completed') return false;
-      if ((game.sport || '').toLowerCase() !== normalizedSport) return false;
-      if (!includeArchived && game.archived) return false;
-      if (!divisionLabel) return true;
-      const homeTeam = teams.find((team) => team.id === game.home_team_id);
-      const awayTeam = teams.find((team) => team.id === game.away_team_id);
-      const homeDivision = (homeTeam?.division || 'No Division').toLowerCase();
-      const awayDivision = (awayTeam?.division || 'No Division').toLowerCase();
-      return homeDivision === divisionLabel || awayDivision === divisionLabel;
-    });
-    const filteredGameIds = new Set(filteredCompletedGames.map((game) => game.id));
+    const teamsById = new Map(teams.map((team) => [team.id, team]));
     const playersById = new Map(players.map((player) => [player.id, player]));
-    const teamById = new Map(allTeams.map((team) => [team.id, team]));
+    const completedGameIdsSet = new Set(
+      games
+        .filter((game) => {
+          if (game.status !== 'completed') return false;
+          if ((game.sport || '').toLowerCase() !== normalizedSport) return false;
+          if (!divisionLabel) return true;
+          const homeTeam = teamsById.get(game.home_team_id);
+          const awayTeam = teamsById.get(game.away_team_id);
+          const homeDivision = (homeTeam?.division || 'No Division').toLowerCase();
+          const awayDivision = (awayTeam?.division || 'No Division').toLowerCase();
+          return homeDivision === divisionLabel || awayDivision === divisionLabel;
+        })
+        .map((game) => game.id)
+    );
     const totals = new Map();
     const gamesByPlayer = new Map();
 
     playerStats.forEach((stat) => {
-      if (!divisionTeamIds.has(stat.team_id)) return;
-      if (!filteredGameIds.has(stat.game_id)) return;
+      if (!completedGameIdsSet.has(stat.game_id)) return;
+      const team = teamsById.get(stat.team_id);
+      if (!team) return;
+      if ((team.sport || '').toLowerCase() !== normalizedSport) return;
+      if (divisionLabel && (team.division || 'No Division').toLowerCase() !== divisionLabel) return;
 
       let add = 0;
       if (statType === 'points') {
@@ -182,7 +179,8 @@ export default function Home() {
             const threes = Number(stat.three_pointers || 0);
             const fgm = Number(stat.field_goals_made || 0);
             const twos = Math.max(fgm - threes, 0);
-            add = (twos * 2) + (threes * 3) + Number(stat.free_throws_made || 0);
+            const ftm = Number(stat.free_throws_made || 0);
+            add = (twos * 2) + (threes * 3) + ftm;
           }
         }
       } else if (statType === 'three_pointers') {
@@ -208,7 +206,8 @@ export default function Home() {
     return Array.from(totals.entries())
       .map(([playerId, total]) => {
         const player = playersById.get(playerId);
-        const team = teamById.get(player?.team_id) || teamById.get(playerStats.find((s) => s.player_id === playerId)?.team_id);
+        const teamId = player?.team_id || playerStats.find((s) => s.player_id === playerId)?.team_id;
+        const team = teamsById.get(teamId);
         const gamesPlayed = gamesByPlayer.get(playerId)?.size || 0;
         return {
           id: playerId,
