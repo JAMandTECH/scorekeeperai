@@ -137,10 +137,41 @@ export default function Home() {
     queryKey: ['all-player-stats-home', completedGames.map(g => g.id).join(',')],
     queryFn: async () => {
       if (completedGames.length === 0) return [];
-      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: completedGames.map(g => g.id) });
-      return Array.isArray(res.data) ? res.data : [];
+      const gameIds = completedGames.map(g => g.id);
+
+      // Primary: backend function (handles batching/backoff) — same as Statistics page
+      let stats = [];
+      try {
+        const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: gameIds });
+        stats = Array.isArray(res.data) ? res.data : [];
+      } catch (e) {
+        console.warn('getGamePlayerStats failed, falling back to direct entity fetch:', e?.message || e);
+      }
+
+      // Fallback: fetch directly from entity if function fails or returns empty (safety net) — mirrors Statistics
+      if (!stats || stats.length === 0) {
+        const results = [];
+        for (let i = 0; i < gameIds.length; i += 50) {
+          const chunk = gameIds.slice(i, i + 50);
+          try {
+            const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
+            results.push(...part);
+          } catch (_) {
+            const per = await Promise.all(
+              chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
+            );
+            results.push(...per.flat());
+          }
+        }
+        stats = results;
+      }
+
+      return stats;
     },
     enabled: isAuthenticated === true,
+    staleTime: 30000,
+    gcTime: 5 * 60 * 1000,
+    refetchInterval: 20000,
   });
 
   const teamIds = teams.map(t => t.id);
