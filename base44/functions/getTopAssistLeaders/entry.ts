@@ -133,6 +133,7 @@ Deno.serve(async (req) => {
     for (const s of allStats) {
       const pid = s.player_id;
       if (!pid || !playerMap.has(pid)) continue;
+      if (!teamIdSet.has(s.team_id)) continue;
       if (!agg.has(pid)) agg.set(pid, { total_assists: 0, games: new Set() });
       const rec = agg.get(pid);
       rec.total_assists += Number(s.assists || 0);
