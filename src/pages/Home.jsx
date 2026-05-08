@@ -178,34 +178,41 @@ export default function Home() {
   const players = allPlayers.filter(p => teamIds.includes(p.team_id));
   const playerStats = allPlayerStats;
 
-  // Mirrors Statistics' `createPlayerLeaderboard` exactly.
-  // Totals are computed identically; we additionally track gamesPlayed so we can show averages (PPG, RPG, etc.).
-  // Division filtering is applied via the player's TEAM division (a team belongs to one division),
-  // matching the user's intent: copy player totals and divide by games played.
+  // EXACT mirror of Statistics' `createPlayerLeaderboard` totals & ordering.
+  // Filtering pattern (same as Statistics): build the eligible-game set at the GAME level
+  // (sport + division on either team), then aggregate stats unconditionally.
+  // We additionally track gamesPlayed (distinct game_ids) so we can render PPG / RPG / APG averages.
   const getTopPlayers = (statType, sport = 'basketball', limit = 10, division = null) => {
-    const normalizedSport = sport.toLowerCase();
     const teamsById = new Map(teams.map((t) => [t.id, t]));
     const playersByIdOrg = new Map(allPlayers.map((p) => [p.id, p]));
 
-    // Restrict stats to completed games only (same scope as Statistics' `relevantPlayerGameStats`)
-    const completedGameIds = new Set(
-      games.filter((g) => g.status === 'completed').map((g) => g.id)
+    // Mirror Statistics' filteredGameIds: completed + sport + (division on either team) — using GAMES not teams.
+    const eligibleGameIds = new Set(
+      games
+        .filter((g) => {
+          if (g.status !== 'completed') return false;
+          if (sport && (g.sport || '').toLowerCase() !== sport.toLowerCase()) return false;
+          if (division) {
+            const homeDiv = teamsById.get(g.home_team_id)?.division || 'No Division';
+            const awayDiv = teamsById.get(g.away_team_id)?.division || 'No Division';
+            if (homeDiv !== division && awayDiv !== division) return false;
+          }
+          return true;
+        })
+        .map((g) => g.id)
     );
 
     const totals = new Map(); // player_id -> { total, team_id, gameIds:Set }
     playerStats.forEach((s) => {
-      if (!completedGameIds.has(s.game_id)) return;
+      if (!eligibleGameIds.has(s.game_id)) return;
 
+      // Same fallback as Statistics: team?.sport || selectedSport
       const team = teamsById.get(s.team_id);
-      const teamSport = (team?.sport || '').toLowerCase();
-      // Sport guard: only count stats from teams of the requested sport
-      if (teamSport !== normalizedSport) return;
-      // Division guard: filter by the player's team division (per user request)
-      if (division && (team?.division || 'No Division') !== division) return;
+      const statSport = (team?.sport || sport || '').toLowerCase();
 
       let add = 0;
       if (statType === 'points') {
-        if (normalizedSport === 'volleyball') {
+        if (statSport === 'volleyball') {
           const aces = Number(s.aces || 0);
           const attacks = Number(s.attacks || 0);
           const blocks = Number(s.blocks || 0);
@@ -233,6 +240,7 @@ export default function Home() {
       totals.set(s.player_id, prev);
     });
 
+    const normalizedSport = (sport || '').toLowerCase();
     const averageLabelMap = {
       points: normalizedSport === 'basketball' ? 'PPG' : 'Score/G',
       rebounds: 'RPG',
