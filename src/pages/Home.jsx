@@ -139,37 +139,38 @@ export default function Home() {
 
   const getTopPlayers = (statType, sport = 'basketball', limit = 10, division = null) => {
     const normalizedSport = sport.toLowerCase();
-    const divisionTeams = teams.filter((team) => {
-      const sportMatch = (team.sport || '').toLowerCase() === normalizedSport;
-      const divisionMatch = !division || (team.division || '').toLowerCase() === division.toLowerCase();
-      return sportMatch && divisionMatch;
-    });
-    const divisionTeamIds = new Set(divisionTeams.map((team) => team.id));
-    // Mirror Statistics page: include all completed games for this sport that involve eligible teams
+    const teamsById = new Map(allTeams.map((t) => [t.id, t]));
+    const playersById = new Map(allPlayers.map((p) => [p.id, p]));
+
+    // Eligible games: completed, matching sport, matching division (if specified) — mirrors Statistics filter
     const eligibleGameIds = new Set(
       games
         .filter((game) => {
-          if ((game.sport || '').toLowerCase() !== normalizedSport) return false;
           if (game.status !== 'completed') return false;
+          if ((game.sport || '').toLowerCase() !== normalizedSport) return false;
           if (!division) return true;
-          return divisionTeamIds.has(game.home_team_id) || divisionTeamIds.has(game.away_team_id);
+          const homeDiv = (teamsById.get(game.home_team_id)?.division || '').toLowerCase();
+          const awayDiv = (teamsById.get(game.away_team_id)?.division || '').toLowerCase();
+          return homeDiv.includes(division.toLowerCase()) || awayDiv.includes(division.toLowerCase());
         })
         .map((game) => game.id)
     );
 
-    const playersById = new Map(allPlayers.map((p) => [p.id, p]));
-    const teamsById = new Map(allTeams.map((t) => [t.id, t]));
-
-    // Aggregate from stats (matches Statistics page's source of truth)
+    // Aggregate directly from stats (same approach as Statistics' createPlayerLeaderboard)
     const totals = new Map(); // player_id -> { total, team_id, gameIds:Set }
     playerStats.forEach((s) => {
       if (!eligibleGameIds.has(s.game_id)) return;
-      // Restrict to stats whose team is in the eligible (sport+division) set
-      if (!divisionTeamIds.has(s.team_id)) return;
+
+      const team = teamsById.get(s.team_id);
+      const teamSport = (team?.sport || '').toLowerCase();
+      // Sport guard via team if available
+      if (team && teamSport !== normalizedSport) return;
 
       let add = 0;
       if (statType === 'points') {
-        if (sport === 'basketball') {
+        if (normalizedSport === 'volleyball') {
+          add = Number(s.aces || 0) + Number(s.attacks || 0) + Number(s.blocks || 0);
+        } else {
           const stored = Number(s.points || 0);
           if (stored > 0) {
             add = stored;
@@ -179,8 +180,6 @@ export default function Home() {
             const twos = Math.max(fgm - threes, 0);
             add = (twos * 2) + (threes * 3) + Number(s.free_throws_made || 0);
           }
-        } else {
-          add = Number(s.attacks || 0) + Number(s.aces || 0) + Number(s.blocks || 0);
         }
       } else if (statType === 'three_pointers') {
         add = Number(s.three_pointers || s.aces || 0);
@@ -196,11 +195,11 @@ export default function Home() {
     });
 
     const averageLabelMap = {
-      points: sport === 'basketball' ? 'PPG' : 'Score/G',
+      points: normalizedSport === 'basketball' ? 'PPG' : 'Score/G',
       rebounds: 'RPG',
       assists: 'APG',
       blocks: 'BPG',
-      three_pointers: sport === 'basketball' ? '3PG' : 'ACE/G',
+      three_pointers: normalizedSport === 'basketball' ? '3PG' : 'ACE/G',
       attacks: 'ATK/G',
     };
     const averageLabel = averageLabelMap[statType] || '';
