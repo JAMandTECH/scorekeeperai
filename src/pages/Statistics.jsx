@@ -440,6 +440,7 @@ export default function Statistics() {
   const topSteals = createPlayerLeaderboard('steals', 'Steals');
   const topAces = createPlayerLeaderboard('aces', 'Aces');
   const topAttacks = createPlayerLeaderboard('attacks', 'Attacks');
+  const topThreePointers = createPlayerLeaderboard('three_pointers', '3-Pointers');
 
   const generateAIAnalysis = async () => {
     setLoadingAI(true);
@@ -856,6 +857,37 @@ Please provide:
                         </div>
                       </CardContent>
                     </Card>
+
+                    {/* Top 3-Point Shooters (Basketball) */}
+                    {selectedSport !== 'volleyball' && (
+                      <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
+                        <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
+                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">🎯 Top 3-Point Shooters</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6 print:p-4">
+                          <div className="space-y-2">
+                            {topThreePointers.length === 0 && (
+                              <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                            )}
+                            {topThreePointers.slice(0, 10).map((player, index) => (
+                              <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-purple-500 text-white">
+                                  {index + 1}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-xl font-black text-purple-600 dark:text-purple-400 print:text-lg leading-none">{player.value}</div>
+                                  <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">{player.avg} 3PG</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
                   </div>
 
                   {selectedSport === 'volleyball' && (
