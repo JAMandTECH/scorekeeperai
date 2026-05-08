@@ -139,19 +139,20 @@ export default function Home() {
 
   const getTopPlayers = (statType, sport = 'basketball', limit = 10, division = null) => {
     const normalizedSport = sport.toLowerCase();
-    const teamsById = new Map(allTeams.map((t) => [t.id, t]));
+    // Use ORG teams only (matches Statistics' `teams` scope), not cross-org allTeams
+    const teamsById = new Map(teams.map((t) => [t.id, t]));
     const playersById = new Map(allPlayers.map((p) => [p.id, p]));
 
-    // Eligible games: completed, matching sport, matching division (if specified) — mirrors Statistics filter
+    // Eligible games: completed, matching sport, matching division (EXACT match — mirrors Statistics)
     const eligibleGameIds = new Set(
       games
         .filter((game) => {
           if (game.status !== 'completed') return false;
           if ((game.sport || '').toLowerCase() !== normalizedSport) return false;
           if (!division) return true;
-          const homeDiv = (teamsById.get(game.home_team_id)?.division || '').toLowerCase();
-          const awayDiv = (teamsById.get(game.away_team_id)?.division || '').toLowerCase();
-          return homeDiv.includes(division.toLowerCase()) || awayDiv.includes(division.toLowerCase());
+          const homeDiv = teamsById.get(game.home_team_id)?.division || 'No Division';
+          const awayDiv = teamsById.get(game.away_team_id)?.division || 'No Division';
+          return homeDiv === division || awayDiv === division;
         })
         .map((game) => game.id)
     );
@@ -266,14 +267,14 @@ export default function Home() {
   const basketballStandingsVeterans = basketballStandings.filter(d => (d.division || '').toLowerCase().includes('veteran'));
   const volleyballStandings = getTeamStandings('volleyball');
 
-  const topScorersOpen = getTopPlayers('points', 'basketball', 10, 'Open');
-  const topReboundersOpen = getTopPlayers('rebounds', 'basketball', 10, 'Open');
-  const topBlockersOpen = getTopPlayers('blocks', 'basketball', 10, 'Open');
-  const top3PointersOpen = getTopPlayers('three_pointers', 'basketball', 10, 'Open');
-  const topScorersVeterans = getTopPlayers('points', 'basketball', 10, 'Veterans');
-  const topReboundersVeterans = getTopPlayers('rebounds', 'basketball', 10, 'Veterans');
-  const topBlockersVeterans = getTopPlayers('blocks', 'basketball', 10, 'Veterans');
-  const top3PointersVeterans = getTopPlayers('three_pointers', 'basketball', 10, 'Veterans');
+  const topScorersOpen = getTopPlayers('points', 'basketball', 10, 'Open Division');
+  const topReboundersOpen = getTopPlayers('rebounds', 'basketball', 10, 'Open Division');
+  const topBlockersOpen = getTopPlayers('blocks', 'basketball', 10, 'Open Division');
+  const top3PointersOpen = getTopPlayers('three_pointers', 'basketball', 10, 'Open Division');
+  const topScorersVeterans = getTopPlayers('points', 'basketball', 10, 'Veterans Division');
+  const topReboundersVeterans = getTopPlayers('rebounds', 'basketball', 10, 'Veterans Division');
+  const topBlockersVeterans = getTopPlayers('blocks', 'basketball', 10, 'Veterans Division');
+  const top3PointersVeterans = getTopPlayers('three_pointers', 'basketball', 10, 'Veterans Division');
 
   const topVolleyballScorers = getTopPlayers('points', 'volleyball', 10);
   const topVolleyballAttackers = getTopPlayers('attacks', 'volleyball', 10);
