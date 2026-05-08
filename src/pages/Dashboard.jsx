@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Building2, Users, Trophy, Calendar, TrendingUp, Plus, PlayCircle, Sun, Moon, LogOut } from "lucide-react";
@@ -47,27 +46,27 @@ export default function Dashboard() {
       
       // Redirect scorekeepers to their dashboard
       if (currentUser.is_scorekeeper && currentUser.role !== 'admin') {
-        navigate(createPageUrl("ScorekeeperDashboard"));
+        navigate("/scorekeeperdashboard");
         return;
       }
       
       // Only allow admins
       if (currentUser.role !== 'admin') {
-        navigate(createPageUrl("Home"));
+        navigate("/");
         return;
       }
       
       setUser(currentUser);
     } catch (error) {
       console.error("Error loading user:", error);
-      base44.auth.redirectToLogin(createPageUrl("Dashboard"));
+      base44.auth.redirectToLogin("/dashboard");
     } finally {
       setLoading(false);
     }
   };
 
   const handleLogout = () => {
-    base44.auth.logout(createPageUrl("PublicLanding"));
+    base44.auth.logout("/");
   };
 
   const { data: organization } = useQuery({
@@ -157,7 +156,7 @@ export default function Dashboard() {
                   <div className="mt-3 flex items-center gap-3">
                     <SubscriptionBadge organization={organization} />
                     {isSuperAdmin && (
-                      <Link to={createPageUrl("SubscriptionManagement")}>
+                      <Link to="/subscriptionmanagement">
                         <Button variant="outline" size="sm">Manage Subscriptions</Button>
                       </Link>
                     )}
@@ -179,7 +178,7 @@ export default function Dashboard() {
                     <p className="text-gray-700 dark:text-gray-300 font-medium">
                       Welcome! To get started with your sports league management, you need to create your organization first.
                     </p>
-                    <Link to={createPageUrl("Organizations")}>
+                    <Link to="/organizations">
                       <Button className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white font-bold shadow-lg">
                         <Plus className="w-5 h-5 mr-2" />
                         Create Your Organization
@@ -247,7 +246,7 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
 
-                <Link to={createPageUrl("Games")} className="block">
+                <Link to="/games" className="block">
                   <Card className="relative overflow-hidden border border-purple-200/50 dark:border-purple-800/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 h-full cursor-pointer card-hover group">
                     <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
                     <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -284,25 +283,25 @@ export default function Dashboard() {
                     <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Quick Actions</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-6 space-y-3">
-                    <Link to={createPageUrl("Teams")}>
+                    <Link to="/teams">
                       <Button className="w-full justify-start btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white font-bold shadow-lg rounded-xl transition-all duration-300 hover:scale-[1.02]">
                         <Users className="w-5 h-5 mr-3" />
                         Manage Teams
                       </Button>
                     </Link>
-                    <Link to={createPageUrl("Players")}>
+                    <Link to="/players">
                       <Button className="w-full justify-start btn-futuristic bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 text-white font-bold shadow-lg rounded-xl transition-all duration-300 hover:scale-[1.02]">
                         <Trophy className="w-5 h-5 mr-3" />
                         Manage Players
                       </Button>
                     </Link>
-                    <Link to={createPageUrl("Games")}>
+                    <Link to="/games">
                       <Button className="w-full justify-start btn-futuristic bg-gradient-to-r from-purple-500 via-violet-500 to-indigo-500 hover:from-purple-600 hover:via-violet-600 hover:to-indigo-600 text-white font-bold shadow-lg rounded-xl transition-all duration-300 hover:scale-[1.02]">
                         <Calendar className="w-5 h-5 mr-3" />
                         Schedule Games
                       </Button>
                     </Link>
-                    <Link to={createPageUrl("LiveScoring")}>
+                    <Link to="/livescoring">
                       <Button className="w-full justify-start btn-futuristic bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 hover:from-cyan-600 hover:via-blue-600 hover:to-purple-600 text-white font-bold shadow-lg rounded-xl transition-all duration-300 hover:scale-[1.02] neon-glow-blue">
                         <PlayCircle className="w-5 h-5 mr-3" />
                         Live Scoring
