@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link, useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { 
   Calendar, TrendingUp, Target, Zap, Shield, ArrowRight, Sun, Moon, 
   PlayCircle, Users, BarChart3, Trophy, CheckCircle, Eye, Globe, LogOut, LayoutGrid, Sparkles, Mic, Brain, ChevronDown
@@ -55,15 +56,15 @@ export default function PublicLanding() {
   };
 
   const handleLogout = () => {
-    base44.auth.logout("/");
+    base44.auth.logout(createPageUrl("PublicLanding"));
   };
 
   const goToDashboard = () => {
-    navigate("/dashboard");
+    navigate(createPageUrl("Dashboard"));
   };
 
   const handleGetStarted = async () => {
-    base44.auth.redirectToLogin("/roleselection");
+    base44.auth.redirectToLogin(createPageUrl("RoleSelection"));
   };
 
   const features = [
@@ -254,13 +255,13 @@ export default function PublicLanding() {
               </>
             ) : (
               <>
-                <Link to="/dashboard">
+                <Link to={createPageUrl("Dashboard")}>
                   <Button className="btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white text-lg px-14 py-8 font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-2xl neon-glow-orange">
                     Go to Dashboard
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 </Link>
-                <Link to="/">
+                <Link to={createPageUrl("Home")}>
                   <Button 
                     variant="outline"
                     className="glass border-2 border-cyan-400/50 text-cyan-100 hover:bg-cyan-500/20 hover:border-cyan-400 text-lg px-14 py-8 font-bold rounded-2xl transition-all duration-300 hover:scale-105 neon-glow-blue"
@@ -1018,7 +1019,7 @@ export default function PublicLanding() {
                   Start Free Today
                   <ArrowRight className="w-6 h-6 ml-2" />
                 </Button>
-                <Link to="/requestadminaccess">
+                <Link to={createPageUrl("RequestAdminAccess")}>
                   <Button 
                     variant="outline"
                     className="glass border-2 border-white/50 text-white hover:bg-white/10 text-xl px-14 py-8 font-bold rounded-2xl transition-all duration-300 hover:scale-105"
@@ -1028,7 +1029,7 @@ export default function PublicLanding() {
                 </Link>
               </>
             ) : (
-              <Link to="/dashboard">
+              <Link to={createPageUrl("Dashboard")}>
                 <Button className="btn-futuristic bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 hover:from-cyan-500 hover:via-blue-600 hover:to-purple-600 text-white text-xl px-14 py-8 font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-2xl neon-glow-blue">
                   Go to Your Dashboard
                   <ArrowRight className="w-6 h-6 ml-2" />
@@ -1071,7 +1072,7 @@ export default function PublicLanding() {
               <ul className="space-y-2 text-blue-200">
                 <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><Link to="/" className="hover:text-white transition-colors">Live Demo</Link></li>
+                <li><Link to={createPageUrl("Home")} className="hover:text-white transition-colors">Live Demo</Link></li>
                 <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
               </ul>
             </div>
@@ -1082,7 +1083,7 @@ export default function PublicLanding() {
                 <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
-                <li><Link to="/requestadminaccess" className="hover:text-white transition-colors">Admin Access</Link></li>
+                <li><Link to={createPageUrl("RequestAdminAccess")} className="hover:text-white transition-colors">Admin Access</Link></li>
               </ul>
             </div>
           </div>

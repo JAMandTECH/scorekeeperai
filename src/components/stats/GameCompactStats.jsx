@@ -15,15 +15,8 @@ function aggregateStats(statsForGame, teamId, sport) {
     const vbAttacks = s.attacks ?? s.field_goals_made ?? 0; // support legacy naming
     const vbAces = s.aces ?? s.three_pointers ?? 0;         // support legacy naming
 
-    const recordedPoints = Number(s.points || 0);
-    const threes = Number(s.three_pointers || 0);
-    const fieldGoalsMade = Number(s.field_goals_made || 0);
-    const freeThrowsMade = Number(s.free_throws_made || 0);
-    const derivedTwos = Math.max(fieldGoalsMade - threes, 0);
-    const derivedBasketballPoints = (derivedTwos * 2) + (threes * 3) + freeThrowsMade;
-
     agg.points += sport === "basketball"
-      ? (recordedPoints > 0 ? recordedPoints : derivedBasketballPoints)
+      ? (s.points || 0)
       : (vbAttacks + vbAces + (s.blocks || 0));
 
     agg.rebounds += s.rebounds || 0;

@@ -3,31 +3,15 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 // Small delay helper
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Generic fetch with retry/backoff on 429 — paginates through ALL results
+// Generic fetch with retry/backoff on 429
 async function fetchWithRetry(base44, filter, attempt = 1) {
   try {
-    const PAGE_SIZE = 500;
-    const all = [];
-    let page = 1;
-    // Loop pages until we get less than a full page back
-    // (defensive cap at 50 pages = 25k records)
-    while (page <= 50) {
-      const batch = await base44.asServiceRole.entities.PlayerGameStats.filter(
-        filter,
-        '-created_date',
-        PAGE_SIZE,
-        (page - 1) * PAGE_SIZE
-      );
-      if (!Array.isArray(batch) || batch.length === 0) break;
-      all.push(...batch);
-      if (batch.length < PAGE_SIZE) break;
-      page += 1;
-    }
-    return all;
+    return await base44.asServiceRole.entities.PlayerGameStats.filter(filter);
   } catch (err) {
     const msg = String(err?.message || '');
     const isRateLimited = /429|rate limit/i.test(msg);
     if (isRateLimited && attempt < 6) {
+      // Exponential backoff: 250, 500, 1000, 2000, 4000ms
       const delay = 250 * Math.pow(2, attempt - 1);
       await sleep(delay);
       return fetchWithRetry(base44, filter, attempt + 1);

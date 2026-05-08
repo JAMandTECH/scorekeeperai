@@ -6,35 +6,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 
-export default function TopAssistLeaders({ organizationId = null, sport = "basketball", limit = 10, title = "Top 10 Assist Leaders", orgName = null, orgLogoUrl = null, division = null, staggerMs = 0 }) {
-  const { data, isLoading, isError, isFetching } = useQuery({
+export default function TopAssistLeaders({ organizationId = null, sport = "basketball", limit = 10, title = "Top 10 Assist Leaders", orgName = null, orgLogoUrl = null, division = null }) {
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["top-assist-leaders", organizationId, sport, division, limit],
-    enabled: !!organizationId,
     queryFn: async () => {
-      if (staggerMs > 0) {
-        await new Promise((resolve) => setTimeout(resolve, staggerMs));
-      }
-      console.log('[TopAssistLeaders] invoking', { organizationId, sport, division, limit });
       const res = await base44.functions.invoke("getTopAssistLeaders", {
         organization_id: organizationId,
         sport,
         division,
         limit,
       });
-      console.log('[TopAssistLeaders] response:', res?.data);
       const leaders = res?.data?.leaders;
       return Array.isArray(leaders) ? leaders : [];
     },
-    retry: (failureCount, error) => {
-      const msg = String(error?.message || '');
-      if (msg.includes('429') || msg.toLowerCase().includes('rate limit')) return false;
-      return failureCount < 1;
-    },
-    retryDelay: (attempt) => Math.min(2000 * 2 ** attempt, 10000),
-    staleTime: 1000 * 60 * 15,
-    gcTime: 1000 * 60 * 30,
+    initialData: [],
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
   });
 
   const leaders = Array.isArray(data) ? data : [];
@@ -64,7 +50,7 @@ export default function TopAssistLeaders({ organizationId = null, sport = "baske
         </div>
       </CardHeader>
       <CardContent className="p-4">
-        {(isLoading || isFetching) && leaders.length === 0 ? (
+        {isLoading ? (
           <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
             <Loader2 className="w-4 h-4 animate-spin" /> Loading...
           </div>
