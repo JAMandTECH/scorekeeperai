@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2 } from "lucide-react";
 
-export default function TopStatLeaders({ functionName, organizationId = null, sport = "basketball", limit = 10, title, orgName = null, orgLogoUrl = null, division = null, accent = "blue", icon }) {
+export default function TopStatLeaders({ functionName, organizationId = null, sport = "basketball", limit = 10, title, orgName = null, orgLogoUrl = null, division = null, accent = "blue", icon, enabled = true }) {
   const accentMap = {
     blue: { header: "from-blue-50 to-white dark:from-gray-800 dark:to-gray-900", iconBg: "from-blue-500 to-blue-600", value: "text-blue-600 dark:text-blue-400", avatar: "from-blue-600 to-blue-700" },
     green: { header: "from-green-50 to-white dark:from-gray-800 dark:to-gray-900", iconBg: "from-green-500 to-green-600", value: "text-green-600 dark:text-green-400", avatar: "from-green-600 to-green-700" },
@@ -16,6 +16,7 @@ export default function TopStatLeaders({ functionName, organizationId = null, sp
   const styles = accentMap[accent] || accentMap.blue;
   const { data, isLoading, isError } = useQuery({
     queryKey: [functionName, organizationId, sport, division, limit],
+    enabled: enabled && !!organizationId,
     queryFn: async () => {
       const res = await base44.functions.invoke(functionName, {
         organization_id: organizationId,
@@ -28,6 +29,7 @@ export default function TopStatLeaders({ functionName, organizationId = null, sp
     },
     initialData: [],
     retry: false,
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
 

@@ -116,6 +116,7 @@ export default function BasketballSection({
                 orgLogoUrl={organization?.logo_url}
                 accent="blue"
                 icon={<Target className="w-6 h-6 text-white" />}
+                enabled
               />
             ) : null}
 
@@ -130,6 +131,7 @@ export default function BasketballSection({
                 orgLogoUrl={organization?.logo_url}
                 accent="green"
                 icon={<TrendingUp className="w-6 h-6 text-white" />}
+                enabled
               />
             ) : null}
 
@@ -144,6 +146,7 @@ export default function BasketballSection({
                 orgLogoUrl={organization?.logo_url}
                 accent="red"
                 icon={<Shield className="w-6 h-6 text-white" />}
+                enabled
               />
             ) : null}
 
@@ -158,6 +161,7 @@ export default function BasketballSection({
                 orgLogoUrl={organization?.logo_url}
                 accent="yellow"
                 icon={<Zap className="w-6 h-6 text-white" />}
+                enabled
               />
             ) : null}
 
