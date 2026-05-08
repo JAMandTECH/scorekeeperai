@@ -138,10 +138,26 @@ export default function Home() {
   const playerStats = allPlayerStats.filter(s => players.some(p => p.id === s.player_id));
 
   const getTopPlayers = (statType, sport = 'basketball', limit = 10, division = null) => {
-    const sportTeamIds = teams.filter(t => (t.sport || '').toLowerCase() === sport.toLowerCase() && (!division || (t.division || '').toLowerCase().includes(division.toLowerCase()))).map(t => t.id);
-    const sportPlayers = players.filter(p => sportTeamIds.includes(p.team_id));
+    const normalizedSport = sport.toLowerCase();
     const includeArchived = organization?.settings?.include_archived_in_leaders === true;
-    const eligibleGameIds = new Set(games.filter(g => (g.sport || '').toLowerCase() === sport.toLowerCase() && g.status === 'completed' && (includeArchived || !g.archived)).map(g => g.id));
+    const divisionTeams = teams.filter((team) => {
+      const sportMatch = (team.sport || '').toLowerCase() === normalizedSport;
+      const divisionMatch = !division || (team.division || '').toLowerCase() === division.toLowerCase();
+      return sportMatch && divisionMatch;
+    });
+    const divisionTeamIds = new Set(divisionTeams.map((team) => team.id));
+    const sportPlayers = players.filter((player) => divisionTeamIds.has(player.team_id));
+    const eligibleGameIds = new Set(
+      games
+        .filter((game) => {
+          if ((game.sport || '').toLowerCase() !== normalizedSport) return false;
+          if (game.status !== 'completed') return false;
+          if (!includeArchived && game.archived) return false;
+          if (!division) return true;
+          return divisionTeamIds.has(game.home_team_id) || divisionTeamIds.has(game.away_team_id);
+        })
+        .map((game) => game.id)
+    );
 
     return sportPlayers.map(player => {
       const playerStatsList = playerStats.filter(s => s.player_id === player.id && eligibleGameIds.has(s.game_id));
