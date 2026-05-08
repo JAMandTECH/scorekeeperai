@@ -141,13 +141,27 @@ export default function Home() {
 
   const getTopPlayers = (statType, sport = 'basketball', limit = 10, division = null) => {
     const normalizedSport = sport.toLowerCase();
+    const divisionLabel = division ? division.toLowerCase() : null;
     const includeArchived = organization?.settings?.include_archived_in_leaders === true;
     const divisionTeams = teams.filter((team) => {
       const sportMatch = (team.sport || '').toLowerCase() === normalizedSport;
-      const divisionMatch = !division || (team.division || '').toLowerCase() === division.toLowerCase();
+      const teamDivision = (team.division || 'No Division').toLowerCase();
+      const divisionMatch = !divisionLabel || teamDivision === divisionLabel;
       return sportMatch && divisionMatch;
     });
     const divisionTeamIds = new Set(divisionTeams.map((team) => team.id));
+    const filteredCompletedGames = games.filter((game) => {
+      if (game.status !== 'completed') return false;
+      if ((game.sport || '').toLowerCase() !== normalizedSport) return false;
+      if (!includeArchived && game.archived) return false;
+      if (!divisionLabel) return true;
+      const homeTeam = teams.find((team) => team.id === game.home_team_id);
+      const awayTeam = teams.find((team) => team.id === game.away_team_id);
+      const homeDivision = (homeTeam?.division || 'No Division').toLowerCase();
+      const awayDivision = (awayTeam?.division || 'No Division').toLowerCase();
+      return homeDivision === divisionLabel || awayDivision === divisionLabel;
+    });
+    const filteredGameIds = new Set(filteredCompletedGames.map((game) => game.id));
     const playersById = new Map(players.map((player) => [player.id, player]));
     const teamById = new Map(allTeams.map((team) => [team.id, team]));
     const totals = new Map();
@@ -155,11 +169,7 @@ export default function Home() {
 
     playerStats.forEach((stat) => {
       if (!divisionTeamIds.has(stat.team_id)) return;
-      const game = games.find((entry) => entry.id === stat.game_id);
-      if (!game) return;
-      if ((game.sport || '').toLowerCase() !== normalizedSport) return;
-      if (game.status !== 'completed') return;
-      if (!includeArchived && game.archived) return;
+      if (!filteredGameIds.has(stat.game_id)) return;
 
       let add = 0;
       if (statType === 'points') {
