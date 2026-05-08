@@ -236,6 +236,7 @@ export default function Home() {
       const prev = totals.get(s.player_id) || { total: 0, team_id: s.team_id, gameIds: new Set() };
       prev.total += add;
       prev.team_id = prev.team_id || s.team_id;
+      // Games played = every eligible game the player has ANY stat row in (matches Statistics)
       prev.gameIds.add(s.game_id);
       totals.set(s.player_id, prev);
     });
