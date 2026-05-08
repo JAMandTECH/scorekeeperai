@@ -121,13 +121,14 @@ export default function Home() {
   const orgId = user?.active_organization_id || user?.organization_id;
   const teams = orgId ? allTeams.filter(t => t.organization_id === orgId) : allTeams;
   const games = orgId ? allGames.filter(g => g.organization_id === orgId) : allGames;
-  const completedGames = games.filter(g => g.status === 'completed');
+  const completedGames = games.filter(g => g.status === 'completed').sort((a, b) => new Date(b.game_date) - new Date(a.game_date));
 
   const { data: allPlayerStats = [] } = useQuery({
     queryKey: ['all-player-stats-home', completedGames.map(g => g.id).join(',')],
     queryFn: async () => {
       if (completedGames.length === 0) return [];
-      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: completedGames.map(g => g.id) });
+      const recentCompletedGames = completedGames.slice(0, 30);
+      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: recentCompletedGames.map(g => g.id) });
       return Array.isArray(res.data) ? res.data : [];
     },
     enabled: isAuthenticated === true,
