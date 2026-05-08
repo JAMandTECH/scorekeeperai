@@ -21,9 +21,9 @@ async function fetchPlayerStatsForGames(base44, gameIds) {
   const results = [];
   for (let i = 0; i < ids.length; i += 25) {
     const chunk = ids.slice(i, i + 25);
-    let chunkResults = [];
-    try { chunkResults = await fetchWithRetry(base44, { game_id: { $in: chunk } }); } catch (_) { chunkResults = []; }
-    if (!Array.isArray(chunkResults) || (chunkResults.length === 0 && chunk.length > 1)) {
+    let chunkResults = null;
+    try { chunkResults = await fetchWithRetry(base44, { game_id: { $in: chunk } }); } catch (_) { chunkResults = null; }
+    if (!Array.isArray(chunkResults)) {
       for (let j = 0; j < chunk.length; j += 3) {
         const batch = chunk.slice(j, j + 3);
         const batchResults = await Promise.all(batch.map((gameId) => fetchWithRetry(base44, { game_id: gameId }).catch(() => [])));

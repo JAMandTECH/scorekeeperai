@@ -20,7 +20,9 @@ export default function TopAssistLeaders({ organizationId = null, sport = "baske
       return Array.isArray(leaders) ? leaders : [];
     },
     initialData: [],
-    retry: false,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
 
