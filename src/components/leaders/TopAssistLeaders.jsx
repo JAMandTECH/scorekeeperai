@@ -6,11 +6,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 
-export default function TopAssistLeaders({ organizationId = null, sport = "basketball", limit = 10, title = "Top 10 Assist Leaders", orgName = null, orgLogoUrl = null, division = null }) {
+export default function TopAssistLeaders({ organizationId = null, sport = "basketball", limit = 10, title = "Top 10 Assist Leaders", orgName = null, orgLogoUrl = null, division = null, staggerMs = 0 }) {
   const { data, isLoading, isError, isFetching } = useQuery({
     queryKey: ["top-assist-leaders", organizationId, sport, division, limit],
     enabled: !!organizationId,
     queryFn: async () => {
+      if (staggerMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, staggerMs));
+      }
       console.log('[TopAssistLeaders] invoking', { organizationId, sport, division, limit });
       const res = await base44.functions.invoke("getTopAssistLeaders", {
         organization_id: organizationId,
@@ -22,10 +25,16 @@ export default function TopAssistLeaders({ organizationId = null, sport = "baske
       const leaders = res?.data?.leaders;
       return Array.isArray(leaders) ? leaders : [];
     },
-    retry: 2,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
-    staleTime: 1000 * 60 * 5,
+    retry: (failureCount, error) => {
+      const msg = String(error?.message || '');
+      if (msg.includes('429') || msg.toLowerCase().includes('rate limit')) return false;
+      return failureCount < 1;
+    },
+    retryDelay: (attempt) => Math.min(2000 * 2 ** attempt, 10000),
+    staleTime: 1000 * 60 * 15,
+    gcTime: 1000 * 60 * 30,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const leaders = Array.isArray(data) ? data : [];

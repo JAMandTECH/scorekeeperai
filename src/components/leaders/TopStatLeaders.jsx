@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2 } from "lucide-react";
 
-export default function TopStatLeaders({ functionName, organizationId = null, sport = "basketball", limit = 10, title, orgName = null, orgLogoUrl = null, division = null, accent = "blue", icon, enabled = true }) {
+export default function TopStatLeaders({ functionName, organizationId = null, sport = "basketball", limit = 10, title, orgName = null, orgLogoUrl = null, division = null, accent = "blue", icon, enabled = true, staggerMs = 0 }) {
   const accentMap = {
     blue: { header: "from-blue-50 to-white dark:from-gray-800 dark:to-gray-900", iconBg: "from-blue-500 to-blue-600", value: "text-blue-600 dark:text-blue-400", avatar: "from-blue-600 to-blue-700" },
     green: { header: "from-green-50 to-white dark:from-gray-800 dark:to-gray-900", iconBg: "from-green-500 to-green-600", value: "text-green-600 dark:text-green-400", avatar: "from-green-600 to-green-700" },
@@ -18,6 +18,9 @@ export default function TopStatLeaders({ functionName, organizationId = null, sp
     queryKey: [functionName, organizationId, sport, division, limit],
     enabled: enabled && !!organizationId,
     queryFn: async () => {
+      if (staggerMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, staggerMs));
+      }
       console.log('[TopStatLeaders] invoking', functionName, { organizationId, sport, division, limit });
       const res = await base44.functions.invoke(functionName, {
         organization_id: organizationId,
@@ -29,10 +32,17 @@ export default function TopStatLeaders({ functionName, organizationId = null, sp
       const leaders = res?.data?.leaders;
       return Array.isArray(leaders) ? leaders : [];
     },
-    retry: 2,
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
-    staleTime: 1000 * 60 * 5,
+    retry: (failureCount, error) => {
+      // Don't retry on rate limit (429) — it just makes things worse
+      const msg = String(error?.message || '');
+      if (msg.includes('429') || msg.toLowerCase().includes('rate limit')) return false;
+      return failureCount < 1;
+    },
+    retryDelay: (attempt) => Math.min(2000 * 2 ** attempt, 10000),
+    staleTime: 1000 * 60 * 15,
+    gcTime: 1000 * 60 * 30,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const leaders = Array.isArray(data) ? data : [];

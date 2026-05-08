@@ -110,6 +110,7 @@ export default function BasketballSection({
               accent="blue"
               icon={<Trophy className="w-5 h-5 text-white" />}
               enabled={!!orgId}
+              staggerMs={0}
             />
             <TopStatLeaders
               functionName="getTopRebounders"
@@ -122,6 +123,7 @@ export default function BasketballSection({
               accent="green"
               icon={<TrendingUp className="w-5 h-5 text-white" />}
               enabled={!!orgId}
+              staggerMs={400}
             />
             <TopAssistLeaders
               organizationId={orgId}
@@ -130,6 +132,7 @@ export default function BasketballSection({
               title="Top 10 Assist Leaders"
               orgName={organization?.name}
               orgLogoUrl={organization?.logo_url}
+              staggerMs={800}
             />
             <TopStatLeaders
               functionName="getTopBlockers"
@@ -142,6 +145,7 @@ export default function BasketballSection({
               accent="red"
               icon={<TrendingDown className="w-5 h-5 text-white" />}
               enabled={!!orgId}
+              staggerMs={1200}
             />
             <TopStatLeaders
               functionName="getTopThreePointLeaders"
@@ -154,6 +158,7 @@ export default function BasketballSection({
               accent="yellow"
               icon={<Target className="w-5 h-5 text-white" />}
               enabled={!!orgId}
+              staggerMs={1600}
             />
           </div>
         </TabsContent>
