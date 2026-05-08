@@ -156,15 +156,11 @@ export default function Home() {
         .map((game) => game.id)
     );
 
-    // Aggregate directly from stats (same approach as Statistics' createPlayerLeaderboard)
+    // Aggregate directly from stats — mirrors Statistics' createPlayerLeaderboard exactly.
+    // Game-level sport/division filter (eligibleGameIds) is the only filter; no team-sport guard.
     const totals = new Map(); // player_id -> { total, team_id, gameIds:Set }
     playerStats.forEach((s) => {
       if (!eligibleGameIds.has(s.game_id)) return;
-
-      const team = teamsById.get(s.team_id);
-      const teamSport = (team?.sport || '').toLowerCase();
-      // Sport guard via team if available
-      if (team && teamSport !== normalizedSport) return;
 
       let add = 0;
       if (statType === 'points') {
@@ -181,9 +177,8 @@ export default function Home() {
             add = (twos * 2) + (threes * 3) + Number(s.free_throws_made || 0);
           }
         }
-      } else if (statType === 'three_pointers') {
-        add = Number(s.three_pointers || s.aces || 0);
       } else {
+        // Direct field read — same as Statistics (e.g. rebounds, assists, blocks, three_pointers, aces, attacks)
         add = Number(s[statType] || 0);
       }
 
@@ -283,7 +278,7 @@ export default function Home() {
   const topVolleyballScorers = getTopPlayers('points', 'volleyball', 10);
   const topVolleyballAttackers = getTopPlayers('attacks', 'volleyball', 10);
   const topVolleyballBlockers = getTopPlayers('blocks', 'volleyball', 10);
-  const topVolleyballAces = getTopPlayers('three_pointers', 'volleyball', 10);
+  const topVolleyballAces = getTopPlayers('aces', 'volleyball', 10);
 
   const openTeamIds = teams.filter(t => (t.sport || '').toLowerCase() === 'basketball' && (t.division || '').toLowerCase().includes('open')).map(t => t.id);
   const veteransTeamIds = teams.filter(t => (t.sport || '').toLowerCase() === 'basketball' && (t.division || '').toLowerCase().includes('veteran')).map(t => t.id);
