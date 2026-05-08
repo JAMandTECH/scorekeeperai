@@ -96,16 +96,17 @@ Deno.serve(async (req) => {
       const sportMatch = String(t.sport || '').toLowerCase() === sport;
       if (!sportMatch) return false;
       if (!division) return true;
-      const div = String(t.division || '').toLowerCase();
-      return div.includes(division);
+      return String(t.division || '').toLowerCase() === division;
     });
 
+    const teamMapAll = new Map((teamsRaw || []).map((t) => [t.id, t]));
     const games = (gamesRaw || []).filter((g) => {
       const sportMatch = String(g.sport || '').toLowerCase() === sport;
       if (!sportMatch) return false;
       if (!division) return true;
-      const div = String(g.division || '').toLowerCase();
-      return div.includes(division);
+      const homeDivision = String(teamMapAll.get(g.home_team_id)?.division || '').toLowerCase();
+      const awayDivision = String(teamMapAll.get(g.away_team_id)?.division || '').toLowerCase();
+      return homeDivision === division || awayDivision === division;
     });
 
     if (!teams.length || !games.length) {
