@@ -1,5 +1,71 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchWithRetry(base44, filter, attempt = 1) {
+  try {
+    return await base44.asServiceRole.entities.PlayerGameStats.filter(filter);
+  } catch (err) {
+    const msg = String(err?.message || '');
+    const isRateLimited = /429|rate limit/i.test(msg);
+    if (isRateLimited && attempt < 6) {
+      const delay = 250 * Math.pow(2, attempt - 1);
+      await sleep(delay);
+      return fetchWithRetry(base44, filter, attempt + 1);
+    }
+    throw err;
+  }
+}
+
+async function fetchPlayerStatsForGames(base44, gameIds) {
+  const ids = Array.from(new Set((gameIds || []).filter(Boolean)));
+  const results = [];
+
+  for (let i = 0; i < ids.length; i += 25) {
+    const chunk = ids.slice(i, i + 25);
+    let chunkResults = [];
+
+    try {
+      chunkResults = await fetchWithRetry(base44, { game_id: { $in: chunk } });
+    } catch (_) {
+      chunkResults = [];
+    }
+
+    if (!Array.isArray(chunkResults) || (chunkResults.length === 0 && chunk.length > 1)) {
+      for (let j = 0; j < chunk.length; j += 3) {
+        const batch = chunk.slice(j, j + 3);
+        const batchResults = await Promise.all(
+          batch.map((gameId) => fetchWithRetry(base44, { game_id: gameId }).catch(() => []))
+        );
+        results.push(...batchResults.flat());
+        if (j + 3 < chunk.length) await sleep(300);
+      }
+    } else {
+      results.push(...chunkResults);
+    }
+
+    if (i + 25 < ids.length) await sleep(200);
+  }
+
+  return results;
+}
+
+async function fetchPlayersForTeams(base44, teamIds) {
+  const ids = Array.from(new Set((teamIds || []).filter(Boolean)));
+  const players = [];
+
+  for (let i = 0; i < ids.length; i += 3) {
+    const batch = ids.slice(i, i + 3);
+    const batchResults = await Promise.all(
+      batch.map((teamId) => base44.asServiceRole.entities.Player.filter({ team_id: teamId }).catch(() => []))
+    );
+    players.push(...batchResults.flat());
+    if (i + 3 < ids.length) await sleep(250);
+  }
+
+  return players;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -49,13 +115,8 @@ Deno.serve(async (req) => {
     const teamIds = teams.map((t) => t.id);
     const teamIdSet = new Set(teamIds);
     const completedGameIds = games.map((g) => g.id);
-    const completedSet = new Set(completedGameIds);
 
-    // Pull stats per team to limit volume, then keep only completed games
-    const statChunks = await Promise.all(
-      teamIds.map((tid) => base44.asServiceRole.entities.PlayerGameStats.filter({ team_id: tid }))
-    );
-    const allStats = ([]).concat(...statChunks).filter((s) => completedSet.has(s.game_id));
+    const allStats = await fetchPlayerStatsForGames(base44, completedGameIds);
 
     if (!allStats.length) {
       return Response.json({ leaders: [], count: 0, sport, division, organization_id: organizationId });
@@ -64,11 +125,7 @@ Deno.serve(async (req) => {
     // Build a team map for quick lookups
     const teamMap = new Map(teams.map((t) => [t.id, t]));
 
-    // Fetch players per team (fewer calls than fetching by each player id)
-    const playersByTeamChunks = await Promise.all(
-      teamIds.map((tid) => base44.asServiceRole.entities.Player.filter({ team_id: tid }))
-    );
-    const players = ([]).concat(...playersByTeamChunks);
+    const players = await fetchPlayersForTeams(base44, teamIds);
     const playerMap = new Map(players.map((p) => [p.id, p]));
 
     // Aggregate assists per player
