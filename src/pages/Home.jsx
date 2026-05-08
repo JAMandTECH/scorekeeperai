@@ -115,9 +115,13 @@ export default function Home() {
   const navigationItems = isSuperAdmin ? superAdminNav : (isAdmin ? adminNav : (user?.role_id ? null : userNav));
 
   const orgId = user?.active_organization_id || user?.organization_id;
-  const { data: allTeams = [] } = useQuery({ queryKey: ['all-teams-home'], queryFn: () => base44.entities.Team.list(), enabled: isAuthenticated === true });
+  // Mirror Statistics: filter teams/games by org at query time (avoids default list() pagination cap missing records)
+  const { data: allTeams = [] } = useQuery({
+    queryKey: ['all-teams-home', orgId],
+    queryFn: () => orgId ? base44.entities.Team.filter({ organization_id: orgId }) : base44.entities.Team.list(),
+    enabled: isAuthenticated === true,
+  });
   const { data: allPlayers = [] } = useQuery({ queryKey: ['all-players-home'], queryFn: () => base44.entities.Player.list(), enabled: isAuthenticated === true });
-  // Mirror Statistics: filter games by org at query time (avoids default list() pagination cap missing games)
   const { data: allGames = [] } = useQuery({
     queryKey: ['all-games-home', orgId],
     queryFn: () => orgId ? base44.entities.Game.filter({ organization_id: orgId }) : base44.entities.Game.list('-game_date'),
