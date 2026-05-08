@@ -7,19 +7,21 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 
 export default function TopAssistLeaders({ organizationId = null, sport = "basketball", limit = 10, title = "Top 10 Assist Leaders", orgName = null, orgLogoUrl = null, division = null }) {
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isFetching } = useQuery({
     queryKey: ["top-assist-leaders", organizationId, sport, division, limit],
+    enabled: !!organizationId,
     queryFn: async () => {
+      console.log('[TopAssistLeaders] invoking', { organizationId, sport, division, limit });
       const res = await base44.functions.invoke("getTopAssistLeaders", {
         organization_id: organizationId,
         sport,
         division,
         limit,
       });
+      console.log('[TopAssistLeaders] response:', res?.data);
       const leaders = res?.data?.leaders;
       return Array.isArray(leaders) ? leaders : [];
     },
-    initialData: [],
     retry: 2,
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
     staleTime: 1000 * 60 * 5,
@@ -53,7 +55,7 @@ export default function TopAssistLeaders({ organizationId = null, sport = "baske
         </div>
       </CardHeader>
       <CardContent className="p-4">
-        {isLoading ? (
+        {(isLoading || isFetching) && leaders.length === 0 ? (
           <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
             <Loader2 className="w-4 h-4 animate-spin" /> Loading...
           </div>

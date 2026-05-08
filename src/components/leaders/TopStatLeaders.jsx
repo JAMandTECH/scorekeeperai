@@ -14,20 +14,21 @@ export default function TopStatLeaders({ functionName, organizationId = null, sp
   };
 
   const styles = accentMap[accent] || accentMap.blue;
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isFetching } = useQuery({
     queryKey: [functionName, organizationId, sport, division, limit],
     enabled: enabled && !!organizationId,
     queryFn: async () => {
+      console.log('[TopStatLeaders] invoking', functionName, { organizationId, sport, division, limit });
       const res = await base44.functions.invoke(functionName, {
         organization_id: organizationId,
         sport,
         division,
         limit,
       });
+      console.log('[TopStatLeaders]', functionName, 'response:', res?.data);
       const leaders = res?.data?.leaders;
       return Array.isArray(leaders) ? leaders : [];
     },
-    initialData: [],
     retry: 2,
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
     staleTime: 1000 * 60 * 5,
@@ -60,7 +61,7 @@ export default function TopStatLeaders({ functionName, organizationId = null, sp
         </div>
       </CardHeader>
       <CardContent className="p-4">
-        {isLoading ? (
+        {(isLoading || isFetching) && leaders.length === 0 ? (
           <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
             <Loader2 className="w-4 h-4 animate-spin" /> Loading...
           </div>

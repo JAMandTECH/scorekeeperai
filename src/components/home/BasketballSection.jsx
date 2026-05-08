@@ -29,6 +29,7 @@ export default function BasketballSection({
   const isOpen = bbDivTab === 'open';
   const divisionFilter = isOpen ? 'Open Division' : 'Veterans Division';
   const orgId = organization?.id || null;
+  const leadersEnabled = !!orgId;
 
   return (
     <section className="mb-20">
