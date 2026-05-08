@@ -283,6 +283,8 @@ export default function Home() {
   const topReboundersVeterans = getTopPlayers('rebounds', 'basketball', 10, 'Veterans');
   const topBlockersVeterans = getTopPlayers('blocks', 'basketball', 10, 'Veterans');
   const top3PointersVeterans = getTopPlayers('three_pointers', 'basketball', 10, 'Veterans');
+  const topAssistsOpen = getTopPlayers('assists', 'basketball', 10, 'Open');
+  const topAssistsVeterans = getTopPlayers('assists', 'basketball', 10, 'Veterans');
 
   const topVolleyballScorers = getTopPlayers('points', 'volleyball', 10);
   const topVolleyballAttackers = getTopPlayers('attacks', 'volleyball', 10);
@@ -358,7 +360,7 @@ export default function Home() {
                 </section>
               )}
 
-              <BasketballSection bbDivTab={bbDivTab} setBbDivTab={setBbDivTab} organization={organization} basketballStandingsOpen={basketballStandingsOpen} basketballStandingsVeterans={basketballStandingsVeterans} topScorersOpen={topScorersOpen} topScorersVeterans={topScorersVeterans} topReboundersOpen={topReboundersOpen} topReboundersVeterans={topReboundersVeterans} topBlockersOpen={topBlockersOpen} topBlockersVeterans={topBlockersVeterans} top3PointersOpen={top3PointersOpen} top3PointersVeterans={top3PointersVeterans} upcomingBasketballGamesOpen={upcomingBasketballGamesOpen} upcomingBasketballGamesVeterans={upcomingBasketballGamesVeterans} completedBasketballGamesOpen={completedBasketballGamesOpen} completedBasketballGamesVeterans={completedBasketballGamesVeterans} allPlayerStats={allPlayerStats} allPlayers={allPlayers} allTeams={allTeams} isAdmin={isAdmin} orgId={orgId} getTeamName={getTeamName} />
+              <BasketballSection bbDivTab={bbDivTab} setBbDivTab={setBbDivTab} organization={organization} basketballStandingsOpen={basketballStandingsOpen} basketballStandingsVeterans={basketballStandingsVeterans} topScorersOpen={topScorersOpen} topScorersVeterans={topScorersVeterans} topReboundersOpen={topReboundersOpen} topReboundersVeterans={topReboundersVeterans} topBlockersOpen={topBlockersOpen} topBlockersVeterans={topBlockersVeterans} top3PointersOpen={top3PointersOpen} top3PointersVeterans={top3PointersVeterans} topAssistsOpen={topAssistsOpen} topAssistsVeterans={topAssistsVeterans} upcomingBasketballGamesOpen={upcomingBasketballGamesOpen} upcomingBasketballGamesVeterans={upcomingBasketballGamesVeterans} completedBasketballGamesOpen={completedBasketballGamesOpen} completedBasketballGamesVeterans={completedBasketballGamesVeterans} allPlayerStats={allPlayerStats} allPlayers={allPlayers} allTeams={allTeams} isAdmin={isAdmin} getTeamName={getTeamName} />
 
               <VolleyballSection organization={organization} volleyballStandings={volleyballStandings} topVolleyballScorers={topVolleyballScorers} topVolleyballAttackers={topVolleyballAttackers} topVolleyballBlockers={topVolleyballBlockers} topVolleyballAces={topVolleyballAces} upcomingVolleyballGames={upcomingVolleyballGames} completedVolleyballGames={completedVolleyballGames} allPlayerStats={allPlayerStats} allPlayers={allPlayers} allTeams={allTeams} isAdmin={isAdmin} getTeamName={getTeamName} />
             </div>
