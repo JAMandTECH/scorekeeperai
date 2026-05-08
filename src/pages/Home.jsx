@@ -127,8 +127,7 @@ export default function Home() {
     queryKey: ['all-player-stats-home', completedGames.map(g => g.id).join(',')],
     queryFn: async () => {
       if (completedGames.length === 0) return [];
-      const recentCompletedGames = completedGames.slice(0, 30);
-      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: recentCompletedGames.map(g => g.id) });
+      const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: completedGames.map(g => g.id) });
       return Array.isArray(res.data) ? res.data : [];
     },
     enabled: isAuthenticated === true,
