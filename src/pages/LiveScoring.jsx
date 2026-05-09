@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User, Eye, EyeOff, Flag, Sun, Moon, Loader2 } from "lucide-react";
+import { CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User, Eye, EyeOff, Flag, Sun, Moon, Loader2, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -60,6 +60,33 @@ const [showEditTotals, setShowEditTotals] = useState(false);
 const [editTotals, setEditTotals] = useState({ home_score: 0, away_score: 0, home_timeouts: 0, away_timeouts: 0, home_team_fouls: 0, away_team_fouls: 0 });
 const [showMoveStat, setShowMoveStat] = useState(false);
 const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, statType: 'points', amount: 1, destPlayer: '', destQuarter: 1 });
+const [showDeleteGame, setShowDeleteGame] = useState(false);
+const [deletingGame, setDeletingGame] = useState(false);
+
+  const handleDeleteGame = async () => {
+    if (!game?.id) return;
+    if (user?.role !== 'admin') {
+      alert('Only admins can delete games.');
+      return;
+    }
+    setDeletingGame(true);
+    try {
+      // Delete all player stats for this game first
+      const stats = await base44.entities.PlayerGameStats.filter({ game_id: game.id });
+      await Promise.all(
+        (stats || []).map((s) => base44.entities.PlayerGameStats.delete(s.id).catch(() => null))
+      );
+      // Then delete the game itself
+      await base44.entities.Game.delete(game.id);
+      setShowDeleteGame(false);
+      navigate(createPageUrl('Games'));
+    } catch (e) {
+      console.error('Failed to delete game', e);
+      alert('Failed to delete the game. Please check your permissions or connection.');
+    } finally {
+      setDeletingGame(false);
+    }
+  };
 
   // Service-role backed safe game update (validates user is allowed on backend)
   const updateGameSafe = async (patch) => {
@@ -1319,6 +1346,18 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                 >
                   CANCEL
                 </Button>
+                {user?.role === 'admin' && (
+                  <Button
+                    onClick={() => setShowDeleteGame(true)}
+                    size="sm"
+                    className="bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 text-white font-black text-xs px-4 py-2 border-2 border-red-500"
+                    disabled={deletingGame}
+                    title="Delete this game (Admin only)"
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    DELETE GAME
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -1891,6 +1930,53 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
               await base44.functions.invoke('upsertPlayerStat', { game_id: game.id, player_id: moveForm.destPlayer, team_id: dstTeamId, quarter: Number(moveForm.destQuarter), updates: [{ statType: moveForm.statType, value: amt }] });
               setShowMoveStat(false);
             }}>Move</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Game Confirmation Dialog (Admin only) */}
+      <Dialog open={showDeleteGame} onOpenChange={setShowDeleteGame}>
+        <DialogContent className="bg-white dark:bg-gray-900 border-4 border-red-500 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 dark:text-white text-2xl font-black flex items-center gap-2">
+              <Trash2 className="w-6 h-6 text-red-500" />
+              Delete This Game?
+            </DialogTitle>
+            <DialogDescription className="text-gray-700 dark:text-gray-300 font-bold">
+              This will permanently delete the game and all recorded player stats. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <Alert className="bg-red-100 dark:bg-red-900/40 border-2 border-red-400">
+            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-300" />
+            <AlertDescription className="text-red-900 dark:text-red-100 font-bold text-sm">
+              {homeTeam?.name} vs {awayTeam?.name} — {homeScore}-{awayScore} ({quarterLabel})
+            </AlertDescription>
+          </Alert>
+          <div className="flex gap-3 mt-2">
+            <Button
+              onClick={handleDeleteGame}
+              disabled={deletingGame}
+              className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black"
+            >
+              {deletingGame ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" /> Deleting...
+                </span>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  YES, DELETE GAME
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={() => setShowDeleteGame(false)}
+              variant="outline"
+              disabled={deletingGame}
+              className="flex-1 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 font-black"
+            >
+              CANCEL
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
