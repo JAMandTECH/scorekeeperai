@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import VoiceAssistant from "@/components/VoiceAssistant";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { loadAllStatsPaginated } from "@/lib/liveScoringHelpers";
 
 export default function LiveScoring() {
   const [game, setGame] = useState(null);
@@ -129,12 +130,12 @@ const [deletingGame, setDeletingGame] = useState(false);
       document.documentElement.classList.remove('dark');
     }
 
-    // Set up periodic game state refresh for real-time sync
+    // Real-time subscription handles sync — fall back to a 30s safety poll
     const intervalId = setInterval(() => {
       if (game?.id) {
         refreshGameState();
       }
-    }, 5000);
+    }, 30000);
 
     return () => clearInterval(intervalId);
   }, [game?.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -294,53 +295,43 @@ const [deletingGame, setDeletingGame] = useState(false);
       await updateGameByIdSafe(gameId, { status: 'in_progress' });
     }
 
-    const stats = await base44.entities.PlayerGameStats.filter({ game_id: gameId });
-    const statsMap = {};
-    stats.forEach(stat => {
-      const key = `${stat.player_id}_${stat.quarter}`;
-      statsMap[key] = stat;
-    });
+    const statsMap = await loadAllStatsPaginated(gameId);
     setPlayerStats(statsMap);
   };
 
+  // Teams and players don't change during a game — fetch once, no polling.
   const { data: homeTeam } = useQuery({
     queryKey: ['team', game?.home_team_id],
     queryFn: async () => {
-      const teams = await base44.entities.Team.list();
-      return teams.find(t => t.id === game?.home_team_id);
+      const teams = await base44.entities.Team.filter({ id: game?.home_team_id });
+      return teams && teams[0];
     },
     enabled: !!game?.home_team_id,
-    refetchInterval: 5000,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: awayTeam } = useQuery({
     queryKey: ['team', game?.away_team_id],
     queryFn: async () => {
-      const teams = await base44.entities.Team.list();
-      return teams.find(t => t.id === game?.away_team_id);
+      const teams = await base44.entities.Team.filter({ id: game?.away_team_id });
+      return teams && teams[0];
     },
     enabled: !!game?.away_team_id,
-    refetchInterval: 5000,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: homePlayers = [] } = useQuery({
     queryKey: ['players', game?.home_team_id],
-    queryFn: async () => {
-      const allPlayers = await base44.entities.Player.list();
-      return allPlayers.filter(p => p.team_id === game?.home_team_id);
-    },
+    queryFn: async () => base44.entities.Player.filter({ team_id: game?.home_team_id }),
     enabled: !!game?.home_team_id,
-    refetchInterval: 10000,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: awayPlayers = [] } = useQuery({
     queryKey: ['players', game?.away_team_id],
-    queryFn: async () => {
-      const allPlayers = await base44.entities.Player.list();
-      return allPlayers.filter(p => p.team_id === game?.away_team_id);
-    },
+    queryFn: async () => base44.entities.Player.filter({ team_id: game?.away_team_id }),
     enabled: !!game?.away_team_id,
-    refetchInterval: 10000,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: organization } = useQuery({
