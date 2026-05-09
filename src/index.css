@@ -866,3 +866,155 @@ html:not(.dark) [role="tab"][data-state="active"] {
   color: #0b1020 !important;
   box-shadow: 0 1px 3px rgba(11, 16, 32, 0.12);
 }
+
+/* ============================================================
+   LIGHT MODE — BUTTON FIXES
+   The obsidian metal treatment was leaking into light mode for
+   any button whose class string happens to contain matching
+   substrings. In light mode we want clean, readable buttons.
+   ============================================================ */
+
+/* Reset ALL buttons in light mode to a neutral, readable base.
+   Component-specific colours (bg-blue-600, bg-orange-500 etc.)
+   still take effect because they're applied via Tailwind utility
+   classes with full specificity equal to ours, but ours come
+   later in the cascade — so we ONLY override the dark-substring
+   patterns and let real coloured buttons keep their colour. */
+
+/* Catch-all: any button NOT explicitly given a color utility
+   should be light + dark-text (was being forced black). */
+html:not(.dark) button {
+  color: #0b1020;
+}
+
+/* Override the obsidian "dark metal" rule that fires on
+   bg-blue/indigo/purple/violet/primary etc — in LIGHT mode
+   we want those primary-coloured buttons to actually use
+   their tailwind colour, not dark metal. The selector above
+   in the dark-only block is now html.dark scoped, but defensively
+   restore color for any button still inheriting #fff issues. */
+
+/* Buttons that have NO explicit bg utility but are styled via
+   variant="default" / variant="outline" — give them a clean
+   light look. Targets shadcn buttons that render with class
+   strings containing "bg-primary" or just plain. */
+html:not(.dark) button:not([class*="bg-"]):not([class*="from-"]) {
+  background: #ffffff;
+  border: 1px solid rgba(11, 16, 32, 0.15);
+  color: #0b1020;
+}
+html:not(.dark) button:not([class*="bg-"]):not([class*="from-"]):hover {
+  background: #f6f8fc;
+}
+
+/* Outline / ghost style buttons: ensure light bg + dark text */
+html:not(.dark) button[class*="variant-outline"],
+html:not(.dark) button[class*="border"][class*="bg-transparent"],
+html:not(.dark) button[class*="bg-white"] {
+  background: #ffffff !important;
+  border: 1px solid rgba(11, 16, 32, 0.15) !important;
+  color: #0b1020 !important;
+  box-shadow: 0 1px 2px rgba(11, 16, 32, 0.06) !important;
+}
+html:not(.dark) button[class*="variant-outline"]:hover,
+html:not(.dark) button[class*="border"][class*="bg-transparent"]:hover,
+html:not(.dark) button[class*="bg-white"]:hover {
+  background: #f6f8fc !important;
+}
+
+/* IMPORTANT: cancel the earlier rule that re-coloured text-white
+   inside dark gradient ancestors, when the ancestor is actually a
+   BUTTON (we re-light the button background, but its label was
+   set to #fff originally — which would now disappear). Keep
+   text white on buttons that retained their coloured background. */
+html:not(.dark) button[class*="bg-blue"] [class*="text-white"],
+html:not(.dark) button[class*="bg-indigo"] [class*="text-white"],
+html:not(.dark) button[class*="bg-purple"] [class*="text-white"],
+html:not(.dark) button[class*="bg-violet"] [class*="text-white"],
+html:not(.dark) button[class*="bg-primary"] [class*="text-white"],
+html:not(.dark) button[class*="bg-orange"] [class*="text-white"],
+html:not(.dark) button[class*="bg-red"] [class*="text-white"],
+html:not(.dark) button[class*="bg-green"] [class*="text-white"],
+html:not(.dark) button[class*="from-blue"] [class*="text-white"],
+html:not(.dark) button[class*="from-indigo"] [class*="text-white"],
+html:not(.dark) button[class*="from-purple"] [class*="text-white"],
+html:not(.dark) button[class*="from-violet"] [class*="text-white"],
+html:not(.dark) button[class*="from-orange"] [class*="text-white"] {
+  color: #ffffff !important;
+}
+
+/* Reset the over-aggressive "neutralize dark gradients" rule
+   for BUTTONS — we don't want every primary button forced to
+   white background. Buttons with from-blue/indigo/purple etc
+   should KEEP their gradient. */
+html:not(.dark) button[class*="from-blue"],
+html:not(.dark) button[class*="from-indigo"],
+html:not(.dark) button[class*="from-purple"],
+html:not(.dark) button[class*="from-violet"],
+html:not(.dark) button[class*="from-pink"],
+html:not(.dark) button[class*="from-orange"],
+html:not(.dark) button[class*="from-red"],
+html:not(.dark) button[class*="from-green"],
+html:not(.dark) button[class*="from-emerald"],
+html:not(.dark) button[class*="from-cyan"],
+html:not(.dark) button[class*="from-amber"] {
+  /* Let Tailwind's actual gradient classes win (they have
+     equal specificity but render bright). Just ensure label is white. */
+  color: #ffffff !important;
+}
+
+/* Tabs: inactive tabs should be transparent/light, NOT dark metal */
+html:not(.dark) [role="tab"]:not([data-state="active"]) {
+  background: transparent !important;
+  color: rgba(11, 16, 32, 0.65) !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+html:not(.dark) [role="tab"]:not([data-state="active"]):hover {
+  background: rgba(11, 16, 32, 0.04) !important;
+  color: #0b1020 !important;
+}
+
+/* Quick Actions / sidebar-style action buttons (often use
+   gradient-to-r from-slate-800 to-slate-900) — make them
+   light cards with dark labels in light mode. */
+html:not(.dark) button[class*="from-slate-8"],
+html:not(.dark) button[class*="from-slate-9"],
+html:not(.dark) button[class*="from-gray-8"],
+html:not(.dark) button[class*="from-gray-9"],
+html:not(.dark) button[class*="from-zinc-8"],
+html:not(.dark) button[class*="from-zinc-9"],
+html:not(.dark) button[class*="from-neutral-8"],
+html:not(.dark) button[class*="from-neutral-9"],
+html:not(.dark) button[class*="bg-slate-800"],
+html:not(.dark) button[class*="bg-slate-900"],
+html:not(.dark) button[class*="bg-gray-800"],
+html:not(.dark) button[class*="bg-gray-900"],
+html:not(.dark) button[class*="bg-black"] {
+  background: #ffffff !important;
+  border: 1px solid rgba(11, 16, 32, 0.10) !important;
+  color: #0b1020 !important;
+  box-shadow: 0 2px 6px rgba(11, 16, 32, 0.06), 0 1px 0 rgba(255,255,255,0.9) inset !important;
+}
+html:not(.dark) button[class*="from-slate-8"]:hover,
+html:not(.dark) button[class*="from-slate-9"]:hover,
+html:not(.dark) button[class*="bg-slate-800"]:hover,
+html:not(.dark) button[class*="bg-slate-900"]:hover,
+html:not(.dark) button[class*="bg-gray-800"]:hover,
+html:not(.dark) button[class*="bg-gray-900"]:hover,
+html:not(.dark) button[class*="bg-black"]:hover {
+  background: #f6f8fc !important;
+}
+
+/* Children inside re-lit dark buttons: force readable colour */
+html:not(.dark) button[class*="from-slate-8"] *,
+html:not(.dark) button[class*="from-slate-9"] *,
+html:not(.dark) button[class*="from-gray-8"] *,
+html:not(.dark) button[class*="from-gray-9"] *,
+html:not(.dark) button[class*="bg-slate-800"] *,
+html:not(.dark) button[class*="bg-slate-900"] *,
+html:not(.dark) button[class*="bg-gray-800"] *,
+html:not(.dark) button[class*="bg-gray-900"] *,
+html:not(.dark) button[class*="bg-black"] * {
+  color: #0b1020 !important;
+}
