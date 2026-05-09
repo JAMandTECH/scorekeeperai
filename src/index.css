@@ -734,3 +734,135 @@ html:not(.dark) ::selection { background: rgba(11, 16, 32, 0.15); color: #0b1020
 /* Links */
 html:not(.dark) a { color: #1f2937; }
 html:not(.dark) a:hover { color: #000000; }
+
+/* ============================================================
+   LIGHT MODE — neutralize hardcoded dark gradient surfaces
+   Many components use inline `from-slate-900`, `to-black`,
+   `bg-gradient-to-*` etc. that look black in light mode.
+   Override them so the whole UI feels light & airy.
+   ============================================================ */
+
+/* Dark gradient backgrounds (from-* / via-* / to-* dark colors) → light glass */
+html:not(.dark) [class*="from-slate-9"],
+html:not(.dark) [class*="from-slate-8"],
+html:not(.dark) [class*="from-gray-9"],
+html:not(.dark) [class*="from-gray-8"],
+html:not(.dark) [class*="from-zinc-9"],
+html:not(.dark) [class*="from-zinc-8"],
+html:not(.dark) [class*="from-neutral-9"],
+html:not(.dark) [class*="from-neutral-8"],
+html:not(.dark) [class*="from-stone-9"],
+html:not(.dark) [class*="from-stone-8"],
+html:not(.dark) [class*="from-black"],
+html:not(.dark) [class*="to-slate-9"],
+html:not(.dark) [class*="to-slate-8"],
+html:not(.dark) [class*="to-gray-9"],
+html:not(.dark) [class*="to-gray-8"],
+html:not(.dark) [class*="to-zinc-9"],
+html:not(.dark) [class*="to-black"],
+html:not(.dark) [class*="bg-slate-900"],
+html:not(.dark) [class*="bg-slate-800"],
+html:not(.dark) [class*="bg-gray-900"],
+html:not(.dark) [class*="bg-gray-800"],
+html:not(.dark) [class*="bg-zinc-900"],
+html:not(.dark) [class*="bg-zinc-800"],
+html:not(.dark) [class*="bg-neutral-900"],
+html:not(.dark) [class*="bg-neutral-800"],
+html:not(.dark) [class*="bg-black"] {
+  background: linear-gradient(180deg, #ffffff 0%, #f6f8fc 100%) !important;
+  color: #0b1020 !important;
+  border-color: rgba(11, 16, 32, 0.08) !important;
+}
+
+/* Restore readable text inside those re-lit surfaces */
+html:not(.dark) [class*="from-slate-9"] *,
+html:not(.dark) [class*="from-slate-8"] *,
+html:not(.dark) [class*="from-gray-9"] *,
+html:not(.dark) [class*="from-gray-8"] *,
+html:not(.dark) [class*="from-black"] *,
+html:not(.dark) [class*="to-black"] *,
+html:not(.dark) [class*="bg-slate-900"] *,
+html:not(.dark) [class*="bg-slate-800"] *,
+html:not(.dark) [class*="bg-gray-900"] *,
+html:not(.dark) [class*="bg-gray-800"] *,
+html:not(.dark) [class*="bg-black"] * {
+  /* Convert "white-on-dark" text back to dark for readability */
+}
+html:not(.dark) [class*="from-slate-9"] [class*="text-white"],
+html:not(.dark) [class*="from-slate-8"] [class*="text-white"],
+html:not(.dark) [class*="from-gray-9"] [class*="text-white"],
+html:not(.dark) [class*="from-black"] [class*="text-white"],
+html:not(.dark) [class*="to-black"] [class*="text-white"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-white"],
+html:not(.dark) [class*="bg-slate-800"] [class*="text-white"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-white"],
+html:not(.dark) [class*="bg-black"] [class*="text-white"] {
+  color: #0b1020 !important;
+}
+html:not(.dark) [class*="from-slate-9"] [class*="text-slate-3"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-slate-4"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-gray-3"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-gray-4"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-slate-3"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-slate-4"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-gray-3"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-gray-4"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-slate-3"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-slate-4"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-gray-3"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-gray-4"] {
+  color: rgba(11, 16, 32, 0.65) !important;
+}
+
+/* Sidebar (uses gradient-to-b from-slate-900...) */
+html:not(.dark) aside,
+html:not(.dark) nav[class*="sidebar"],
+html:not(.dark) [class*="Sidebar"] {
+  background: linear-gradient(180deg, #ffffff 0%, #f6f8fc 100%) !important;
+  border-color: rgba(11, 16, 32, 0.08) !important;
+  color: #0b1020 !important;
+}
+html:not(.dark) aside *,
+html:not(.dark) nav[class*="sidebar"] *,
+html:not(.dark) [class*="Sidebar"] * {
+  color: inherit;
+}
+html:not(.dark) aside [class*="text-white"],
+html:not(.dark) aside [class*="text-slate-1"],
+html:not(.dark) aside [class*="text-slate-2"],
+html:not(.dark) aside [class*="text-slate-3"],
+html:not(.dark) aside [class*="text-gray-1"],
+html:not(.dark) aside [class*="text-gray-2"],
+html:not(.dark) aside [class*="text-gray-3"] {
+  color: #0b1020 !important;
+}
+
+/* Header / top bar (often uses dark gradient) */
+html:not(.dark) header {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-color: rgba(11, 16, 32, 0.08) !important;
+  color: #0b1020 !important;
+}
+html:not(.dark) header [class*="text-white"],
+html:not(.dark) header [class*="text-slate-2"],
+html:not(.dark) header [class*="text-slate-3"],
+html:not(.dark) header [class*="text-gray-2"],
+html:not(.dark) header [class*="text-gray-3"] {
+  color: #0b1020 !important;
+}
+
+/* Tabs lists with dark gradient */
+html:not(.dark) [role="tablist"] {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(11, 16, 32, 0.08) !important;
+}
+html:not(.dark) [role="tab"] {
+  color: rgba(11, 16, 32, 0.7) !important;
+}
+html:not(.dark) [role="tab"][data-state="active"] {
+  background: #ffffff !important;
+  color: #0b1020 !important;
+  box-shadow: 0 1px 3px rgba(11, 16, 32, 0.12);
+}
