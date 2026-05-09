@@ -1018,3 +1018,230 @@ html:not(.dark) button[class*="bg-gray-900"] *,
 html:not(.dark) button[class*="bg-black"] * {
   color: #0b1020 !important;
 }
+
+/* ============================================================
+   LIGHT MODE — COMPREHENSIVE LEGIBILITY SWEEP
+   Catch-all rules to fix any remaining unreadable text/elements.
+   ============================================================ */
+
+/* 1) Stranded text-white on now-light surfaces.
+   When we re-lit a dark gradient ancestor (card, panel, header,
+   sidebar, etc.) any descendant `text-white` becomes invisible.
+   Convert it to dark text — but ONLY when not inside a button or
+   element that still has its own colored background. */
+html:not(.dark) [class*="bg-white"] [class*="text-white"]:not(button):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-purple"]):not([class*="bg-violet"]):not([class*="bg-pink"]):not([class*="bg-orange"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):not([class*="bg-cyan"]):not([class*="bg-amber"]):not([class*="bg-yellow"]):not([class*="bg-rose"]):not([class*="bg-fuchsia"]):not([class*="bg-teal"]):not([class*="bg-sky"]):not([class*="from-"]),
+html:not(.dark) header [class*="text-white"]:not(button):not([class*="bg-"]):not([class*="from-"]),
+html:not(.dark) aside [class*="text-white"]:not(button):not([class*="bg-"]):not([class*="from-"]),
+html:not(.dark) main [class*="text-white"]:not(button):not([class*="bg-"]):not([class*="from-"]):not([class*="bg-blue"]),
+html:not(.dark) [class*="from-slate-9"] [class*="text-white"]:not(button):not([class*="bg-"]):not([class*="from-"]),
+html:not(.dark) [class*="from-slate-8"] [class*="text-white"]:not(button):not([class*="bg-"]):not([class*="from-"]),
+html:not(.dark) [class*="from-gray-9"] [class*="text-white"]:not(button):not([class*="bg-"]):not([class*="from-"]),
+html:not(.dark) [class*="bg-slate-900"] [class*="text-white"]:not(button):not([class*="bg-"]):not([class*="from-"]),
+html:not(.dark) [class*="bg-slate-800"] [class*="text-white"]:not(button):not([class*="bg-"]):not([class*="from-"]),
+html:not(.dark) [class*="bg-gray-900"] [class*="text-white"]:not(button):not([class*="bg-"]):not([class*="from-"]),
+html:not(.dark) [class*="bg-gray-800"] [class*="text-white"]:not(button):not([class*="bg-"]):not([class*="from-"]),
+html:not(.dark) [class*="bg-black"] [class*="text-white"]:not(button):not([class*="bg-"]):not([class*="from-"]) {
+  color: #0b1020 !important;
+}
+
+/* 2) Faint slate/gray text on dark backgrounds that we re-lit
+   (text-slate-200/300/400, text-gray-200/300/400) — convert to readable mid-grey */
+html:not(.dark) [class*="from-slate-9"] [class*="text-slate-2"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-slate-3"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-slate-4"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-gray-2"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-gray-3"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-gray-4"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-slate-2"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-slate-3"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-slate-4"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-gray-2"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-gray-3"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-gray-4"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-slate-2"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-slate-3"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-slate-4"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-gray-2"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-gray-3"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-gray-4"],
+html:not(.dark) [class*="bg-black"] [class*="text-slate-2"],
+html:not(.dark) [class*="bg-black"] [class*="text-slate-3"],
+html:not(.dark) [class*="bg-black"] [class*="text-slate-4"],
+html:not(.dark) [class*="bg-black"] [class*="text-gray-2"],
+html:not(.dark) [class*="bg-black"] [class*="text-gray-3"],
+html:not(.dark) [class*="bg-black"] [class*="text-gray-4"] {
+  color: rgba(11, 16, 32, 0.65) !important;
+}
+
+/* 3) Badges with dark gradient backgrounds — light up in light mode */
+html:not(.dark) [class*="badge"][class*="from-slate-9"],
+html:not(.dark) [class*="badge"][class*="from-slate-8"],
+html:not(.dark) [class*="badge"][class*="from-gray-9"],
+html:not(.dark) [class*="badge"][class*="bg-slate-900"],
+html:not(.dark) [class*="badge"][class*="bg-slate-800"],
+html:not(.dark) [class*="badge"][class*="bg-gray-900"],
+html:not(.dark) [class*="badge"][class*="bg-black"] {
+  background: rgba(11, 16, 32, 0.08) !important;
+  color: #0b1020 !important;
+  border-color: rgba(11, 16, 32, 0.12) !important;
+}
+
+/* 4) Native <select> on light: ensure dark text + light bg */
+html:not(.dark) select {
+  color: #0b1020 !important;
+  background-color: #ffffff !important;
+}
+
+/* 5) Dropdown / popover items in light mode — already styled above,
+   but harden against any text-white/text-slate-200 leakage */
+html:not(.dark) [role="menu"] [class*="text-white"],
+html:not(.dark) [role="listbox"] [class*="text-white"],
+html:not(.dark) [data-radix-select-content] [class*="text-white"],
+html:not(.dark) [data-radix-dropdown-menu-content] [class*="text-white"],
+html:not(.dark) [data-radix-popover-content] [class*="text-white"],
+html:not(.dark) [data-radix-menu-content] [class*="text-white"],
+html:not(.dark) [role="menu"] [class*="text-slate-2"],
+html:not(.dark) [role="menu"] [class*="text-slate-3"],
+html:not(.dark) [role="menu"] [class*="text-gray-2"],
+html:not(.dark) [role="menu"] [class*="text-gray-3"],
+html:not(.dark) [data-radix-dropdown-menu-content] [class*="text-slate-2"],
+html:not(.dark) [data-radix-dropdown-menu-content] [class*="text-slate-3"],
+html:not(.dark) [data-radix-dropdown-menu-content] [class*="text-gray-2"],
+html:not(.dark) [data-radix-dropdown-menu-content] [class*="text-gray-3"] {
+  color: #0b1020 !important;
+}
+
+/* 6) Toasts / notifications with dark surfaces */
+html:not(.dark) [role="status"][class*="bg-slate-9"],
+html:not(.dark) [role="status"][class*="bg-gray-9"],
+html:not(.dark) [role="status"][class*="bg-black"],
+html:not(.dark) [data-sonner-toast][class*="bg-slate-9"],
+html:not(.dark) [data-sonner-toast][class*="bg-gray-9"] {
+  background: #ffffff !important;
+  color: #0b1020 !important;
+  border: 1px solid rgba(11, 16, 32, 0.10) !important;
+}
+
+/* 7) Inputs/textareas inside dark-bg ancestors — ensure usable contrast */
+html:not(.dark) [class*="from-slate-9"] input,
+html:not(.dark) [class*="from-slate-9"] textarea,
+html:not(.dark) [class*="from-slate-9"] select,
+html:not(.dark) [class*="bg-slate-900"] input,
+html:not(.dark) [class*="bg-slate-900"] textarea,
+html:not(.dark) [class*="bg-slate-900"] select,
+html:not(.dark) [class*="bg-gray-900"] input,
+html:not(.dark) [class*="bg-gray-900"] textarea,
+html:not(.dark) [class*="bg-gray-900"] select,
+html:not(.dark) [class*="bg-black"] input,
+html:not(.dark) [class*="bg-black"] textarea,
+html:not(.dark) [class*="bg-black"] select {
+  background: #ffffff !important;
+  color: #0b1020 !important;
+  border: 1px solid rgba(11, 16, 32, 0.12) !important;
+}
+
+/* 8) Borders in light mode — replace dark-mode borders with light ones */
+html:not(.dark) [class*="border-slate-7"],
+html:not(.dark) [class*="border-slate-8"],
+html:not(.dark) [class*="border-slate-9"],
+html:not(.dark) [class*="border-gray-7"],
+html:not(.dark) [class*="border-gray-8"],
+html:not(.dark) [class*="border-gray-9"],
+html:not(.dark) [class*="border-zinc-7"],
+html:not(.dark) [class*="border-zinc-8"],
+html:not(.dark) [class*="border-zinc-9"],
+html:not(.dark) [class*="border-white"] {
+  border-color: rgba(11, 16, 32, 0.10) !important;
+}
+
+/* 9) Help/floating bubbles with dark gradient backdrops keep their
+   purple gradient — but ensure their text remains white. */
+html:not(.dark) [class*="from-purple"] [class*="text-white"],
+html:not(.dark) [class*="from-pink"] [class*="text-white"],
+html:not(.dark) [class*="from-fuchsia"] [class*="text-white"] {
+  color: #ffffff !important;
+}
+
+/* 10) Empty / muted "Filter by:" labels and similar muted text inside
+   re-lit panels become unreadable — bump them up */
+html:not(.dark) [class*="from-slate-9"] [class*="text-slate-5"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-gray-5"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-slate-5"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-gray-5"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-slate-5"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-gray-5"],
+html:not(.dark) [class*="bg-black"] [class*="text-slate-5"],
+html:not(.dark) [class*="bg-black"] [class*="text-gray-5"] {
+  color: rgba(11, 16, 32, 0.6) !important;
+}
+
+/* 11) Table rows / cells inside re-lit dark panels */
+html:not(.dark) [class*="from-slate-9"] th,
+html:not(.dark) [class*="from-slate-9"] td,
+html:not(.dark) [class*="bg-slate-900"] th,
+html:not(.dark) [class*="bg-slate-900"] td,
+html:not(.dark) [class*="bg-gray-900"] th,
+html:not(.dark) [class*="bg-gray-900"] td,
+html:not(.dark) [class*="bg-black"] th,
+html:not(.dark) [class*="bg-black"] td {
+  color: #0b1020 !important;
+  border-color: rgba(11, 16, 32, 0.08) !important;
+}
+
+/* 12) Disabled buttons should still read in light mode */
+html:not(.dark) button:disabled,
+html:not(.dark) [role="button"][aria-disabled="true"] {
+  color: rgba(11, 16, 32, 0.4) !important;
+  background: rgba(11, 16, 32, 0.04) !important;
+  border-color: rgba(11, 16, 32, 0.08) !important;
+}
+
+/* 13) Keep colored text utilities (red/green/blue/orange etc.) bright
+   even when sitting inside re-lit dark panels — these are usually
+   stat colours and shouldn't be flattened to dark grey. */
+html:not(.dark) [class*="from-slate-9"] [class*="text-red-"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-orange-"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-amber-"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-yellow-"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-green-"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-emerald-"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-blue-"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-indigo-"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-purple-"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-pink-"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-cyan-"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-red-"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-orange-"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-amber-"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-yellow-"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-green-"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-emerald-"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-blue-"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-indigo-"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-purple-"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-pink-"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-cyan-"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-red-"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-green-"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-blue-"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-orange-"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-purple-"],
+html:not(.dark) [class*="bg-black"] [class*="text-red-"],
+html:not(.dark) [class*="bg-black"] [class*="text-green-"],
+html:not(.dark) [class*="bg-black"] [class*="text-blue-"],
+html:not(.dark) [class*="bg-black"] [class*="text-orange-"],
+html:not(.dark) [class*="bg-black"] [class*="text-purple-"] {
+  /* Restore the tailwind colour by removing the override set in (1)/(2).
+     We use revert-layer so the original utility wins. */
+  color: revert-layer !important;
+}
+
+/* 14) SVG icons inside re-lit dark panels — convert white icons to dark */
+html:not(.dark) [class*="from-slate-9"] svg[class*="text-white"],
+html:not(.dark) [class*="bg-slate-900"] svg[class*="text-white"],
+html:not(.dark) [class*="bg-gray-900"] svg[class*="text-white"],
+html:not(.dark) [class*="bg-black"] svg[class*="text-white"],
+html:not(.dark) header svg[class*="text-white"],
+html:not(.dark) aside svg[class*="text-white"] {
+  color: #0b1020 !important;
+}
