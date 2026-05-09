@@ -357,14 +357,89 @@ thead, th {
 tr, td { border-color: var(--obsidian-edge) !important; }
 tbody tr:hover { background: rgba(255, 255, 255, 0.03) !important; }
 
-/* Dialog / popover surfaces */
-[role="dialog"], [role="menu"], [data-radix-popper-content-wrapper] > * {
-  background: linear-gradient(180deg, rgba(22, 27, 39, 0.96), rgba(10, 13, 20, 0.96)) !important;
-  border: 1px solid var(--obsidian-edge) !important;
+/* Dialog / popover / dropdown / select surfaces */
+[role="dialog"],
+[role="menu"],
+[role="listbox"],
+[data-radix-popper-content-wrapper] > *,
+[data-radix-select-content],
+[data-radix-dropdown-menu-content],
+[data-radix-popover-content],
+[data-radix-menu-content] {
+  background: linear-gradient(180deg, rgba(22, 27, 39, 0.98), rgba(10, 13, 20, 0.98)) !important;
+  border: 1px solid var(--obsidian-edge-strong) !important;
   color: var(--obsidian-text) !important;
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
   box-shadow:
     0 24px 60px -20px rgba(0, 0, 0, 0.85),
     0 0 0 1px rgba(255, 255, 255, 0.04) inset !important;
+}
+
+/* Items inside dropdown / select / menu — readable on dark */
+[role="menuitem"],
+[role="option"],
+[role="menuitemcheckbox"],
+[role="menuitemradio"],
+[data-radix-collection-item],
+[data-radix-select-item],
+[data-radix-dropdown-menu-item] {
+  color: var(--obsidian-text) !important;
+}
+
+/* Hover / highlighted state */
+[role="menuitem"]:hover,
+[role="option"]:hover,
+[role="menuitem"][data-highlighted],
+[role="option"][data-highlighted],
+[data-radix-collection-item][data-highlighted],
+[data-radix-select-item][data-highlighted],
+[data-radix-dropdown-menu-item][data-highlighted] {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+
+/* Selected / checked state */
+[role="option"][data-state="checked"],
+[data-radix-select-item][data-state="checked"] {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #ffffff !important;
+}
+
+/* Native <select> + its <option> — browsers render these from OS */
+select {
+  color: var(--obsidian-text) !important;
+  background-color: rgba(10, 13, 20, 0.85) !important;
+}
+select option,
+select optgroup {
+  background-color: #0a0d14 !important;
+  color: var(--obsidian-text) !important;
+}
+
+/* Select trigger value + placeholder */
+[data-radix-select-trigger],
+[data-radix-select-value] {
+  color: var(--obsidian-text) !important;
+}
+[data-placeholder] {
+  color: rgba(245, 247, 251, 0.45) !important;
+}
+
+/* Separators inside menus */
+[role="separator"],
+[data-radix-dropdown-menu-separator],
+[data-radix-menu-separator] {
+  background: var(--obsidian-edge) !important;
+}
+
+/* Menu labels (section headings inside dropdowns) */
+[data-radix-dropdown-menu-label],
+[data-radix-menu-label] {
+  color: var(--obsidian-text-dim) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
 }
 
 /* Sidebar surface */
