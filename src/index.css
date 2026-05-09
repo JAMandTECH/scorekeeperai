@@ -479,3 +479,252 @@ aside, nav[class*="sidebar"], [class*="Sidebar"] {
 /* Links */
 a { color: #e6e9f0; }
 a:hover { color: #ffffff; }
+
+/* ============================================================
+   LIGHT MODE OVERRIDES
+   Active when <html> does NOT carry the `.dark` class.
+   Keeps the same premium structure but with airy white glass
+   and dark, readable text.
+   ============================================================ */
+
+html:not(.dark) {
+  color-scheme: light;
+  --obsidian-text: #0b1020;
+  --obsidian-text-dim: rgba(11, 16, 32, 0.65);
+  --obsidian-edge: rgba(11, 16, 32, 0.10);
+  --obsidian-edge-strong: rgba(11, 16, 32, 0.20);
+}
+
+html:not(.dark) body {
+  background:
+    radial-gradient(1200px 800px at 10% -10%, rgba(99, 102, 241, 0.10), transparent 60%),
+    radial-gradient(1000px 700px at 110% 10%, rgba(236, 72, 153, 0.08), transparent 60%),
+    linear-gradient(180deg, #f6f8fc 0%, #eef1f7 50%, #f6f8fc 100%) !important;
+  color: #0b1020 !important;
+}
+
+html:not(.dark) body::before {
+  background-image:
+    linear-gradient(rgba(11, 16, 32, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 16, 32, 0.04) 1px, transparent 1px);
+}
+
+html:not(.dark) h1,
+html:not(.dark) h2,
+html:not(.dark) h3,
+html:not(.dark) h4,
+html:not(.dark) h5,
+html:not(.dark) h6 {
+  color: #0b1020 !important;
+}
+
+/* Light glass surfaces */
+html:not(.dark) [class*="bg-white"],
+html:not(.dark) [class*="bg-gray-50"],
+html:not(.dark) [class*="bg-gray-100"],
+html:not(.dark) [class*="bg-slate-50"],
+html:not(.dark) [class*="bg-slate-100"],
+html:not(.dark) [class*="bg-zinc-50"],
+html:not(.dark) [class*="bg-zinc-100"],
+html:not(.dark) [class*="bg-neutral-50"],
+html:not(.dark) [class*="bg-neutral-100"] {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(248, 250, 253, 0.85)) !important;
+  border-color: rgba(11, 16, 32, 0.08) !important;
+  color: #0b1020 !important;
+}
+
+html:not(.dark) [class*="bg-gray-800"],
+html:not(.dark) [class*="bg-gray-900"],
+html:not(.dark) [class*="bg-slate-800"],
+html:not(.dark) [class*="bg-slate-900"],
+html:not(.dark) [class*="bg-zinc-800"],
+html:not(.dark) [class*="bg-zinc-900"],
+html:not(.dark) [class*="bg-neutral-800"],
+html:not(.dark) [class*="bg-neutral-900"],
+html:not(.dark) [class*="bg-black"] {
+  background: linear-gradient(180deg, #11151f, #0a0d14) !important;
+  color: #f5f7fb !important;
+}
+
+/* Cards: subtle light shadow */
+html:not(.dark) .card,
+html:not(.dark) [class*="rounded-xl"][class*="border"],
+html:not(.dark) [class*="rounded-2xl"][class*="border"],
+html:not(.dark) [class*="rounded-lg"][class*="shadow"] {
+  border: 1px solid rgba(11, 16, 32, 0.08) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 10px 30px -16px rgba(11, 16, 32, 0.18),
+    0 4px 14px -10px rgba(11, 16, 32, 0.12) !important;
+}
+
+/* Text colors in light mode */
+html:not(.dark) [class*="text-gray-900"],
+html:not(.dark) [class*="text-gray-800"],
+html:not(.dark) [class*="text-slate-900"],
+html:not(.dark) [class*="text-slate-800"],
+html:not(.dark) [class*="text-zinc-900"],
+html:not(.dark) [class*="text-neutral-900"],
+html:not(.dark) [class*="text-black"] {
+  color: #0b1020 !important;
+}
+html:not(.dark) [class*="text-gray-600"],
+html:not(.dark) [class*="text-gray-500"],
+html:not(.dark) [class*="text-slate-600"],
+html:not(.dark) [class*="text-slate-500"],
+html:not(.dark) [class*="text-zinc-600"],
+html:not(.dark) [class*="text-neutral-600"] {
+  color: rgba(11, 16, 32, 0.65) !important;
+}
+html:not(.dark) [class*="text-white"] {
+  /* Keep white text only when it sits on dark backgrounds; otherwise it's invisible.
+     We can't perfectly detect that in CSS, so leave white text as-is. */
+}
+
+/* Inputs: white glass */
+html:not(.dark) input,
+html:not(.dark) textarea,
+html:not(.dark) select {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(11, 16, 32, 0.12) !important;
+  color: #0b1020 !important;
+}
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: rgba(11, 16, 32, 0.45) !important;
+}
+html:not(.dark) input:focus,
+html:not(.dark) textarea:focus,
+html:not(.dark) select:focus {
+  border-color: rgba(11, 16, 32, 0.3) !important;
+  box-shadow: 0 0 0 3px rgba(11, 16, 32, 0.06) !important;
+}
+
+/* Native select dropdown options */
+html:not(.dark) select option,
+html:not(.dark) select optgroup {
+  background-color: #ffffff !important;
+  color: #0b1020 !important;
+}
+html:not(.dark) select option:checked,
+html:not(.dark) select option:hover {
+  background: #eef1f7 !important;
+  color: #0b1020 !important;
+}
+
+/* Primary buttons in light mode — premium dark metal on light bg */
+html:not(.dark) button[class*="bg-blue"],
+html:not(.dark) button[class*="bg-indigo"],
+html:not(.dark) button[class*="bg-purple"],
+html:not(.dark) button[class*="bg-violet"],
+html:not(.dark) button[class*="bg-primary"],
+html:not(.dark) button[class*="from-blue"],
+html:not(.dark) button[class*="from-indigo"],
+html:not(.dark) button[class*="from-purple"],
+html:not(.dark) button[class*="from-violet"] {
+  background: linear-gradient(180deg, #1f2532 0%, #0e1219 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(11, 16, 32, 0.5) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.15) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.4) inset,
+    0 6px 14px -6px rgba(11, 16, 32, 0.35) !important;
+}
+
+html:not(.dark) button[class*="variant-outline"],
+html:not(.dark) button[class*="border"][class*="bg-transparent"] {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(11, 16, 32, 0.2) !important;
+  color: #0b1020 !important;
+}
+
+/* Tables */
+html:not(.dark) table { color: #0b1020 !important; }
+html:not(.dark) thead, html:not(.dark) th {
+  color: rgba(11, 16, 32, 0.6) !important;
+  border-color: rgba(11, 16, 32, 0.08) !important;
+}
+html:not(.dark) tr,
+html:not(.dark) td { border-color: rgba(11, 16, 32, 0.08) !important; }
+html:not(.dark) tbody tr:hover { background: rgba(11, 16, 32, 0.03) !important; }
+
+/* Dialog / popover / dropdown / select surfaces */
+html:not(.dark) [role="dialog"],
+html:not(.dark) [role="menu"],
+html:not(.dark) [role="listbox"],
+html:not(.dark) [data-radix-popper-content-wrapper] > *,
+html:not(.dark) [data-radix-select-content],
+html:not(.dark) [data-radix-dropdown-menu-content],
+html:not(.dark) [data-radix-popover-content],
+html:not(.dark) [data-radix-menu-content] {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 248, 252, 0.98)) !important;
+  border: 1px solid rgba(11, 16, 32, 0.12) !important;
+  color: #0b1020 !important;
+  box-shadow:
+    0 24px 60px -20px rgba(11, 16, 32, 0.25),
+    0 0 0 1px rgba(11, 16, 32, 0.04) inset !important;
+}
+
+html:not(.dark) [role="menuitem"],
+html:not(.dark) [role="option"],
+html:not(.dark) [role="menuitemcheckbox"],
+html:not(.dark) [role="menuitemradio"],
+html:not(.dark) [data-radix-collection-item],
+html:not(.dark) [data-radix-select-item],
+html:not(.dark) [data-radix-dropdown-menu-item] {
+  color: #0b1020 !important;
+}
+
+html:not(.dark) [role="menuitem"]:hover,
+html:not(.dark) [role="option"]:hover,
+html:not(.dark) [role="menuitem"][data-highlighted],
+html:not(.dark) [role="option"][data-highlighted],
+html:not(.dark) [data-radix-collection-item][data-highlighted],
+html:not(.dark) [data-radix-select-item][data-highlighted],
+html:not(.dark) [data-radix-dropdown-menu-item][data-highlighted] {
+  background: rgba(11, 16, 32, 0.06) !important;
+  color: #0b1020 !important;
+}
+
+html:not(.dark) [role="option"][data-state="checked"],
+html:not(.dark) [data-radix-select-item][data-state="checked"] {
+  background: rgba(11, 16, 32, 0.08) !important;
+  color: #0b1020 !important;
+}
+
+html:not(.dark) [data-placeholder] {
+  color: rgba(11, 16, 32, 0.45) !important;
+}
+
+html:not(.dark) [role="separator"],
+html:not(.dark) [data-radix-dropdown-menu-separator],
+html:not(.dark) [data-radix-menu-separator] {
+  background: rgba(11, 16, 32, 0.1) !important;
+}
+
+html:not(.dark) [data-radix-dropdown-menu-label],
+html:not(.dark) [data-radix-menu-label] {
+  color: rgba(11, 16, 32, 0.55) !important;
+}
+
+/* Sidebar in light mode */
+html:not(.dark) aside,
+html:not(.dark) nav[class*="sidebar"],
+html:not(.dark) [class*="Sidebar"] {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(246, 248, 252, 0.92)) !important;
+  border-color: rgba(11, 16, 32, 0.08) !important;
+}
+
+/* Scrollbar */
+html:not(.dark) ::-webkit-scrollbar-track { background: #eef1f7; }
+html:not(.dark) ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #c5cad6, #a9afbe);
+  border: 1px solid rgba(11, 16, 32, 0.08);
+}
+
+/* Selection */
+html:not(.dark) ::selection { background: rgba(11, 16, 32, 0.15); color: #0b1020; }
+
+/* Links */
+html:not(.dark) a { color: #1f2937; }
+html:not(.dark) a:hover { color: #000000; }
