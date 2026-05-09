@@ -156,3 +156,251 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
+
+/* ============================================================
+   OBSIDIAN PREMIUM THEME — global, non-structural overlay
+   Applied app-wide via CSS only. No component logic changes.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --obsidian-0: #05070b;
+  --obsidian-1: #0a0d14;
+  --obsidian-2: #10141d;
+  --obsidian-3: #161b27;
+  --obsidian-edge: rgba(255, 255, 255, 0.08);
+  --obsidian-edge-strong: rgba(255, 255, 255, 0.16);
+  --obsidian-text: #f5f7fb;
+  --obsidian-text-dim: rgba(245, 247, 251, 0.62);
+  --obsidian-accent: #c8cdd6;
+}
+
+html, body {
+  background:
+    radial-gradient(1200px 800px at 10% -10%, rgba(80, 100, 140, 0.18), transparent 60%),
+    radial-gradient(1000px 700px at 110% 10%, rgba(120, 80, 160, 0.12), transparent 60%),
+    linear-gradient(180deg, #05070b 0%, #0a0d14 50%, #05070b 100%) !important;
+  color: var(--obsidian-text) !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle grain + grid for premium depth */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+}
+
+/* Uppercase, bold, tight titles */
+h1, h2, h3, h4 {
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  font-weight: 800 !important;
+  color: var(--obsidian-text) !important;
+}
+h1 { letter-spacing: 0.06em !important; font-weight: 900 !important; }
+h5, h6 {
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  font-weight: 700 !important;
+}
+
+/* Glass panel treatment for cards & common surfaces */
+[class*="bg-white"],
+[class*="bg-gray-50"],
+[class*="bg-gray-100"],
+[class*="bg-slate-50"],
+[class*="bg-slate-100"],
+[class*="bg-zinc-50"],
+[class*="bg-zinc-100"],
+[class*="bg-neutral-50"],
+[class*="bg-neutral-100"] {
+  background: linear-gradient(180deg, rgba(22, 27, 39, 0.72), rgba(10, 13, 20, 0.72)) !important;
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border-color: var(--obsidian-edge) !important;
+  color: var(--obsidian-text) !important;
+}
+
+[class*="bg-gray-800"],
+[class*="bg-gray-900"],
+[class*="bg-slate-800"],
+[class*="bg-slate-900"],
+[class*="bg-zinc-800"],
+[class*="bg-zinc-900"],
+[class*="bg-neutral-800"],
+[class*="bg-neutral-900"],
+[class*="bg-black"] {
+  background: linear-gradient(180deg, rgba(16, 20, 29, 0.92), rgba(5, 7, 11, 0.92)) !important;
+  border-color: var(--obsidian-edge) !important;
+}
+
+/* Cards: rounded glass with inner highlight */
+.card,
+[class*="rounded-xl"][class*="border"],
+[class*="rounded-2xl"][class*="border"],
+[class*="rounded-lg"][class*="shadow"] {
+  border: 1px solid var(--obsidian-edge) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+    0 20px 40px -20px rgba(0, 0, 0, 0.7),
+    0 8px 24px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Force readable text colors over dark surfaces */
+[class*="text-gray-900"],
+[class*="text-gray-800"],
+[class*="text-slate-900"],
+[class*="text-slate-800"],
+[class*="text-zinc-900"],
+[class*="text-neutral-900"],
+[class*="text-black"] {
+  color: var(--obsidian-text) !important;
+}
+[class*="text-gray-600"],
+[class*="text-gray-500"],
+[class*="text-slate-600"],
+[class*="text-slate-500"],
+[class*="text-zinc-600"],
+[class*="text-neutral-600"] {
+  color: var(--obsidian-text-dim) !important;
+}
+
+/* Inputs: glass with high contrast text */
+input, textarea, select {
+  background: rgba(10, 13, 20, 0.6) !important;
+  border: 1px solid var(--obsidian-edge) !important;
+  color: var(--obsidian-text) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+input::placeholder, textarea::placeholder {
+  color: rgba(245, 247, 251, 0.35) !important;
+  letter-spacing: 0.02em;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--obsidian-edge-strong) !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Premium 3D buttons — heavy, high-contrast, wide tracking */
+button,
+.btn,
+[role="button"],
+a[class*="bg-"][class*="rounded"],
+button[class*="rounded"] {
+  text-transform: uppercase;
+  letter-spacing: 0.14em !important;
+  font-weight: 700 !important;
+  transition: transform 180ms cubic-bezier(.2,.8,.2,1), box-shadow 180ms cubic-bezier(.2,.8,.2,1), filter 180ms ease;
+}
+
+button:not(:disabled):hover,
+[role="button"]:not(:disabled):hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+button:not(:disabled):active,
+[role="button"]:not(:disabled):active {
+  transform: translateY(1px) scale(0.99);
+  filter: brightness(0.95);
+}
+
+/* Primary / strong-coloured buttons get the obsidian metal treatment */
+button[class*="bg-blue"],
+button[class*="bg-indigo"],
+button[class*="bg-purple"],
+button[class*="bg-violet"],
+button[class*="bg-primary"],
+button[class*="from-blue"],
+button[class*="from-indigo"],
+button[class*="from-purple"],
+button[class*="from-violet"] {
+  background: linear-gradient(180deg, #1f2532 0%, #0e1219 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.6) inset,
+    0 8px 16px -6px rgba(0, 0, 0, 0.7),
+    0 2px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Outline / ghost buttons */
+button[class*="variant-outline"],
+button[class*="border"][class*="bg-transparent"] {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid var(--obsidian-edge-strong) !important;
+  color: var(--obsidian-text) !important;
+}
+
+/* Tables */
+table { color: var(--obsidian-text) !important; }
+thead, th {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--obsidian-text-dim) !important;
+  border-color: var(--obsidian-edge) !important;
+}
+tr, td { border-color: var(--obsidian-edge) !important; }
+tbody tr:hover { background: rgba(255, 255, 255, 0.03) !important; }
+
+/* Dialog / popover surfaces */
+[role="dialog"], [role="menu"], [data-radix-popper-content-wrapper] > * {
+  background: linear-gradient(180deg, rgba(22, 27, 39, 0.96), rgba(10, 13, 20, 0.96)) !important;
+  border: 1px solid var(--obsidian-edge) !important;
+  color: var(--obsidian-text) !important;
+  box-shadow:
+    0 24px 60px -20px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset !important;
+}
+
+/* Sidebar surface */
+aside, nav[class*="sidebar"], [class*="Sidebar"] {
+  background: linear-gradient(180deg, rgba(8, 11, 17, 0.92), rgba(5, 7, 11, 0.92)) !important;
+  border-color: var(--obsidian-edge) !important;
+}
+
+/* Badges keep their hue but get tighter typography */
+.badge, [class*="badge"] {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+/* 3D feel for icon buttons and avatars */
+.avatar, [class*="rounded-full"][class*="bg-"] {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.5) inset,
+    0 6px 14px -6px rgba(0, 0, 0, 0.7);
+}
+
+/* Scrollbar — obsidian */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #05070b; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #1a2030, #0c1018);
+  border: 1px solid var(--obsidian-edge);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #232a3c, #11161f); }
+
+/* Selection */
+::selection { background: rgba(255, 255, 255, 0.18); color: #fff; }
+
+/* Links */
+a { color: #e6e9f0; }
+a:hover { color: #ffffff; }
