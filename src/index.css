@@ -539,6 +539,9 @@ html:not(.dark) [class*="bg-neutral-100"] {
   color: #0b1020 !important;
 }
 
+/* In LIGHT mode, dark surface utilities (bg-slate-800/900, bg-black, etc.)
+   should turn into LIGHT surfaces. The previous rule forced them dark
+   which made labels unreadable. */
 html:not(.dark) [class*="bg-gray-800"],
 html:not(.dark) [class*="bg-gray-900"],
 html:not(.dark) [class*="bg-slate-800"],
@@ -548,8 +551,39 @@ html:not(.dark) [class*="bg-zinc-900"],
 html:not(.dark) [class*="bg-neutral-800"],
 html:not(.dark) [class*="bg-neutral-900"],
 html:not(.dark) [class*="bg-black"] {
-  background: linear-gradient(180deg, #11151f, #0a0d14) !important;
-  color: #f5f7fb !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f6f8fc 100%) !important;
+  color: #0b1020 !important;
+  border-color: rgba(11, 16, 32, 0.08) !important;
+}
+
+/* Direct children text inside those re-lit surfaces should also be dark */
+html:not(.dark) [class*="bg-gray-800"] [class*="text-white"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-white"],
+html:not(.dark) [class*="bg-slate-800"] [class*="text-white"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-white"],
+html:not(.dark) [class*="bg-zinc-800"] [class*="text-white"],
+html:not(.dark) [class*="bg-zinc-900"] [class*="text-white"],
+html:not(.dark) [class*="bg-neutral-800"] [class*="text-white"],
+html:not(.dark) [class*="bg-neutral-900"] [class*="text-white"],
+html:not(.dark) [class*="bg-black"] [class*="text-white"] {
+  color: #0b1020 !important;
+}
+
+/* Floating "Need help?" / chat / FAB style buttons that use bg-black or
+   dark gradients on a circular shape — keep them visible but soft */
+html:not(.dark) [class*="rounded-full"][class*="bg-black"],
+html:not(.dark) [class*="rounded-full"][class*="bg-slate-9"],
+html:not(.dark) [class*="rounded-full"][class*="bg-gray-9"],
+html:not(.dark) [class*="rounded-full"][class*="bg-zinc-9"],
+html:not(.dark) [class*="rounded-full"][class*="bg-neutral-9"] {
+  background: linear-gradient(180deg, #1f2532, #0e1219) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(11, 16, 32, 0.5) !important;
+}
+html:not(.dark) [class*="rounded-full"][class*="bg-black"] svg,
+html:not(.dark) [class*="rounded-full"][class*="bg-slate-9"] svg,
+html:not(.dark) [class*="rounded-full"][class*="bg-gray-9"] svg {
+  color: #ffffff !important;
 }
 
 /* Cards: subtle light shadow */
