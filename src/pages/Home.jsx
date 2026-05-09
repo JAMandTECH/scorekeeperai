@@ -121,7 +121,32 @@ export default function Home() {
     queryFn: () => orgId ? base44.entities.Team.filter({ organization_id: orgId }) : base44.entities.Team.list(),
     enabled: isAuthenticated === true,
   });
-  const { data: allPlayers = [] } = useQuery({ queryKey: ['all-players-home'], queryFn: () => base44.entities.Player.list(), enabled: isAuthenticated === true });
+  const { data: allPlayers = [] } = useQuery({
+    queryKey: ['all-players-home', orgId, allTeams.length],
+    queryFn: async () => {
+      // Player.list() is paginated — fetch by team_ids of this org so we don't miss any.
+      const teamIds = (allTeams || []).map((t) => t.id).filter(Boolean);
+      if (teamIds.length === 0) return [];
+      // Chunk team_ids to keep $in filter sizes safe.
+      const chunkSize = 50;
+      const out = [];
+      for (let i = 0; i < teamIds.length; i += chunkSize) {
+        const chunk = teamIds.slice(i, i + chunkSize);
+        try {
+          const part = await base44.entities.Player.filter({ team_id: { $in: chunk } }, '-created_date', 500);
+          out.push(...part);
+        } catch (_) {
+          const per = await Promise.all(
+            chunk.map((id) => base44.entities.Player.filter({ team_id: id }, '-created_date', 500).catch(() => []))
+          );
+          out.push(...per.flat());
+        }
+      }
+      return out;
+    },
+    enabled: isAuthenticated === true && allTeams.length > 0,
+    staleTime: 60000,
+  });
   const { data: allGames = [] } = useQuery({
     queryKey: ['all-games-home', orgId],
     queryFn: () => orgId ? base44.entities.Game.filter({ organization_id: orgId }) : base44.entities.Game.list('-game_date'),
