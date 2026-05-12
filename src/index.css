@@ -1078,6 +1078,87 @@ html:not(.dark) [class*="bg-black"] [class*="text-white"]:not(button):not([class
   color: #0b1020 !important;
 }
 
+/* 2a) Faint BLUE text (text-blue-100/200/300/400, text-cyan-100/200/300) was
+   designed for dark hero/footer backgrounds. When we re-lit those backgrounds
+   to white in light mode, these become invisible. Force them to readable dark. */
+html:not(.dark) [class*="from-gray-9"] [class*="text-blue-1"],
+html:not(.dark) [class*="from-gray-9"] [class*="text-blue-2"],
+html:not(.dark) [class*="from-gray-9"] [class*="text-blue-3"],
+html:not(.dark) [class*="from-gray-9"] [class*="text-blue-4"],
+html:not(.dark) [class*="from-gray-9"] [class*="text-cyan-1"],
+html:not(.dark) [class*="from-gray-9"] [class*="text-cyan-2"],
+html:not(.dark) [class*="from-gray-9"] [class*="text-cyan-3"],
+html:not(.dark) [class*="from-blue-9"] [class*="text-blue-1"],
+html:not(.dark) [class*="from-blue-9"] [class*="text-blue-2"],
+html:not(.dark) [class*="from-blue-9"] [class*="text-blue-3"],
+html:not(.dark) [class*="from-blue-9"] [class*="text-blue-4"],
+html:not(.dark) [class*="from-blue-9"] [class*="text-cyan-1"],
+html:not(.dark) [class*="from-blue-9"] [class*="text-cyan-2"],
+html:not(.dark) [class*="from-blue-9"] [class*="text-cyan-3"],
+html:not(.dark) [class*="from-indigo-9"] [class*="text-blue-1"],
+html:not(.dark) [class*="from-indigo-9"] [class*="text-blue-2"],
+html:not(.dark) [class*="from-indigo-9"] [class*="text-blue-3"],
+html:not(.dark) [class*="from-indigo-9"] [class*="text-blue-4"],
+html:not(.dark) [class*="from-indigo-9"] [class*="text-cyan-1"],
+html:not(.dark) [class*="from-indigo-9"] [class*="text-cyan-2"],
+html:not(.dark) [class*="from-indigo-9"] [class*="text-cyan-3"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-blue-1"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-blue-2"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-blue-3"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-blue-4"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-cyan-1"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-cyan-2"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-cyan-3"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-blue-1"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-blue-2"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-blue-3"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-blue-4"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-cyan-1"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-cyan-2"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-cyan-3"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-blue-1"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-blue-2"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-blue-3"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-blue-4"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-cyan-1"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-cyan-2"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-cyan-3"],
+html:not(.dark) [class*="bg-black"] [class*="text-blue-1"],
+html:not(.dark) [class*="bg-black"] [class*="text-blue-2"],
+html:not(.dark) [class*="bg-black"] [class*="text-blue-3"],
+html:not(.dark) [class*="bg-black"] [class*="text-blue-4"],
+html:not(.dark) [class*="bg-black"] [class*="text-cyan-1"],
+html:not(.dark) [class*="bg-black"] [class*="text-cyan-2"],
+html:not(.dark) [class*="bg-black"] [class*="text-cyan-3"],
+html:not(.dark) footer [class*="text-blue-1"],
+html:not(.dark) footer [class*="text-blue-2"],
+html:not(.dark) footer [class*="text-blue-3"],
+html:not(.dark) footer [class*="text-blue-4"],
+html:not(.dark) footer [class*="text-cyan-1"],
+html:not(.dark) footer [class*="text-cyan-2"],
+html:not(.dark) footer [class*="text-cyan-3"],
+html:not(.dark) footer [class*="text-blue-5"],
+html:not(.dark) [class*="from-gray-9"] [class*="text-blue-5"],
+html:not(.dark) [class*="from-blue-9"] [class*="text-blue-5"],
+html:not(.dark) [class*="from-indigo-9"] [class*="text-blue-5"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-blue-5"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-blue-5"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-blue-5"],
+html:not(.dark) [class*="bg-black"] [class*="text-blue-5"] {
+  color: rgba(11, 16, 32, 0.65) !important;
+}
+
+/* 2b) Heading-weight faint text (text-blue-100, text-cyan-100) on re-lit hero
+   sections — keep slightly stronger contrast since they're often subtitles. */
+html:not(.dark) [class*="from-gray-9"] [class*="text-blue-100"],
+html:not(.dark) [class*="from-blue-9"] [class*="text-blue-100"],
+html:not(.dark) [class*="from-indigo-9"] [class*="text-blue-100"],
+html:not(.dark) [class*="from-slate-9"] [class*="text-blue-100"],
+html:not(.dark) [class*="bg-slate-900"] [class*="text-blue-100"],
+html:not(.dark) [class*="bg-gray-900"] [class*="text-blue-100"] {
+  color: rgba(11, 16, 32, 0.85) !important;
+}
+
 /* 2) Faint slate/gray text on dark backgrounds that we re-lit
    (text-slate-200/300/400, text-gray-200/300/400) — convert to readable mid-grey */
 html:not(.dark) [class*="from-slate-9"] [class*="text-slate-2"],
@@ -1268,6 +1349,22 @@ html:not(.dark) [class*="bg-black"] [class*="text-purple-"] {
   /* Restore the tailwind colour by removing the override set in (1)/(2).
      We use revert-layer so the original utility wins. */
   color: revert-layer !important;
+}
+
+/* 13b) Gradient text utilities — the cyan→purple primary gradient is too pale
+   on a white background. Darken the start of the gradient in light mode for
+   readable contrast while preserving the brand feel. */
+html:not(.dark) .text-gradient-primary {
+  background: linear-gradient(135deg, #0284c7, #7c3aed) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+html:not(.dark) .neon-text-blue {
+  text-shadow: none !important;
+}
+html:not(.dark) .neon-text-purple {
+  text-shadow: none !important;
 }
 
 /* 14) SVG icons inside re-lit dark panels — convert white icons to dark */
