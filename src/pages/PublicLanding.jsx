@@ -254,9 +254,9 @@ export default function PublicLanding() {
               </>
             ) : (
               <>
-                <Link to="/dashboard">
+                <Link to={user?.role === 'admin' ? '/dashboard' : '/'}>
                   <Button className="btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white text-lg px-14 py-8 font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-2xl neon-glow-orange">
-                    Go to Dashboard
+                    {user?.role === 'admin' ? 'Go to Dashboard' : 'Go to Home'}
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 </Link>
@@ -1028,9 +1028,9 @@ export default function PublicLanding() {
                 </Link>
               </>
             ) : (
-              <Link to="/dashboard">
+              <Link to={user?.role === 'admin' ? '/dashboard' : '/'}>
                 <Button className="btn-futuristic bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 hover:from-cyan-500 hover:via-blue-600 hover:to-purple-600 text-white text-xl px-14 py-8 font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-2xl neon-glow-blue">
-                  Go to Your Dashboard
+                  {user?.role === 'admin' ? 'Go to Your Dashboard' : 'Go to Home'}
                   <ArrowRight className="w-6 h-6 ml-2" />
                 </Button>
               </Link>
