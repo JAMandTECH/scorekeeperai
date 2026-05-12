@@ -124,8 +124,15 @@ export default function AdminSidebar({
     // Super admin uses flat structure
     navStructure = { main: superAdminNav, groups: [] };
     useFlatStructure = true;
-  } else if (isAdmin || role) {
+  } else if (isAdmin) {
     navStructure = adminNav;
+  } else if (role) {
+    // Custom-role user: same grouped structure as admin, but strip the
+    // Dashboard link (Dashboard is admin-only and will bounce them back).
+    navStructure = {
+      ...adminNav,
+      main: adminNav.main.filter((item) => item.title !== "Dashboard"),
+    };
   } else {
     navStructure = userNav;
   }
