@@ -556,16 +556,20 @@ html:not(.dark) [class*="bg-black"] {
   border-color: rgba(11, 16, 32, 0.08) !important;
 }
 
-/* Direct children text inside those re-lit surfaces should also be dark */
-html:not(.dark) [class*="bg-gray-800"] [class*="text-white"],
-html:not(.dark) [class*="bg-gray-900"] [class*="text-white"],
-html:not(.dark) [class*="bg-slate-800"] [class*="text-white"],
-html:not(.dark) [class*="bg-slate-900"] [class*="text-white"],
-html:not(.dark) [class*="bg-zinc-800"] [class*="text-white"],
-html:not(.dark) [class*="bg-zinc-900"] [class*="text-white"],
-html:not(.dark) [class*="bg-neutral-800"] [class*="text-white"],
-html:not(.dark) [class*="bg-neutral-900"] [class*="text-white"],
-html:not(.dark) [class*="bg-black"] [class*="text-white"] {
+/* Direct children text inside those re-lit surfaces should also be dark.
+   BUT — exclude buttons and elements that themselves have text-white
+   intentionally (e.g. LOGOUT with inline-style dark gradient). Also
+   exclude ancestor classes that are dark:-prefixed Tailwind utilities
+   (which only apply in dark mode but still match our [class*=] substring). */
+html:not(.dark) [class*="bg-gray-800"]:not([class*="dark:bg-gray-800"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="bg-gray-900"]:not([class*="dark:bg-gray-900"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="bg-slate-800"]:not([class*="dark:bg-slate-800"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="bg-slate-900"]:not([class*="dark:bg-slate-900"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="bg-zinc-800"]:not([class*="dark:bg-zinc-800"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="bg-zinc-900"]:not([class*="dark:bg-zinc-900"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="bg-neutral-800"]:not([class*="dark:bg-neutral-800"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="bg-neutral-900"]:not([class*="dark:bg-neutral-900"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="bg-black"]:not([class*="dark:bg-black"]) [class*="text-white"]:not(button):not(a):not([role="button"]) {
   color: #0b1020 !important;
 }
 
@@ -822,15 +826,15 @@ html:not(.dark) [class*="bg-gray-800"] *,
 html:not(.dark) [class*="bg-black"] * {
   /* Convert "white-on-dark" text back to dark for readability */
 }
-html:not(.dark) [class*="from-slate-9"] [class*="text-white"],
-html:not(.dark) [class*="from-slate-8"] [class*="text-white"],
-html:not(.dark) [class*="from-gray-9"] [class*="text-white"],
-html:not(.dark) [class*="from-black"] [class*="text-white"],
-html:not(.dark) [class*="to-black"] [class*="text-white"],
-html:not(.dark) [class*="bg-slate-900"] [class*="text-white"],
-html:not(.dark) [class*="bg-slate-800"] [class*="text-white"],
-html:not(.dark) [class*="bg-gray-900"] [class*="text-white"],
-html:not(.dark) [class*="bg-black"] [class*="text-white"] {
+html:not(.dark) [class*="from-slate-9"]:not([class*="dark:from-slate-9"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="from-slate-8"]:not([class*="dark:from-slate-8"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="from-gray-9"]:not([class*="dark:from-gray-9"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="from-black"]:not([class*="dark:from-black"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="to-black"]:not([class*="dark:to-black"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="bg-slate-900"]:not([class*="dark:bg-slate-900"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="bg-slate-800"]:not([class*="dark:bg-slate-800"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="bg-gray-900"]:not([class*="dark:bg-gray-900"]) [class*="text-white"]:not(button):not(a):not([role="button"]),
+html:not(.dark) [class*="bg-black"]:not([class*="dark:bg-black"]) [class*="text-white"]:not(button):not(a):not([role="button"]) {
   color: #0b1020 !important;
 }
 html:not(.dark) [class*="from-slate-9"] [class*="text-slate-3"],
@@ -916,8 +920,10 @@ html:not(.dark) [role="tab"][data-state="active"] {
    patterns and let real coloured buttons keep their colour. */
 
 /* Catch-all: any button NOT explicitly given a color utility
-   should be light + dark-text (was being forced black). */
-html:not(.dark) button {
+   should be light + dark-text (was being forced black).
+   IMPORTANT: exclude buttons that have a text-white class — those
+   are intentionally light-on-dark and we must not override them. */
+html:not(.dark) button:not([class*="text-white"]) {
   color: #0b1020;
 }
 
@@ -1575,4 +1581,26 @@ html:not(.dark) a[class*="bg-slate-900"]:hover,
 html:not(.dark) a[class*="bg-black"]:hover {
   background: linear-gradient(180deg, #2a3142 0%, #161b28 100%) !important;
   filter: brightness(1.1) !important;
+}
+
+/* ============================================================
+   ABSOLUTE FINAL OVERRIDE — TEXT-WHITE WINS ON BUTTONS
+   Any button or link or [role=button] that has the text-white
+   utility class is intentionally light-on-dark. NOTHING above
+   should be allowed to override it to dark. This must be the
+   last rule in the file.
+   ============================================================ */
+html:not(.dark) button[class*="text-white"],
+html:not(.dark) button[class*="text-white"] *,
+html:not(.dark) a[class*="text-white"],
+html:not(.dark) a[class*="text-white"] *,
+html:not(.dark) [role="button"][class*="text-white"],
+html:not(.dark) [role="button"][class*="text-white"] * {
+  color: #ffffff !important;
+}
+html:not(.dark) button[class*="text-white"] svg,
+html:not(.dark) a[class*="text-white"] svg,
+html:not(.dark) [role="button"][class*="text-white"] svg {
+  color: #ffffff !important;
+  stroke: currentColor !important;
 }
