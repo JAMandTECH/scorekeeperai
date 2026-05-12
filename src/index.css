@@ -1447,3 +1447,132 @@ html:not(.dark) header svg[class*="text-white"],
 html:not(.dark) aside svg[class*="text-white"] {
   color: #0b1020 !important;
 }
+
+/* ============================================================
+   FINAL OVERRIDE — DARK ACTION BUTTONS IN LIGHT MODE
+   These rules MUST come last to defeat every earlier rule that
+   tries to "re-light" text inside dark-bg buttons. Buttons styled
+   with dark slate/gray/black backgrounds are deliberate primary
+   actions — they stay dark, and their text MUST stay white.
+   ============================================================ */
+
+/* Force background back to dark metal for buttons/links that
+   were authored with bg-slate-800/900, bg-gray-800/900, bg-black,
+   or gradient-to-* from-/to- those colours. */
+html:not(.dark) button[class*="bg-slate-900"],
+html:not(.dark) button[class*="bg-slate-800"],
+html:not(.dark) button[class*="bg-gray-900"],
+html:not(.dark) button[class*="bg-gray-800"],
+html:not(.dark) button[class*="bg-zinc-900"],
+html:not(.dark) button[class*="bg-zinc-800"],
+html:not(.dark) button[class*="bg-neutral-900"],
+html:not(.dark) button[class*="bg-neutral-800"],
+html:not(.dark) button[class*="bg-black"],
+html:not(.dark) button[class*="from-slate-9"],
+html:not(.dark) button[class*="from-slate-8"],
+html:not(.dark) button[class*="from-gray-9"],
+html:not(.dark) button[class*="from-gray-8"],
+html:not(.dark) button[class*="from-zinc-9"],
+html:not(.dark) button[class*="from-zinc-8"],
+html:not(.dark) button[class*="from-neutral-9"],
+html:not(.dark) button[class*="from-neutral-8"],
+html:not(.dark) button[class*="from-black"],
+html:not(.dark) button[class*="to-slate-9"],
+html:not(.dark) button[class*="to-gray-9"],
+html:not(.dark) button[class*="to-black"],
+html:not(.dark) a[class*="bg-slate-900"],
+html:not(.dark) a[class*="bg-gray-900"],
+html:not(.dark) a[class*="bg-black"],
+html:not(.dark) a[class*="from-slate-9"],
+html:not(.dark) a[class*="from-gray-9"],
+html:not(.dark) a[class*="from-black"],
+html:not(.dark) [role="button"][class*="bg-slate-900"],
+html:not(.dark) [role="button"][class*="bg-gray-900"],
+html:not(.dark) [role="button"][class*="bg-black"],
+html:not(.dark) [role="button"][class*="from-slate-9"],
+html:not(.dark) [role="button"][class*="from-gray-9"] {
+  background: linear-gradient(180deg, #1f2532 0%, #0e1219 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(11, 16, 32, 0.55) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.15) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.4) inset,
+    0 6px 14px -6px rgba(11, 16, 32, 0.35) !important;
+}
+
+/* HARD OVERRIDE: ALL descendants (spans, divs, svgs, text) inside
+   these dark buttons must be WHITE. Higher specificity by chaining
+   the html:not(.dark) prefix AND putting this at end-of-file so
+   it wins all source-order ties. */
+html:not(.dark) button[class*="bg-slate-900"] *,
+html:not(.dark) button[class*="bg-slate-800"] *,
+html:not(.dark) button[class*="bg-gray-900"] *,
+html:not(.dark) button[class*="bg-gray-800"] *,
+html:not(.dark) button[class*="bg-zinc-900"] *,
+html:not(.dark) button[class*="bg-zinc-800"] *,
+html:not(.dark) button[class*="bg-neutral-900"] *,
+html:not(.dark) button[class*="bg-neutral-800"] *,
+html:not(.dark) button[class*="bg-black"] *,
+html:not(.dark) button[class*="from-slate-9"] *,
+html:not(.dark) button[class*="from-slate-8"] *,
+html:not(.dark) button[class*="from-gray-9"] *,
+html:not(.dark) button[class*="from-gray-8"] *,
+html:not(.dark) button[class*="from-zinc-9"] *,
+html:not(.dark) button[class*="from-zinc-8"] *,
+html:not(.dark) button[class*="from-neutral-9"] *,
+html:not(.dark) button[class*="from-neutral-8"] *,
+html:not(.dark) button[class*="from-black"] *,
+html:not(.dark) button[class*="to-slate-9"] *,
+html:not(.dark) button[class*="to-gray-9"] *,
+html:not(.dark) button[class*="to-black"] *,
+html:not(.dark) a[class*="bg-slate-900"] *,
+html:not(.dark) a[class*="bg-gray-900"] *,
+html:not(.dark) a[class*="bg-black"] *,
+html:not(.dark) a[class*="from-slate-9"] *,
+html:not(.dark) a[class*="from-gray-9"] *,
+html:not(.dark) a[class*="from-black"] *,
+html:not(.dark) [role="button"][class*="bg-slate-900"] *,
+html:not(.dark) [role="button"][class*="bg-gray-900"] *,
+html:not(.dark) [role="button"][class*="bg-black"] *,
+html:not(.dark) [role="button"][class*="from-slate-9"] *,
+html:not(.dark) [role="button"][class*="from-gray-9"] * {
+  color: #ffffff !important;
+}
+
+/* SVG fills/strokes inside dark buttons should also be white */
+html:not(.dark) button[class*="bg-slate-900"] svg,
+html:not(.dark) button[class*="bg-slate-800"] svg,
+html:not(.dark) button[class*="bg-gray-900"] svg,
+html:not(.dark) button[class*="bg-gray-800"] svg,
+html:not(.dark) button[class*="bg-black"] svg,
+html:not(.dark) button[class*="from-slate-9"] svg,
+html:not(.dark) button[class*="from-slate-8"] svg,
+html:not(.dark) button[class*="from-gray-9"] svg,
+html:not(.dark) button[class*="from-gray-8"] svg,
+html:not(.dark) button[class*="from-black"] svg,
+html:not(.dark) button[class*="to-black"] svg,
+html:not(.dark) a[class*="bg-slate-900"] svg,
+html:not(.dark) a[class*="bg-gray-900"] svg,
+html:not(.dark) a[class*="bg-black"] svg,
+html:not(.dark) [role="button"][class*="bg-slate-900"] svg,
+html:not(.dark) [role="button"][class*="bg-black"] svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Hover state for dark action buttons */
+html:not(.dark) button[class*="bg-slate-900"]:hover,
+html:not(.dark) button[class*="bg-slate-800"]:hover,
+html:not(.dark) button[class*="bg-gray-900"]:hover,
+html:not(.dark) button[class*="bg-gray-800"]:hover,
+html:not(.dark) button[class*="bg-black"]:hover,
+html:not(.dark) button[class*="from-slate-9"]:hover,
+html:not(.dark) button[class*="from-slate-8"]:hover,
+html:not(.dark) button[class*="from-gray-9"]:hover,
+html:not(.dark) button[class*="from-gray-8"]:hover,
+html:not(.dark) button[class*="from-black"]:hover,
+html:not(.dark) a[class*="bg-slate-900"]:hover,
+html:not(.dark) a[class*="bg-black"]:hover {
+  background: linear-gradient(180deg, #2a3142 0%, #161b28 100%) !important;
+  filter: brightness(1.1) !important;
+}
