@@ -117,10 +117,13 @@ const [deletingGame, setDeletingGame] = useState(false);
   };
 
 
+  // Initial load — runs ONCE on mount. Previously this effect depended on
+  // game?.id, which caused loadGame() → setGame() → effect re-runs → loadGame()
+  // in an infinite loop, hammering the API and tripping rate limits.
   useEffect(() => {
     loadGame();
     loadUser();
-    
+
     // Load dark mode preference
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
     setDarkMode(savedDarkMode);
@@ -129,14 +132,15 @@ const [deletingGame, setDeletingGame] = useState(false);
     } else {
       document.documentElement.classList.remove('dark');
     }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Real-time subscription handles sync — fall back to a 30s safety poll
+  // Safety polling — separate effect that only restarts the interval when
+  // the game id changes (not when the same id is re-set during load).
+  useEffect(() => {
+    if (!game?.id) return;
     const intervalId = setInterval(() => {
-      if (game?.id) {
-        refreshGameState();
-      }
+      refreshGameState();
     }, 30000);
-
     return () => clearInterval(intervalId);
   }, [game?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
