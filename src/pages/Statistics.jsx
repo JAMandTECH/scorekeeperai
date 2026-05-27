@@ -142,35 +142,37 @@ export default function Statistics() {
     queryFn: async () => {
       if (gameIdsForStats.length === 0) return [];
 
-      let stats = [];
-      try {
-        // Primary: backend function (handles batching/backoff)
-        const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: gameIdsForStats });
-        stats = Array.isArray(res.data) ? res.data : [];
-      } catch (e) {
-        // Fallback to direct entity fetch if function fails (timeouts/limits)
-        console.warn('getGamePlayerStats failed, falling back to direct entity fetch:', e?.message || e);
-      }
+      // Split into smaller frontend chunks so each backend call stays under
+      // rate-limit / response-size limits. Without this, large divisions
+      // (e.g. Veterans with many games) can return partial data and the
+      // leaderboards appear empty.
+      const FRONTEND_CHUNK = 25;
+      const allStats = [];
+      for (let i = 0; i < gameIdsForStats.length; i += FRONTEND_CHUNK) {
+        const chunk = gameIdsForStats.slice(i, i + FRONTEND_CHUNK);
+        let chunkStats = [];
+        try {
+          const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: chunk });
+          chunkStats = Array.isArray(res.data) ? res.data : [];
+        } catch (e) {
+          console.warn('getGamePlayerStats chunk failed, falling back to direct fetch:', e?.message || e);
+        }
 
-      // Fallback: fetch directly from entity if function fails or returns empty (safety net)
-      if (!stats || stats.length === 0) {
-        const results = [];
-        for (let i = 0; i < gameIdsForStats.length; i += 50) {
-          const chunk = gameIdsForStats.slice(i, i + 50);
+        // Fallback: direct entity fetch for this chunk if function returned empty
+        if (!chunkStats || chunkStats.length === 0) {
           try {
-            const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
-            results.push(...part);
+            chunkStats = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
           } catch (_) {
             const per = await Promise.all(
               chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
             );
-            results.push(...per.flat());
+            chunkStats = per.flat();
           }
         }
-        stats = results;
+        allStats.push(...(chunkStats || []));
       }
 
-      return stats;
+      return allStats;
     },
     enabled: gameIdsForStats.length > 0,
     staleTime: 30000,
@@ -833,7 +835,13 @@ Please provide:
 
                     {/* Top Assists (Basketball) */}
                     {selectedSport !== 'volleyball' && (
-                      <TopAssistLeaders organizationId={orgId} sport={selectedSport === 'all' ? 'basketball' : selectedSport} orgName={organization?.name} orgLogoUrl={organization?.logo_url} />
+                      <TopAssistLeaders
+                        organizationId={orgId}
+                        sport={selectedSport === 'all' ? 'basketball' : selectedSport}
+                        division={selectedDivision === 'all' ? null : selectedDivision}
+                        orgName={organization?.name}
+                        orgLogoUrl={organization?.logo_url}
+                      />
                     )}
 
                     {/* Top Blocks */}
