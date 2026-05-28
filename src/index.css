@@ -111,25 +111,26 @@ button:focus-visible {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    /* PRO ARENA palette — high-end sports dashboard (ESPN / NBA app feel) */
+    --background: 222 47% 11%;          /* Rich deep navy */
+    --foreground: 210 40% 98%;          /* Off-white */
+    --card: 222 47% 15%;                /* Slightly lighter navy surface */
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 13%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;              /* Action blue */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 222 47% 18%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 222 47% 18%;
+    --muted-foreground: 215 25% 60%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 20% 20%;
+    --input: 217 20% 20%;
+    --ring: 217 91% 60%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -177,12 +178,49 @@ button:focus-visible {
 }
 
 html.dark, html.dark body {
+  /* Pro Arena navy gradient — replaces obsidian black */
   background:
-    radial-gradient(1200px 800px at 10% -10%, rgba(80, 100, 140, 0.18), transparent 60%),
-    radial-gradient(1000px 700px at 110% 10%, rgba(120, 80, 160, 0.12), transparent 60%),
-    linear-gradient(180deg, #05070b 0%, #0a0d14 50%, #05070b 100%) !important;
-  color: var(--obsidian-text) !important;
+    radial-gradient(1200px 800px at 10% -10%, rgba(59, 130, 246, 0.10), transparent 60%),
+    radial-gradient(1000px 700px at 110% 10%, rgba(99, 102, 241, 0.08), transparent 60%),
+    linear-gradient(180deg, hsl(222 47% 9%) 0%, hsl(222 47% 11%) 50%, hsl(222 47% 9%) 100%) !important;
+  color: hsl(210 40% 98%) !important;
 }
+
+/* === PRO ARENA REFINEMENTS — data-heavy UI readability === */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background: hsl(222 47% 13%) !important;
+  border: 1px solid hsl(217 20% 22%) !important;
+  color: hsl(210 40% 98%) !important;
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: hsl(215 25% 55%) !important;
+}
+html.dark input:focus,
+html.dark textarea:focus,
+html.dark select:focus {
+  border-color: hsl(217 91% 60%) !important;
+  box-shadow: 0 0 0 3px hsla(217, 91%, 60%, 0.18) !important;
+}
+
+html.dark table { color: hsl(210 40% 98%) !important; }
+html.dark thead, html.dark th {
+  color: hsl(215 25% 65%) !important;
+  background: hsl(222 47% 13%) !important;
+  border-color: hsl(217 20% 22%) !important;
+}
+html.dark tbody tr {
+  border-color: hsl(217 20% 18%) !important;
+}
+html.dark tbody tr:nth-child(even) {
+  background: hsla(222, 47%, 13%, 0.5) !important;
+}
+html.dark tbody tr:hover {
+  background: hsla(217, 91%, 60%, 0.08) !important;
+}
+html.dark td { color: hsl(210 40% 92%) !important; }
 
 html, body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
