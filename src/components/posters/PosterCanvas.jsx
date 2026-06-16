@@ -274,7 +274,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
         if (big) {
           // Huge centered value (gold gradient) with the label stacked vertically to its right
-          const valueSize = 640;
+          const valueSize = 480;
           const valueStr = String(value);
           ctx.textBaseline = 'middle';
           ctx.font = `italic 900 ${valueSize}px Inter, system-ui, Arial`;
@@ -291,7 +291,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           // Vertical label (e.g. P / T / S) to the right of the number
           const valueWidth = ctx.measureText(valueStr).width;
           const letters = label.toUpperCase().split('');
-          const letterSize = 130;
+          const letterSize = 65;
           ctx.font = `italic 900 ${letterSize}px Inter, system-ui, Arial`;
           ctx.textAlign = 'left';
           const lx = x + valueWidth / 2 + 24;
@@ -346,7 +346,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
       if (bigPts) {
         // Draw the oversized number centered in the player zone; headshot is drawn afterwards on top of it
-        drawStat(W / 2 - 40, H * 0.42, statsConf[0].label, statsConf[0].value, true);
+        drawStat(W / 2, H * 0.4, statsConf[0].label, statsConf[0].value, true);
       } else if (statsConf.length > 0) {
         const safeL = 80; const safeR = 80; const usable = W - safeL - safeR;
         const count = statsConf.length;
