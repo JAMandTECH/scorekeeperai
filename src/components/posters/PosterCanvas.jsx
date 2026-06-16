@@ -316,9 +316,9 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           ctx.fillStyle = grad;
           ctx.fillText(valueStr, x, y);
 
-          // Vertical label (always "PTS") to the right of the number — ITC Avant Garde Gothic Extra Light style
+          // Vertical label (always "POINTS") to the right of the number — ITC Avant Garde Gothic Extra Light style
           const valueWidth = ctx.measureText(valueStr).width;
-          const letters = 'PTS'.split('');
+          const letters = 'POINTS'.split('');
           const letterSize = 65;
           ctx.font = `200 ${letterSize}px Jost, "Century Gothic", system-ui, Arial`;
           ctx.textAlign = 'left';
