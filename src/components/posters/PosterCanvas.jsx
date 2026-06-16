@@ -316,24 +316,19 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           ctx.fillStyle = grad;
           ctx.fillText(valueStr, x, y);
 
-          // Vertical label (always "POINTS") to the right of the number — ITC Avant Garde Gothic Extra Light style
-          const valueWidth = ctx.measureText(valueStr).width;
-          const letters = 'POINTS'.split('');
+          // Horizontal label (always "POINTS") centered above the number — ITC Avant Garde Gothic Extra Light style
+          const labelText = 'POINTS';
           const letterSize = 65;
           ctx.font = `200 ${letterSize}px Jost, "Century Gothic", system-ui, Arial`;
-          ctx.textAlign = 'left';
-          const lx = x + valueWidth / 2 + 24;
-          const lh = letterSize * 0.92;
-          const startY = y - ((letters.length - 1) * lh) / 2;
-          const lgrad = makeGoldGradient(startY - letterSize, startY + letters.length * lh);
-          letters.forEach((ch, i) => {
-            ctx.fillStyle = lgrad;
-            ctx.strokeStyle = goldStroke;
-            ctx.lineWidth = 5;
-            ctx.strokeText(ch, lx, startY + i * lh);
-            ctx.fillText(ch, lx, startY + i * lh);
-          });
           ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const labelY = y - valueSize * 0.5 - letterSize * 0.6;
+          const lgrad = makeGoldGradient(labelY - letterSize / 2, labelY + letterSize / 2);
+          ctx.fillStyle = lgrad;
+          ctx.strokeStyle = goldStroke;
+          ctx.lineWidth = 5;
+          ctx.strokeText(labelText, x, labelY);
+          ctx.fillText(labelText, x, labelY);
           return;
         }
 
