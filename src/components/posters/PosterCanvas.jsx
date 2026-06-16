@@ -269,28 +269,32 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const p = (players && players.length > 0) ? players[0] : null;
 
       // Minimal stat row (scaled 2x, centered, gold color)
-      const drawStat = (x, y, label, value) => {
+      const drawStat = (x, y, label, value, big = false) => {
         ctx.textAlign = 'center';
+        const labelSize = big ? 56 : 30;
+        const valueSize = big ? 320 : 86;
+        const labelGap = big ? 90 : 28;
+        const valueGap = big ? 150 : 40;
         // Label (white with subtle stroke)
         ctx.textBaseline = 'alphabetic';
-        ctx.font = '800 30px Inter, system-ui, Arial';
+        ctx.font = `800 ${labelSize}px Inter, system-ui, Arial`;
         ctx.fillStyle = '#ffffff';
         ctx.strokeStyle = 'rgba(0,0,0,0.35)';
         ctx.lineWidth = 2;
-        ctx.strokeText(label.toUpperCase(), x, y - 28);
-        ctx.fillText(label.toUpperCase(), x, y - 28);
+        ctx.strokeText(label.toUpperCase(), x, y - labelGap);
+        ctx.fillText(label.toUpperCase(), x, y - labelGap);
 
         // Value (gold gradient with stroke and glow)
         ctx.textBaseline = 'middle';
         ctx.shadowColor = 'rgba(0,0,0,0.35)';
         ctx.shadowBlur = 6;
-        ctx.font = 'italic 900 86px Inter, system-ui, Arial';
-        const grad = makeGoldGradient(y - 40, y + 60);
+        ctx.font = `italic 900 ${valueSize}px Inter, system-ui, Arial`;
+        const grad = makeGoldGradient(y - valueGap, y + valueGap * 1.5);
         ctx.fillStyle = grad;
         ctx.strokeStyle = goldStroke;
-        ctx.lineWidth = 3;
-        ctx.strokeText(String(value), x, y + 40);
-        ctx.fillText(String(value), x, y + 40);
+        ctx.lineWidth = big ? 6 : 3;
+        ctx.strokeText(String(value), x, y + valueGap);
+        ctx.fillText(String(value), x, y + valueGap);
         ctx.shadowBlur = 0;
       };
 
@@ -303,7 +307,13 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const defaultOffset = L.stats?.offset ?? 90; // spacing below date
       const y = dateCenterY + defaultOffset;
 
-      if (statsConf.length > 0) {
+      // Big PTS mode: when points is the only non-zero stat, render it huge behind the player
+      const bigPts = statsConf.length === 1 && /^(PTS|POINTS|PTS\.)$/i.test(String(statsConf[0]?.label || '').trim());
+
+      if (bigPts) {
+        // Draw the oversized number centered; the headshot is drawn afterwards on top of it
+        drawStat(W / 2, y + 60, statsConf[0].label, statsConf[0].value, true);
+      } else if (statsConf.length > 0) {
         const safeL = 80; const safeR = 80; const usable = W - safeL - safeR;
         const count = statsConf.length;
         const spacingFactor = 0.7; // tighter spacing between stats
