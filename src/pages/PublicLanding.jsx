@@ -209,8 +209,23 @@ export default function PublicLanding() {
 
         <div className="max-w-7xl mx-auto relative z-10">
          <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
-          {/* Left: copy */}
-          <div className="text-center lg:text-left order-2 lg:order-1">
+          {/* Left: AI wireframe athlete with rising white smoke */}
+          <div className="relative order-1 flex justify-center items-end min-h-[420px] lg:min-h-[560px]">
+            {/* White smoke rising from the floor, centered and covering the whole image */}
+            <div className="absolute inset-0 flex items-end justify-center pointer-events-none">
+              <div className="smoke smoke-1"></div>
+              <div className="smoke smoke-2"></div>
+              <div className="smoke smoke-3"></div>
+            </div>
+            <img
+              src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/f18e6c393_Gemini_Generated_Image_2rtwlr2rtwlr2rtw_visioncut.png"
+              alt="Futuristic AI wireframe athlete"
+              className="relative z-10 w-full max-w-md object-contain mx-auto"
+            />
+          </div>
+
+          {/* Right: copy */}
+          <div className="text-center lg:text-left order-2">
           <Badge className="mb-8 bg-cyan-500/20 backdrop-blur-md text-cyan-100 border-2 border-cyan-400/60 text-sm font-bold px-6 py-3 animate-pulse shadow-lg">
             <Sparkles className="w-4 h-4 inline mr-2" />
             AI-Powered Sports League Management Platform
@@ -275,21 +290,6 @@ export default function PublicLanding() {
               </>
             )}
           </div>
-          </div>
-
-          {/* Right: AI wireframe athlete with rising white smoke */}
-          <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end items-end">
-            {/* White smoke rising from the floor behind the athlete */}
-            <div className="absolute inset-0 flex items-end justify-center pointer-events-none">
-              <div className="smoke smoke-1"></div>
-              <div className="smoke smoke-2"></div>
-              <div className="smoke smoke-3"></div>
-            </div>
-            <img
-              src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/9e77316ac_Gemini_Generated_Image_2rtwlr2rtwlr2rtw_visioncut.png"
-              alt="Futuristic AI wireframe athlete"
-              className="relative z-10 w-[96%] max-w-lg object-contain"
-            />
           </div>
          </div>
 
