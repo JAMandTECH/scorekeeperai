@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, TrendingUp, Target, TrendingDown, Filter, Printer, Sparkles, Loader2, Users } from "lucide-react";
+import { Trophy, TrendingUp, Target, TrendingDown, Filter, Printer, Sparkles, Loader2, Users, Download } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, PieChart, Pie, Cell } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -491,6 +491,63 @@ Please provide:
     window.print();
   };
 
+  const handleDownloadCSV = () => {
+    const teamsById = new Map(teams.map(t => [t.id, t]));
+    const rows = filteredPlayers.map(player => {
+      const team = teamsById.get(player.team_id);
+      const s = getDetailedPlayerStats(player.id);
+      return {
+        'First Name': player.first_name || '',
+        'Last Name': player.last_name || '',
+        'Jersey': player.jersey_number || '',
+        'Team': team?.name || '',
+        'Sport': team?.sport || '',
+        'Division': team?.division || 'No Division',
+        'Games Played': s.gamesPlayed,
+        'Points': s.points,
+        'PPG': s.ppg,
+        'Rebounds': s.rebounds,
+        'RPG': s.rpg,
+        'Assists': s.assists,
+        'APG': s.apg,
+        'Blocks': s.blocks,
+        'Steals': s.steals,
+        'Fouls': s.fouls,
+        '3-Pointers': s.threePointers,
+        'FG%': s.fgPct,
+        'FT%': s.ftPct,
+        'Aces': s.aces,
+        'Attacks': s.attacks,
+        'Rally Errors': s.rallyErrors,
+      };
+    });
+
+    if (rows.length === 0) {
+      alert('No player stats available to export for the current filters.');
+      return;
+    }
+
+    const headers = Object.keys(rows[0]);
+    const escape = (val) => {
+      const str = String(val ?? '');
+      return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+    };
+    const csv = [
+      headers.join(','),
+      ...rows.map(row => headers.map(h => escape(row[h])).join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `player-stats-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
   return (
@@ -543,13 +600,22 @@ Please provide:
                     {organization?.name || 'Organization'} Performance Report
                   </p>
                 </div>
-                <Button
-                  onClick={handlePrint}
-                  className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold shadow-xl print:hidden"
-                >
-                  <Printer className="w-5 h-5 mr-2" />
-                  Print Report
-                </Button>
+                <div className="flex gap-3 print:hidden">
+                  <Button
+                    onClick={handleDownloadCSV}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
+                  >
+                    <Download className="w-5 h-5 mr-2" />
+                    Download CSV
+                  </Button>
+                  <Button
+                    onClick={handlePrint}
+                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold shadow-xl"
+                  >
+                    <Printer className="w-5 h-5 mr-2" />
+                    Print Report
+                  </Button>
+                </div>
               </div>
 
               {/* Filters */}
