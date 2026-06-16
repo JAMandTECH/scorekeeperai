@@ -305,14 +305,35 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const valueStr = String(value);
           ctx.textBaseline = 'middle';
           ctx.font = `700 ${valueSize}px Oswald, Inter, system-ui, Arial`;
-          ctx.shadowColor = 'rgba(0,0,0,0.35)';
-          ctx.shadowBlur = 10;
+
+          // 3D floating extrusion — stacked dark copies offset down-right to fake depth
+          const depth = 26;
+          for (let d = depth; d >= 1; d--) {
+            const t = d / depth;
+            ctx.fillStyle = `rgba(${Math.round(40 + t * 20)}, ${Math.round(28 + t * 14)}, 0, 1)`;
+            ctx.fillText(valueStr, x + d * 0.9, y + d * 1.1);
+          }
+
+          // Soft floating drop shadow under the number
+          ctx.save();
+          ctx.shadowColor = 'rgba(0,0,0,0.55)';
+          ctx.shadowBlur = 60;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 40;
           const grad = makeGoldGradient(y - valueSize * 0.5, y + valueSize * 0.55);
           ctx.fillStyle = grad;
           ctx.strokeStyle = goldStroke;
           ctx.lineWidth = 10;
           ctx.strokeText(valueStr, x, y);
           ctx.fillText(valueStr, x, y);
+          ctx.restore();
+
+          // Top highlight sheen for a glossy floating look
+          ctx.save();
+          ctx.globalAlpha = 0.28;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(valueStr, x - 2, y - 4);
+          ctx.restore();
           ctx.shadowBlur = 0;
 
           // Vertical label (always "PTS") to the right of the number — ITC Avant Garde Gothic Extra Light style
