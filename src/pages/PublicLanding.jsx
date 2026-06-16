@@ -209,8 +209,21 @@ export default function PublicLanding() {
 
         <div className="max-w-7xl mx-auto relative z-10">
          <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
-          {/* Left: copy */}
-          <div className="text-center lg:text-left">
+          {/* Left: AI futuristic robot — blended, no frame */}
+          <div className="relative order-1 flex justify-center lg:justify-start">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-[70%] h-[70%] bg-gradient-to-tr from-cyan-500/20 via-blue-500/10 to-red-500/15 rounded-full blur-3xl"></div>
+            </div>
+            <img
+              src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/d62a7d35d_Gemini_Generated_Image_1lfa4e1lfa4e1lfa.png"
+              alt="Futuristic AI robot powering ScorekeeperAI"
+              className="relative w-full max-w-md object-contain drop-shadow-[0_0_40px_rgba(34,211,238,0.25)]"
+              style={{ maskImage: 'radial-gradient(ellipse at center, black 60%, transparent 100%)', WebkitMaskImage: 'radial-gradient(ellipse at center, black 60%, transparent 100%)' }}
+            />
+          </div>
+
+          {/* Right: copy */}
+          <div className="text-center lg:text-left order-2">
           <Badge className="mb-8 bg-cyan-500/20 backdrop-blur-md text-cyan-100 border-2 border-cyan-400/60 text-sm font-bold px-6 py-3 animate-pulse shadow-lg">
             <Sparkles className="w-4 h-4 inline mr-2" />
             AI-Powered Sports League Management Platform
@@ -275,27 +288,6 @@ export default function PublicLanding() {
               </>
             )}
           </div>
-          </div>
-
-          {/* Right: AI futuristic robot */}
-          <div className="relative flex justify-center lg:justify-end">
-            {/* Glow behind the image */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-[80%] h-[80%] bg-gradient-to-tr from-cyan-500/30 via-blue-500/20 to-red-500/20 rounded-full blur-3xl"></div>
-            </div>
-            <div className="relative rounded-3xl overflow-hidden border border-cyan-400/30 shadow-2xl shadow-cyan-500/20 max-w-md w-full group">
-              <img
-                src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/d62a7d35d_Gemini_Generated_Image_1lfa4e1lfa4e1lfa.png"
-                alt="Futuristic AI robot powering ScorekeeperAI"
-                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-              />
-              {/* Scan line / sheen */}
-              <div className="absolute inset-0 bg-gradient-to-t from-blue-950/40 via-transparent to-transparent pointer-events-none"></div>
-              <div className="absolute inset-x-0 bottom-0 p-5 flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
-                <span className="text-xs font-bold tracking-widest text-cyan-100 uppercase">AI Engine Online</span>
-              </div>
-            </div>
           </div>
          </div>
 
