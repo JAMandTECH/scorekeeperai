@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, User, Edit, LayoutGrid, Table, Trash2, AlertTriangle } from "lucide-react";
+import { Plus, User, Edit, LayoutGrid, Table, Trash2, AlertTriangle, BarChart3 } from "lucide-react";
+import PlayerStatsDialog from "@/components/players/PlayerStatsDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ export default function Players() {
   const [showForm, setShowForm] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [deletingPlayer, setDeletingPlayer] = useState(null);
+  const [statsPlayer, setStatsPlayer] = useState(null);
   const [user, setUser] = useState(null);
   const [selectedDivision, setSelectedDivision] = useState('all');
   const [selectedSport, setSelectedSport] = useState('all');
@@ -307,6 +309,9 @@ export default function Players() {
     }
   };
 
+  const getPlayerStatRecords = (playerId) =>
+    playerGameStats.filter(s => s.player_id === playerId && completedGameIds.has(s.game_id));
+
   const handleDeleteClick = (player) => {
     const playerStats = allPlayerStats.filter(s => s.player_id === player.id);
     setDeletingPlayer({ ...player, statsCount: playerStats.length });
@@ -356,6 +361,15 @@ export default function Players() {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setStatsPlayer(player)}
+              className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+              title="View statistics"
+            >
+              <BarChart3 className="w-4 h-4" />
+            </Button>
             <Button 
               variant="ghost" 
               size="icon"
@@ -512,6 +526,15 @@ export default function Players() {
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center justify-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => setStatsPlayer(player)}
+                            className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                            title="View statistics"
+                          >
+                            <BarChart3 className="w-4 h-4" />
+                          </Button>
                           <Button 
                             variant="ghost" 
                             size="icon"
@@ -877,6 +900,16 @@ export default function Players() {
                   </form>
                 </DialogContent>
               </Dialog>
+
+              <PlayerStatsDialog
+                open={!!statsPlayer}
+                onOpenChange={(o) => !o && setStatsPlayer(null)}
+                player={statsPlayer}
+                sport={statsPlayer ? getTeamSport(statsPlayer.team_id) : "basketball"}
+                teamName={statsPlayer ? getTeamName(statsPlayer.team_id) : ""}
+                teamLogo={statsPlayer ? getTeamLogo(statsPlayer.team_id) : null}
+                statRecords={statsPlayer ? getPlayerStatRecords(statsPlayer.id) : []}
+              />
 
               <AlertDialog open={!!deletingPlayer} onOpenChange={() => setDeletingPlayer(null)}>
                 <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
