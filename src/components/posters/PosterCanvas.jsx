@@ -11,6 +11,18 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState(null);
 
+  // Ensure the Jost font (ITC Avant Garde Gothic-style) is available for canvas rendering
+  useEffect(() => {
+    const id = 'jost-font-link';
+    if (!document.getElementById(id)) {
+      const link = document.createElement('link');
+      link.id = id;
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap';
+      document.head.appendChild(link);
+    }
+  }, []);
+
   useEffect(() => {
     if (!backgroundUrl || !game) return;
 
@@ -179,6 +191,16 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
     });
 
     (async () => {
+      // Make sure the Jost font is loaded before drawing the PTS label
+      try {
+        if (document.fonts && document.fonts.load) {
+          await Promise.all([
+            document.fonts.load('200 65px Jost'),
+            document.fonts.load('300 65px Jost'),
+          ]);
+        }
+      } catch (_) { /* ignore font load issues */ }
+
       const headSrc = (L?.headshot?.processedImageUrl) || (bestPlayerImageUrl || players?.[0]?.photo_url);
       const [bgImg, logoImg, headImg] = await Promise.all([
         loadImage(backgroundUrl),
@@ -288,11 +310,11 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           ctx.fillText(valueStr, x, y);
           ctx.shadowBlur = 0;
 
-          // Vertical label (e.g. P / T / S) to the right of the number
+          // Vertical label (always "PTS") to the right of the number — ITC Avant Garde Gothic Extra Light style
           const valueWidth = ctx.measureText(valueStr).width;
-          const letters = label.toUpperCase().split('');
+          const letters = 'PTS'.split('');
           const letterSize = 65;
-          ctx.font = `italic 900 ${letterSize}px Inter, system-ui, Arial`;
+          ctx.font = `200 ${letterSize}px Jost, "Century Gothic", system-ui, Arial`;
           ctx.textAlign = 'left';
           const lx = x + valueWidth / 2 + 24;
           const lh = letterSize * 0.92;
@@ -345,8 +367,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const bigPts = statsConf.length === 1 && /^(PTS|POINTS|PTS\.)$/i.test(String(statsConf[0]?.label || '').trim());
 
       if (bigPts) {
-        // Draw the oversized number centered in the player zone; headshot is drawn afterwards on top of it
-        drawStat(W / 2, H * 0.4, statsConf[0].label, statsConf[0].value, true);
+        // Draw the oversized number vertically centered on the player image; headshot is drawn afterwards on top of it
+        drawStat(W / 2, H * 0.5, statsConf[0].label, statsConf[0].value, true);
       } else if (statsConf.length > 0) {
         const safeL = 80; const safeR = 80; const usable = W - safeL - safeR;
         const count = statsConf.length;
