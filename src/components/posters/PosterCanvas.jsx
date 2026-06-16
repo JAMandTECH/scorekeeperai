@@ -18,7 +18,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const link = document.createElement('link');
       link.id = id;
       link.rel = 'stylesheet';
-      link.href = 'https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&family=Oswald:wght@600;700&display=swap';
+      link.href = 'https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&family=Oswald:wght@600;700&family=Saira:ital,wght@0,600;0,700;0,800;1,600;1,700;1,800&display=swap';
       document.head.appendChild(link);
     }
   }, []);
@@ -198,6 +198,10 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
             document.fonts.load('200 65px Jost'),
             document.fonts.load('300 65px Jost'),
             document.fonts.load('700 600px Oswald'),
+            document.fonts.load('800 40px Saira'),
+            document.fonts.load('italic 800 40px Saira'),
+            document.fonts.load('700 40px Saira'),
+            document.fonts.load('italic 700 40px Saira'),
           ]);
         }
       } catch (_) { /* ignore font load issues */ }
@@ -258,11 +262,11 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const maxHeaderWidth = W - 2 * 80;
       let trySize = headerSize;
       while (header && trySize >= 18) {
-        ctx.font = `800 ${trySize}px Inter, system-ui, Arial`;
+        ctx.font = `italic 800 ${trySize}px Saira, Inter, system-ui, Arial`;
         if (ctx.measureText(header).width <= maxHeaderWidth) break;
         trySize -= 2;
       }
-      ctx.font = `800 ${trySize}px Inter, system-ui, Arial`;
+      ctx.font = `italic 800 ${trySize}px Saira, Inter, system-ui, Arial`;
       if (header) {
         ctx.fillText(header, W / 2, headerY);
         // Decorative gold divider lines
@@ -284,7 +288,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         const dateY = (L.datePill?.y ?? 132) + 18; // align with previous pill center
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.font = '700 40px Inter, system-ui, Arial';
+        ctx.font = 'italic 700 40px Saira, Inter, system-ui, Arial';
         ctx.fillStyle = '#ffffff';
         ctx.fillText(dateStr, centerX, dateY);
       }
@@ -462,7 +466,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
             ctx.fillStyle = '#ffffff';
             let size = 56; const maxW = W - 2 * 140;
             while (size >= 18) {
-              ctx.font = `800 ${size}px Inter, system-ui, Arial`;
+              ctx.font = `italic 800 ${size}px Saira, Inter, system-ui, Arial`;
               if (ctx.measureText(label).width <= maxW) break;
               size -= 1;
             }
@@ -527,7 +531,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
             ctx.fillStyle = '#ffffff';
             let size = 56; const maxW = W - 2 * 140;
             while (size >= 18) {
-              ctx.font = `800 ${size}px Inter, system-ui, Arial`;
+              ctx.font = `italic 800 ${size}px Saira, Inter, system-ui, Arial`;
               if (ctx.measureText(label).width <= maxW) break;
               size -= 1;
             }
@@ -545,7 +549,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const bestText = 'BEST PLAYER';
       let s = bestSize; const maxBestW = W - 2 * 120;
       while (s >= 28) {
-        ctx.font = `italic 900 ${s}px Inter, system-ui, Arial`;
+        ctx.font = `italic 800 ${s}px Saira, Inter, system-ui, Arial`;
         if (ctx.measureText(bestText).width <= maxBestW) break;
         s -= 2;
       }
@@ -571,7 +575,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       if (bestTeamName) {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.font = '700 24px Inter, system-ui, Arial';
+        ctx.font = 'italic 700 24px Saira, Inter, system-ui, Arial';
         ctx.fillStyle = '#ffffff';
         const teamY = teamLabelY; // keep equal spacing reference
         ctx.fillText(bestTeamName, W / 2, teamY);
@@ -636,7 +640,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const fitText = (text, maxWidth, maxSize = 28, minSize = 14) => {
         let s = maxSize;
         while (s >= minSize) {
-          ctx.font = `700 ${s}px Inter, system-ui, Arial`;
+          ctx.font = `italic 700 ${s}px Saira, Inter, system-ui, Arial`;
           if (ctx.measureText(text).width <= maxWidth) return s;
           s -= 1;
         }
@@ -647,13 +651,13 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const leftMaxWidth = Math.max(40, (leftX - 30) - 24);
       const leftName = String(homeName || 'HOME').toUpperCase();
       const leftSize = fitText(leftName, leftMaxWidth);
-      ctx.font = `700 ${leftSize}px Inter, system-ui, Arial`;
+      ctx.font = `italic 700 ${leftSize}px Saira, Inter, system-ui, Arial`;
       ctx.textAlign = 'right';
       ctx.fillText(leftName, leftX - 20, yScore);
 
       // Draw scores and VS centered cluster
       const drawScoreBox = (x, yVal, text, highlight) => {
-        ctx.font = '800 22px Inter, system-ui, Arial';
+        ctx.font = 'italic 800 22px Saira, Inter, system-ui, Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = highlight ? '#facc15' : '#ffffff';
@@ -677,7 +681,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const rightMaxWidth = Math.max(40, (W - 24) - (rightX + 30));
       const rightName = String(awayName || 'AWAY').toUpperCase();
       const rightSize = fitText(rightName, rightMaxWidth);
-      ctx.font = `700 ${rightSize}px Inter, system-ui, Arial`;
+      ctx.font = `italic 700 ${rightSize}px Saira, Inter, system-ui, Arial`;
       ctx.textAlign = 'left'; ctx.fillStyle = '#ffffff';
       ctx.fillText(rightName, rightX + 20, yScore);
       ctx.shadowBlur = 0;
