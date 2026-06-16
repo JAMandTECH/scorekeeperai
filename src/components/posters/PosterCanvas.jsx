@@ -18,7 +18,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const link = document.createElement('link');
       link.id = id;
       link.rel = 'stylesheet';
-      link.href = 'https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap';
+      link.href = 'https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&family=Oswald:wght@600;700&display=swap';
       document.head.appendChild(link);
     }
   }, []);
@@ -197,6 +197,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           await Promise.all([
             document.fonts.load('200 65px Jost'),
             document.fonts.load('300 65px Jost'),
+            document.fonts.load('700 600px Oswald'),
           ]);
         }
       } catch (_) { /* ignore font load issues */ }
@@ -299,7 +300,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           const valueSize = 600;
           const valueStr = String(value);
           ctx.textBaseline = 'middle';
-          ctx.font = `900 ${valueSize}px Inter, system-ui, Arial`;
+          ctx.font = `700 ${valueSize}px Oswald, Inter, system-ui, Arial`;
           ctx.shadowColor = 'rgba(0,0,0,0.35)';
           ctx.shadowBlur = 10;
           const grad = makeGoldGradient(y - valueSize * 0.5, y + valueSize * 0.55);
