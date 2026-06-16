@@ -277,12 +277,18 @@ export default function PublicLanding() {
           </div>
           </div>
 
-          {/* Right: AI wireframe athlete */}
-          <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end">
+          {/* Right: AI wireframe athlete with rising white smoke */}
+          <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end items-end">
+            {/* White smoke rising from the floor behind the athlete */}
+            <div className="absolute inset-0 flex items-end justify-center pointer-events-none">
+              <div className="smoke smoke-1"></div>
+              <div className="smoke smoke-2"></div>
+              <div className="smoke smoke-3"></div>
+            </div>
             <img
               src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/9e77316ac_Gemini_Generated_Image_2rtwlr2rtwlr2rtw_visioncut.png"
               alt="Futuristic AI wireframe athlete"
-              className="relative w-4/5 max-w-md object-contain"
+              className="relative z-10 w-[96%] max-w-lg object-contain"
             />
           </div>
          </div>
