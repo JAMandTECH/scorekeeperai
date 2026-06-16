@@ -277,18 +277,13 @@ export default function PublicLanding() {
           </div>
           </div>
 
-          {/* Right: AI wireframe athlete — blended into hero with white spirit flame */}
+          {/* Right: AI wireframe athlete */}
           <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end">
-            {/* Animated white spirit flame behind */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-[55%] h-[80%] bg-white/25 rounded-full blur-3xl spirit-flame"></div>
-              <div className="absolute w-[40%] h-[60%] bg-white/30 rounded-full blur-2xl spirit-flame-2"></div>
-            </div>
             <img
-              src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/f592808d5_download5.jpg"
+              src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/ced23fbcb_Gemini_Generated_Image_2rtwlr2rtwlr2rtw.png"
               alt="Futuristic AI wireframe athlete"
-              className="relative w-full max-w-md object-contain mix-blend-screen"
-              style={{ maskImage: 'radial-gradient(ellipse at center, black 65%, transparent 100%)', WebkitMaskImage: 'radial-gradient(ellipse at center, black 65%, transparent 100%)' }}
+              className="relative w-full max-w-md object-contain"
+              style={{ height: '85%' }}
             />
           </div>
          </div>
