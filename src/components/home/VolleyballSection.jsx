@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import GameCompactStats from "@/components/stats/GameCompactStats";
 import AIGameSummary from "@/components/AIGameSummary";
+import StandingsTable from "@/components/home/StandingsTable";
 
 const leaderColorStyles = {
   blue: {
@@ -58,12 +59,7 @@ export default function VolleyballSection({ organization, volleyballStandings, t
 
         <TabsContent value="standings">
           {volleyballStandings.map((divisionData, idx) => (
-            <Card key={idx} className="mb-6 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
-                <div className="flex items-center justify-between"><CardTitle className="text-2xl font-black text-gray-900 dark:text-white">{divisionData.division}</CardTitle><div className="flex items-center gap-3"><span className="text-lg font-bold text-gray-700 dark:text-gray-300">{organization?.name}</span>{organization?.logo_url && <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md"><AvatarImage src={organization.logo_url} /><AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black">{organization.name?.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar>}</div></div>
-              </CardHeader>
-              <CardContent className="p-0"><div className="overflow-x-auto"><table className="w-full"><thead><tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700"><th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">#</th><th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">TEAM</th><th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">W</th><th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">L</th><th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PCT</th><th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PF</th><th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PA</th><th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">DIFF</th></tr></thead><tbody>{divisionData.teams.map((team, i) => <tr key={team.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-orange-50/50 dark:hover:bg-blue-950/20 transition-colors"><td className="py-4 px-4 font-black text-xl text-gray-400 dark:text-gray-500">{i + 1}</td><td className="py-4 px-4"><div className="flex items-center gap-3"><Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md"><AvatarImage src={team.logo_url} /><AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold">{team.name?.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar><span className="font-bold text-gray-900 dark:text-white">{team.name}</span></div></td><td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold text-lg">{team.wins}</td><td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-bold text-lg">{team.losses}</td><td className="py-4 px-4 text-center font-bold text-gray-900 dark:text-white">{(team.winPct * 100).toFixed(0)}%</td><td className="py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-semibold">{team.avgPointsFor}</td><td className="py-4 px-4 text-center text-orange-600 dark:text-orange-400 font-semibold">{team.avgPointsAgainst}</td><td className={`py-4 px-4 text-center font-bold text-lg ${team.diff > 0 ? 'text-green-600 dark:text-green-400' : team.diff < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>{team.diff > 0 ? '+' : ''}{team.diff}</td></tr>)}</tbody></table></div></CardContent>
-            </Card>
+            <StandingsTable key={idx} divisionData={divisionData} organization={organization} accent="blue" />
           ))}
         </TabsContent>
 
