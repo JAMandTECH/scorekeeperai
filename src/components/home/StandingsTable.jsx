@@ -11,9 +11,9 @@ export default function StandingsTable({ divisionData, organization, accent = "o
   }[accent] || { rank: "text-orange-400", line: "from-orange-500", fallback: "from-orange-500 to-orange-600" };
 
   return (
-    <Card className="mb-6 overflow-hidden border-0 shadow-2xl rounded-3xl bg-gradient-to-br from-[#1a1535] via-[#221a45] to-[#0e0b22]">
+    <Card className="mb-6 overflow-hidden border-0 shadow-2xl rounded-3xl bg-gradient-to-br from-primary/95 via-primary to-[hsl(217_91%_38%)]">
       {/* Header band */}
-      <div className="relative px-6 py-6 border-b border-white/10 bg-gradient-to-r from-[#2a1f5c]/60 to-transparent">
+      <div className="relative px-6 py-6 border-b border-white/10 bg-gradient-to-r from-white/10 to-transparent">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-cyan-300 text-xs font-bold tracking-[0.3em] uppercase mb-1">League</p>
