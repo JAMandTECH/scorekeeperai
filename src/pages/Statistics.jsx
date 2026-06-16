@@ -491,11 +491,75 @@ Please provide:
     window.print();
   };
 
-  const handleDownloadCSV = () => {
+  const [downloadingCSV, setDownloadingCSV] = useState(false);
+
+  const handleDownloadCSV = async () => {
+    setDownloadingCSV(true);
+    try {
     const teamsById = new Map(teams.map(t => [t.id, t]));
-    const rows = filteredPlayers.map(player => {
+
+    // Fetch stats across ALL completed games (not just the on-screen filtered subset)
+    // so every player shows their real season totals regardless of current filters.
+    const allCompletedIds = games.filter(g => g.status === 'completed').map(g => g.id);
+    let allStats = [];
+    const CHUNK = 25;
+    for (let i = 0; i < allCompletedIds.length; i += CHUNK) {
+      const chunk = allCompletedIds.slice(i, i + CHUNK);
+      let chunkStats = [];
+      try {
+        const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: chunk });
+        chunkStats = Array.isArray(res.data) ? res.data : [];
+      } catch (_) {}
+      if (!chunkStats || chunkStats.length === 0) {
+        try {
+          chunkStats = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
+        } catch (_) {}
+      }
+      allStats.push(...(chunkStats || []));
+    }
+
+    const computeStats = (playerId) => {
+      const ps = allStats.filter(s => s.player_id === playerId);
+      const gamesPlayed = [...new Set(ps.map(s => s.game_id))].length;
+      const sum = (key) => ps.reduce((acc, s) => acc + (Number(s[key]) || 0), 0);
+      const points = ps.reduce((acc, s) => {
+        const game = gameById.get(s.game_id);
+        if (game?.sport === 'volleyball') {
+          return acc + Number(s.aces || 0) + Number(s.attacks || 0) + Number(s.blocks || 0);
+        }
+        const stored = Number(s.points || 0);
+        if (stored > 0) return acc + stored;
+        const threes = Number(s.three_pointers || 0);
+        const fgm = Number(s.field_goals_made || 0);
+        const twos = Math.max(fgm - threes, 0);
+        return acc + twos * 2 + threes * 3 + Number(s.free_throws_made || 0);
+      }, 0);
+      const fga = sum('field_goals_attempted');
+      const fgm = sum('field_goals_made');
+      const fta = sum('free_throws_attempted');
+      const ftm = sum('free_throws_made');
+      const per = (v) => gamesPlayed > 0 ? (v / gamesPlayed).toFixed(1) : '0.0';
+      return {
+        gamesPlayed,
+        points,
+        ppg: per(points),
+        rebounds: sum('rebounds'), rpg: per(sum('rebounds')),
+        assists: sum('assists'), apg: per(sum('assists')),
+        blocks: sum('blocks'),
+        steals: sum('steals'),
+        fouls: sum('fouls'),
+        threePointers: sum('three_pointers'),
+        fgPct: fga > 0 ? ((fgm / fga) * 100).toFixed(1) : '0.0',
+        ftPct: fta > 0 ? ((ftm / fta) * 100).toFixed(1) : '0.0',
+        aces: sum('aces'),
+        attacks: sum('attacks'),
+        rallyErrors: sum('rally_errors'),
+      };
+    };
+
+    const rows = players.map(player => {
       const team = teamsById.get(player.team_id);
-      const s = getDetailedPlayerStats(player.id);
+      const s = computeStats(player.id);
       return {
         'First Name': player.first_name || '',
         'Last Name': player.last_name || '',
@@ -523,7 +587,7 @@ Please provide:
     });
 
     if (rows.length === 0) {
-      alert('No player stats available to export for the current filters.');
+      alert('No players available to export.');
       return;
     }
 
@@ -546,6 +610,9 @@ Please provide:
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    } finally {
+      setDownloadingCSV(false);
+    }
   };
 
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
@@ -603,10 +670,14 @@ Please provide:
                 <div className="flex gap-3 print:hidden">
                   <Button
                     onClick={handleDownloadCSV}
+                    disabled={downloadingCSV}
                     className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
                   >
-                    <Download className="w-5 h-5 mr-2" />
-                    Download CSV
+                    {downloadingCSV ? (
+                      <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Preparing...</>
+                    ) : (
+                      <><Download className="w-5 h-5 mr-2" />Download CSV</>
+                    )}
                   </Button>
                   <Button
                     onClick={handlePrint}
