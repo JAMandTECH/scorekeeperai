@@ -306,11 +306,11 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           ctx.textBaseline = 'middle';
           ctx.font = `700 ${valueSize}px Oswald, Inter, system-ui, Arial`;
 
-          // 3D floating extrusion — stacked dark copies offset down-right to fake depth
+          // 3D floating extrusion — stacked dark-red copies offset down-right to fake depth
           const depth = 26;
           for (let d = depth; d >= 1; d--) {
             const t = d / depth;
-            ctx.fillStyle = `rgba(${Math.round(40 + t * 20)}, ${Math.round(28 + t * 14)}, 0, 1)`;
+            ctx.fillStyle = `rgba(${Math.round(90 + t * 30)}, 0, 0, 1)`;
             ctx.fillText(valueStr, x + d * 0.9, y + d * 1.1);
           }
 
@@ -320,9 +320,12 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           ctx.shadowBlur = 60;
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 40;
-          const grad = makeGoldGradient(y - valueSize * 0.5, y + valueSize * 0.55);
+          const grad = ctx.createLinearGradient(0, y - valueSize * 0.5, 0, y + valueSize * 0.55);
+          grad.addColorStop(0, '#ff5a4d');
+          grad.addColorStop(0.5, '#e8261b');
+          grad.addColorStop(1, '#b00d0d');
           ctx.fillStyle = grad;
-          ctx.strokeStyle = goldStroke;
+          ctx.strokeStyle = '#7a0000';
           ctx.lineWidth = 10;
           ctx.strokeText(valueStr, x, y);
           ctx.fillText(valueStr, x, y);
