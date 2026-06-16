@@ -1,0 +1,245 @@
+{
+  "name": "Game",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "home_team_id": {
+      "type": "string"
+    },
+    "away_team_id": {
+      "type": "string"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "basketball",
+        "volleyball"
+      ]
+    },
+    "game_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "court_number": {
+      "type": "string",
+      "description": "Court number where the game will be played"
+    },
+    "duration_hours": {
+      "type": "number",
+      "default": 1.5,
+      "description": "Game duration in hours (default 1.5)"
+    },
+    "location": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "in_progress",
+        "completed"
+      ],
+      "default": "scheduled"
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the game has been archived"
+    },
+    "game_type": {
+      "type": "string",
+      "enum": [
+        "regular_season",
+        "playoffs",
+        "semi_finals",
+        "finals",
+        "pre_season"
+      ],
+      "default": "regular_season"
+    },
+    "assigned_scorekeeper_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of scorekeeper emails assigned to this game"
+    },
+    "overall_scorekeeper_email": {
+      "type": "string",
+      "description": "Email of the scorekeeper responsible for overall game control and all stats (basketball only)"
+    },
+    "home_statistician_email": {
+      "type": "string",
+      "description": "Email of the statistician responsible for home team non-point stats (basketball only)"
+    },
+    "away_statistician_email": {
+      "type": "string",
+      "description": "Email of the statistician responsible for away team non-point stats (basketball only)"
+    },
+    "recurring_series_id": {
+      "type": "string",
+      "description": "ID linking games in a recurring series"
+    },
+    "week_number": {
+      "type": "number",
+      "description": "Week number for grouping games in a season"
+    },
+    "division": {
+      "type": "string",
+      "description": "Division this game belongs to"
+    },
+    "home_score": {
+      "type": "number",
+      "default": 0
+    },
+    "away_score": {
+      "type": "number",
+      "default": 0
+    },
+    "quarter_scores": {
+      "type": "array",
+      "description": "Scores per quarter",
+      "items": {
+        "type": "object",
+        "properties": {
+          "quarter": {
+            "type": "number"
+          },
+          "home": {
+            "type": "number"
+          },
+          "away": {
+            "type": "number"
+          }
+        }
+      },
+      "default": []
+    },
+    "current_quarter": {
+      "type": "number",
+      "default": 1
+    },
+    "overtime_count": {
+      "type": "number",
+      "default": 0
+    },
+    "home_timeouts": {
+      "type": "number",
+      "default": 5
+    },
+    "away_timeouts": {
+      "type": "number",
+      "default": 5
+    },
+    "home_team_fouls": {
+      "type": "number",
+      "default": 0
+    },
+    "away_team_fouls": {
+      "type": "number",
+      "default": 0
+    },
+    "penalty_limit_per_quarter": {
+      "type": "number",
+      "default": 5,
+      "description": "Team fouls before penalty"
+    },
+    "player_foul_limit": {
+      "type": "number",
+      "default": 5,
+      "description": "Personal fouls before disqualification"
+    },
+    "stream_url": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the game ended by default"
+    },
+    "defaulted_team_id": {
+      "type": "string",
+      "description": "ID of the team that defaulted"
+    },
+    "winning_team_id": {
+      "type": "string",
+      "description": "ID of the team that won by default"
+    }
+  },
+  "required": [
+    "organization_id",
+    "home_team_id",
+    "away_team_id",
+    "sport",
+    "game_date"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "organization_id": "{{user.organization_id}}"
+        },
+        {
+          "organization_id": "{{user.active_organization_id}}"
+        },
+        {
+          "user_condition": {
+            "is_scorekeeper": true
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
+        },
+        {
+          "user_condition": {
+            "is_scorekeeper": true
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
+        }
+      ]
+    }
+  }
+}

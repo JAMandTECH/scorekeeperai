@@ -1,0 +1,86 @@
+{
+  "name": "SocialPost",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string",
+      "description": "Organization this post belongs to"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User who created the post"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name of user who posted"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of user who posted"
+    },
+    "content": {
+      "type": "string",
+      "description": "Text content of the post"
+    },
+    "media_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "URLs of photos/videos attached to post"
+    },
+    "media_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Types of media (image/video)"
+    },
+    "likes_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of likes"
+    },
+    "comments_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of comments"
+    }
+  },
+  "required": [
+    "organization_id",
+    "user_id",
+    "user_name",
+    "user_email"
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "$or": [
+        {
+          "organization_id": "{{user.organization_id}}"
+        },
+        {
+          "organization_id": "{{user.active_organization_id}}"
+        }
+      ]
+    },
+    "update": {
+      "user_id": "{{user.id}}"
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

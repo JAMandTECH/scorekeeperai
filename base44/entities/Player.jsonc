@@ -1,0 +1,80 @@
+{
+  "name": "Player",
+  "type": "object",
+  "properties": {
+    "team_id": {
+      "type": "string",
+      "description": "Team this player belongs to"
+    },
+    "jersey_number": {
+      "type": "string"
+    },
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "position": {
+      "type": "string"
+    },
+    "contact_number": {
+      "type": "string",
+      "description": "Player contact number"
+    },
+    "height": {
+      "type": "string"
+    },
+    "photo_url": {
+      "type": "string"
+    },
+    "total_points": {
+      "type": "number",
+      "default": 0
+    },
+    "total_rebounds": {
+      "type": "number",
+      "default": 0
+    },
+    "total_assists": {
+      "type": "number",
+      "default": 0
+    },
+    "games_played": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "team_id",
+    "first_name",
+    "last_name",
+    "jersey_number"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": true,
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      },
+      "team_id": {
+        "$in": {
+          "entity": "Team",
+          "query": {
+            "organization_id": "{{user.organization_id}}"
+          },
+          "field": "id"
+        }
+      }
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

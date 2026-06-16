@@ -1,0 +1,166 @@
+{
+  "name": "Tournament",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string",
+      "description": "Organization this tournament belongs to"
+    },
+    "name": {
+      "type": "string",
+      "description": "Tournament name"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "basketball",
+        "volleyball"
+      ],
+      "description": "Sport for this tournament"
+    },
+    "division": {
+      "type": "string",
+      "description": "Division for this tournament"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tournament start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tournament end date"
+    },
+    "num_teams": {
+      "type": "number",
+      "enum": [
+        4,
+        8,
+        16
+      ],
+      "description": "Number of teams in the tournament"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "setup",
+        "seeding",
+        "in_progress",
+        "completed"
+      ],
+      "default": "setup",
+      "description": "Current status of the tournament"
+    },
+    "current_round": {
+      "type": "string",
+      "description": "Current round name"
+    },
+    "best_of_settings": {
+      "type": "object",
+      "description": "Best of settings for each round",
+      "default": {}
+    },
+    "initial_teams": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Seeded team IDs in order"
+    },
+    "is_manual_bracket": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a manually built bracket"
+    },
+    "manual_matches": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": [],
+      "description": "Manual bracket match cards with positions"
+    },
+    "manual_connectors": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": [],
+      "description": "Manual bracket connector lines"
+    }
+  },
+  "required": [
+    "organization_id",
+    "name",
+    "sport",
+    "num_teams"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "organization_id": "{{user.organization_id}}"
+        },
+        {
+          "organization_id": "{{user.active_organization_id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
+        }
+      ]
+    }
+  }
+}

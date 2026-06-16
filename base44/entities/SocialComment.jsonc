@@ -1,0 +1,54 @@
+{
+  "name": "SocialComment",
+  "type": "object",
+  "properties": {
+    "post_id": {
+      "type": "string",
+      "description": "ID of the post this comment belongs to"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User who created the comment"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name of user who commented"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of user who commented"
+    },
+    "content": {
+      "type": "string",
+      "description": "Comment text"
+    }
+  },
+  "required": [
+    "post_id",
+    "user_id",
+    "user_name",
+    "user_email",
+    "content"
+  ],
+  "rls": {
+    "create": {
+      "user_id": "{{user.id}}"
+    },
+    "read": true,
+    "update": {
+      "user_id": "{{user.id}}"
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

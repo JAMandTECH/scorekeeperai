@@ -1,0 +1,145 @@
+{
+  "name": "BracketMatch",
+  "type": "object",
+  "properties": {
+    "tournament_id": {
+      "type": "string",
+      "description": "Tournament this match belongs to"
+    },
+    "round_name": {
+      "type": "string",
+      "description": "Round name (quarter_finals, semi_finals, finals)"
+    },
+    "match_number": {
+      "type": "number",
+      "description": "Position within the round"
+    },
+    "home_team_id": {
+      "type": "string",
+      "description": "Home team ID (can be null if not yet determined)"
+    },
+    "away_team_id": {
+      "type": "string",
+      "description": "Away team ID (can be null if not yet determined)"
+    },
+    "winner_team_id": {
+      "type": "string",
+      "description": "Winner team ID (null until match is decided)"
+    },
+    "game_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Game IDs for this match series"
+    },
+    "home_team_wins": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of wins for home team"
+    },
+    "away_team_wins": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of wins for away team"
+    },
+    "required_wins": {
+      "type": "number",
+      "default": 1,
+      "description": "Wins needed to advance (for best of series)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "ready",
+        "in_progress",
+        "completed"
+      ],
+      "default": "pending",
+      "description": "Match status"
+    },
+    "next_match_id": {
+      "type": "string",
+      "description": "ID of the match the winner advances to"
+    },
+    "is_home_slot": {
+      "type": "boolean",
+      "description": "If true, winner goes to home slot of next match"
+    }
+  },
+  "required": [
+    "tournament_id",
+    "round_name",
+    "match_number",
+    "required_wins"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "is_scorekeeper": true
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "name": "BackupSchedule",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether automatic backups are enabled"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly"
+      ],
+      "default": "daily",
+      "description": "Backup frequency"
+    },
+    "time_of_day": {
+      "type": "string",
+      "default": "02:00",
+      "description": "Time of day to run backups (24-hour format HH:MM)"
+    },
+    "last_run": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time the backup ran"
+    },
+    "next_run": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Next scheduled backup time"
+    }
+  },
+  "required": [
+    "enabled",
+    "frequency"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin",
+        "is_super_admin": true
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin",
+        "is_super_admin": true
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin",
+        "is_super_admin": true
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin",
+        "is_super_admin": true
+      }
+    }
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "name": "Organization",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Organization name"
+    },
+    "tournament_name": {
+      "type": "string",
+      "description": "Tournament or league name"
+    },
+    "contact_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "subscription_tier": {
+      "type": "string",
+      "enum": [
+        "free",
+        "basic",
+        "premium"
+      ],
+      "default": "free",
+      "description": "Subscription tier for the organization"
+    },
+    "subscription_status": {
+      "type": "string",
+      "enum": [
+        "trial",
+        "active",
+        "expired",
+        "cancelled"
+      ],
+      "default": "trial",
+      "description": "Current subscription status"
+    },
+    "trial_end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "End date of the trial period"
+    },
+    "selected_sport": {
+      "type": "string",
+      "enum": [
+        "basketball",
+        "volleyball"
+      ],
+      "description": "Selected sport for Basic subscription (single sport only)"
+    },
+    "paypal_subscription_id": {
+      "type": "string",
+      "description": "PayPal subscription ID for recurring payments"
+    },
+    "theme": {
+      "type": "object",
+      "description": "Organization theme customization",
+      "properties": {
+        "primary_color": {
+          "type": "string",
+          "default": "#3b82f6"
+        },
+        "secondary_color": {
+          "type": "string",
+          "default": "#f97316"
+        },
+        "accent_color": {
+          "type": "string",
+          "default": "#8b5cf6"
+        }
+      },
+      "default": {
+        "primary_color": "#3b82f6",
+        "secondary_color": "#f97316",
+        "accent_color": "#8b5cf6"
+      }
+    },
+    "settings": {
+      "type": "object",
+      "description": "Organization settings flags",
+      "properties": {
+        "include_archived_in_leaders": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, archived completed games contribute to leaderboards"
+        }
+      },
+      "default": {}
+    }
+  },
+  "required": [
+    "name",
+    "contact_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "id": "{{user.organization_id}}"
+        },
+        {
+          "id": "{{user.active_organization_id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          },
+          "id": "{{user.organization_id}}"
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        }
+      ]
+    }
+  }
+}

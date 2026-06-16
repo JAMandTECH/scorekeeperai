@@ -1,0 +1,64 @@
+{
+  "name": "Poster",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string",
+      "description": "Organization this poster belongs to"
+    },
+    "game_id": {
+      "type": "string",
+      "description": "Related game ID"
+    },
+    "player_id": {
+      "type": "string",
+      "description": "Primary player featured"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "Team of the featured player"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "basketball",
+        "volleyball",
+        "general"
+      ]
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Public URL of the saved poster image"
+    },
+    "width": {
+      "type": "number",
+      "default": 1080
+    },
+    "height": {
+      "type": "number",
+      "default": 1350
+    },
+    "title": {
+      "type": "string",
+      "description": "Display title for the poster"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional extra info (layout, template refs)",
+      "default": {}
+    }
+  },
+  "required": [
+    "image_url"
+  ],
+  "rls": {
+    "create": true,
+    "read": true,
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "name": "Role",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string",
+      "description": "Organization this role belongs to"
+    },
+    "name": {
+      "type": "string",
+      "description": "Role name (e.g., Admin, Scorekeeper, Coach, Viewer)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Role description"
+    },
+    "is_system_role": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a system-defined role that cannot be deleted"
+    },
+    "permissions": {
+      "type": "object",
+      "description": "Permissions object defining what this role can do",
+      "properties": {
+        "manage_organization": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_divisions": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_teams": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_players": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_games": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_scorekeepers": {
+          "type": "boolean",
+          "default": false
+        },
+        "live_scoring": {
+          "type": "boolean",
+          "default": false
+        },
+        "view_statistics": {
+          "type": "boolean",
+          "default": true
+        },
+        "manage_members": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_roles": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_social": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_tournaments": {
+          "type": "boolean",
+          "default": false
+        },
+        "data_backup": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "default": {
+        "view_statistics": true
+      }
+    }
+  },
+  "required": [
+    "organization_id",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "organization_id": "{{user.organization_id}}"
+        },
+        {
+          "organization_id": "{{user.active_organization_id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}",
+          "is_system_role": false
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "SocialLike",
+  "type": "object",
+  "properties": {
+    "post_id": {
+      "type": "string",
+      "description": "ID of the post that was liked"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User who liked the post"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name of user who liked"
+    }
+  },
+  "required": [
+    "post_id",
+    "user_id",
+    "user_name"
+  ],
+  "rls": {
+    "create": {
+      "user_id": "{{user.id}}"
+    },
+    "read": true,
+    "delete": {
+      "user_id": "{{user.id}}"
+    }
+  }
+}

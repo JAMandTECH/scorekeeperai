@@ -1,0 +1,106 @@
+{
+  "name": "BackupHistory",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string",
+      "description": "Organization this backup belongs to"
+    },
+    "organization_name": {
+      "type": "string",
+      "description": "Organization name for easy reference"
+    },
+    "subscription_tier": {
+      "type": "string",
+      "enum": [
+        "free",
+        "basic",
+        "premium"
+      ],
+      "description": "Subscription tier at time of backup"
+    },
+    "backup_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the backup was created"
+    },
+    "file_uri": {
+      "type": "string",
+      "description": "Private file URI for the backup file"
+    },
+    "file_size_bytes": {
+      "type": "number",
+      "description": "Size of backup file in bytes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failed",
+        "in_progress"
+      ],
+      "default": "in_progress",
+      "description": "Backup status"
+    },
+    "backed_up_by": {
+      "type": "string",
+      "description": "Email of who triggered backup (or 'system' for automatic)"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Error message if backup failed"
+    },
+    "data_summary": {
+      "type": "object",
+      "description": "Summary of what was backed up",
+      "properties": {
+        "teams_count": {
+          "type": "number"
+        },
+        "players_count": {
+          "type": "number"
+        },
+        "games_count": {
+          "type": "number"
+        },
+        "stats_count": {
+          "type": "number"
+        }
+      },
+      "default": {}
+    }
+  },
+  "required": [
+    "organization_id",
+    "organization_name",
+    "subscription_tier",
+    "backup_date",
+    "backed_up_by"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin",
+        "is_super_admin": true
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin",
+        "is_super_admin": true
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin",
+        "is_super_admin": true
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin",
+        "is_super_admin": true
+      }
+    }
+  }
+}
