@@ -373,7 +373,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
       if (bigPts) {
         // Draw the oversized number vertically centered on the player image; headshot is drawn afterwards on top of it
-        drawStat(W / 2, H * 0.42, statsConf[0].label, statsConf[0].value, true);
+        drawStat(W / 2, H * 0.52, statsConf[0].label, statsConf[0].value, true);
       } else if (statsConf.length > 0) {
         const safeL = 80; const safeR = 80; const usable = W - safeL - safeR;
         const count = statsConf.length;
