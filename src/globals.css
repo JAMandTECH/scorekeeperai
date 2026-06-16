@@ -102,21 +102,22 @@
 .smoke {
   position: absolute;
   bottom: 0;
-  width: 45%;
-  height: 70%;
-  background: radial-gradient(circle at 50% 100%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.25) 35%, rgba(255,255,255,0) 70%);
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 100%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.25) 40%, rgba(255,255,255,0) 75%);
   border-radius: 50%;
-  filter: blur(28px);
+  filter: blur(32px);
   opacity: 0;
   transform-origin: bottom center;
 }
 .smoke-1 { animation: smokeRise 6s ease-in-out infinite; }
-.smoke-2 { width: 35%; height: 80%; animation: smokeRise 7.5s ease-in-out infinite 1.2s; }
-.smoke-3 { width: 30%; height: 60%; animation: smokeRise 5.5s ease-in-out infinite 2.4s; }
+.smoke-2 { width: 85%; height: 100%; animation: smokeRise 7.5s ease-in-out infinite 1.2s; }
+.smoke-3 { width: 70%; height: 90%; animation: smokeRise 5.5s ease-in-out infinite 2.4s; }
 
 @keyframes smokeRise {
   0% {
-    transform: translateY(10%) scale(0.7) skewX(0deg);
+    transform: translateX(-50%) translateY(10%) scale(0.7) skewX(0deg);
     opacity: 0;
   }
   20% {
@@ -124,10 +125,10 @@
   }
   60% {
     opacity: 0.5;
-    transform: translateY(-35%) scale(1) skewX(6deg);
+    transform: translateX(-50%) translateY(-20%) scale(1) skewX(6deg);
   }
   100% {
-    transform: translateY(-75%) scale(1.3) skewX(-6deg);
+    transform: translateX(-50%) translateY(-45%) scale(1.3) skewX(-6deg);
     opacity: 0;
   }
 }
