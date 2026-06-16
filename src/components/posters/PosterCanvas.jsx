@@ -321,11 +321,13 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 40;
           const grad = ctx.createLinearGradient(0, y - valueSize * 0.5, 0, y + valueSize * 0.55);
-          grad.addColorStop(0, '#ff5a4d');
-          grad.addColorStop(0.5, '#e8261b');
-          grad.addColorStop(1, '#b00d0d');
+          grad.addColorStop(0, '#c5161a');
+          grad.addColorStop(0.42, '#7e0608');
+          grad.addColorStop(0.5, '#b51519');
+          grad.addColorStop(0.58, '#5e0204');
+          grad.addColorStop(1, '#3d0102');
           ctx.fillStyle = grad;
-          ctx.strokeStyle = '#7a0000';
+          ctx.strokeStyle = '#2a0000';
           ctx.lineWidth = 10;
           ctx.strokeText(valueStr, x, y);
           ctx.fillText(valueStr, x, y);
@@ -333,8 +335,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
           // Top highlight sheen for a glossy floating look
           ctx.save();
-          ctx.globalAlpha = 0.28;
-          ctx.fillStyle = '#ffffff';
+          ctx.globalAlpha = 0.18;
+          ctx.fillStyle = '#ff8a82';
           ctx.fillText(valueStr, x - 2, y - 4);
           ctx.restore();
           ctx.shadowBlur = 0;
