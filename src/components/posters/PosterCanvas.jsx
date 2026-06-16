@@ -296,7 +296,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
         if (big) {
           // Huge centered value (gold gradient) with the label stacked vertically to its right
-          const valueSize = 480;
+          const valueSize = 600;
           const valueStr = String(value);
           ctx.textBaseline = 'middle';
           ctx.font = `italic 900 ${valueSize}px Inter, system-ui, Arial`;
