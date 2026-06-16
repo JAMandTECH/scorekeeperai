@@ -209,21 +209,8 @@ export default function PublicLanding() {
 
         <div className="max-w-7xl mx-auto relative z-10">
          <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
-          {/* Left: AI futuristic robot — blended, no frame */}
-          <div className="relative order-1 flex justify-center lg:justify-start">
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-[70%] h-[70%] bg-gradient-to-tr from-cyan-500/20 via-blue-500/10 to-red-500/15 rounded-full blur-3xl"></div>
-            </div>
-            <img
-              src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/d62a7d35d_Gemini_Generated_Image_1lfa4e1lfa4e1lfa.png"
-              alt="Futuristic AI robot powering ScorekeeperAI"
-              className="relative w-full max-w-md object-contain drop-shadow-[0_0_40px_rgba(34,211,238,0.25)]"
-              style={{ maskImage: 'radial-gradient(ellipse at center, black 60%, transparent 100%)', WebkitMaskImage: 'radial-gradient(ellipse at center, black 60%, transparent 100%)' }}
-            />
-          </div>
-
-          {/* Right: copy */}
-          <div className="text-center lg:text-left order-2">
+          {/* Left: copy */}
+          <div className="text-center lg:text-left order-2 lg:order-1">
           <Badge className="mb-8 bg-cyan-500/20 backdrop-blur-md text-cyan-100 border-2 border-cyan-400/60 text-sm font-bold px-6 py-3 animate-pulse shadow-lg">
             <Sparkles className="w-4 h-4 inline mr-2" />
             AI-Powered Sports League Management Platform
@@ -288,6 +275,21 @@ export default function PublicLanding() {
               </>
             )}
           </div>
+          </div>
+
+          {/* Right: AI wireframe athlete — blended into hero with white spirit flame */}
+          <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end">
+            {/* Animated white spirit flame behind */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-[55%] h-[80%] bg-white/25 rounded-full blur-3xl spirit-flame"></div>
+              <div className="absolute w-[40%] h-[60%] bg-white/30 rounded-full blur-2xl spirit-flame-2"></div>
+            </div>
+            <img
+              src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/f592808d5_download5.jpg"
+              alt="Futuristic AI wireframe athlete"
+              className="relative w-full max-w-md object-contain mix-blend-screen"
+              style={{ maskImage: 'radial-gradient(ellipse at center, black 65%, transparent 100%)', WebkitMaskImage: 'radial-gradient(ellipse at center, black 65%, transparent 100%)' }}
+            />
           </div>
          </div>
 

@@ -98,6 +98,29 @@
   100% { background-position: 0% 50%; }
 }
 
+/* White Spirit Flame Animation */
+.spirit-flame {
+  animation: spiritFlame 3.5s ease-in-out infinite;
+}
+.spirit-flame-2 {
+  animation: spiritFlame 2.8s ease-in-out infinite reverse;
+}
+
+@keyframes spiritFlame {
+  0%, 100% {
+    transform: scale(1) translateY(0) skewX(0deg);
+    opacity: 0.55;
+  }
+  33% {
+    transform: scale(1.12) translateY(-12px) skewX(3deg);
+    opacity: 0.85;
+  }
+  66% {
+    transform: scale(0.95) translateY(6px) skewX(-3deg);
+    opacity: 0.65;
+  }
+}
+
 /* Floating Animation */
 .float {
   animation: float 6s ease-in-out infinite;
