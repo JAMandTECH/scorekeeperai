@@ -207,13 +207,16 @@ export default function PublicLanding() {
           )}
         </div>
 
-        <div className="max-w-7xl mx-auto text-center relative z-10">
+        <div className="max-w-7xl mx-auto relative z-10">
+         <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
+          {/* Left: copy */}
+          <div className="text-center lg:text-left">
           <Badge className="mb-8 bg-cyan-500/20 backdrop-blur-md text-cyan-100 border-2 border-cyan-400/60 text-sm font-bold px-6 py-3 animate-pulse shadow-lg">
             <Sparkles className="w-4 h-4 inline mr-2" />
             AI-Powered Sports League Management Platform
           </Badge>
           
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-black mb-6" style={{ fontFamily: "'Arial Black', 'Arial Bold', Gadget, sans-serif", letterSpacing: '0.1em' }}>
+          <h1 className="text-6xl md:text-7xl lg:text-7xl font-black mb-6" style={{ fontFamily: "'Arial Black', 'Arial Bold', Gadget, sans-serif", letterSpacing: '0.08em' }}>
             <span className="text-white">SCOREKEEPER</span>
             <span 
               className="ml-2 bg-gradient-to-r from-cyan-400 via-cyan-300 to-cyan-500 bg-clip-text text-transparent" 
@@ -225,14 +228,14 @@ export default function PublicLanding() {
               AI
             </span>
           </h1>
-          <p className="text-2xl md:text-3xl text-blue-100 mb-4 max-w-4xl mx-auto font-bold">
+          <p className="text-2xl md:text-3xl text-blue-100 mb-4 max-w-2xl mx-auto lg:mx-0 font-bold">
             The Complete AI-Powered Solution for Basketball & Volleyball Leagues
           </p>
-          <p className="text-lg text-blue-200/80 mb-12 max-w-3xl mx-auto font-medium">
+          <p className="text-lg text-blue-200/80 mb-12 max-w-2xl mx-auto lg:mx-0 font-medium">
             Live scoring, AI insights, voice commands, and real-time statistics all in one powerful platform.
           </p>
           
-          <div className="flex gap-6 justify-center flex-wrap mb-16">
+          <div className="flex gap-6 justify-center lg:justify-start flex-wrap">
             {!isAuthenticated ? (
               <>
                 <Button 
@@ -272,6 +275,29 @@ export default function PublicLanding() {
               </>
             )}
           </div>
+          </div>
+
+          {/* Right: AI futuristic robot */}
+          <div className="relative flex justify-center lg:justify-end">
+            {/* Glow behind the image */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-[80%] h-[80%] bg-gradient-to-tr from-cyan-500/30 via-blue-500/20 to-red-500/20 rounded-full blur-3xl"></div>
+            </div>
+            <div className="relative rounded-3xl overflow-hidden border border-cyan-400/30 shadow-2xl shadow-cyan-500/20 max-w-md w-full group">
+              <img
+                src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/d62a7d35d_Gemini_Generated_Image_1lfa4e1lfa4e1lfa.png"
+                alt="Futuristic AI robot powering ScorekeeperAI"
+                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+              />
+              {/* Scan line / sheen */}
+              <div className="absolute inset-0 bg-gradient-to-t from-blue-950/40 via-transparent to-transparent pointer-events-none"></div>
+              <div className="absolute inset-x-0 bottom-0 p-5 flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                <span className="text-xs font-bold tracking-widest text-cyan-100 uppercase">AI Engine Online</span>
+              </div>
+            </div>
+          </div>
+         </div>
 
           {/* Stats Bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
