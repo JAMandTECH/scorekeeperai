@@ -395,6 +395,20 @@ export default function Home() {
             <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-cyan-500/30 to-blue-500/30 rounded-full blur-3xl animate-pulse"></div>
             <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
             {!user && <div className="absolute top-6 right-6 flex items-center gap-3 z-50"><button onClick={toggleDarkMode} className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-all">{darkMode ? <Sun className="w-6 h-6 text-white" /> : <Moon className="w-6 h-6 text-white" />}</button>{isAuthenticated && <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-3 bg-red-600/90 hover:bg-red-700 backdrop-blur-md rounded-xl transition-all font-bold text-white shadow-lg"><LogOut className="w-5 h-5" /><span className="hidden sm:inline">Logout</span></button>}</div>}
+            {organization && user && (
+              <div className="hidden lg:block absolute right-0 bottom-0 top-0 w-[40%] z-0 pointer-events-none">
+                <div className="relative w-full h-full flex items-end justify-center">
+                  <div className="smoke smoke-1"></div>
+                  <div className="smoke smoke-2"></div>
+                  <div className="smoke smoke-3"></div>
+                  <img
+                    src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/f18e6c393_Gemini_Generated_Image_2rtwlr2rtwlr2rtw_visioncut.png"
+                    alt="Athlete"
+                    className="relative z-10 h-full max-h-[520px] w-auto object-contain object-bottom drop-shadow-2xl"
+                  />
+                </div>
+              </div>
+            )}
             <div className="max-w-7xl mx-auto text-center relative z-10">
               {organization && user ? (
                 <div className="space-y-8">
