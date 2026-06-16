@@ -306,20 +306,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           ctx.textBaseline = 'middle';
           ctx.font = `700 ${valueSize}px Oswald, Inter, system-ui, Arial`;
 
-          // 3D floating extrusion — stacked dark-red copies offset down-right to fake depth
-          const depth = 26;
-          for (let d = depth; d >= 1; d--) {
-            const t = d / depth;
-            ctx.fillStyle = `rgba(${Math.round(90 + t * 30)}, 0, 0, 1)`;
-            ctx.fillText(valueStr, x + d * 0.9, y + d * 1.1);
-          }
-
-          // Soft floating drop shadow under the number
-          ctx.save();
-          ctx.shadowColor = 'rgba(0,0,0,0.55)';
-          ctx.shadowBlur = 60;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 40;
+          // Flat shiny red number
           const grad = ctx.createLinearGradient(0, y - valueSize * 0.5, 0, y + valueSize * 0.55);
           grad.addColorStop(0, '#c5161a');
           grad.addColorStop(0.42, '#7e0608');
@@ -327,19 +314,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           grad.addColorStop(0.58, '#5e0204');
           grad.addColorStop(1, '#3d0102');
           ctx.fillStyle = grad;
-          ctx.strokeStyle = '#2a0000';
-          ctx.lineWidth = 10;
-          ctx.strokeText(valueStr, x, y);
           ctx.fillText(valueStr, x, y);
-          ctx.restore();
-
-          // Top highlight sheen for a glossy floating look
-          ctx.save();
-          ctx.globalAlpha = 0.18;
-          ctx.fillStyle = '#ff8a82';
-          ctx.fillText(valueStr, x - 2, y - 4);
-          ctx.restore();
-          ctx.shadowBlur = 0;
 
           // Vertical label (always "PTS") to the right of the number — ITC Avant Garde Gothic Extra Light style
           const valueWidth = ctx.measureText(valueStr).width;
