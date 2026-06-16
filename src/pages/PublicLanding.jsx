@@ -280,10 +280,9 @@ export default function PublicLanding() {
           {/* Right: AI wireframe athlete */}
           <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end">
             <img
-              src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/ced23fbcb_Gemini_Generated_Image_2rtwlr2rtwlr2rtw.png"
+              src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/9e77316ac_Gemini_Generated_Image_2rtwlr2rtwlr2rtw_visioncut.png"
               alt="Futuristic AI wireframe athlete"
-              className="relative w-full max-w-md object-contain"
-              style={{ height: '85%' }}
+              className="relative w-4/5 max-w-md object-contain"
             />
           </div>
          </div>
