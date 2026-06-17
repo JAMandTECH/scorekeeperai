@@ -14,6 +14,8 @@ import AIInsights from "@/components/AIInsights";
 import AIAssistant from "@/components/AIAssistant";
 import SubscriptionBadge from "@/components/subscription/SubscriptionBadge";
 import RecentActivity from "@/components/dashboard/RecentActivity";
+import SportShowcase from "@/components/dashboard/SportShowcase";
+import FeaturedMatch from "@/components/dashboard/FeaturedMatch";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -118,6 +120,39 @@ export default function Dashboard() {
     refetchInterval: 15000,
   });
 
+  const { data: games = [] } = useQuery({
+    queryKey: ['dashboard-games', currentOrgId],
+    queryFn: () => base44.entities.Game.filter({ organization_id: currentOrgId }, '-game_date', 100),
+    enabled: !!currentOrgId,
+    refetchInterval: 15000,
+  });
+
+  const teamMap = React.useMemo(() => {
+    const m = {};
+    teams.forEach((t) => { m[t.id] = t; });
+    return m;
+  }, [teams]);
+
+  const featuredGame = React.useMemo(() => {
+    if (!games.length) return null;
+    const live = games.find((g) => g.status === 'in_progress' && !g.archived);
+    if (live) return live;
+    const upcoming = games
+      .filter((g) => g.status === 'scheduled' && !g.archived && g.game_date && new Date(g.game_date) >= new Date())
+      .sort((a, b) => new Date(a.game_date) - new Date(b.game_date))[0];
+    if (upcoming) return upcoming;
+    return games.find((g) => g.status === 'completed' && !g.archived) || null;
+  }, [games]);
+
+  const basketballTeams = teams.filter((t) => t.sport === 'basketball').length;
+  const volleyballTeams = teams.filter((t) => t.sport === 'volleyball').length;
+  const liveGamesCount = games.filter((g) => g.status === 'in_progress' && !g.archived).length;
+  const completedGamesCount = games.filter((g) => g.status === 'completed' && !g.archived).length;
+  const upcomingGames = games
+    .filter((g) => g.status === 'scheduled' && !g.archived && g.game_date && new Date(g.game_date) >= new Date())
+    .sort((a, b) => new Date(a.game_date) - new Date(b.game_date))
+    .slice(0, 4);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -200,7 +235,80 @@ export default function Dashboard() {
                 </Card>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {organization && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2">
+                    <FeaturedMatch
+                      game={featuredGame}
+                      homeTeam={featuredGame ? teamMap[featuredGame.home_team_id] : null}
+                      awayTeam={featuredGame ? teamMap[featuredGame.away_team_id] : null}
+                    />
+                  </div>
+                  <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic">
+                    <CardHeader className="border-b border-gray-200/50 dark:border-gray-700/50 py-4">
+                      <CardTitle className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-purple-500" /> Upcoming Games
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      {upcomingGames.length === 0 ? (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium py-6 text-center">No upcoming games scheduled</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {upcomingGames.map((g) => (
+                            <Link key={g.id} to="/games" className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+                              <span className="text-sm font-bold text-gray-900 dark:text-white truncate flex-1">
+                                {teamMap[g.home_team_id]?.name || 'TBD'} <span className="text-gray-400">vs</span> {teamMap[g.away_team_id]?.name || 'TBD'}
+                              </span>
+                              <span className="text-xs font-semibold text-purple-500 whitespace-nowrap">
+                                {new Date(g.game_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                              </span>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {organization && teams.length > 0 && (
+                <SportShowcase basketballTeams={basketballTeams} volleyballTeams={volleyballTeams} />
+              )}
+
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                <Card className="relative overflow-hidden border border-red-200/50 dark:border-red-800/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 card-hover group">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-red-500/20 to-rose-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
+                  <CardHeader className="relative z-10">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Live</CardTitle>
+                      <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <PlayCircle className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="relative z-10">
+                    <p className="text-5xl font-black bg-gradient-to-r from-red-500 to-rose-500 bg-clip-text text-transparent">{liveGamesCount}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold mt-2">Games now</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="relative overflow-hidden border border-indigo-200/50 dark:border-indigo-800/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 card-hover group">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-500/20 to-blue-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
+                  <CardHeader className="relative z-10">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Completed</CardTitle>
+                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <Trophy className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="relative z-10">
+                    <p className="text-5xl font-black bg-gradient-to-r from-indigo-500 to-blue-500 bg-clip-text text-transparent">{completedGamesCount}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold mt-2">Games played</p>
+                  </CardContent>
+                </Card>
+
                 <Card className="relative overflow-hidden border border-blue-200/50 dark:border-blue-800/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 card-hover group">
                   <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
                   <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
