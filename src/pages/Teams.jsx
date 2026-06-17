@@ -39,6 +39,8 @@ export default function Teams() {
   const [loading, setLoading] = useState(true);
   const queryClient = useQueryClient();
 
+  const canManageTeams = user?.role === 'admin';
+
   useEffect(() => {
     loadUser();
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -267,24 +269,26 @@ export default function Teams() {
               </Badge>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => handleEdit(team)}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => handleDeleteClick(team)}
-              className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
+          {canManageTeams && (
+            <div className="flex gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => handleEdit(team)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <Edit className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => handleDeleteClick(team)}
+                className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent className="relative z-10 space-y-4">
@@ -360,22 +364,26 @@ export default function Teams() {
                           Players
                         </Button>
                       </Link>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleEdit(team)}
-                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleDeleteClick(team)}
-                        className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      {canManageTeams && (
+                        <>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => handleEdit(team)}
+                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => handleDeleteClick(team)}
+                            className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -437,17 +445,19 @@ export default function Teams() {
                       Table
                     </Button>
                   </div>
-                  <Button 
-                    onClick={() => {
-                      setEditingTeam(null);
-                      setLogoFile(null);
-                      setShowForm(true);
-                    }}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Add Team
-                  </Button>
+                  {canManageTeams && (
+                    <Button 
+                      onClick={() => {
+                        setEditingTeam(null);
+                        setLogoFile(null);
+                        setShowForm(true);
+                      }}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
+                    >
+                      <Plus className="w-5 h-5 mr-2" />
+                      Add Team
+                    </Button>
+                  )}
                 </div>
               </div>
 
