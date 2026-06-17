@@ -1,11 +1,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, ChevronRight, Edit, Trash2, BarChart3, User } from "lucide-react";
+import { Trophy, ChevronRight, Edit, Trash2, BarChart3, User, Minus } from "lucide-react";
 
 /**
- * Dark leaderboard-style player list inspired by a sports ranking layout.
- * Each row: rank, avatar, name + team, stat columns, overall score badge, chevron.
+ * FIFA-style ranked leaderboard.
+ * Each row: rank + movement indicator, avatar w/ team flag, name + club,
+ * a strip of attribute columns, a large rating badge, and an open chevron.
  */
 export default function PlayerLeaderboard({
   players,
@@ -28,126 +29,127 @@ export default function PlayerLeaderboard({
   const ranked = [...players].sort((a, b) => computeScore(b) - computeScore(a));
 
   return (
-    <div className="rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 shadow-2xl overflow-hidden">
-      {/* Header */}
-      <div className="hidden md:grid grid-cols-[60px_56px_1fr_auto_88px_56px] items-center gap-4 px-6 py-4 border-b border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-        <span className="text-center">Rank</span>
-        <span className="text-center">Avatar</span>
-        <span>Player</span>
-        <span className="text-center hidden lg:block">Stats</span>
-        <span className="text-center">Avg Score</span>
-        <span></span>
-      </div>
+    <div className="rounded-2xl bg-[#0b1220] border border-slate-800/80 shadow-2xl overflow-hidden p-2 sm:p-3 space-y-2">
+      {ranked.map((player, idx) => {
+        const rank = idx + 1;
+        const teamLogo = getTeamLogo(player.team_id);
+        const score = computeScore(player);
+        const isTop = rank === 1;
 
-      {/* Rows */}
-      <div className="divide-y divide-slate-800/60">
-        {ranked.map((player, idx) => {
-          const rank = idx + 1;
-          const sport = getTeamSport(player.team_id);
-          const teamLogo = getTeamLogo(player.team_id);
-          const score = computeScore(player);
-          const isTop = rank === 1;
-
-          return (
-            <div
-              key={player.id}
-              className={`group grid grid-cols-[44px_1fr_auto] md:grid-cols-[60px_56px_1fr_auto_88px_56px] items-center gap-3 md:gap-4 px-4 md:px-6 py-3.5 transition-colors hover:bg-slate-800/40 ${
-                isTop ? "bg-gradient-to-r from-rose-500/5 to-transparent" : ""
-              }`}
-            >
-              {/* Rank */}
-              <div className="flex items-center justify-center">
-                {isTop ? (
-                  <Trophy className="w-6 h-6 text-rose-500 fill-rose-500/20" />
-                ) : (
-                  <span className="text-xl font-black text-slate-300 tabular-nums">{rank}</span>
-                )}
+        return (
+          <div
+            key={player.id}
+            className="group relative flex items-center gap-2 sm:gap-4 rounded-xl bg-gradient-to-r from-[#141d2e] to-[#0e1626] border border-slate-800/70 px-2 sm:px-4 py-2.5 hover:from-[#1a2536] transition-colors"
+          >
+            {/* Rank + movement */}
+            <div className="flex items-center gap-1.5 w-11 sm:w-14 shrink-0">
+              {isTop ? (
+                <Trophy className="w-6 h-6 text-rose-500 fill-rose-500/30 mx-auto" />
+              ) : (
+                <span className="text-2xl font-black text-white tabular-nums w-7 text-center">
+                  {rank}
+                </span>
+              )}
+              <div className="flex flex-col items-center leading-none">
+                <Minus className="w-3 h-3 text-slate-500" />
+                <span className="text-[9px] font-bold text-slate-500">0</span>
               </div>
+            </div>
 
-              {/* Avatar */}
-              <Avatar className="w-11 h-11 border-2 border-slate-700 shadow-lg">
-                <AvatarImage src={player.photo_url} />
+            {/* Avatar with team flag */}
+            <div className="relative shrink-0">
+              <Avatar className="w-11 h-11 sm:w-12 sm:h-12 border-2 border-slate-600/60 shadow-lg">
+                <AvatarImage src={player.photo_url} className="object-cover" />
                 <AvatarFallback className="bg-slate-700 text-white text-xs font-bold">
                   {player.jersey_number}
                 </AvatarFallback>
               </Avatar>
+              {teamLogo && (
+                <img
+                  src={teamLogo}
+                  alt=""
+                  className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full object-cover border-2 border-[#0e1626]"
+                />
+              )}
+            </div>
 
-              {/* Name + team */}
-              <div className="min-w-0">
-                <p className="font-bold text-white uppercase tracking-wide text-sm md:text-base truncate">
-                  {player.first_name} {player.last_name}
-                </p>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  {teamLogo && (
-                    <img src={teamLogo} alt="" className="w-4 h-4 rounded-full object-cover" />
-                  )}
-                  <span className="text-[11px] uppercase tracking-wide text-slate-400 truncate">
-                    {getTeamName(player.team_id)}
-                  </span>
-                </div>
-              </div>
+            {/* Name + club */}
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-white uppercase tracking-wide text-sm sm:text-[15px] truncate">
+                {player.first_name} {player.last_name}
+              </p>
+              <span className="text-[11px] uppercase tracking-wide text-slate-400 truncate block">
+                {getTeamName(player.team_id)}
+              </span>
+            </div>
 
-              {/* Stat columns */}
-              <div className="hidden lg:flex items-center gap-5">
-                {(player.stats || []).map((stat, i) => (
-                  <div key={i} className="text-center min-w-[34px]">
-                    <div className="text-[10px] font-bold text-rose-400/80 uppercase">{stat.label}</div>
-                    <div className="text-sm font-bold text-slate-200 tabular-nums">{stat.value || 0}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Score badge */}
-              <div className="hidden md:flex justify-center">
-                <div className="bg-gradient-to-br from-rose-500 to-rose-600 text-white font-black text-lg rounded-xl px-4 py-2 min-w-[64px] text-center shadow-lg shadow-rose-500/20 tabular-nums">
-                  {score}
-                </div>
-              </div>
-
-              {/* Actions / chevron */}
-              <div className="flex items-center justify-end gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onViewStats(player)}
-                  className="h-8 w-8 text-slate-400 hover:text-blue-400 hover:bg-slate-800"
-                  title="View statistics"
+            {/* Attribute columns */}
+            <div className="hidden md:flex items-center">
+              {(player.stats || []).map((stat, i) => (
+                <div
+                  key={i}
+                  className="text-center px-3 lg:px-3.5 border-l border-slate-700/50 first:border-l-0"
                 >
-                  <BarChart3 className="w-4 h-4" />
-                </Button>
-                {canManagePlayers && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onEdit(player)}
-                      className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDelete(player)}
-                      className="h-8 w-8 text-slate-400 hover:text-rose-400 hover:bg-slate-800"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </>
-                )}
-                <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-slate-300 transition-colors hidden md:block" />
+                  <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                    {stat.label}
+                  </div>
+                  <div className="text-sm font-bold text-white tabular-nums mt-0.5">
+                    {stat.value || 0}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Rating badge */}
+            <div className="shrink-0 ml-1 sm:ml-2">
+              <div className="bg-gradient-to-br from-rose-500 to-rose-700 text-white font-black text-xl sm:text-2xl rounded-2xl px-3.5 sm:px-5 py-2 sm:py-2.5 min-w-[56px] sm:min-w-[68px] text-center shadow-lg shadow-rose-500/25 tabular-nums">
+                {score}
               </div>
             </div>
-          );
-        })}
 
-        {ranked.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-slate-500">
-            <User className="w-10 h-10 mb-3" />
-            <p className="font-bold">No players found</p>
+            {/* Actions / chevron */}
+            <div className="flex items-center justify-end gap-0.5 shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onViewStats(player)}
+                className="h-8 w-8 text-slate-400 hover:text-blue-400 hover:bg-slate-800"
+                title="View statistics"
+              >
+                <BarChart3 className="w-4 h-4" />
+              </Button>
+              {canManagePlayers && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onEdit(player)}
+                    className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800 hidden sm:inline-flex"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDelete(player)}
+                    className="h-8 w-8 text-slate-400 hover:text-rose-400 hover:bg-slate-800 hidden sm:inline-flex"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+              <ChevronRight className="w-6 h-6 text-slate-500 group-hover:text-white transition-colors" />
+            </div>
           </div>
-        )}
-      </div>
+        );
+      })}
+
+      {ranked.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+          <User className="w-10 h-10 mb-3" />
+          <p className="font-bold">No players found</p>
+        </div>
+      )}
     </div>
   );
 }
