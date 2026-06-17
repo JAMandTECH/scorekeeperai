@@ -115,6 +115,8 @@ export default function Home() {
 
   const userNav = [
     { title: "Home", url: createPageUrl("Home"), icon: HomeIcon },
+    // Registered members of an organization can view the dashboard
+    ...(user?.active_organization_id || user?.organization_id ? [{ title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 }] : []),
     { title: "Teams", url: createPageUrl("Teams"), icon: Users },
     { title: "Players", url: createPageUrl("Players"), icon: Trophy },
     { title: "Register Team", url: createPageUrl("TeamRegistration"), icon: UserPlus },
