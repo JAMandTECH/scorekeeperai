@@ -104,6 +104,8 @@ export default function AdminSidebar({
   const userNav = {
     main: [
       { title: "Home", url: createPageUrl("Home"), icon: Home },
+      { title: "Teams", url: createPageUrl("Teams"), icon: Users },
+      { title: "Players", url: createPageUrl("Players"), icon: Trophy },
       { title: "Register Team", url: createPageUrl("TeamRegistration"), icon: UserPlus },
       { title: "Join Organization", url: createPageUrl("JoinOrganization"), icon: Building2 },
       { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
