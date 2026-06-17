@@ -13,6 +13,7 @@ import AdminSidebar from "@/components/AdminSidebar";
 import AIInsights from "@/components/AIInsights";
 import AIAssistant from "@/components/AIAssistant";
 import SubscriptionBadge from "@/components/subscription/SubscriptionBadge";
+import RecentActivity from "@/components/dashboard/RecentActivity";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -330,21 +331,11 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic">
-                  <CardHeader className="border-b border-gray-200/50 dark:border-gray-700/50">
-                    <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Recent Activity</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="text-center py-8">
-                      <div className="w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <TrendingUp className="w-8 h-8 text-cyan-600 dark:text-cyan-400" />
-                      </div>
-                      <p className="text-gray-500 dark:text-gray-400 font-medium">
-                        Activity tracking coming soon
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <RecentActivity
+                  organizationId={currentOrgId}
+                  teams={teams}
+                  players={players}
+                />
               </div>
             </div>
           </div>
