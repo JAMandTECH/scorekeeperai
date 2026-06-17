@@ -3,10 +3,12 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Calendar, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, BarChart3, Home as HomeIcon, PlayCircle, MessageCircle, UserPlus, Video } from "lucide-react";
+import { Calendar, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, BarChart3, Home as HomeIcon, PlayCircle, MessageCircle, UserPlus, Video, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
@@ -24,7 +26,16 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [bbDivTab, setBbDivTab] = useState('open');
+  const [showAIInsights, setShowAIInsights] = useState(() => localStorage.getItem('hideAIInsights') !== 'true');
   const navigate = useNavigate();
+
+  const toggleAIInsights = () => {
+    setShowAIInsights((prev) => {
+      const next = !prev;
+      localStorage.setItem('hideAIInsights', (!next).toString());
+      return next;
+    });
+  };
 
   useEffect(() => {
     initializePage();
@@ -435,7 +446,16 @@ export default function Home() {
             <div className="max-w-7xl mx-auto px-4 py-16">
               {organization && <div className="mb-12"><Card className="relative overflow-hidden border-2 border-blue-200 dark:border-blue-800 shadow-2xl"><div className="absolute inset-0 bg-gradient-to-br from-white via-blue-50/50 to-purple-50/50 dark:from-gray-800 dark:via-blue-950/30 dark:to-purple-950/30"></div><CardContent className="relative z-10 p-8"><div className="flex flex-col lg:flex-row items-center gap-8"><Avatar className="relative w-32 h-32 border-4 border-white dark:border-gray-700 shadow-2xl"><AvatarImage src={organization.logo_url} className="object-cover" /><AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-5xl">{organization.name?.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar><div className="flex-1 text-center lg:text-left"><Badge className="mb-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0 font-bold px-4 py-1">VIEWING YOUR ORGANIZATION</Badge><h2 className="text-4xl font-black text-gray-900 dark:text-white mb-2">{organization.name}</h2><p className="text-gray-600 dark:text-gray-400 font-medium mb-4">Complete sports league management and statistics</p></div></div></CardContent></Card></div>}
 
-              {isAdmin && (teams.length > 0 || games.length > 0) && <div className="mb-12"><AIInsights teams={teams} players={players} games={games} organizationName={organization?.name || "ScorekeeperAI"} /></div>}
+              {isAdmin && (teams.length > 0 || games.length > 0) && (
+                <div className="mb-12">
+                  <div className="flex items-center justify-end gap-3 mb-4">
+                    <Sparkles className="w-4 h-4 text-purple-500" />
+                    <Label htmlFor="toggle-ai-insights" className="text-sm font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">AI Insights</Label>
+                    <Switch id="toggle-ai-insights" checked={showAIInsights} onCheckedChange={toggleAIInsights} />
+                  </div>
+                  {showAIInsights && <AIInsights teams={teams} players={players} games={games} organizationName={organization?.name || "ScorekeeperAI"} />}
+                </div>
+              )}
 
               {games.filter(g => g.status === 'in_progress').length > 0 && (
                 <section className="mb-12">
