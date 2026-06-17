@@ -5,8 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Crown } from "lucide-react";
 
-const BASKETBALL_IMG = "https://media.base44.com/images/public/690476f21c3624553ac82b4f/51a6d4f65_generated_image.png";
-const VOLLEYBALL_IMG = "https://media.base44.com/images/public/690476f21c3624553ac82b4f/0e1f778f3_generated_image.png";
+const BASKETBALL_IMG = "https://media.base44.com/images/public/690476f21c3624553ac82b4f/21d6fe5db_generated_image.png";
+const VOLLEYBALL_IMG = "https://media.base44.com/images/public/690476f21c3624553ac82b4f/555569101_generated_image.png";
 
 const BASKETBALL_CATEGORIES = [
   { key: "total_points", label: "Points", color: "from-orange-500 to-red-500" },
@@ -34,6 +34,11 @@ function LeaderRow({ category, leader }) {
         <span className={`text-2xl font-black bg-gradient-to-r ${category.color} bg-clip-text text-transparent leading-none`}>
           {leader ? leader.value : 0}
         </span>
+        {leader && leader.games_played > 0 && (
+          <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 mt-0.5">
+            {leader.avg} avg
+          </span>
+        )}
       </div>
       {leader ? (
         <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -64,8 +69,11 @@ function SportLeaders({ title, image, overlay, categories, stats, playerMap, tea
       if (val > 0 && (!best || val > best.value)) {
         const player = playerMap[s.player_id];
         if (!player) return;
+        const gp = s.games_played || 0;
         best = {
           value: val,
+          games_played: gp,
+          avg: gp > 0 ? (val / gp).toFixed(1) : "0.0",
           first_name: player.first_name,
           last_name: player.last_name,
           photo_url: player.photo_url,
