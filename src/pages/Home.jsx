@@ -104,9 +104,10 @@ export default function Home() {
 
   const userNav = [
     { title: "Home", url: createPageUrl("Home"), icon: HomeIcon },
+    { title: "Teams", url: createPageUrl("Teams"), icon: Users },
+    { title: "Players", url: createPageUrl("Players"), icon: Trophy },
     { title: "Register Team", url: createPageUrl("TeamRegistration"), icon: UserPlus },
     { title: "Join Organization", url: createPageUrl("JoinOrganization"), icon: Building2 },
-    { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 },
     { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
   ];
 
