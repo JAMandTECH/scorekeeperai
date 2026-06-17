@@ -14,6 +14,7 @@ import AIInsights from "@/components/AIInsights";
 import AIAssistant from "@/components/AIAssistant";
 import SubscriptionBadge from "@/components/subscription/SubscriptionBadge";
 import RecentActivity from "@/components/dashboard/RecentActivity";
+import TopScorerSpotlight from "@/components/dashboard/TopScorerSpotlight";
 import CategoryLeaders from "@/components/dashboard/CategoryLeaders";
 import SportShowcase from "@/components/dashboard/SportShowcase";
 import FeaturedMatch from "@/components/dashboard/FeaturedMatch";
@@ -432,6 +433,10 @@ export default function Dashboard() {
                     />
                   )}
                 </div>
+              )}
+
+              {organization && players.length > 0 && (
+                <TopScorerSpotlight players={players} teams={teams} />
               )}
 
               {organization && (
