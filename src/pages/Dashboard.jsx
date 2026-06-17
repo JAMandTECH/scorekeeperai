@@ -14,6 +14,7 @@ import AIInsights from "@/components/AIInsights";
 import AIAssistant from "@/components/AIAssistant";
 import SubscriptionBadge from "@/components/subscription/SubscriptionBadge";
 import RecentActivity from "@/components/dashboard/RecentActivity";
+import CategoryLeaders from "@/components/dashboard/CategoryLeaders";
 import SportShowcase from "@/components/dashboard/SportShowcase";
 import FeaturedMatch from "@/components/dashboard/FeaturedMatch";
 
@@ -406,45 +407,19 @@ export default function Dashboard() {
                 </div>
               )}
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic">
-                  <CardHeader className="border-b border-gray-200/50 dark:border-gray-700/50">
-                    <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Quick Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6 space-y-3">
-                    <Link to="/teams">
-                      <Button className="w-full justify-start btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white font-bold shadow-lg rounded-xl transition-all duration-300 hover:scale-[1.02]">
-                        <Users className="w-5 h-5 mr-3" />
-                        Manage Teams
-                      </Button>
-                    </Link>
-                    <Link to="/players">
-                      <Button className="w-full justify-start btn-futuristic bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 text-white font-bold shadow-lg rounded-xl transition-all duration-300 hover:scale-[1.02]">
-                        <Trophy className="w-5 h-5 mr-3" />
-                        Manage Players
-                      </Button>
-                    </Link>
-                    <Link to="/games">
-                      <Button className="w-full justify-start btn-futuristic bg-gradient-to-r from-purple-500 via-violet-500 to-indigo-500 hover:from-purple-600 hover:via-violet-600 hover:to-indigo-600 text-white font-bold shadow-lg rounded-xl transition-all duration-300 hover:scale-[1.02]">
-                        <Calendar className="w-5 h-5 mr-3" />
-                        Schedule Games
-                      </Button>
-                    </Link>
-                    <Link to="/livescoring">
-                      <Button className="w-full justify-start btn-futuristic bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 hover:from-cyan-600 hover:via-blue-600 hover:to-purple-600 text-white font-bold shadow-lg rounded-xl transition-all duration-300 hover:scale-[1.02] neon-glow-blue">
-                        <PlayCircle className="w-5 h-5 mr-3" />
-                        Live Scoring
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-
-                <RecentActivity
+              {organization && (
+                <CategoryLeaders
                   organizationId={currentOrgId}
-                  teams={teams}
                   players={players}
+                  teams={teams}
                 />
-              </div>
+              )}
+
+              <RecentActivity
+                organizationId={currentOrgId}
+                teams={teams}
+                players={players}
+              />
             </div>
           </div>
         </main>
