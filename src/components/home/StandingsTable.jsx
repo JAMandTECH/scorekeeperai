@@ -19,7 +19,7 @@ export default function StandingsTable({ divisionData, organization, accent = "o
             <p className="text-primary text-xs font-bold tracking-[0.3em] uppercase mb-1">
               {accent === "blue" ? "Volleyball League" : "Basketball League"}
             </p>
-            <h3 className="text-3xl md:text-4xl font-black text-foreground italic tracking-tight">
+            <h3 className="text-2xl md:text-3xl font-black text-foreground italic tracking-tight">
               {divisionData.division}
             </h3>
           </div>
