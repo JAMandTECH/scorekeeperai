@@ -56,7 +56,7 @@ function ScorerCard({ label, topScorer, teamMap }) {
     <Card className="overflow-hidden border border-[#1c2c4a] bg-[#0d1830] shadow-futuristic">
       <div className="flex">
         {/* Full-height image column on the left */}
-        <div className="w-40 shrink-0 self-stretch bg-[#16243f] relative">
+        <div className="w-40 shrink-0 self-stretch bg-[#0d1830] relative">
           {p.photo_url ? (
             <img src={p.photo_url} alt={p.first_name} className="absolute inset-0 w-full h-full object-cover object-top" />
           ) : (
