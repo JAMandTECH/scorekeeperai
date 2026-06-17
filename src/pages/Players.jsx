@@ -106,7 +106,7 @@ export default function Players() {
   const sports = ['all', 'basketball', 'volleyball'];
 
   const { data: allPlayers = [] } = useQuery({
-    queryKey: ['players'],
+    queryKey: ['players', user?.organization_id],
     queryFn: () => base44.entities.Player.list('-created_date'),
     enabled: !!user,
   });
