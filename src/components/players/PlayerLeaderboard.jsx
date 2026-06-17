@@ -29,7 +29,7 @@ export default function PlayerLeaderboard({
   const ranked = [...players].sort((a, b) => computeScore(b) - computeScore(a));
 
   return (
-    <div className="rounded-2xl bg-[#0b1220] border border-slate-800/80 shadow-2xl overflow-hidden p-2 sm:p-3 space-y-2">
+    <div className="rounded-2xl bg-white dark:bg-[#0b1220] border border-gray-200 dark:border-slate-800/80 shadow-lg dark:shadow-2xl overflow-hidden p-2 sm:p-3 space-y-2">
       {ranked.map((player, idx) => {
         const rank = idx + 1;
         const teamLogo = getTeamLogo(player.team_id);
@@ -39,14 +39,14 @@ export default function PlayerLeaderboard({
         return (
           <div
             key={player.id}
-            className="group relative flex items-center gap-2 sm:gap-4 rounded-xl bg-gradient-to-r from-[#141d2e] to-[#0e1626] border border-slate-800/70 px-2 sm:px-4 py-2.5 hover:from-[#1a2536] transition-colors"
+            className="group relative flex items-center gap-2 sm:gap-4 rounded-xl bg-gray-50 dark:bg-gradient-to-r dark:from-[#141d2e] dark:to-[#0e1626] border border-gray-100 dark:border-slate-800/70 px-2 sm:px-4 py-2.5 hover:bg-gray-100 dark:hover:from-[#1a2536] transition-colors"
           >
             {/* Rank + movement */}
             <div className="flex items-center gap-1.5 w-11 sm:w-14 shrink-0">
               {isTop ? (
                 <Trophy className="w-6 h-6 text-rose-500 fill-rose-500/30 mx-auto" />
               ) : (
-                <span className="text-2xl font-black text-white tabular-nums w-7 text-center">
+                <span className="text-2xl font-black text-gray-900 dark:text-white tabular-nums w-7 text-center">
                   {rank}
                 </span>
               )}
@@ -58,9 +58,9 @@ export default function PlayerLeaderboard({
 
             {/* Avatar with team flag */}
             <div className="relative shrink-0">
-              <Avatar className="w-11 h-11 sm:w-12 sm:h-12 border-2 border-slate-600/60 shadow-lg">
+              <Avatar className="w-11 h-11 sm:w-12 sm:h-12 border-2 border-gray-300 dark:border-slate-600/60 shadow-lg">
                 <AvatarImage src={player.photo_url} className="object-cover" />
-                <AvatarFallback className="bg-slate-700 text-white text-xs font-bold">
+                <AvatarFallback className="bg-gray-300 dark:bg-slate-700 text-gray-700 dark:text-white text-xs font-bold">
                   {player.jersey_number}
                 </AvatarFallback>
               </Avatar>
@@ -68,17 +68,17 @@ export default function PlayerLeaderboard({
                 <img
                   src={teamLogo}
                   alt=""
-                  className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full object-cover border-2 border-[#0e1626]"
+                  className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full object-cover border-2 border-white dark:border-[#0e1626]"
                 />
               )}
             </div>
 
             {/* Name + club */}
             <div className="min-w-0 flex-1">
-              <p className="font-bold text-white uppercase tracking-wide text-sm sm:text-[15px] truncate">
+              <p className="font-bold text-gray-900 dark:text-white uppercase tracking-wide text-sm sm:text-[15px] truncate">
                 {player.first_name} {player.last_name}
               </p>
-              <span className="text-[11px] uppercase tracking-wide text-slate-400 truncate block">
+              <span className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400 truncate block">
                 {getTeamName(player.team_id)}
               </span>
             </div>
@@ -88,12 +88,12 @@ export default function PlayerLeaderboard({
               {(player.stats || []).map((stat, i) => (
                 <div
                   key={i}
-                  className="text-center px-3 lg:px-3.5 border-l border-slate-700/50 first:border-l-0"
+                  className="text-center px-3 lg:px-3.5 border-l border-gray-200 dark:border-slate-700/50 first:border-l-0"
                 >
-                  <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                  <div className="text-[9px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                     {stat.label}
                   </div>
-                  <div className="text-sm font-bold text-white tabular-nums mt-0.5">
+                  <div className="text-sm font-bold text-gray-900 dark:text-white tabular-nums mt-0.5">
                     {stat.value || 0}
                   </div>
                 </div>
@@ -113,7 +113,7 @@ export default function PlayerLeaderboard({
                 variant="ghost"
                 size="icon"
                 onClick={() => onViewStats(player)}
-                className="h-8 w-8 text-slate-400 hover:text-blue-400 hover:bg-slate-800"
+                className="h-8 w-8 text-gray-400 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-gray-200 dark:hover:bg-slate-800"
                 title="View statistics"
               >
                 <BarChart3 className="w-4 h-4" />
@@ -124,7 +124,7 @@ export default function PlayerLeaderboard({
                     variant="ghost"
                     size="icon"
                     onClick={() => onEdit(player)}
-                    className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800 hidden sm:inline-flex"
+                    className="h-8 w-8 text-gray-400 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-slate-800 hidden sm:inline-flex"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -132,20 +132,20 @@ export default function PlayerLeaderboard({
                     variant="ghost"
                     size="icon"
                     onClick={() => onDelete(player)}
-                    className="h-8 w-8 text-slate-400 hover:text-rose-400 hover:bg-slate-800 hidden sm:inline-flex"
+                    className="h-8 w-8 text-gray-400 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-gray-200 dark:hover:bg-slate-800 hidden sm:inline-flex"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </>
               )}
-              <ChevronRight className="w-6 h-6 text-slate-500 group-hover:text-white transition-colors" />
+              <ChevronRight className="w-6 h-6 text-gray-400 dark:text-slate-500 group-hover:text-gray-900 dark:group-hover:text-white transition-colors" />
             </div>
           </div>
         );
       })}
 
       {ranked.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+        <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-slate-500">
           <User className="w-10 h-10 mb-3" />
           <p className="font-bold">No players found</p>
         </div>
