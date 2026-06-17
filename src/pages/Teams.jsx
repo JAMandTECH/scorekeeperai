@@ -65,14 +65,16 @@ export default function Teams() {
     try {
       const currentUser = await base44.auth.me();
       console.log("Teams: User loaded", currentUser);
-      
-      if (!currentUser?.organization_id) {
-        console.log("Teams: No organization_id, redirecting to Dashboard");
-        window.location.href = createPageUrl("Dashboard");
+
+      const orgId = currentUser?.organization_id || currentUser?.active_organization_id;
+      if (!orgId) {
+        console.log("Teams: No organization, redirecting to JoinOrganization");
+        window.location.href = createPageUrl("JoinOrganization");
         return;
       }
-      
-      setUser(currentUser);
+
+      // Normalize so the rest of the page can rely on organization_id
+      setUser({ ...currentUser, organization_id: orgId });
     } catch (error) {
       console.error("Error loading user:", error);
       window.location.href = createPageUrl("Home");
