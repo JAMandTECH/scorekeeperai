@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TopAssistLeaders from "@/components/leaders/TopAssistLeaders";
+import LeaderCard from "@/components/leaders/LeaderCard";
 import StandingsTable from "@/components/home/StandingsTable";
 import GameCompactStats from "@/components/stats/GameCompactStats";
 import AIGameSummary from "@/components/AIGameSummary";
@@ -106,35 +107,36 @@ export default function BasketballSection({
               { title: 'Top 10 Rebounders', icon: TrendingUp, color: 'green', data: bbDivTab === 'open' ? topReboundersOpen : topReboundersVeterans },
               { title: 'Top 10 Blockers', icon: Shield, color: 'red', data: bbDivTab === 'open' ? topBlockersOpen : topBlockersVeterans },
               { title: 'Top 10 3-Pointer Leaders', icon: Zap, color: 'yellow', data: bbDivTab === 'open' ? top3PointersOpen : top3PointersVeterans },
-            ].slice(0,2).map(({ title, icon: Icon, color, data }) => {
-              const colorStyles = leaderColorStyles[color];
-              return (
-                <Card key={title} className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className={`border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r ${colorStyles.header}`}>
-                    <div className="flex items-center justify-between gap-3"><div className="flex items-center gap-3 min-w-0"><div className={`w-10 h-10 flex-shrink-0 bg-gradient-to-br ${colorStyles.icon} rounded-lg flex items-center justify-center`}><Icon className="w-6 h-6 text-white" /></div><CardTitle className="text-xl font-black text-gray-900 dark:text-white truncate">{title}</CardTitle></div><div className="flex items-center gap-2 flex-shrink-0">{organization?.name && <span className="text-sm font-bold text-gray-700 dark:text-gray-300 hidden sm:inline">{organization.name}</span>}{organization?.logo_url && <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md"><AvatarImage src={organization.logo_url} /><AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-xs">{(organization.name || '').substring(0,2).toUpperCase()}</AvatarFallback></Avatar>}</div></div>
-                  </CardHeader>
-                  <CardContent className="p-4"><div className="space-y-2">{data.length === 0 && <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>}{data.map((player, i) => <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all"><div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' : i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' : i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' : 'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'}`}>{i + 1}</div><Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md"><AvatarImage src={player.photo_url} /><AvatarFallback className={`bg-gradient-to-br ${colorStyles.avatar} text-white text-xs font-bold`}>{player.jersey_number}</AvatarFallback></Avatar><div className="flex-1 min-w-0"><p className="text-sm font-bold text-gray-900 dark:text-white truncate">{player.first_name} {player.last_name}</p><div className="flex items-center gap-2"><Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700"><AvatarImage src={player.teamLogoUrl} /><AvatarFallback className="bg-gray-200 text-[10px] font-bold">{player.teamName?.substring(0,2)?.toUpperCase()}</AvatarFallback></Avatar><p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p></div></div><div className="text-right"><p className={`text-2xl font-black ${colorStyles.value}`}>{player.total}</p><p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} {player.averageLabel}</p></div></div>)}</div></CardContent>
-                </Card>
-              );
-            })}
+            ].slice(0,2).map(({ title, icon: Icon, color, data }) => (
+              <LeaderCard
+                key={title}
+                title={title}
+                icon={Icon}
+                iconGradient={leaderColorStyles[color].icon}
+                organization={organization}
+                data={data}
+              />
+            ))}
 
             <div className="space-y-6">
-              <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
-                <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-red-50 to-white dark:from-gray-800 dark:to-gray-900">
-                  <div className="flex items-center justify-between gap-3"><div className="flex items-center gap-3 min-w-0"><div className="w-10 h-10 flex-shrink-0 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center"><Shield className="w-6 h-6 text-white" /></div><CardTitle className="text-xl font-black text-gray-900 dark:text-white truncate">Top 10 Blockers</CardTitle></div><div className="flex items-center gap-2 flex-shrink-0">{organization?.name && <span className="text-sm font-bold text-gray-700 dark:text-gray-300 hidden sm:inline">{organization.name}</span>}{organization?.logo_url && <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md"><AvatarImage src={organization.logo_url} /><AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-xs">{(organization.name || '').substring(0,2).toUpperCase()}</AvatarFallback></Avatar>}</div></div>
-                </CardHeader>
-                <CardContent className="p-4"><div className="space-y-2">{(bbDivTab === 'open' ? topBlockersOpen : topBlockersVeterans).length === 0 && <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>}{(bbDivTab === 'open' ? topBlockersOpen : topBlockersVeterans).map((player, i) => <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all"><div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' : i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' : i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' : 'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'}`}>{i + 1}</div><Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md"><AvatarImage src={player.photo_url} /><AvatarFallback className="bg-gradient-to-br from-red-600 to-red-700 text-white text-xs font-bold">{player.jersey_number}</AvatarFallback></Avatar><div className="flex-1 min-w-0"><p className="text-sm font-bold text-gray-900 dark:text-white truncate">{player.first_name} {player.last_name}</p><div className="flex items-center gap-2"><Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700"><AvatarImage src={player.teamLogoUrl} /><AvatarFallback className="bg-gray-200 text-[10px] font-bold">{player.teamName?.substring(0,2)?.toUpperCase()}</AvatarFallback></Avatar><p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p></div></div><div className="text-right"><p className="text-2xl font-black text-red-600 dark:text-red-400">{player.total}</p><p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} {player.averageLabel}</p></div></div>)}</div></CardContent>
-              </Card>
+              <LeaderCard
+                title="Top 10 Blockers"
+                icon={Shield}
+                iconGradient="from-red-500 to-red-600"
+                organization={organization}
+                data={bbDivTab === 'open' ? topBlockersOpen : topBlockersVeterans}
+              />
 
               {orgId ? <TopAssistLeaders organizationId={orgId} sport="basketball" division={bbDivTab === 'open' ? 'Open' : 'Veterans'} title={`Top 10 Assist Leaders — ${bbDivTab === 'open' ? 'Open' : 'Veterans'}`} orgName={organization?.name} orgLogoUrl={organization?.logo_url} /> : null}
             </div>
 
-            <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-yellow-50 to-white dark:from-gray-800 dark:to-gray-900">
-                <div className="flex items-center justify-between gap-3"><div className="flex items-center gap-3 min-w-0"><div className="w-10 h-10 flex-shrink-0 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center"><Zap className="w-6 h-6 text-white" /></div><CardTitle className="text-xl font-black text-gray-900 dark:text-white truncate">Top 10 3-Pointer Leaders</CardTitle></div><div className="flex items-center gap-2 flex-shrink-0">{organization?.name && <span className="text-sm font-bold text-gray-700 dark:text-gray-300 hidden sm:inline">{organization.name}</span>}{organization?.logo_url && <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md"><AvatarImage src={organization.logo_url} /><AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-xs">{(organization.name || '').substring(0,2).toUpperCase()}</AvatarFallback></Avatar>}</div></div>
-              </CardHeader>
-              <CardContent className="p-4"><div className="space-y-2">{(bbDivTab === 'open' ? top3PointersOpen : top3PointersVeterans).length === 0 && <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>}{(bbDivTab === 'open' ? top3PointersOpen : top3PointersVeterans).map((player, i) => <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all"><div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' : i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' : i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' : 'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'}`}>{i + 1}</div><Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md"><AvatarImage src={player.photo_url} /><AvatarFallback className="bg-gradient-to-br from-yellow-600 to-yellow-700 text-white text-xs font-bold">{player.jersey_number}</AvatarFallback></Avatar><div className="flex-1 min-w-0"><p className="text-sm font-bold text-gray-900 dark:text-white truncate">{player.first_name} {player.last_name}</p><div className="flex items-center gap-2"><Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700"><AvatarImage src={player.teamLogoUrl} /><AvatarFallback className="bg-gray-200 text-[10px] font-bold">{player.teamName?.substring(0,2)?.toUpperCase()}</AvatarFallback></Avatar><p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p></div></div><div className="text-right"><p className="text-2xl font-black text-yellow-600 dark:text-yellow-400">{player.total}</p><p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} {player.averageLabel}</p></div></div>)}</div></CardContent>
-            </Card>
+            <LeaderCard
+              title="Top 10 3-Pointer Leaders"
+              icon={Zap}
+              iconGradient="from-yellow-500 to-yellow-600"
+              organization={organization}
+              data={bbDivTab === 'open' ? top3PointersOpen : top3PointersVeterans}
+            />
           </div>
         </TabsContent>
 
