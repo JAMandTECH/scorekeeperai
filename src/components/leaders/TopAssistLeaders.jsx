@@ -29,14 +29,14 @@ export default function TopAssistLeaders({ organizationId = null, sport = "baske
   return (
     <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
       <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-white dark:from-gray-800 dark:to-gray-900">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 flex-shrink-0 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
               <span className="text-white text-lg font-black">A</span>
             </div>
-            <CardTitle className="text-xl font-black text-gray-900 dark:text-white">{title}</CardTitle>
+            <CardTitle className="text-xl font-black text-gray-900 dark:text-white truncate">{title}</CardTitle>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {orgName && <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{orgName}</span>}
             {orgLogoUrl && (
               <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
