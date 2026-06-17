@@ -161,7 +161,7 @@ function SportLeaders({ title, image, overlay, categories, stats, playerMap, tea
   );
 }
 
-export default function CategoryLeaders({ organizationId, players = [], teams = [] }) {
+export default function CategoryLeaders({ organizationId, players = [], teams = [], rightColumnExtra = null }) {
   const { data: seasonStats = [] } = useQuery({
     queryKey: ["category-leaders-stats", organizationId],
     queryFn: () => base44.entities.PlayerSeasonStats.filter({ organization_id: organizationId }),
@@ -196,15 +196,18 @@ export default function CategoryLeaders({ organizationId, players = [], teams = 
         teamMap={teamMap}
         splitDivisions
       />
-      <SportLeaders
-        title="Volleyball"
-        image={VOLLEYBALL_IMG}
-        overlay="from-cyan-950/95 via-blue-900/50 to-transparent"
-        categories={VOLLEYBALL_CATEGORIES}
-        stats={volleyballStats}
-        playerMap={playerMap}
-        teamMap={teamMap}
-      />
+      <div className="space-y-6">
+        <SportLeaders
+          title="Volleyball"
+          image={VOLLEYBALL_IMG}
+          overlay="from-cyan-950/95 via-blue-900/50 to-transparent"
+          categories={VOLLEYBALL_CATEGORIES}
+          stats={volleyballStats}
+          playerMap={playerMap}
+          teamMap={teamMap}
+        />
+        {rightColumnExtra}
+      </div>
     </div>
   );
 }

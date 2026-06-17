@@ -444,14 +444,23 @@ export default function Dashboard() {
                   organizationId={currentOrgId}
                   players={players}
                   teams={teams}
+                  rightColumnExtra={
+                    <RecentActivity
+                      organizationId={currentOrgId}
+                      teams={teams}
+                      players={players}
+                    />
+                  }
                 />
               )}
 
-              <RecentActivity
-                organizationId={currentOrgId}
-                teams={teams}
-                players={players}
-              />
+              {!organization && (
+                <RecentActivity
+                  organizationId={currentOrgId}
+                  teams={teams}
+                  players={players}
+                />
+              )}
             </div>
           </div>
         </main>
