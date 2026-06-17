@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, User, Edit, LayoutGrid, Table, Trash2, AlertTriangle, BarChart3 } from "lucide-react";
 import PlayerStatsDialog from "@/components/players/PlayerStatsDialog";
+import PlayerLeaderboard from "@/components/players/PlayerLeaderboard";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -779,7 +780,19 @@ export default function Players() {
                     })}
                   </div>
                 ) : (
-                  <PlayerTable players={players} />
+                  <PlayerLeaderboard
+                    players={players}
+                    getTeamName={getTeamName}
+                    getTeamLogo={getTeamLogo}
+                    getTeamSport={getTeamSport}
+                    canManagePlayers={canManagePlayers}
+                    onViewStats={setStatsPlayer}
+                    onEdit={(player) => {
+                      setEditingPlayer(player);
+                      setShowForm(true);
+                    }}
+                    onDelete={handleDeleteClick}
+                  />
                 )
               ) : (
                 <div className="text-center py-20">
