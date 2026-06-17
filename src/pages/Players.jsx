@@ -40,6 +40,8 @@ export default function Players() {
   const [darkMode, setDarkMode] = useState(false);
   const queryClient = useQueryClient();
 
+  const canManagePlayers = user?.role === 'admin';
+
   useEffect(() => {
     loadUser();
     const urlParams = new URLSearchParams(window.location.search);
@@ -370,25 +372,29 @@ export default function Players() {
             >
               <BarChart3 className="w-4 h-4" />
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => {
-                setEditingPlayer(player);
-                setShowForm(true);
-              }}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => handleDeleteClick(player)}
-              className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            {canManagePlayers && (
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => {
+                    setEditingPlayer(player);
+                    setShowForm(true);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => handleDeleteClick(player)}
+                  className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -535,25 +541,29 @@ export default function Players() {
                           >
                             <BarChart3 className="w-4 h-4" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => {
-                              setEditingPlayer(player);
-                              setShowForm(true);
-                            }}
-                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => handleDeleteClick(player)}
-                            className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {canManagePlayers && (
+                            <>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => {
+                                  setEditingPlayer(player);
+                                  setShowForm(true);
+                                }}
+                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleDeleteClick(player)}
+                                className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -596,16 +606,18 @@ export default function Players() {
                   <h1 className="text-4xl font-black text-gray-900 dark:text-white">Players</h1>
                   <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Manage player rosters</p>
                 </div>
-                <Button 
-                  onClick={() => {
-                    setEditingPlayer(null);
-                    setShowForm(true);
-                  }}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
-                >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Add Player
-                </Button>
+                {canManagePlayers && (
+                  <Button 
+                    onClick={() => {
+                      setEditingPlayer(null);
+                      setShowForm(true);
+                    }}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Add Player
+                  </Button>
+                )}
               </div>
 
               <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">
