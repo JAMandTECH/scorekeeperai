@@ -56,56 +56,24 @@
       "created_by": "{{user.email}}"
     },
     "read": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin",
-            "is_super_admin": true
-          }
-        },
-        {
-          "team_id": {
-            "$in": {
-              "entity": "Team",
-              "query": {
-                "organization_id": "{{user.organization_id}}"
-              },
-              "field": "id"
-            }
-          }
-        },
-        {
-          "team_id": {
-            "$in": {
-              "entity": "Team",
-              "query": {
-                "organization_id": "{{user.active_organization_id}}"
-              },
-              "field": "id"
-            }
-          }
-        }
-      ]
+      "user_condition": {}
     },
     "update": {
       "user_condition": {
         "role": "admin"
-      },
-      "team_id": {
-        "$in": {
-          "entity": "Team",
-          "query": {
-            "organization_id": "{{user.organization_id}}"
-          },
-          "field": "id"
-        }
       }
     },
     "delete": {
-      "created_by": "{{user.email}}"
-    },
-    "write": {
-      "created_by": "{{user.email}}"
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "created_by": "{{user.email}}"
+        }
+      ]
     }
   }
 }
