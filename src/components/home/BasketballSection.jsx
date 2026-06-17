@@ -102,7 +102,6 @@ export default function BasketballSection({
         </TabsContent>
 
         <TabsContent value="leaders">
-          {!isAdmin ? null : (
           <div className="grid md:grid-cols-2 gap-6">
             {[
               { title: 'Top 10 Scorers', icon: Target, color: 'blue', data: bbDivTab === 'open' ? topScorersOpen : topScorersVeterans },
@@ -139,7 +138,6 @@ export default function BasketballSection({
               <CardContent className="p-4"><div className="space-y-2">{(bbDivTab === 'open' ? top3PointersOpen : top3PointersVeterans).length === 0 && <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>}{(bbDivTab === 'open' ? top3PointersOpen : top3PointersVeterans).map((player, i) => <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all"><div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' : i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' : i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' : 'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'}`}>{i + 1}</div><Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md"><AvatarImage src={player.photo_url} /><AvatarFallback className="bg-gradient-to-br from-yellow-600 to-yellow-700 text-white text-xs font-bold">{player.jersey_number}</AvatarFallback></Avatar><div className="flex-1 min-w-0"><p className="text-sm font-bold text-gray-900 dark:text-white truncate">{player.first_name} {player.last_name}</p><div className="flex items-center gap-2"><Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700"><AvatarImage src={player.teamLogoUrl} /><AvatarFallback className="bg-gray-200 text-[10px] font-bold">{player.teamName?.substring(0,2)?.toUpperCase()}</AvatarFallback></Avatar><p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p></div></div><div className="text-right"><p className="text-2xl font-black text-yellow-600 dark:text-yellow-400">{player.total}</p><p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} {player.averageLabel}</p></div></div>)}</div></CardContent>
             </Card>
           </div>
-          )}
         </TabsContent>
 
         <TabsContent value="schedule">
