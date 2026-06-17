@@ -128,12 +128,9 @@ export default function AdminSidebar({
   } else if (isAdmin) {
     navStructure = adminNav;
   } else if (role) {
-    // Custom-role user: same grouped structure as admin, but strip the
-    // Dashboard link (Dashboard is admin-only and will bounce them back).
-    navStructure = {
-      ...adminNav,
-      main: adminNav.main.filter((item) => item.title !== "Dashboard"),
-    };
+    // Custom-role user: same grouped structure as admin. Registered org
+    // members can now view the Dashboard, so the link is kept.
+    navStructure = adminNav;
   } else {
     navStructure = userNav;
   }

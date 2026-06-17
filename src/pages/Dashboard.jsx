@@ -66,8 +66,10 @@ export default function Dashboard() {
         return;
       }
       
-      // Only allow admins
-      if (currentUser.role !== 'admin') {
+      // Admins and registered organization members can view the dashboard.
+      // Users with no organization association are sent home.
+      const belongsToOrg = currentUser.active_organization_id || currentUser.organization_id;
+      if (currentUser.role !== 'admin' && !belongsToOrg) {
         navigate("/");
         return;
       }
@@ -176,6 +178,7 @@ export default function Dashboard() {
   }
 
   const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
+  const isAdmin = user?.role === 'admin';
   const organizationCount = isSuperAdmin ? allOrganizations.length : (organization ? 1 : 0);
 
   return (
@@ -213,7 +216,7 @@ export default function Dashboard() {
                       ? `Manage ${organization.name}` 
                       : 'Loading organization...'}
                 </p>
-                {organization && (
+                {organization && isAdmin && (
                   <div className="mt-3 flex items-center gap-3">
                     <SubscriptionBadge organization={organization} />
                     {isSuperAdmin && (
@@ -417,7 +420,7 @@ export default function Dashboard() {
                 </Link>
               </div>
 
-              {organization && teams.length > 0 && (
+              {organization && teams.length > 0 && isAdmin && (
                 <div>
                   <div className="flex items-center justify-end gap-3 mb-4">
                     <Sparkles className="w-4 h-4 text-purple-500" />
