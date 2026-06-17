@@ -54,48 +54,49 @@ function ScorerCard({ label, topScorer, teamMap }) {
   const teamName = teamMap[p.team_id]?.name || "—";
 
   return (
-    <Card className="overflow-hidden border border-[#1c2c4a] bg-[#0d1830] shadow-futuristic">
-      <div className="relative px-5 pt-5 pb-4 bg-gradient-to-r from-[#13233f] to-[#0d1830]">
+    <Card className="relative overflow-hidden border border-[#1c2c4a] bg-[#0d1830] shadow-futuristic">
+      {/* Large floating background image, overlapping under the stats */}
+      <div className="absolute inset-0 flex items-start justify-center pointer-events-none">
+        {p.photo_url ? (
+          <img src={p.photo_url} alt={p.first_name} className="w-full h-full object-cover object-top opacity-25 drop-shadow-2xl" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-white/10 text-9xl font-black">{initials}</div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0d1830] via-[#0d1830]/70 to-transparent" />
+      </div>
+
+      <div className="relative z-10 px-5 pt-5 pb-4">
         <div className="flex items-center gap-2 mb-4">
           <Crown className="w-4 h-4 text-yellow-300" />
           <span className="text-xs font-black uppercase tracking-widest text-slate-300">Top Scorer · {label}</span>
         </div>
         <div className="flex items-center gap-4">
-          <div className="w-60 h-72 shrink-0">
-            {p.photo_url ? (
-              <img src={p.photo_url} alt={p.first_name} className="w-full h-full object-contain drop-shadow-2xl" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white text-2xl font-black drop-shadow-2xl">
-                {initials}
-              </div>
-            )}
-          </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xl font-black text-white truncate">{p.first_name} {p.last_name}</p>
-            <p className="text-sm text-slate-400 truncate">{teamName}{p.jersey_number ? ` · #${p.jersey_number}` : ""}</p>
+            <p className="text-xl font-black text-white truncate drop-shadow-lg">{p.first_name} {p.last_name}</p>
+            <p className="text-sm text-slate-300 truncate drop-shadow">{teamName}{p.jersey_number ? ` · #${p.jersey_number}` : ""}</p>
           </div>
           <div className="text-right shrink-0">
-            <p className="text-4xl font-black bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent leading-none">
+            <p className="text-4xl font-black bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent leading-none drop-shadow-lg">
               {topScorer.ppg.toFixed(1)}
             </p>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-1">PPG</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-300 mt-1">PPG</p>
           </div>
         </div>
       </div>
 
-      <CardContent className="pt-4">
+      <CardContent className="relative z-10 pt-4">
         <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="rounded-xl bg-[#16243f] p-3 text-center">
+          <div className="rounded-xl bg-[#16243f]/80 backdrop-blur-sm p-3 text-center">
             <p className="text-lg font-black text-white">{topScorer.stats.total_points || 0}</p>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Total Pts</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-300">Total Pts</p>
           </div>
-          <div className="rounded-xl bg-[#16243f] p-3 text-center">
+          <div className="rounded-xl bg-[#16243f]/80 backdrop-blur-sm p-3 text-center">
             <p className="text-lg font-black text-white">{topScorer.gp}</p>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Games</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-300">Games</p>
           </div>
-          <div className="rounded-xl bg-[#16243f] p-3 text-center">
+          <div className="rounded-xl bg-[#16243f]/80 backdrop-blur-sm p-3 text-center">
             <p className="text-lg font-black text-white">{topScorer.stats.total_rebounds || 0}</p>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Rebounds</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-300">Rebounds</p>
           </div>
         </div>
 
