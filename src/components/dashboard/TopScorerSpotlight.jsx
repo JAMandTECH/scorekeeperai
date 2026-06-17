@@ -61,10 +61,15 @@ function ScorerCard({ label, topScorer, teamMap }) {
           <span className="text-xs font-black uppercase tracking-widest text-slate-300">Top Scorer · {label}</span>
         </div>
         <div className="flex items-center gap-4">
-          <Avatar className="w-16 h-16 ring-2 ring-yellow-400/60">
-            <AvatarImage src={p.photo_url} alt={p.first_name} />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-lg font-black">{initials}</AvatarFallback>
-          </Avatar>
+          <div className="w-24 h-28 shrink-0 rounded-xl overflow-hidden ring-2 ring-yellow-400/60 bg-[#16243f]">
+            {p.photo_url ? (
+              <img src={p.photo_url} alt={p.first_name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-2xl font-black">
+                {initials}
+              </div>
+            )}
+          </div>
           <div className="min-w-0 flex-1">
             <p className="text-xl font-black text-white truncate">{p.first_name} {p.last_name}</p>
             <p className="text-sm text-slate-400 truncate">{teamName}{p.jersey_number ? ` · #${p.jersey_number}` : ""}</p>
