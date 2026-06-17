@@ -66,7 +66,7 @@ export default function Teams() {
       const currentUser = await base44.auth.me();
       console.log("Teams: User loaded", currentUser);
 
-      const orgId = currentUser?.organization_id || currentUser?.active_organization_id;
+      const orgId = currentUser?.active_organization_id || currentUser?.organization_id;
       if (!orgId) {
         console.log("Teams: No organization, redirecting to JoinOrganization");
         window.location.href = createPageUrl("JoinOrganization");

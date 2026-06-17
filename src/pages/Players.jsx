@@ -70,7 +70,10 @@ export default function Players() {
   const loadUser = async () => {
     try {
       const currentUser = await base44.auth.me();
-      setUser(currentUser);
+      // For multi-org users, the active organization (set by the org switcher) is the
+      // org being viewed. Prefer it over the primary organization_id.
+      const orgId = currentUser?.active_organization_id || currentUser?.organization_id;
+      setUser({ ...currentUser, organization_id: orgId });
     } catch (error) {
       console.error("Error loading user:", error);
       base44.auth.redirectToLogin(createPageUrl("Players"));
