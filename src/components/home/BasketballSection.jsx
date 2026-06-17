@@ -84,9 +84,7 @@ export default function BasketballSection({
         <TabsList className="relative w-full bg-white/80 dark:bg-gray-800/70 backdrop-blur-sm border border-gray-200/80 dark:border-gray-700/70 p-1.5 rounded-2xl shadow-futuristic flex flex-wrap items-center justify-between gap-2">
           <div className="flex gap-1">
             <TabsTrigger value="standings" className="px-6 py-2 rounded-xl font-semibold text-gray-700 dark:text-gray-300 transition-all data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:scale-[1.02] data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 hover:bg-gray-100 dark:hover:bg-gray-700">Standings</TabsTrigger>
-            {isAdmin && (
-              <TabsTrigger value="leaders" className="px-6 py-2 rounded-xl font-semibold text-gray-700 dark:text-gray-300 transition-all data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:scale-[1.02] data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 hover:bg-gray-100 dark:hover:bg-gray-700">Player Leaders</TabsTrigger>
-            )}
+            <TabsTrigger value="leaders" className="px-6 py-2 rounded-xl font-semibold text-gray-700 dark:text-gray-300 transition-all data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:scale-[1.02] data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 hover:bg-gray-100 dark:hover:bg-gray-700">Player Leaders</TabsTrigger>
             <TabsTrigger value="schedule" className="px-6 py-2 rounded-xl font-semibold text-gray-700 dark:text-gray-300 transition-all data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:scale-[1.02] data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 hover:bg-gray-100 dark:hover:bg-gray-700">Schedule & Results</TabsTrigger>
           </div>
           <div className="flex gap-2 pr-1">
