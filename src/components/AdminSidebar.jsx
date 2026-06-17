@@ -104,6 +104,8 @@ export default function AdminSidebar({
   const userNav = {
     main: [
       { title: "Home", url: createPageUrl("Home"), icon: Home },
+      // Registered members of an organization can view the dashboard
+      ...(organization ? [{ title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 }] : []),
       { title: "Teams", url: createPageUrl("Teams"), icon: Users },
       { title: "Players", url: createPageUrl("Players"), icon: Trophy },
       { title: "Register Team", url: createPageUrl("TeamRegistration"), icon: UserPlus },
