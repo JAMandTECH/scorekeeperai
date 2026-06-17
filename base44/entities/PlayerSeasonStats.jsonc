@@ -1,0 +1,105 @@
+{
+  "name": "PlayerSeasonStats",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string",
+      "description": "Organization this stat record belongs to"
+    },
+    "player_id": {
+      "type": "string",
+      "description": "Player this stat record belongs to"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "Team the player belongs to"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "basketball",
+        "volleyball"
+      ],
+      "description": "Sport for these aggregated stats"
+    },
+    "games_played": {
+      "type": "number",
+      "default": 0
+    },
+    "total_points": {
+      "type": "number",
+      "default": 0
+    },
+    "total_rebounds": {
+      "type": "number",
+      "default": 0
+    },
+    "total_assists": {
+      "type": "number",
+      "default": 0
+    },
+    "total_steals": {
+      "type": "number",
+      "default": 0
+    },
+    "total_blocks": {
+      "type": "number",
+      "default": 0
+    },
+    "total_three_pointers": {
+      "type": "number",
+      "default": 0
+    },
+    "total_aces": {
+      "type": "number",
+      "default": 0
+    },
+    "total_attacks": {
+      "type": "number",
+      "default": 0
+    },
+    "counted_game_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "List of game IDs already aggregated into this record (ensures idempotency)"
+    },
+    "last_aggregated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this record was last updated by the aggregator"
+    }
+  },
+  "required": [
+    "organization_id",
+    "player_id",
+    "sport"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {}
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin",
+        "is_super_admin": true
+      }
+    }
+  }
+}

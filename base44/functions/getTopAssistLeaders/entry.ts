@@ -1,68 +1,32 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function fetchWithRetry(base44, filter, attempt = 1) {
+async function fetchWithRetry(fn, attempt = 1) {
   try {
-    return await base44.asServiceRole.entities.PlayerGameStats.filter(filter);
+    return await fn();
   } catch (err) {
     const msg = String(err?.message || '');
     const isRateLimited = /429|rate limit/i.test(msg);
     if (isRateLimited && attempt < 6) {
-      const delay = 250 * Math.pow(2, attempt - 1);
-      await sleep(delay);
-      return fetchWithRetry(base44, filter, attempt + 1);
+      await sleep(300 * Math.pow(2, attempt - 1));
+      return fetchWithRetry(fn, attempt + 1);
     }
     throw err;
   }
 }
 
-async function fetchPlayerStatsForGames(base44, gameIds) {
-  const ids = Array.from(new Set((gameIds || []).filter(Boolean)));
-  const results = [];
-
-  for (let i = 0; i < ids.length; i += 25) {
-    const chunk = ids.slice(i, i + 25);
-    let chunkResults = [];
-
-    try {
-      chunkResults = await fetchWithRetry(base44, { game_id: { $in: chunk } });
-    } catch (_) {
-      chunkResults = [];
-    }
-
-    if (!Array.isArray(chunkResults) || (chunkResults.length === 0 && chunk.length > 1)) {
-      for (let j = 0; j < chunk.length; j += 3) {
-        const batch = chunk.slice(j, j + 3);
-        const batchResults = await Promise.all(
-          batch.map((gameId) => fetchWithRetry(base44, { game_id: gameId }).catch(() => []))
-        );
-        results.push(...batchResults.flat());
-        if (j + 3 < chunk.length) await sleep(300);
-      }
-    } else {
-      results.push(...chunkResults);
-    }
-
-    if (i + 25 < ids.length) await sleep(200);
-  }
-
-  return results;
-}
-
 async function fetchPlayersForTeams(base44, teamIds) {
   const ids = Array.from(new Set((teamIds || []).filter(Boolean)));
   const players = [];
-
   for (let i = 0; i < ids.length; i += 3) {
     const batch = ids.slice(i, i + 3);
     const batchResults = await Promise.all(
       batch.map((teamId) => base44.asServiceRole.entities.Player.filter({ team_id: teamId }).catch(() => []))
     );
     players.push(...batchResults.flat());
-    if (i + 3 < ids.length) await sleep(250);
+    if (i + 3 < ids.length) await sleep(200);
   }
-
   return players;
 }
 
@@ -70,7 +34,6 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Auth optional for public dashboards; ignore failures
     try { await base44.auth.me(); } catch (_) {}
 
     let payload = {};
@@ -81,86 +44,60 @@ Deno.serve(async (req) => {
     const sport = String(payload.sport || 'basketball').toLowerCase();
     const division = payload.division != null ? String(payload.division).toLowerCase() : null;
 
-    // Fetch teams and completed games (service role to avoid RLS issues for public)
-    const [teamsRaw, gamesRaw] = await Promise.all([
-      organizationId
-        ? base44.asServiceRole.entities.Team.filter({ organization_id: organizationId })
-        : base44.asServiceRole.entities.Team.list(),
-      organizationId
-        ? base44.asServiceRole.entities.Game.filter({ organization_id: organizationId, status: 'completed' })
-        : base44.asServiceRole.entities.Game.filter({ status: 'completed' })
-    ]);
-
-    // Filter by sport and optional division
-    const teams = (teamsRaw || []).filter((t) => {
-      const sportMatch = String(t.sport || '').toLowerCase() === sport;
-      if (!sportMatch) return false;
-      if (!division) return true;
-      const div = String(t.division || '').toLowerCase();
-      return div.includes(division);
-    });
-
-    const games = (gamesRaw || []).filter((g) => {
-      const sportMatch = String(g.sport || '').toLowerCase() === sport;
-      if (!sportMatch) return false;
-      if (!division) return true;
-      const div = String(g.division || '').toLowerCase();
-      return div.includes(division);
-    });
-
-    if (!teams.length || !games.length) {
+    if (!organizationId) {
       return Response.json({ leaders: [], count: 0, sport, division, organization_id: organizationId });
     }
 
-    const teamIds = teams.map((t) => t.id);
-    const teamIdSet = new Set(teamIds);
-    const completedGameIds = games.map((g) => g.id);
+    // FAST PATH: read pre-aggregated season stats (tiny table). Filter by sport.
+    const seasonStats = await fetchWithRetry(() =>
+      base44.asServiceRole.entities.PlayerSeasonStats.filter({ organization_id: organizationId, sport })
+    );
 
-    const allStats = await fetchPlayerStatsForGames(base44, completedGameIds);
-
-    if (!allStats.length) {
+    if (!Array.isArray(seasonStats) || seasonStats.length === 0) {
+      // No aggregated data yet (backfill may still be running). Return empty rather than running a heavy scan.
       return Response.json({ leaders: [], count: 0, sport, division, organization_id: organizationId });
     }
 
-    // Build a team map for quick lookups
-    const teamMap = new Map(teams.map((t) => [t.id, t]));
+    // Load teams for names/logos and optional division filtering
+    const teamsRaw = await fetchWithRetry(() =>
+      base44.asServiceRole.entities.Team.filter({ organization_id: organizationId })
+    );
+    const teamMap = new Map((teamsRaw || []).map((t) => [t.id, t]));
 
+    // Need player details for names/photos/jersey
+    const teamIds = Array.from(new Set(seasonStats.map((s) => s.team_id).filter(Boolean)));
     const players = await fetchPlayersForTeams(base44, teamIds);
     const playerMap = new Map(players.map((p) => [p.id, p]));
 
-    // Aggregate assists per player
-    const agg = new Map(); // player_id -> { total_assists: number, games: Set<game_id> }
-    for (const s of allStats) {
-      const pid = s.player_id;
-      if (!pid || !playerMap.has(pid)) continue;
-      if (!agg.has(pid)) agg.set(pid, { total_assists: 0, games: new Set() });
-      const rec = agg.get(pid);
-      rec.total_assists += Number(s.assists || 0);
-      rec.games.add(s.game_id);
-    }
-
-    // Build response
-    const leaders = Array.from(agg.entries())
-      .map(([playerId, { total_assists, games }]) => {
-        const player = playerMap.get(playerId) || {};
-        const team = teamMap.get(player.team_id) || {};
-        const gamesPlayed = games.size;
-        const apg = gamesPlayed > 0 ? Number((total_assists / gamesPlayed).toFixed(1)) : 0;
+    const leaders = seasonStats
+      .map((s) => {
+        const player = playerMap.get(s.player_id) || {};
+        const team = teamMap.get(player.team_id || s.team_id) || {};
+        const totalAssists = Number(s.total_assists || 0);
+        const gamesPlayed = Number(s.games_played || 0);
+        const apg = gamesPlayed > 0 ? Number((totalAssists / gamesPlayed).toFixed(1)) : 0;
         return {
-          player_id: playerId,
+          player_id: s.player_id,
           first_name: player.first_name,
           last_name: player.last_name,
           jersey_number: player.jersey_number || '',
-          team_id: player.team_id,
+          team_id: player.team_id || s.team_id,
           team_name: team.name || 'Unknown',
           team_logo_url: team.logo_url || '',
-          total_assists,
+          team_division: team.division || '',
+          total_assists: totalAssists,
           games_played: gamesPlayed,
           apg,
           photo_url: player.photo_url || ''
         };
       })
-      .filter((p) => p.total_assists > 0)
+      // Only include players whose team still exists and matches the optional division filter
+      .filter((p) => {
+        if (!playerMap.has(p.player_id)) return false;
+        if (p.total_assists <= 0) return false;
+        if (!division) return true;
+        return String(p.team_division || '').toLowerCase().includes(division);
+      })
       .sort((a, b) => b.total_assists - a.total_assists)
       .slice(0, limit);
 
