@@ -61,7 +61,7 @@ function ScorerCard({ label, topScorer, teamMap }) {
           <span className="text-xs font-black uppercase tracking-widest text-slate-300">Top Scorer · {label}</span>
         </div>
         <div className="flex items-center gap-4">
-          <div className="w-24 h-28 shrink-0">
+          <div className="w-60 h-72 shrink-0">
             {p.photo_url ? (
               <img src={p.photo_url} alt={p.first_name} className="w-full h-full object-contain drop-shadow-2xl" />
             ) : (
