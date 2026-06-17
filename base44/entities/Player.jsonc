@@ -55,7 +55,38 @@
     "create": {
       "created_by": "{{user.email}}"
     },
-    "read": true,
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "team_id": {
+            "$in": {
+              "entity": "Team",
+              "query": {
+                "organization_id": "{{user.organization_id}}"
+              },
+              "field": "id"
+            }
+          }
+        },
+        {
+          "team_id": {
+            "$in": {
+              "entity": "Team",
+              "query": {
+                "organization_id": "{{user.active_organization_id}}"
+              },
+              "field": "id"
+            }
+          }
+        }
+      ]
+    },
     "update": {
       "user_condition": {
         "role": "admin"
