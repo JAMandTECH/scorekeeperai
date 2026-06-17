@@ -28,14 +28,14 @@ function LeaderRow({ category, leader }) {
     ? `${(leader.first_name || "?")[0] || ""}${(leader.last_name || "")[0] || ""}`.toUpperCase()
     : "—";
   return (
-    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/30">
+    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-[#16243f]">
       <div className="flex flex-col items-center justify-center w-20 shrink-0">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{category.label}</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{category.label}</span>
         <span className={`text-2xl font-black bg-gradient-to-r ${category.color} bg-clip-text text-transparent leading-none`}>
           {leader ? leader.value : 0}
         </span>
         {leader && leader.games_played > 0 && (
-          <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 mt-0.5">
+          <span className="text-[10px] font-semibold text-slate-500 mt-0.5">
             {leader.avg} avg
           </span>
         )}
@@ -47,15 +47,15 @@ function LeaderRow({ category, leader }) {
             <AvatarFallback className={`bg-gradient-to-br ${category.color} text-white text-xs font-bold`}>{initials}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+            <p className="text-sm font-bold text-white truncate">
               {leader.first_name} {leader.last_name}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{leader.team_name || "—"}</p>
+            <p className="text-xs text-slate-400 truncate">{leader.team_name || "—"}</p>
           </div>
           <Crown className="w-4 h-4 text-yellow-500 ml-auto shrink-0" />
         </div>
       ) : (
-        <span className="text-sm text-gray-400 dark:text-gray-500 font-medium">No data yet</span>
+        <span className="text-sm text-slate-500 font-medium">No data yet</span>
       )}
     </div>
   );
@@ -89,8 +89,8 @@ function DivisionGroup({ label, leaders }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 px-1">
-        <span className="text-xs font-black uppercase tracking-widest text-gray-700 dark:text-gray-300">{label}</span>
-        <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+        <span className="text-xs font-black uppercase tracking-widest text-slate-300">{label}</span>
+        <div className="flex-1 h-px bg-[#1c2c4a]" />
       </div>
       {leaders.map(({ category, leader }) => (
         <LeaderRow key={category.key} category={category} leader={leader} />
@@ -131,7 +131,7 @@ function SportLeaders({ title, image, overlay, categories, stats, playerMap, tea
   });
 
   return (
-    <Card className="overflow-hidden border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic">
+    <Card className="overflow-hidden border border-[#1c2c4a] bg-[#0d1830] shadow-futuristic">
       <div className="relative h-28">
         <img src={image} alt={title} className="absolute inset-0 w-full h-full object-cover" />
         <div className={`absolute inset-0 bg-gradient-to-t ${overlay}`} />

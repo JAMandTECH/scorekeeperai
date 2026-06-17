@@ -178,7 +178,7 @@ export default function Dashboard() {
   const organizationCount = isSuperAdmin ? allOrganizations.length : (organization ? 1 : 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900 mesh-gradient">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a1120] via-[#0d1830] to-[#0a1120] text-white">
       <AdminHeader 
         user={user}
         organization={organization}
