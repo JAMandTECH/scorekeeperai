@@ -14,26 +14,43 @@ import {
   CartesianGrid,
 } from "recharts";
 
-export default function TopScorerSpotlight({ players = [], teams = [] }) {
+export default function TopScorerSpotlight({ organizationId, players = [], teams = [] }) {
   const teamMap = React.useMemo(() => {
     const m = {};
     teams.forEach((t) => { m[t.id] = t; });
     return m;
   }, [teams]);
 
+  const playerMap = React.useMemo(() => {
+    const m = {};
+    players.forEach((p) => { m[p.id] = p; });
+    return m;
+  }, [players]);
+
+  // Season stats hold the real per-game numbers (Player records are zeroed)
+  const { data: seasonStats = [] } = useQuery({
+    queryKey: ["top-scorer-season-stats", organizationId],
+    queryFn: () => base44.entities.PlayerSeasonStats.filter({ organization_id: organizationId, sport: "basketball" }),
+    enabled: !!organizationId,
+    refetchInterval: 20000,
+  });
+
   // TOP 1 by average points per game (min 1 game played)
   const topScorer = React.useMemo(() => {
     let best = null;
-    players.forEach((p) => {
-      const gp = p.games_played || 0;
+    seasonStats.forEach((s) => {
+      const gp = s.games_played || 0;
       if (gp <= 0) return;
-      const ppg = (p.total_points || 0) / gp;
+      const ppg = (s.total_points || 0) / gp;
       if (ppg > 0 && (!best || ppg > best.ppg)) {
-        best = { player: p, ppg, gp };
+        best = { stats: s, ppg, gp };
       }
     });
-    return best;
-  }, [players]);
+    if (!best) return null;
+    const player = playerMap[best.stats.player_id];
+    if (!player) return null;
+    return { player, stats: best.stats, ppg: best.ppg, gp: best.gp };
+  }, [seasonStats, playerMap]);
 
   const playerId = topScorer?.player?.id;
 
@@ -88,7 +105,7 @@ export default function TopScorerSpotlight({ players = [], teams = [] }) {
       <CardContent className="pt-4">
         <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="rounded-xl bg-[#16243f] p-3 text-center">
-            <p className="text-lg font-black text-white">{p.total_points || 0}</p>
+            <p className="text-lg font-black text-white">{topScorer.stats.total_points || 0}</p>
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Total Pts</p>
           </div>
           <div className="rounded-xl bg-[#16243f] p-3 text-center">
@@ -96,7 +113,7 @@ export default function TopScorerSpotlight({ players = [], teams = [] }) {
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Games</p>
           </div>
           <div className="rounded-xl bg-[#16243f] p-3 text-center">
-            <p className="text-lg font-black text-white">{p.total_rebounds || 0}</p>
+            <p className="text-lg font-black text-white">{topScorer.stats.total_rebounds || 0}</p>
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Rebounds</p>
           </div>
         </div>

@@ -436,7 +436,7 @@ export default function Dashboard() {
               )}
 
               {organization && players.length > 0 && (
-                <TopScorerSpotlight players={players} teams={teams} />
+                <TopScorerSpotlight organizationId={currentOrgId} players={players} teams={teams} />
               )}
 
               {organization && (
