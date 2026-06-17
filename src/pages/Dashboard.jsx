@@ -142,7 +142,19 @@ export default function Dashboard() {
       .filter((g) => g.status === 'scheduled' && !g.archived && g.game_date && new Date(g.game_date) >= new Date())
       .sort((a, b) => new Date(a.game_date) - new Date(b.game_date))[0];
     if (upcoming) return upcoming;
-    return games.find((g) => g.status === 'completed' && !g.archived) || null;
+    return null;
+  }, [games]);
+
+  // Latest completed result per sport (shown when no live/upcoming match)
+  const latestResults = React.useMemo(() => {
+    const pickLatest = (sport) =>
+      games
+        .filter((g) => g.sport === sport && g.status === 'completed' && !g.archived && g.game_date)
+        .sort((a, b) => new Date(b.game_date) - new Date(a.game_date))[0] || null;
+    return {
+      basketball: pickLatest('basketball'),
+      volleyball: pickLatest('volleyball'),
+    };
   }, [games]);
 
   const basketballTeams = teams.filter((t) => t.sport === 'basketball').length;
@@ -239,11 +251,26 @@ export default function Dashboard() {
               {organization && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-2">
-                    <FeaturedMatch
-                      game={featuredGame}
-                      homeTeam={featuredGame ? teamMap[featuredGame.home_team_id] : null}
-                      awayTeam={featuredGame ? teamMap[featuredGame.away_team_id] : null}
-                    />
+                    {featuredGame ? (
+                      <FeaturedMatch
+                        game={featuredGame}
+                        homeTeam={teamMap[featuredGame.home_team_id]}
+                        awayTeam={teamMap[featuredGame.away_team_id]}
+                      />
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 h-full">
+                        <FeaturedMatch
+                          game={latestResults.basketball}
+                          homeTeam={latestResults.basketball ? teamMap[latestResults.basketball.home_team_id] : null}
+                          awayTeam={latestResults.basketball ? teamMap[latestResults.basketball.away_team_id] : null}
+                        />
+                        <FeaturedMatch
+                          game={latestResults.volleyball}
+                          homeTeam={latestResults.volleyball ? teamMap[latestResults.volleyball.home_team_id] : null}
+                          awayTeam={latestResults.volleyball ? teamMap[latestResults.volleyball.away_team_id] : null}
+                        />
+                      </div>
+                    )}
                   </div>
                   <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic">
                     <CardHeader className="border-b border-gray-200/50 dark:border-gray-700/50 py-4">
