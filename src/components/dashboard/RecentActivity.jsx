@@ -174,26 +174,28 @@ export default function RecentActivity({ organizationId, teams = [], players = [
             {activities.map((a) => {
               const Icon = a.icon;
               return (
-                <div key={a.id} className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
-                  <div className={`w-10 h-10 flex-shrink-0 bg-gradient-to-br ${a.color} rounded-xl flex items-center justify-center shadow-lg`}>
-                    <Icon className="w-5 h-5 text-white" />
+                <div key={a.id} className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+                  <div className="flex items-start gap-3">
+                    <div className={`w-10 h-10 flex-shrink-0 bg-gradient-to-br ${a.color} rounded-xl flex items-center justify-center shadow-lg`}>
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{a.title}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{a.subtitle}</p>
+                    </div>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 font-medium whitespace-nowrap">
+                      {formatDistanceToNow(new Date(a.date), { addSuffix: true })}
+                    </span>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{a.title}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{a.subtitle}</p>
-                    {a.best && (
-                      <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-yellow-700 dark:text-yellow-400">
-                          <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                          {a.best.name}
-                        </span>
-                        <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400">{a.best.stats}</span>
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-xs text-gray-400 dark:text-gray-500 font-medium whitespace-nowrap">
-                    {formatDistanceToNow(new Date(a.date), { addSuffix: true })}
-                  </span>
+                  {a.best && (
+                    <div className="mt-2.5 ml-[52px] flex items-center gap-2 flex-wrap border-t border-gray-200 dark:border-gray-600/50 pt-2">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-yellow-700 dark:text-yellow-400">
+                        <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                        {a.best.name}
+                      </span>
+                      <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400">{a.best.stats}</span>
+                    </div>
+                  )}
                 </div>
               );
             })}
