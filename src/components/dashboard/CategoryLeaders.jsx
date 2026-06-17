@@ -61,7 +61,53 @@ function LeaderRow({ category, leader }) {
   );
 }
 
-function SportLeaders({ title, image, overlay, categories, stats, playerMap, teamMap }) {
+function computeLeaders(categories, stats, playerMap, teamMap) {
+  return categories.map((cat) => {
+    let best = null;
+    stats.forEach((s) => {
+      const val = s[cat.key] || 0;
+      if (val > 0 && (!best || val > best.value)) {
+        const player = playerMap[s.player_id];
+        if (!player) return;
+        const gp = s.games_played || 0;
+        best = {
+          value: val,
+          games_played: gp,
+          avg: gp > 0 ? (val / gp).toFixed(1) : "0.0",
+          first_name: player.first_name,
+          last_name: player.last_name,
+          photo_url: player.photo_url,
+          team_name: teamMap[s.team_id]?.name || teamMap[player.team_id]?.name,
+        };
+      }
+    });
+    return { category: cat, leader: best };
+  });
+}
+
+function DivisionGroup({ label, leaders }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 px-1">
+        <span className="text-xs font-black uppercase tracking-widest text-gray-700 dark:text-gray-300">{label}</span>
+        <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+      </div>
+      {leaders.map(({ category, leader }) => (
+        <LeaderRow key={category.key} category={category} leader={leader} />
+      ))}
+    </div>
+  );
+}
+
+function SportLeaders({ title, image, overlay, categories, stats, playerMap, teamMap, splitDivisions }) {
+  const isVeteran = (s) => {
+    const div = (teamMap[s.team_id]?.division || playerMap[s.player_id] && teamMap[playerMap[s.player_id]?.team_id]?.division || "");
+    return div.toLowerCase().includes("veteran");
+  };
+
+  const openLeaders = splitDivisions ? computeLeaders(categories, stats.filter((s) => !isVeteran(s)), playerMap, teamMap) : null;
+  const veteranLeaders = splitDivisions ? computeLeaders(categories, stats.filter((s) => isVeteran(s)), playerMap, teamMap) : null;
+
   const leaders = categories.map((cat) => {
     let best = null;
     stats.forEach((s) => {
@@ -97,10 +143,19 @@ function SportLeaders({ title, image, overlay, categories, stats, playerMap, tea
           <Crown className="w-5 h-5 text-yellow-300" />
         </div>
       </div>
-      <CardContent className="pt-4 space-y-2">
-        {leaders.map(({ category, leader }) => (
-          <LeaderRow key={category.key} category={category} leader={leader} />
-        ))}
+      <CardContent className="pt-4 space-y-4">
+        {splitDivisions ? (
+          <>
+            <DivisionGroup label="Open" leaders={openLeaders} />
+            <DivisionGroup label="Veterans" leaders={veteranLeaders} />
+          </>
+        ) : (
+          <div className="space-y-2">
+            {leaders.map(({ category, leader }) => (
+              <LeaderRow key={category.key} category={category} leader={leader} />
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -139,6 +194,7 @@ export default function CategoryLeaders({ organizationId, players = [], teams = 
         stats={basketballStats}
         playerMap={playerMap}
         teamMap={teamMap}
+        splitDivisions
       />
       <SportLeaders
         title="Volleyball"
