@@ -151,15 +151,15 @@ export default function RecentActivity({ organizationId, teams = [], players = [
   }, [games, teams, players, teamMap, bestPlayerByGame]);
 
   return (
-    <Card className="border border-[#1c2c4a] bg-[#0d1830] shadow-futuristic">
-      <CardHeader className="border-b border-[#1c2c4a]">
-        <CardTitle className="text-xl font-black text-white">Recent Activity</CardTitle>
+    <Card className="border border-gray-200 bg-white dark:border-[#1c2c4a] dark:bg-[#0d1830] shadow-futuristic">
+      <CardHeader className="border-b border-gray-200 dark:border-[#1c2c4a]">
+        <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Recent Activity</CardTitle>
       </CardHeader>
       <CardContent className="pt-6">
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-14 rounded-xl bg-[#16243f] animate-pulse" />
+              <div key={i} className="h-14 rounded-xl bg-gray-100 dark:bg-[#16243f] animate-pulse" />
             ))}
           </div>
         ) : activities.length === 0 ? (
@@ -167,33 +167,33 @@ export default function RecentActivity({ organizationId, teams = [], players = [
             <div className="w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <TrendingUp className="w-8 h-8 text-cyan-600 dark:text-cyan-400" />
             </div>
-            <p className="text-slate-400 font-medium">No recent activity yet</p>
+            <p className="text-gray-500 dark:text-slate-400 font-medium">No recent activity yet</p>
           </div>
         ) : (
           <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
             {activities.map((a) => {
               const Icon = a.icon;
               return (
-                <div key={a.id} className="p-3 rounded-xl bg-[#16243f] hover:bg-[#1b2c4d] transition-colors">
+                <div key={a.id} className="p-3 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-[#16243f] dark:hover:bg-[#1b2c4d] transition-colors">
                   <div className="flex items-start gap-3">
                     <div className={`w-10 h-10 flex-shrink-0 bg-gradient-to-br ${a.color} rounded-xl flex items-center justify-center shadow-lg`}>
                       <Icon className="w-5 h-5 text-white" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-white truncate">{a.title}</p>
-                      <p className="text-xs text-slate-400 font-medium">{a.subtitle}</p>
+                      <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{a.title}</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">{a.subtitle}</p>
                     </div>
-                    <span className="text-xs text-slate-500 font-medium whitespace-nowrap">
+                    <span className="text-xs text-gray-400 dark:text-slate-500 font-medium whitespace-nowrap">
                       {formatDistanceToNow(new Date(a.date), { addSuffix: true })}
                     </span>
                   </div>
                   {a.best && (
-                    <div className="mt-2.5 ml-[52px] flex items-center gap-2 flex-wrap border-t border-[#1c2c4a] pt-2">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-yellow-400">
+                    <div className="mt-2.5 ml-[52px] flex items-center gap-2 flex-wrap border-t border-gray-200 dark:border-[#1c2c4a] pt-2">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-yellow-500 dark:text-yellow-400">
                         <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
                         {a.best.name}
                       </span>
-                      <span className="text-[11px] font-semibold text-slate-400">{a.best.stats}</span>
+                      <span className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">{a.best.stats}</span>
                     </div>
                   )}
                 </div>
