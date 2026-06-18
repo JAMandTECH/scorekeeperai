@@ -18,6 +18,7 @@ import TopScorerSpotlight from "@/components/dashboard/TopScorerSpotlight";
 import CategoryLeaders from "@/components/dashboard/CategoryLeaders";
 import SportShowcase from "@/components/dashboard/SportShowcase";
 import FeaturedMatch from "@/components/dashboard/FeaturedMatch";
+import DivisionStandings from "@/components/dashboard/DivisionStandings";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -250,6 +251,10 @@ export default function Dashboard() {
                     </Link>
                   </CardContent>
                 </Card>
+              )}
+
+              {organization && teams.length > 0 && (
+                <DivisionStandings teams={teams} />
               )}
 
               {organization && (
