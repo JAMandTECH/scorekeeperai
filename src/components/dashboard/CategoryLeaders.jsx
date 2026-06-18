@@ -1,26 +1,25 @@
 import React from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Crown } from "lucide-react";
+import { usePlayerLeaders, buildLeaderboard } from "@/components/hooks/usePlayerLeaders";
 
 const BASKETBALL_IMG = "https://media.base44.com/images/public/690476f21c3624553ac82b4f/21d6fe5db_generated_image.png";
 const VOLLEYBALL_IMG = "https://media.base44.com/images/public/690476f21c3624553ac82b4f/555569101_generated_image.png";
 
 const BASKETBALL_CATEGORIES = [
-  { key: "total_points", label: "Points", color: "from-orange-500 to-red-500" },
-  { key: "total_rebounds", label: "Rebounds", color: "from-amber-500 to-orange-500" },
-  { key: "total_assists", label: "Assists", color: "from-yellow-500 to-amber-500" },
-  { key: "total_steals", label: "Steals", color: "from-rose-500 to-pink-500" },
-  { key: "total_blocks", label: "Blocks", color: "from-red-500 to-rose-500" },
-  { key: "total_three_pointers", label: "3-Pointers", color: "from-orange-500 to-yellow-500" },
+  { key: "points", label: "Points", color: "from-orange-500 to-red-500" },
+  { key: "rebounds", label: "Rebounds", color: "from-amber-500 to-orange-500" },
+  { key: "assists", label: "Assists", color: "from-yellow-500 to-amber-500" },
+  { key: "steals", label: "Steals", color: "from-rose-500 to-pink-500" },
+  { key: "blocks", label: "Blocks", color: "from-red-500 to-rose-500" },
+  { key: "three_pointers", label: "3-Pointers", color: "from-orange-500 to-yellow-500" },
 ];
 
 const VOLLEYBALL_CATEGORIES = [
-  { key: "total_points", label: "Points", color: "from-cyan-500 to-blue-500" },
-  { key: "total_aces", label: "Aces", color: "from-blue-500 to-indigo-500" },
-  { key: "total_attacks", label: "Attacks", color: "from-sky-500 to-cyan-500" },
+  { key: "points", label: "Points", color: "from-cyan-500 to-blue-500" },
+  { key: "aces", label: "Aces", color: "from-blue-500 to-indigo-500" },
+  { key: "attacks", label: "Attacks", color: "from-sky-500 to-cyan-500" },
 ];
 
 function LeaderRow({ category, leader }) {
@@ -37,7 +36,7 @@ function LeaderRow({ category, leader }) {
         <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 leading-none">avg</span>
         {leader && (
           <span className="text-[10px] font-semibold text-slate-500 mt-0.5">
-            {leader.value} total
+            {leader.total} total
           </span>
         )}
       </div>
@@ -62,30 +61,19 @@ function LeaderRow({ category, leader }) {
   );
 }
 
-function computeLeaders(categories, stats, playerMap, teamMap, teamGamesMap = {}) {
+function computeLeaders(categories, { sport, division, games, playerStats, teams, players }) {
   return categories.map((cat) => {
-    let best = null;
-    stats.forEach((s) => {
-      const val = s[cat.key] || 0;
-      const teamId = s.team_id || playerMap[s.player_id]?.team_id;
-      const gp = teamGamesMap[teamId] || 0;
-      const avgVal = gp > 0 ? val / gp : 0;
-      if (val > 0 && gp > 0 && (!best || avgVal > best.avgVal)) {
-        const player = playerMap[s.player_id];
-        if (!player) return;
-        best = {
-          value: val,
-          avgVal,
-          games_played: gp,
-          avg: avgVal.toFixed(1),
-          first_name: player.first_name,
-          last_name: player.last_name,
-          photo_url: player.photo_url,
-          team_name: teamMap[s.team_id]?.name || teamMap[player.team_id]?.name,
-        };
-      }
+    const rows = buildLeaderboard({
+      statType: cat.key,
+      sport,
+      division,
+      games,
+      playerStats,
+      teams,
+      players,
+      limit: 1,
     });
-    return { category: cat, leader: best };
+    return { category: cat, leader: rows[0] || null };
   });
 }
 
@@ -103,16 +91,10 @@ function DivisionGroup({ label, leaders }) {
   );
 }
 
-function SportLeaders({ title, image, overlay, categories, stats, playerMap, teamMap, teamGamesMap, splitDivisions }) {
-  const isVeteran = (s) => {
-    const div = teamMap[s.team_id]?.division || teamMap[playerMap[s.player_id]?.team_id]?.division || "";
-    return div.toLowerCase().includes("veteran");
-  };
-
-  const openLeaders = splitDivisions ? computeLeaders(categories, stats.filter((s) => !isVeteran(s)), playerMap, teamMap, teamGamesMap) : null;
-  const veteranLeaders = splitDivisions ? computeLeaders(categories, stats.filter((s) => isVeteran(s)), playerMap, teamMap, teamGamesMap) : null;
-
-  const leaders = computeLeaders(categories, stats, playerMap, teamMap, teamGamesMap);
+function SportLeaders({ title, image, overlay, categories, sport, ctx, splitDivisions, openDivision, veteranDivision }) {
+  const openLeaders = splitDivisions ? computeLeaders(categories, { ...ctx, sport, division: openDivision }) : null;
+  const veteranLeaders = splitDivisions ? computeLeaders(categories, { ...ctx, sport, division: veteranDivision }) : null;
+  const leaders = computeLeaders(categories, { ...ctx, sport, division: null });
 
   return (
     <Card className="overflow-hidden border border-[#1c2c4a] bg-[#0d1830] shadow-futuristic">
@@ -146,44 +128,15 @@ function SportLeaders({ title, image, overlay, categories, stats, playerMap, tea
 }
 
 export default function CategoryLeaders({ organizationId, players = [], teams = [], rightColumnExtra = null }) {
-  const { data: seasonStats = [] } = useQuery({
-    queryKey: ["category-leaders-stats", organizationId],
-    queryFn: () => base44.entities.PlayerSeasonStats.filter({ organization_id: organizationId }),
-    enabled: !!organizationId,
-    refetchInterval: 20000,
-  });
+  const { games, playerStats } = usePlayerLeaders(organizationId);
+  const ctx = { games, playerStats, teams, players };
 
-  const { data: completedGames = [] } = useQuery({
-    queryKey: ["category-leaders-games", organizationId],
-    queryFn: () => base44.entities.Game.filter({ organization_id: organizationId, status: "completed" }),
-    enabled: !!organizationId,
-    refetchInterval: 20000,
-  });
-
-  // Count how many completed games each team played (home or away)
-  const teamGamesMap = React.useMemo(() => {
-    const m = {};
-    completedGames.forEach((g) => {
-      if (g.home_team_id) m[g.home_team_id] = (m[g.home_team_id] || 0) + 1;
-      if (g.away_team_id) m[g.away_team_id] = (m[g.away_team_id] || 0) + 1;
-    });
-    return m;
-  }, [completedGames]);
-
-  const playerMap = React.useMemo(() => {
-    const m = {};
-    players.forEach((p) => { m[p.id] = p; });
-    return m;
-  }, [players]);
-
-  const teamMap = React.useMemo(() => {
-    const m = {};
-    teams.forEach((t) => { m[t.id] = t; });
-    return m;
-  }, [teams]);
-
-  const basketballStats = seasonStats.filter((s) => s.sport === "basketball");
-  const volleyballStats = seasonStats.filter((s) => s.sport === "volleyball");
+  // Resolve the actual division names used by basketball teams so the split matches Home.
+  const basketballDivisions = [...new Set(
+    teams.filter((t) => (t.sport || "").toLowerCase() === "basketball").map((t) => t.division).filter(Boolean)
+  )];
+  const openDivision = basketballDivisions.find((d) => d.toLowerCase().includes("open")) || "Open Division";
+  const veteranDivision = basketballDivisions.find((d) => d.toLowerCase().includes("veteran")) || "Veterans Division";
 
   return (
     <div className="grid md:grid-cols-2 gap-6">
@@ -192,11 +145,11 @@ export default function CategoryLeaders({ organizationId, players = [], teams = 
         image={BASKETBALL_IMG}
         overlay="from-orange-950/95 via-orange-900/50 to-transparent"
         categories={BASKETBALL_CATEGORIES}
-        stats={basketballStats}
-        playerMap={playerMap}
-        teamMap={teamMap}
-        teamGamesMap={teamGamesMap}
+        sport="basketball"
+        ctx={ctx}
         splitDivisions
+        openDivision={openDivision}
+        veteranDivision={veteranDivision}
       />
       <div className="space-y-6">
         <SportLeaders
@@ -204,10 +157,8 @@ export default function CategoryLeaders({ organizationId, players = [], teams = 
           image={VOLLEYBALL_IMG}
           overlay="from-cyan-950/95 via-blue-900/50 to-transparent"
           categories={VOLLEYBALL_CATEGORIES}
-          stats={volleyballStats}
-          playerMap={playerMap}
-          teamMap={teamMap}
-          teamGamesMap={teamGamesMap}
+          sport="volleyball"
+          ctx={ctx}
         />
         {rightColumnExtra}
       </div>

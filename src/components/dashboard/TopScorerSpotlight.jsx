@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Crown, TrendingUp } from "lucide-react";
+import { usePlayerLeaders, buildLeaderboard } from "@/components/hooks/usePlayerLeaders";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -149,55 +150,37 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
     return m;
   }, [players]);
 
-  // Season stats hold the real per-game numbers (Player records are zeroed)
-  const { data: seasonStats = [] } = useQuery({
-    queryKey: ["top-scorer-season-stats", organizationId],
-    queryFn: () => base44.entities.PlayerSeasonStats.filter({ organization_id: organizationId, sport: "basketball" }),
-    enabled: !!organizationId,
-    refetchInterval: 20000,
-  });
+  // Same data source & logic as Category Leaders / Home / Statistics so the #1 scorer matches.
+  const { games, playerStats } = usePlayerLeaders(organizationId);
 
-  const { data: completedGames = [] } = useQuery({
-    queryKey: ["top-scorer-games", organizationId],
-    queryFn: () => base44.entities.Game.filter({ organization_id: organizationId, status: "completed" }),
-    enabled: !!organizationId,
-    refetchInterval: 20000,
-  });
+  // Resolve actual basketball division names used by this org.
+  const basketballDivisions = React.useMemo(() => [...new Set(
+    teams.filter((t) => (t.sport || "").toLowerCase() === "basketball").map((t) => t.division).filter(Boolean)
+  )], [teams]);
+  const openDivision = basketballDivisions.find((d) => d.toLowerCase().includes("open")) || "Open Division";
+  const veteranDivision = basketballDivisions.find((d) => d.toLowerCase().includes("veteran")) || "Veterans Division";
 
-  // Count how many completed games each team played (home or away)
-  const teamGamesMap = React.useMemo(() => {
-    const m = {};
-    completedGames.forEach((g) => {
-      if (g.home_team_id) m[g.home_team_id] = (m[g.home_team_id] || 0) + 1;
-      if (g.away_team_id) m[g.away_team_id] = (m[g.away_team_id] || 0) + 1;
-    });
-    return m;
-  }, [completedGames]);
-
-  const isVeteran = React.useCallback((s) => {
-    const div = teamMap[s.team_id]?.division || teamMap[playerMap[s.player_id]?.team_id]?.division || "";
-    return div.toLowerCase().includes("veteran");
-  }, [teamMap, playerMap]);
-
-  const pickTop = React.useCallback((stats) => {
-    let best = null;
-    stats.forEach((s) => {
-      const teamId = s.team_id || playerMap[s.player_id]?.team_id;
-      const gp = teamGamesMap[teamId] || 0;
-      if (gp <= 0) return;
-      const ppg = (s.total_points || 0) / gp;
-      if (ppg > 0 && (!best || ppg > best.ppg)) {
-        best = { stats: s, ppg, gp };
-      }
-    });
-    if (!best) return null;
-    const player = playerMap[best.stats.player_id];
+  // Build a "topScorer" shape (player + ppg + gp + stats.total_points/total_rebounds) from leaderboards.
+  const buildTop = React.useCallback((division) => {
+    const ctx = { games, playerStats, teams, players, sport: "basketball", division, limit: 1 };
+    const ptsRow = buildLeaderboard({ ...ctx, statType: "points" })[0];
+    if (!ptsRow) return null;
+    const player = playerMap[ptsRow.id];
     if (!player) return null;
-    return { player, stats: best.stats, ppg: best.ppg, gp: best.gp };
-  }, [playerMap, teamGamesMap]);
+    const rebRow = buildLeaderboard({ ...ctx, statType: "rebounds", limit: 50 }).find((r) => r.id === ptsRow.id);
+    return {
+      player,
+      ppg: ptsRow.avgNum,
+      gp: ptsRow.gamesPlayed,
+      stats: {
+        total_points: ptsRow.total,
+        total_rebounds: rebRow?.total || 0,
+      },
+    };
+  }, [games, playerStats, teams, players, playerMap]);
 
-  const openTop = React.useMemo(() => pickTop(seasonStats.filter((s) => !isVeteran(s))), [seasonStats, isVeteran, pickTop]);
-  const veteranTop = React.useMemo(() => pickTop(seasonStats.filter((s) => isVeteran(s))), [seasonStats, isVeteran, pickTop]);
+  const openTop = React.useMemo(() => buildTop(openDivision), [buildTop, openDivision]);
+  const veteranTop = React.useMemo(() => buildTop(veteranDivision), [buildTop, veteranDivision]);
 
   return (
     <div className="grid md:grid-cols-2 gap-6">
