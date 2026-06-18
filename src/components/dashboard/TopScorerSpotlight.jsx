@@ -157,6 +157,23 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
     refetchInterval: 20000,
   });
 
+  const { data: completedGames = [] } = useQuery({
+    queryKey: ["top-scorer-games", organizationId],
+    queryFn: () => base44.entities.Game.filter({ organization_id: organizationId, status: "completed" }),
+    enabled: !!organizationId,
+    refetchInterval: 20000,
+  });
+
+  // Count how many completed games each team played (home or away)
+  const teamGamesMap = React.useMemo(() => {
+    const m = {};
+    completedGames.forEach((g) => {
+      if (g.home_team_id) m[g.home_team_id] = (m[g.home_team_id] || 0) + 1;
+      if (g.away_team_id) m[g.away_team_id] = (m[g.away_team_id] || 0) + 1;
+    });
+    return m;
+  }, [completedGames]);
+
   const isVeteran = React.useCallback((s) => {
     const div = teamMap[s.team_id]?.division || teamMap[playerMap[s.player_id]?.team_id]?.division || "";
     return div.toLowerCase().includes("veteran");
@@ -165,7 +182,8 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
   const pickTop = React.useCallback((stats) => {
     let best = null;
     stats.forEach((s) => {
-      const gp = s.games_played || 0;
+      const teamId = s.team_id || playerMap[s.player_id]?.team_id;
+      const gp = teamGamesMap[teamId] || 0;
       if (gp <= 0) return;
       const ppg = (s.total_points || 0) / gp;
       if (ppg > 0 && (!best || ppg > best.ppg)) {
@@ -176,7 +194,7 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
     const player = playerMap[best.stats.player_id];
     if (!player) return null;
     return { player, stats: best.stats, ppg: best.ppg, gp: best.gp };
-  }, [playerMap]);
+  }, [playerMap, teamGamesMap]);
 
   const openTop = React.useMemo(() => pickTop(seasonStats.filter((s) => !isVeteran(s))), [seasonStats, isVeteran, pickTop]);
   const veteranTop = React.useMemo(() => pickTop(seasonStats.filter((s) => isVeteran(s))), [seasonStats, isVeteran, pickTop]);
