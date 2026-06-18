@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import AIAssistant from "@/components/AIAssistant";
 import LiveScorePreview from "@/components/LiveScorePreview";
+import ReviewsSection from "@/components/landing/ReviewsSection";
 
 export default function PublicLanding() {
   const [darkMode, setDarkMode] = useState(false);
@@ -1015,6 +1016,9 @@ export default function PublicLanding() {
           </div>
         </div>
       </section>
+
+      {/* Reviews Section */}
+      <ReviewsSection />
 
       {/* CTA Section */}
       <section className="py-24 px-4 bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 text-white relative overflow-hidden">
