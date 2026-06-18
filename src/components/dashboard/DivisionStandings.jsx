@@ -2,6 +2,16 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Trophy, Medal, Award } from "lucide-react";
 
+// Normalize division names so "Open" and "Open Division" count as the same division
+function normalizeDivision(name) {
+  const d = (name || "General").trim();
+  if (/^open( division)?$/i.test(d)) return "Open Division";
+  if (/^veterans?( division)?$/i.test(d)) return "Veterans Division";
+  return d;
+}
+
+const SPORT_LABEL = { basketball: "Basketball", volleyball: "Volleyball" };
+
 // Visual theme + header image per division (cycled by index so any division name looks special)
 const DIVISION_THEMES = [
   {
@@ -61,7 +71,7 @@ function TeamRow({ team, rank }) {
   );
 }
 
-function DivisionCard({ division, teams, themeIndex }) {
+function DivisionCard({ division, sport, teams, themeIndex }) {
   const theme = DIVISION_THEMES[themeIndex % DIVISION_THEMES.length];
   const top3 = [...teams]
     .sort((a, b) => (b.wins || 0) - (a.wins || 0) || (a.losses || 0) - (b.losses || 0))
@@ -73,6 +83,11 @@ function DivisionCard({ division, teams, themeIndex }) {
         <img src={theme.image} alt={division} className="absolute inset-0 w-full h-full object-cover" />
         <div className={`absolute inset-0 bg-gradient-to-r ${theme.gradient} opacity-80`} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+        <div className="absolute top-2 right-3">
+          <span className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur text-[11px] font-bold text-white uppercase tracking-wide">
+            {SPORT_LABEL[sport] || sport}
+          </span>
+        </div>
         <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center gap-2">
           <Trophy className="w-5 h-5 text-white drop-shadow" />
           <h3 className="text-lg font-black text-white drop-shadow truncate uppercase tracking-wide">{division}</h3>
@@ -90,19 +105,24 @@ function DivisionCard({ division, teams, themeIndex }) {
 }
 
 export default function DivisionStandings({ teams = [] }) {
-  const divisions = React.useMemo(() => {
-    const byDivision = {};
+  const groups = React.useMemo(() => {
+    const byKey = {};
     teams
       .filter((t) => t.status !== "rejected")
       .forEach((t) => {
-        const key = t.division || "General";
-        if (!byDivision[key]) byDivision[key] = [];
-        byDivision[key].push(t);
+        const sport = t.sport || "basketball";
+        const division = normalizeDivision(t.division);
+        const key = `${sport}__${division}`;
+        if (!byKey[key]) byKey[key] = { sport, division, teams: [] };
+        byKey[key].teams.push(t);
       });
-    return Object.entries(byDivision).sort((a, b) => a[0].localeCompare(b[0]));
+    // Sort: basketball first, then by division name
+    return Object.values(byKey).sort(
+      (a, b) => a.sport.localeCompare(b.sport) || a.division.localeCompare(b.division)
+    );
   }, [teams]);
 
-  if (divisions.length === 0) return null;
+  if (groups.length === 0) return null;
 
   return (
     <div>
@@ -111,8 +131,14 @@ export default function DivisionStandings({ teams = [] }) {
         <span className="text-sm font-semibold text-gray-500 dark:text-slate-400">· Top 3 teams</span>
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {divisions.map(([division, divTeams], i) => (
-          <DivisionCard key={division} division={division} teams={divTeams} themeIndex={i} />
+        {groups.map((g, i) => (
+          <DivisionCard
+            key={`${g.sport}-${g.division}`}
+            division={g.division}
+            sport={g.sport}
+            teams={g.teams}
+            themeIndex={i}
+          />
         ))}
       </div>
     </div>
