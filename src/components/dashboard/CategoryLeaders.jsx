@@ -62,12 +62,13 @@ function LeaderRow({ category, leader }) {
   );
 }
 
-function computeLeaders(categories, stats, playerMap, teamMap) {
+function computeLeaders(categories, stats, playerMap, teamMap, teamGamesMap = {}) {
   return categories.map((cat) => {
     let best = null;
     stats.forEach((s) => {
       const val = s[cat.key] || 0;
-      const gp = s.games_played || 0;
+      const teamId = s.team_id || playerMap[s.player_id]?.team_id;
+      const gp = teamGamesMap[teamId] || 0;
       const avgVal = gp > 0 ? val / gp : 0;
       if (val > 0 && gp > 0 && (!best || avgVal > best.avgVal)) {
         const player = playerMap[s.player_id];
@@ -102,16 +103,16 @@ function DivisionGroup({ label, leaders }) {
   );
 }
 
-function SportLeaders({ title, image, overlay, categories, stats, playerMap, teamMap, splitDivisions }) {
+function SportLeaders({ title, image, overlay, categories, stats, playerMap, teamMap, teamGamesMap, splitDivisions }) {
   const isVeteran = (s) => {
     const div = (teamMap[s.team_id]?.division || playerMap[s.player_id] && teamMap[playerMap[s.player_id]?.team_id]?.division || "");
     return div.toLowerCase().includes("veteran");
   };
 
-  const openLeaders = splitDivisions ? computeLeaders(categories, stats.filter((s) => !isVeteran(s)), playerMap, teamMap) : null;
-  const veteranLeaders = splitDivisions ? computeLeaders(categories, stats.filter((s) => isVeteran(s)), playerMap, teamMap) : null;
+  const openLeaders = splitDivisions ? computeLeaders(categories, stats.filter((s) => !isVeteran(s)), playerMap, teamMap, teamGamesMap) : null;
+  const veteranLeaders = splitDivisions ? computeLeaders(categories, stats.filter((s) => isVeteran(s)), playerMap, teamMap, teamGamesMap) : null;
 
-  const leaders = computeLeaders(categories, stats, playerMap, teamMap);
+  const leaders = computeLeaders(categories, stats, playerMap, teamMap, teamGamesMap);
 
   return (
     <Card className="overflow-hidden border border-[#1c2c4a] bg-[#0d1830] shadow-futuristic">
@@ -152,6 +153,23 @@ export default function CategoryLeaders({ organizationId, players = [], teams = 
     refetchInterval: 20000,
   });
 
+  const { data: completedGames = [] } = useQuery({
+    queryKey: ["category-leaders-games", organizationId],
+    queryFn: () => base44.entities.Game.filter({ organization_id: organizationId, status: "completed" }),
+    enabled: !!organizationId,
+    refetchInterval: 20000,
+  });
+
+  // Count how many completed games each team played (home or away)
+  const teamGamesMap = React.useMemo(() => {
+    const m = {};
+    completedGames.forEach((g) => {
+      if (g.home_team_id) m[g.home_team_id] = (m[g.home_team_id] || 0) + 1;
+      if (g.away_team_id) m[g.away_team_id] = (m[g.away_team_id] || 0) + 1;
+    });
+    return m;
+  }, [completedGames]);
+
   const playerMap = React.useMemo(() => {
     const m = {};
     players.forEach((p) => { m[p.id] = p; });
@@ -177,6 +195,7 @@ export default function CategoryLeaders({ organizationId, players = [], teams = 
         stats={basketballStats}
         playerMap={playerMap}
         teamMap={teamMap}
+        teamGamesMap={teamGamesMap}
         splitDivisions
       />
       <div className="space-y-6">
@@ -188,6 +207,7 @@ export default function CategoryLeaders({ organizationId, players = [], teams = 
           stats={volleyballStats}
           playerMap={playerMap}
           teamMap={teamMap}
+          teamGamesMap={teamGamesMap}
         />
         {rightColumnExtra}
       </div>
