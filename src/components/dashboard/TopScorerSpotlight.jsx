@@ -37,13 +37,13 @@ function ScorerCard({ label, topScorer, teamMap }) {
 
   if (!topScorer) {
     return (
-      <Card className="overflow-hidden border border-[#1c2c4a] bg-[#0d1830] shadow-futuristic">
-        <div className="px-5 py-4 bg-gradient-to-r from-[#13233f] to-[#0d1830] flex items-center gap-2">
-          <Crown className="w-4 h-4 text-yellow-300" />
-          <span className="text-xs font-black uppercase tracking-widest text-slate-300">Top Scorer · {label}</span>
+      <Card className="overflow-hidden border border-gray-200 bg-white dark:border-[#1c2c4a] dark:bg-[#0d1830] shadow-futuristic">
+        <div className="px-5 py-4 bg-gradient-to-r from-gray-100 to-white dark:from-[#13233f] dark:to-[#0d1830] flex items-center gap-2">
+          <Crown className="w-4 h-4 text-yellow-500 dark:text-yellow-300" />
+          <span className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-slate-300">Top Scorer · {label}</span>
         </div>
         <CardContent className="py-10">
-          <p className="text-sm text-slate-500 font-medium text-center">No data yet</p>
+          <p className="text-sm text-gray-400 dark:text-slate-500 font-medium text-center">No data yet</p>
         </CardContent>
       </Card>
     );
@@ -54,56 +54,56 @@ function ScorerCard({ label, topScorer, teamMap }) {
   const teamName = teamMap[p.team_id]?.name || "—";
 
   return (
-    <Card className="overflow-hidden border border-[#1c2c4a] bg-[#0d1830] shadow-futuristic">
+    <Card className="overflow-hidden border border-gray-200 bg-white dark:border-[#1c2c4a] dark:bg-[#0d1830] shadow-futuristic">
       <div className="flex">
         {/* Full-height image column on the left */}
-        <div className="w-40 shrink-0 self-stretch bg-[#0d1830] relative">
+        <div className="w-40 shrink-0 self-stretch bg-gray-100 dark:bg-[#0d1830] relative">
           {p.photo_url ? (
             <img src={p.photo_url} alt={p.first_name} className="absolute inset-0 w-full h-full object-cover object-top" />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-white text-5xl font-black">{initials}</div>
+            <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-white text-5xl font-black">{initials}</div>
           )}
         </div>
 
         {/* Right column: header, narrow stats, graph */}
         <div className="flex-1 min-w-0 p-5">
           <div className="flex items-center gap-2 mb-3">
-            <Crown className="w-4 h-4 text-yellow-300" />
-            <span className="text-xs font-black uppercase tracking-widest text-slate-300">Top Scorer · {label}</span>
+            <Crown className="w-4 h-4 text-yellow-500 dark:text-yellow-300" />
+            <span className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-slate-300">Top Scorer · {label}</span>
           </div>
 
           <div className="flex items-center gap-4 mb-4">
             <div className="min-w-0 flex-1">
-              <p className="text-xl font-black text-white truncate">{p.first_name} {p.last_name}</p>
-              <p className="text-sm text-slate-400 truncate">{teamName}{p.jersey_number ? ` · #${p.jersey_number}` : ""}</p>
+              <p className="text-xl font-black text-gray-900 dark:text-white truncate">{p.first_name} {p.last_name}</p>
+              <p className="text-sm text-gray-500 dark:text-slate-400 truncate">{teamName}{p.jersey_number ? ` · #${p.jersey_number}` : ""}</p>
             </div>
             <div className="text-right shrink-0">
               <p className="text-4xl font-black bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent leading-none">
                 {topScorer.ppg.toFixed(1)}
               </p>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-1">PPG</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400 mt-1">PPG</p>
             </div>
           </div>
 
           {/* Narrow stats row above the graph */}
           <div className="flex gap-2 mb-3">
-            <div className="flex-1 rounded-lg bg-[#16243f] py-1.5 px-2 text-center">
-              <span className="text-sm font-black text-white">{topScorer.stats.total_points || 0}</span>
-              <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-1">Pts</span>
+            <div className="flex-1 rounded-lg bg-gray-100 dark:bg-[#16243f] py-1.5 px-2 text-center">
+              <span className="text-sm font-black text-gray-900 dark:text-white">{topScorer.stats.total_points || 0}</span>
+              <span className="text-[9px] font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400 ml-1">Pts</span>
             </div>
-            <div className="flex-1 rounded-lg bg-[#16243f] py-1.5 px-2 text-center">
-              <span className="text-sm font-black text-white">{topScorer.gp}</span>
-              <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-1">GP</span>
+            <div className="flex-1 rounded-lg bg-gray-100 dark:bg-[#16243f] py-1.5 px-2 text-center">
+              <span className="text-sm font-black text-gray-900 dark:text-white">{topScorer.gp}</span>
+              <span className="text-[9px] font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400 ml-1">GP</span>
             </div>
-            <div className="flex-1 rounded-lg bg-[#16243f] py-1.5 px-2 text-center">
-              <span className="text-sm font-black text-white">{topScorer.stats.total_rebounds || 0}</span>
-              <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-1">Reb</span>
+            <div className="flex-1 rounded-lg bg-gray-100 dark:bg-[#16243f] py-1.5 px-2 text-center">
+              <span className="text-sm font-black text-gray-900 dark:text-white">{topScorer.stats.total_rebounds || 0}</span>
+              <span className="text-[9px] font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400 ml-1">Reb</span>
             </div>
           </div>
 
           <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-3.5 h-3.5 text-sky-400" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Points Per Game</span>
+            <TrendingUp className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400">Points Per Game</span>
           </div>
           {chartData.length > 0 ? (
             <div className="h-44 -ml-2">
