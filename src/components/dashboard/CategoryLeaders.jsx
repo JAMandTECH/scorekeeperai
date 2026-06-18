@@ -105,7 +105,7 @@ function DivisionGroup({ label, leaders }) {
 
 function SportLeaders({ title, image, overlay, categories, stats, playerMap, teamMap, teamGamesMap, splitDivisions }) {
   const isVeteran = (s) => {
-    const div = (teamMap[s.team_id]?.division || playerMap[s.player_id] && teamMap[playerMap[s.player_id]?.team_id]?.division || "");
+    const div = teamMap[s.team_id]?.division || teamMap[playerMap[s.player_id]?.team_id]?.division || "";
     return div.toLowerCase().includes("veteran");
   };
 
