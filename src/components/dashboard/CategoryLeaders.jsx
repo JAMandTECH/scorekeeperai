@@ -32,11 +32,12 @@ function LeaderRow({ category, leader }) {
       <div className="flex flex-col items-center justify-center w-20 shrink-0">
         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{category.label}</span>
         <span className={`text-2xl font-black bg-gradient-to-r ${category.color} bg-clip-text text-transparent leading-none`}>
-          {leader ? leader.value : 0}
+          {leader ? leader.avg : "0.0"}
         </span>
-        {leader && leader.games_played > 0 && (
+        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 leading-none">avg</span>
+        {leader && (
           <span className="text-[10px] font-semibold text-slate-500 mt-0.5">
-            {leader.avg} avg
+            {leader.value} total
           </span>
         )}
       </div>
