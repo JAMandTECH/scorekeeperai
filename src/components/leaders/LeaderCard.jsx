@@ -82,11 +82,11 @@ export default function LeaderCard({ title, icon: Icon, iconGradient = "from-blu
               </div>
             </div>
 
-            {/* Big value */}
+            {/* Big value (average) + secondary total */}
             <div className="text-right shrink-0 pl-1">
-              <p className="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400 tabular-nums leading-none">{player.total}</p>
+              <p className="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400 tabular-nums leading-none">{player.average}</p>
               <p className="text-[11px] text-gray-500 dark:text-slate-400 font-semibold mt-1">
-                {player.average} {player.averageLabel}
+                {player.averageLabel} · {player.total} total
               </p>
             </div>
           </div>

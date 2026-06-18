@@ -64,6 +64,17 @@ Deno.serve(async (req) => {
     );
     const teamMap = new Map((teamsRaw || []).map((t) => [t.id, t]));
 
+    // Count how many completed games each team played (home or away) — average divisor.
+    const completedGames = await fetchWithRetry(() =>
+      base44.asServiceRole.entities.Game.filter({ organization_id: organizationId, status: 'completed' })
+    );
+    const teamGamesPlayed = new Map();
+    (completedGames || []).forEach((g) => {
+      if (sport && String(g.sport || '').toLowerCase() !== sport) return;
+      if (g.home_team_id) teamGamesPlayed.set(g.home_team_id, (teamGamesPlayed.get(g.home_team_id) || 0) + 1);
+      if (g.away_team_id) teamGamesPlayed.set(g.away_team_id, (teamGamesPlayed.get(g.away_team_id) || 0) + 1);
+    });
+
     // Need player details for names/photos/jersey
     const teamIds = Array.from(new Set(seasonStats.map((s) => s.team_id).filter(Boolean)));
     const players = await fetchPlayersForTeams(base44, teamIds);
@@ -74,7 +85,8 @@ Deno.serve(async (req) => {
         const player = playerMap.get(s.player_id) || {};
         const team = teamMap.get(player.team_id || s.team_id) || {};
         const totalAssists = Number(s.total_assists || 0);
-        const gamesPlayed = Number(s.games_played || 0);
+        const teamId = player.team_id || s.team_id;
+        const gamesPlayed = Number(teamGamesPlayed.get(teamId) || 0);
         const apg = gamesPlayed > 0 ? Number((totalAssists / gamesPlayed).toFixed(1)) : 0;
         return {
           player_id: s.player_id,
@@ -98,7 +110,7 @@ Deno.serve(async (req) => {
         if (!division) return true;
         return String(p.team_division || '').toLowerCase().includes(division);
       })
-      .sort((a, b) => b.total_assists - a.total_assists)
+      .sort((a, b) => b.apg - a.apg)
       .slice(0, limit);
 
     return Response.json({ leaders, count: leaders.length, sport, division, organization_id: organizationId });

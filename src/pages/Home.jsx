@@ -226,20 +226,24 @@ export default function Home() {
     const playersByIdOrg = new Map(allPlayers.map((p) => [p.id, p]));
 
     // Mirror Statistics' filteredGameIds: completed + sport + (division on either team) — using GAMES not teams.
-    const eligibleGameIds = new Set(
-      games
-        .filter((g) => {
-          if (g.status !== 'completed') return false;
-          if (sport && (g.sport || '').toLowerCase() !== sport.toLowerCase()) return false;
-          if (division) {
-            const homeDiv = teamsById.get(g.home_team_id)?.division || 'No Division';
-            const awayDiv = teamsById.get(g.away_team_id)?.division || 'No Division';
-            if (homeDiv !== division && awayDiv !== division) return false;
-          }
-          return true;
-        })
-        .map((g) => g.id)
-    );
+    const eligibleGames = games.filter((g) => {
+      if (g.status !== 'completed') return false;
+      if (sport && (g.sport || '').toLowerCase() !== sport.toLowerCase()) return false;
+      if (division) {
+        const homeDiv = teamsById.get(g.home_team_id)?.division || 'No Division';
+        const awayDiv = teamsById.get(g.away_team_id)?.division || 'No Division';
+        if (homeDiv !== division && awayDiv !== division) return false;
+      }
+      return true;
+    });
+    const eligibleGameIds = new Set(eligibleGames.map((g) => g.id));
+
+    // How many eligible completed games each team played (home or away) — used as the average divisor.
+    const teamGamesPlayed = new Map();
+    eligibleGames.forEach((g) => {
+      if (g.home_team_id) teamGamesPlayed.set(g.home_team_id, (teamGamesPlayed.get(g.home_team_id) || 0) + 1);
+      if (g.away_team_id) teamGamesPlayed.set(g.away_team_id, (teamGamesPlayed.get(g.away_team_id) || 0) + 1);
+    });
 
     const totals = new Map(); // player_id -> { total, team_id, gameIds:Set }
     playerStats.forEach((s) => {
@@ -304,19 +308,21 @@ export default function Home() {
       .map(([playerId, { total, team_id, gameIds }]) => {
         const player = playersByIdOrg.get(playerId);
         const team = teamsById.get(team_id);
-        const gamesPlayed = gameIds.size;
+        const gamesPlayed = teamGamesPlayed.get(team_id) || 0;
+        const avgNum = gamesPlayed > 0 ? total / gamesPlayed : 0;
         return {
           ...(player || { id: playerId, first_name: 'Player', last_name: String(playerId).slice(-4) }),
           total,
           gamesPlayed,
-          average: gamesPlayed > 0 ? (total / gamesPlayed).toFixed(1) : 0,
+          avgNum,
+          average: gamesPlayed > 0 ? avgNum.toFixed(1) : '0.0',
           averageLabel,
           teamName: team?.name || 'Unknown',
           teamLogoUrl: team?.logo_url || '',
         };
       })
       .filter((p) => p.total > 0)
-      .sort((a, b) => b.total - a.total)
+      .sort((a, b) => b.avgNum - a.avgNum)
       .slice(0, limit);
   };
 

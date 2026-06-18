@@ -378,6 +378,16 @@ export default function Statistics() {
   });
 
   // Player leaderboards aggregated from finished-game stats (no dependency on player list)
+  // How many filtered completed games each team played (home or away) — average divisor.
+  const teamGamesPlayedMap = (() => {
+    const m = new Map();
+    completedGames.forEach((g) => {
+      if (g.home_team_id) m.set(g.home_team_id, (m.get(g.home_team_id) || 0) + 1);
+      if (g.away_team_id) m.set(g.away_team_id, (m.get(g.away_team_id) || 0) + 1);
+    });
+    return m;
+  })();
+
   const createPlayerLeaderboard = (statKey, _label) => {
     const teamsById = new Map(teams.map(t => [t.id, t]));
     const playersByIdOrg = new Map(players.map(p => [p.id, p]));
@@ -420,18 +430,20 @@ export default function Statistics() {
         const player = playersByIdOrg.get(playerId);
         const team = teamsById.get(team_id);
         const name = player ? `${player.first_name} ${player.last_name}` : `Player ${String(playerId).slice(-4)}`;
-        const gp = games.size;
+        const gp = teamGamesPlayedMap.get(team_id) || 0;
+        const avgNum = gp > 0 ? total / gp : 0;
         return {
           name,
           team: team?.name || 'Unknown',
           value: total,
           gamesPlayed: gp,
-          avg: gp > 0 ? (total / gp).toFixed(1) : '0.0',
+          avgNum,
+          avg: gp > 0 ? avgNum.toFixed(1) : '0.0',
           sport: team?.sport,
         };
       })
       .filter(p => p.value > 0)
-      .sort((a, b) => b.value - a.value)
+      .sort((a, b) => b.avgNum - a.avgNum)
       .slice(0, 10);
   };
 
@@ -944,8 +956,8 @@ Please provide:
                                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
                               </div>
                               <div className="text-right">
-                                <div className="text-xl font-black text-blue-600 dark:text-blue-400 print:text-lg leading-none">{player.value}</div>
-                                <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">{player.avg} PPG</div>
+                                <div className="text-xl font-black text-blue-600 dark:text-blue-400 print:text-lg leading-none">{player.avg}</div>
+                                <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">PPG · {player.value} total</div>
                               </div>
                             </div>
                           ))}
@@ -974,8 +986,8 @@ Please provide:
                                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
                                 </div>
                                 <div className="text-right">
-                                  <div className="text-xl font-black text-green-600 dark:text-green-400 print:text-lg leading-none">{player.value}</div>
-                                  <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">{player.avg} RPG</div>
+                                  <div className="text-xl font-black text-green-600 dark:text-green-400 print:text-lg leading-none">{player.avg}</div>
+                                  <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">RPG · {player.value} total</div>
                                 </div>
                               </div>
                             ))}
@@ -1015,8 +1027,8 @@ Please provide:
                                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
                               </div>
                               <div className="text-right">
-                                <div className="text-xl font-black text-orange-600 dark:text-orange-400 print:text-lg leading-none">{player.value}</div>
-                                <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">{player.avg} BPG</div>
+                                <div className="text-xl font-black text-orange-600 dark:text-orange-400 print:text-lg leading-none">{player.avg}</div>
+                                <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">BPG · {player.value} total</div>
                               </div>
                             </div>
                           ))}
@@ -1045,8 +1057,8 @@ Please provide:
                                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
                                 </div>
                                 <div className="text-right">
-                                  <div className="text-xl font-black text-purple-600 dark:text-purple-400 print:text-lg leading-none">{player.value}</div>
-                                  <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">{player.avg} 3PG</div>
+                                  <div className="text-xl font-black text-purple-600 dark:text-purple-400 print:text-lg leading-none">{player.avg}</div>
+                                  <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">3PG · {player.value} total</div>
                                 </div>
                               </div>
                             ))}
@@ -1078,8 +1090,8 @@ Please provide:
                                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
                                 </div>
                                 <div className="text-right">
-                                  <div className="text-xl font-black text-blue-600 dark:text-blue-400 print:text-lg leading-none">{player.value}</div>
-                                  <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">{player.avg} per game</div>
+                                  <div className="text-xl font-black text-blue-600 dark:text-blue-400 print:text-lg leading-none">{player.avg}</div>
+                                  <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">per game · {player.value} total</div>
                                 </div>
                               </div>
                             ))}
@@ -1107,8 +1119,8 @@ Please provide:
                                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
                                 </div>
                                 <div className="text-right">
-                                  <div className="text-xl font-black text-green-600 dark:text-green-400 print:text-lg leading-none">{player.value}</div>
-                                  <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">{player.avg} per game</div>
+                                  <div className="text-xl font-black text-green-600 dark:text-green-400 print:text-lg leading-none">{player.avg}</div>
+                                  <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">per game · {player.value} total</div>
                                 </div>
                               </div>
                             ))}
