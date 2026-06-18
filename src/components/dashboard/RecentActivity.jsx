@@ -170,7 +170,7 @@ export default function RecentActivity({ organizationId, teams = [], players = [
             <p className="text-gray-500 dark:text-slate-400 font-medium">No recent activity yet</p>
           </div>
         ) : (
-          <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+          <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
             {activities.map((a) => {
               const Icon = a.icon;
               return (
