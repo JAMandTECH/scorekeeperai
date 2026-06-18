@@ -66,14 +66,16 @@ function computeLeaders(categories, stats, playerMap, teamMap) {
     let best = null;
     stats.forEach((s) => {
       const val = s[cat.key] || 0;
-      if (val > 0 && (!best || val > best.value)) {
+      const gp = s.games_played || 0;
+      const avgVal = gp > 0 ? val / gp : 0;
+      if (val > 0 && gp > 0 && (!best || avgVal > best.avgVal)) {
         const player = playerMap[s.player_id];
         if (!player) return;
-        const gp = s.games_played || 0;
         best = {
           value: val,
+          avgVal,
           games_played: gp,
-          avg: gp > 0 ? (val / gp).toFixed(1) : "0.0",
+          avg: avgVal.toFixed(1),
           first_name: player.first_name,
           last_name: player.last_name,
           photo_url: player.photo_url,
@@ -108,27 +110,7 @@ function SportLeaders({ title, image, overlay, categories, stats, playerMap, tea
   const openLeaders = splitDivisions ? computeLeaders(categories, stats.filter((s) => !isVeteran(s)), playerMap, teamMap) : null;
   const veteranLeaders = splitDivisions ? computeLeaders(categories, stats.filter((s) => isVeteran(s)), playerMap, teamMap) : null;
 
-  const leaders = categories.map((cat) => {
-    let best = null;
-    stats.forEach((s) => {
-      const val = s[cat.key] || 0;
-      if (val > 0 && (!best || val > best.value)) {
-        const player = playerMap[s.player_id];
-        if (!player) return;
-        const gp = s.games_played || 0;
-        best = {
-          value: val,
-          games_played: gp,
-          avg: gp > 0 ? (val / gp).toFixed(1) : "0.0",
-          first_name: player.first_name,
-          last_name: player.last_name,
-          photo_url: player.photo_url,
-          team_name: teamMap[s.team_id]?.name || teamMap[player.team_id]?.name,
-        };
-      }
-    });
-    return { category: cat, leader: best };
-  });
+  const leaders = computeLeaders(categories, stats, playerMap, teamMap);
 
   return (
     <Card className="overflow-hidden border border-[#1c2c4a] bg-[#0d1830] shadow-futuristic">
