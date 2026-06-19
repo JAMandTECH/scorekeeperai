@@ -6,25 +6,46 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // division's data and renders it. All data fields & columns are preserved.
 export default function StandingsTable({ divisionData, organization, accent = "orange" }) {
   const accentStyles = {
-    orange: { rank: "text-orange-400", line: "from-orange-500", fallback: "from-orange-500 to-orange-600" },
-    blue: { rank: "text-cyan-400", line: "from-cyan-500", fallback: "from-blue-500 to-blue-600" },
-  }[accent] || { rank: "text-orange-400", line: "from-orange-500", fallback: "from-orange-500 to-orange-600" };
+    orange: {
+      rank: "text-orange-400",
+      line: "from-orange-500",
+      fallback: "from-orange-500 to-orange-600",
+      image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1000&q=70",
+      overlay: "from-orange-600/85 via-amber-600/70 to-red-600/80",
+    },
+    blue: {
+      rank: "text-cyan-400",
+      line: "from-cyan-500",
+      fallback: "from-blue-500 to-blue-600",
+      image: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=1000&q=70",
+      overlay: "from-blue-600/85 via-cyan-600/70 to-sky-500/80",
+    },
+  }[accent] || {
+    rank: "text-orange-400",
+    line: "from-orange-500",
+    fallback: "from-orange-500 to-orange-600",
+    image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1000&q=70",
+    overlay: "from-orange-600/85 via-amber-600/70 to-red-600/80",
+  };
 
   return (
     <Card className="mb-6 overflow-hidden border border-border shadow-2xl rounded-3xl bg-card dark:bg-gradient-to-br dark:from-[#10162b] dark:via-[#0d1326] dark:to-[#0a0f1f]">
-      {/* Header band */}
-      <div className="relative px-6 py-6 border-b border-border bg-gradient-to-r from-primary/[0.06] to-transparent">
-        <div className="flex items-center justify-between">
+      {/* Header band with sport background image */}
+      <div className="relative px-6 py-6 border-b border-border overflow-hidden">
+        <img src={accentStyles.image} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <div className={`absolute inset-0 bg-gradient-to-r ${accentStyles.overlay}`} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        <div className="relative flex items-center justify-between">
           <div>
-            <p className="text-primary text-xs font-bold tracking-[0.3em] uppercase mb-1">
+            <p className="text-white/90 text-xs font-bold tracking-[0.3em] uppercase mb-1 drop-shadow">
               {accent === "blue" ? "Volleyball League" : "Basketball League"}
             </p>
-            <h3 className="text-2xl md:text-3xl font-black text-foreground italic tracking-tight">
+            <h3 className="text-2xl md:text-3xl font-black text-white italic tracking-tight drop-shadow-lg">
               {divisionData.division}
             </h3>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden sm:block text-sm font-bold text-muted-foreground">{organization?.name}</span>
+            <span className="hidden sm:block text-sm font-bold text-white/90 drop-shadow">{organization?.name}</span>
             {organization?.logo_url && (
               <Avatar className="w-12 h-12 border-2 border-white/20 shadow-lg">
                 <AvatarImage src={organization.logo_url} />
