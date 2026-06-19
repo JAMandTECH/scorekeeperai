@@ -12,29 +12,17 @@ function normalizeDivision(name) {
 
 const SPORT_LABEL = { basketball: "Basketball", volleyball: "Volleyball" };
 
-// Visual theme + header image per division (cycled by index so any division name looks special)
-const DIVISION_THEMES = [
-  {
-    gradient: "from-purple-600 via-fuchsia-600 to-pink-600",
-    glow: "from-purple-500/30 to-pink-500/30",
+// Sport-specific header background image + gradient
+const SPORT_THEMES = {
+  basketball: {
+    gradient: "from-orange-600 via-amber-600 to-red-600",
     image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=800&q=70",
   },
-  {
+  volleyball: {
     gradient: "from-blue-600 via-cyan-600 to-sky-500",
-    glow: "from-cyan-500/30 to-blue-500/30",
     image: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=800&q=70",
   },
-  {
-    gradient: "from-orange-600 via-amber-600 to-red-600",
-    glow: "from-orange-500/30 to-red-500/30",
-    image: "https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?auto=format&fit=crop&w=800&q=70",
-  },
-  {
-    gradient: "from-emerald-600 via-green-600 to-teal-600",
-    glow: "from-emerald-500/30 to-teal-500/30",
-    image: "https://images.unsplash.com/photo-1593341646782-e0b495cff86d?auto=format&fit=crop&w=800&q=70",
-  },
-];
+};
 
 const RANK_META = [
   { icon: Trophy, color: "text-yellow-400", badge: "bg-yellow-400/20 text-yellow-300" },
@@ -71,8 +59,8 @@ function TeamRow({ team, rank }) {
   );
 }
 
-function DivisionCard({ division, sport, teams, themeIndex }) {
-  const theme = DIVISION_THEMES[themeIndex % DIVISION_THEMES.length];
+function DivisionCard({ division, sport, teams }) {
+  const theme = SPORT_THEMES[sport] || SPORT_THEMES.basketball;
   const top3 = [...teams]
     .sort((a, b) => (b.wins || 0) - (a.wins || 0) || (a.losses || 0) - (b.losses || 0))
     .slice(0, 3);
@@ -137,7 +125,6 @@ export default function DivisionStandings({ teams = [] }) {
             division={g.division}
             sport={g.sport}
             teams={g.teams}
-            themeIndex={i}
           />
         ))}
       </div>
