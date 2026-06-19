@@ -56,12 +56,28 @@ function ScorerCard({ label, topScorer, teamMap }) {
   return (
     <Card className="overflow-hidden border border-gray-200 bg-white dark:border-[#1c2c4a] dark:bg-[#0d1830] shadow-futuristic">
       <div className="flex">
-        {/* Full-height image column on the left */}
-        <div className="w-40 shrink-0 self-stretch bg-gray-100 dark:bg-[#0d1830] relative">
+        {/* Full-height image column on the left with stylized background */}
+        <div className="w-40 shrink-0 self-stretch relative overflow-hidden">
+          {/* Decorative background layers */}
+          <div className="absolute inset-0 bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-800" />
+          <div
+            className="absolute inset-0 opacity-30 mix-blend-overlay"
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=600&q=70')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+          {/* Glow circle behind the player */}
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full bg-sky-400/40 blur-3xl" />
+
+          {/* Player image / initials on top */}
           {p.photo_url ? (
-            <img src={p.photo_url} alt={p.first_name} className="absolute inset-0 w-full h-full object-cover object-top" />
+            <img src={p.photo_url} alt={p.first_name} className="absolute inset-0 w-full h-full object-cover object-top drop-shadow-2xl" />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-white text-5xl font-black">{initials}</div>
+            <div className="absolute inset-0 flex items-center justify-center text-white/90 text-5xl font-black drop-shadow-lg">{initials}</div>
           )}
         </div>
 
