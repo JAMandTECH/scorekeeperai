@@ -27,36 +27,31 @@ export function usePlayerLeaders(organizationId, teams = []) {
 
   const completedGames = games.filter((g) => g.status === "completed");
 
-  // Fetch all stats for this org's teams in ONE backend call (paginated server-side),
-  // instead of looping over every completed game id from the browser.
-  const teamIds = teams.map((t) => t.id).filter(Boolean).sort();
+  // Fetch stats for completed games only, chunked by game_id (the proven path
+  // used by the Statistics page). Each chunk is isolated so one failure never
+  // wipes the whole result set.
+  const completedGameIds = completedGames.map((g) => g.id).filter(Boolean).sort();
 
   const { data: playerStats = [] } = useQuery({
-    queryKey: ["player-leaders-stats", organizationId, teamIds.join(",")],
+    queryKey: ["player-leaders-stats", organizationId, completedGameIds.join(",")],
     queryFn: async () => {
-      if (teamIds.length === 0) return [];
-      // Fetch directly from the browser, paginated, in team chunks.
-      // Direct entity reads are fast and avoid backend rate-limit churn.
+      if (completedGameIds.length === 0) return [];
       const results = [];
-      for (let i = 0; i < teamIds.length; i += 10) {
-        const chunk = teamIds.slice(i, i + 10);
-        let skip = 0;
-        while (true) {
-          const batch = await base44.entities.PlayerGameStats.filter(
-            { team_id: { $in: chunk } },
-            "created_date",
-            500,
-            skip
+      for (let i = 0; i < completedGameIds.length; i += 50) {
+        const chunk = completedGameIds.slice(i, i + 50);
+        try {
+          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
+          results.push(...part);
+        } catch (_) {
+          const per = await Promise.all(
+            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
           );
-          results.push(...batch);
-          if (batch.length < 500) break;
-          skip += 500;
-          if (skip > 20000) break;
+          results.push(...per.flat());
         }
       }
       return results;
     },
-    enabled: !!organizationId && teamIds.length > 0,
+    enabled: !!organizationId && completedGameIds.length > 0,
     staleTime: 60000,
     gcTime: 10 * 60 * 1000,
     refetchInterval: 30000,

@@ -173,32 +173,30 @@ export default function Home() {
   const completedGames = games.filter(g => g.status === 'completed').sort((a, b) => new Date(b.game_date) - new Date(a.game_date));
 
   const teamIds = teams.map(t => t.id);
+  const completedGameIds = completedGames.map(g => g.id).filter(Boolean);
 
   const { data: allPlayerStats = [] } = useQuery({
-    queryKey: ['all-player-stats-home', teamIds.join(',')],
+    queryKey: ['all-player-stats-home', completedGameIds.join(',')],
     queryFn: async () => {
-      if (teamIds.length === 0) return [];
-      // Fetch directly by team, paginated. Fast and avoids backend rate limits.
+      if (completedGameIds.length === 0) return [];
+      // Chunk by game_id (proven Statistics-page path); isolate each chunk so
+      // one failure never wipes the whole result set.
       const results = [];
-      for (let i = 0; i < teamIds.length; i += 10) {
-        const chunk = teamIds.slice(i, i + 10);
-        let skip = 0;
-        while (true) {
-          const batch = await base44.entities.PlayerGameStats.filter(
-            { team_id: { $in: chunk } },
-            'created_date',
-            500,
-            skip
+      for (let i = 0; i < completedGameIds.length; i += 50) {
+        const chunk = completedGameIds.slice(i, i + 50);
+        try {
+          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
+          results.push(...part);
+        } catch (_) {
+          const per = await Promise.all(
+            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
           );
-          results.push(...batch);
-          if (batch.length < 500) break;
-          skip += 500;
-          if (skip > 20000) break;
+          results.push(...per.flat());
         }
       }
       return results;
     },
-    enabled: isAuthenticated === true && teamIds.length > 0,
+    enabled: isAuthenticated === true && completedGameIds.length > 0,
     staleTime: 60000,
     gcTime: 10 * 60 * 1000,
     refetchInterval: 30000,
