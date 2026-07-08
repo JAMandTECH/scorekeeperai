@@ -529,24 +529,31 @@ const [deletingGame, setDeletingGame] = useState(false);
       );
     }
 
+    // Push to history IMMEDIATELY (before the await) so the undo stack order
+    // always matches the order taps happened — not the order the async saves
+    // happen to resolve in. Otherwise a later-resolving save reorders the stack
+    // and undo pops the wrong action ("dropped points" / "wrong stat" bug).
+    const historyEntry = {
+      type: 'score',
+      team: isHomeTeam ? 'home' : 'away',
+      points: points,
+      playerId: playerId,
+      quarter: currentQuarter,
+      oldHomeScore: oldHomeScore,
+      oldAwayScore: oldAwayScore,
+      statUpdates: statUpdates,
+      snapshot,
+    };
+    setActionHistory(prev => [...prev, historyEntry]);
+
     try {
       await updatePlayerStats(playerId, teamId, statUpdates);
-
-      setActionHistory(prev => [...prev, {
-        type: 'score',
-        team: isHomeTeam ? 'home' : 'away',
-        points: points,
-        playerId: playerId,
-        quarter: currentQuarter,
-        oldHomeScore: oldHomeScore,
-        oldAwayScore: oldAwayScore,
-        statUpdates: statUpdates,
-        snapshot,
-      }]);
     } catch (error) {
-      // Stat or score save failed — revert score UI so it matches DB
+      // Stat or score save failed — revert score UI and drop the history entry
+      // we optimistically added so undo can't reverse a save that never happened.
       setHomeScore(oldHomeScore);
       setAwayScore(oldAwayScore);
+      setActionHistory(prev => prev.filter(a => a !== historyEntry));
       alert('Failed to save — the score was NOT updated. Please check your connection and try again.');
     }
   };
@@ -577,17 +584,21 @@ const [deletingGame, setDeletingGame] = useState(false);
       addPlayerStat.lastTs = now;
     }
     const statUpdates = [{ statType, value }];
+    // Push to history immediately (before the await) so undo order matches tap
+    // order regardless of which async save resolves first.
+    const historyEntry = {
+      type: statType,
+      playerId: playerId,
+      teamId: teamId,
+      quarter: currentQuarter,
+      value: value,
+      statUpdates: statUpdates,
+    };
+    setActionHistory(prev => [...prev, historyEntry]);
     try {
       await updatePlayerStats(playerId, teamId, statUpdates);
-      setActionHistory(prev => [...prev, {
-        type: statType,
-        playerId: playerId,
-        teamId: teamId,
-        quarter: currentQuarter,
-        value: value,
-        statUpdates: statUpdates,
-      }]);
     } catch (error) {
+      setActionHistory(prev => prev.filter(a => a !== historyEntry));
       alert('Failed to save stat. Please check your connection and try again.');
     }
   };
@@ -605,6 +616,17 @@ const [deletingGame, setDeletingGame] = useState(false);
     const oldTeamFouls = isHomeTeam ? homeTeamFouls : awayTeamFouls;
     
     const statUpdates = [{ statType: 'fouls', value: 1 }];
+    // Push to history immediately (before the awaits) so undo order matches tap order.
+    const historyEntry = {
+      type: 'foul',
+      playerId: playerId,
+      teamId: teamId,
+      quarter: currentQuarter,
+      team: currentTeam,
+      oldTeamFouls: oldTeamFouls,
+      statUpdates: statUpdates,
+    };
+    setActionHistory(prev => [...prev, historyEntry]);
     try {
       await updatePlayerStats(playerId, teamId, statUpdates);
 
@@ -619,16 +641,6 @@ const [deletingGame, setDeletingGame] = useState(false);
         await updateGameSafe({ away_team_fouls: newTeamFouls });
       }
 
-      setActionHistory(prev => [...prev, {
-        type: 'foul',
-        playerId: playerId,
-        teamId: teamId,
-        quarter: currentQuarter,
-        team: currentTeam,
-        oldTeamFouls: oldTeamFouls,
-        statUpdates: statUpdates,
-      }]);
-
       const totalFouls = getTotalPlayerFouls(playerId) + 1;
       if (totalFouls >= game.player_foul_limit) {
         alert(`⚠️ Player has reached foul limit (${game.player_foul_limit} fouls) and is disqualified!`);
@@ -636,6 +648,7 @@ const [deletingGame, setDeletingGame] = useState(false);
         alert(`⚠️ Warning: Player has ${totalFouls} fouls! One more foul and they will be disqualified.`);
       }
     } catch (error) {
+      setActionHistory(prev => prev.filter(a => a !== historyEntry));
       alert('Failed to save foul — the team foul count was NOT updated. Please check your connection and try again.');
     }
   };
