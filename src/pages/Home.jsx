@@ -147,11 +147,11 @@ export default function Home() {
       for (let i = 0; i < teamIds.length; i += chunkSize) {
         const chunk = teamIds.slice(i, i + chunkSize);
         try {
-          const part = await base44.entities.Player.filter({ team_id: { $in: chunk } }, '-created_date', 500);
+          const part = await base44.entities.Player.filter({ team_id: { $in: chunk } }, '-created_date', 2000);
           out.push(...part);
         } catch (_) {
           const per = await Promise.all(
-            chunk.map((id) => base44.entities.Player.filter({ team_id: id }, '-created_date', 500).catch(() => []))
+            chunk.map((id) => base44.entities.Player.filter({ team_id: id }, '-created_date', 2000).catch(() => []))
           );
           out.push(...per.flat());
         }
