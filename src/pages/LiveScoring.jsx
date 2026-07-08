@@ -477,10 +477,6 @@ const [deletingGame, setDeletingGame] = useState(false);
     try {
       await updatePlayerStats(playerId, teamId, statUpdates);
 
-      lastWriteTsRef.current = Date.now();
-      const scorePayload = isHomeTeam ? { home_score: newHomeScore } : { away_score: newAwayScore };
-      await updateGameSafe(scorePayload);
-
       setActionHistory(prev => [...prev, {
         type: 'score',
         team: isHomeTeam ? 'home' : 'away',

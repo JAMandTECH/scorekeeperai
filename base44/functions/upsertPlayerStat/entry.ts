@@ -92,7 +92,29 @@ Deno.serve(async (req) => {
       saved = await base44.asServiceRole.entities.PlayerGameStats.create(doc);
     }
 
-    return Response.json({ success: true, stat: saved });
+    // If points were involved, recalculate game score from ALL player stats
+    // so the score can never diverge from the player stats
+    const hasPointsUpdate = updates.some(u => u.statType === 'points');
+    let gameScoreUpdate = null;
+    if (hasPointsUpdate) {
+      const allStats = await base44.asServiceRole.entities.PlayerGameStats.filter(
+        { game_id }, undefined, 2000
+      );
+      let homeTotal = 0;
+      let awayTotal = 0;
+      for (const s of allStats) {
+        const pts = Number(s.points) || 0;
+        if (s.team_id === game.home_team_id) homeTotal += pts;
+        else if (s.team_id === game.away_team_id) awayTotal += pts;
+      }
+      await base44.asServiceRole.entities.Game.update(game_id, {
+        home_score: homeTotal,
+        away_score: awayTotal,
+      });
+      gameScoreUpdate = { home_score: homeTotal, away_score: awayTotal };
+    }
+
+    return Response.json({ success: true, stat: saved, game_score: gameScoreUpdate });
   } catch (error) {
     return Response.json({ error: error?.message || 'Internal Server Error' }, { status: 500 });
   }
