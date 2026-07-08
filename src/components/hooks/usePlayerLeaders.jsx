@@ -1,5 +1,8 @@
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+
+// Keep the last successful result on screen while a refetch runs (v5-safe, no named import).
+const keepPrevious = (prev) => prev;
 
 /**
  * Shared player-leader computation used by the Dashboard, Home and Statistics pages
@@ -19,7 +22,7 @@ export function usePlayerLeaders(organizationId) {
     refetchInterval: 20000,
     staleTime: 60000,
     gcTime: 10 * 60 * 1000,
-    placeholderData: keepPreviousData,
+    placeholderData: keepPrevious,
   });
 
   const completedGames = games.filter((g) => g.status === "completed");
@@ -58,7 +61,7 @@ export function usePlayerLeaders(organizationId) {
     staleTime: 60000,
     gcTime: 10 * 60 * 1000,
     refetchInterval: 20000,
-    placeholderData: keepPreviousData,
+    placeholderData: keepPrevious,
   });
 
   return { games, completedGames, playerStats };
