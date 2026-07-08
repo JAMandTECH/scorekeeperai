@@ -163,7 +163,9 @@ export default function Home() {
   });
   const { data: allGames = [] } = useQuery({
     queryKey: ['all-games-home', orgId],
-    queryFn: () => orgId ? base44.entities.Game.filter({ organization_id: orgId }) : base44.entities.Game.list('-game_date'),
+    // Explicit sort + high limit so the FULL completed-game set loads — matches the
+    // Dashboard leaderboard hook so both surfaces compute the identical games-played divisor.
+    queryFn: () => orgId ? base44.entities.Game.filter({ organization_id: orgId }, '-game_date', 2000) : base44.entities.Game.list('-game_date', 2000),
     enabled: isAuthenticated === true,
     refetchInterval: 10000,
   });

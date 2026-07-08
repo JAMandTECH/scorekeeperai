@@ -17,7 +17,10 @@ const keepPrevious = (prev) => prev;
 export function usePlayerLeaders(organizationId, teams = []) {
   const { data: games = [] } = useQuery({
     queryKey: ["player-leaders-games", organizationId],
-    queryFn: () => base44.entities.Game.filter({ organization_id: organizationId }),
+    // Sort + explicit high limit so the FULL completed-game set always loads.
+    // Without this, the default page cap can return a different subset than Home,
+    // shifting each team's games-played divisor and flipping near-tied leaders.
+    queryFn: () => base44.entities.Game.filter({ organization_id: organizationId }, "-game_date", 2000),
     enabled: !!organizationId,
     refetchInterval: 20000,
     staleTime: 60000,
