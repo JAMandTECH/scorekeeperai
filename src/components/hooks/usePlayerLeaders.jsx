@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
 /**
@@ -17,6 +17,9 @@ export function usePlayerLeaders(organizationId) {
     queryFn: () => base44.entities.Game.filter({ organization_id: organizationId }),
     enabled: !!organizationId,
     refetchInterval: 20000,
+    staleTime: 60000,
+    gcTime: 10 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 
   const completedGames = games.filter((g) => g.status === "completed");
@@ -52,8 +55,10 @@ export function usePlayerLeaders(organizationId) {
       return stats;
     },
     enabled: !!organizationId && completedGameIds.length > 0,
-    staleTime: 30000,
+    staleTime: 60000,
+    gcTime: 10 * 60 * 1000,
     refetchInterval: 20000,
+    placeholderData: keepPreviousData,
   });
 
   return { games, completedGames, playerStats };
