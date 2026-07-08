@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/alert";
 import VoiceAssistant from "@/components/VoiceAssistant";
 import SyncStatusBadge from "@/components/SyncStatusBadge";
-import { enqueueStatWrite, startStatSync } from "@/lib/statSyncQueue";
+import { enqueueStatWrite, enqueueGameWrite, startStatSync } from "@/lib/statSyncQueue";
 
 
 export default function LiveScoringVolleyball() {
@@ -227,9 +227,13 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
     try {
       await base44.functions.invoke('updateGame', { game_id: id, patch });
     } catch (e) {
-      console.error('updateGame failed', e);
-      alert('Failed to save game update. Please check your connection or permissions.');
-      throw e;
+      // Connection lost after the optimistic UI already moved. Queue the patch
+      // (survives refresh/crash, retried automatically on reconnect) instead of
+      // throwing, so score deltas, timeouts, set transitions and the final score
+      // are never lost. The queue sums *_delta fields and takes the newest value
+      // for absolute fields when collapsing pending patches for the same game.
+      console.error('updateGame failed — queuing for retry', e);
+      enqueueGameWrite(id, patch);
     }
   };
   const updateGame = async (patch) => {

@@ -20,7 +20,7 @@ import VoiceAssistant from "@/components/VoiceAssistant";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { loadAllStatsPaginated } from "@/lib/liveScoringHelpers";
 import SyncStatusBadge from "@/components/SyncStatusBadge";
-import { enqueueStatWrite, startStatSync } from "@/lib/statSyncQueue";
+import { enqueueStatWrite, enqueueGameWrite, startStatSync } from "@/lib/statSyncQueue";
 
 export default function LiveScoring() {
   const [game, setGame] = useState(null);
@@ -119,9 +119,13 @@ const [deletingGame, setDeletingGame] = useState(false);
       if (same) return;
       await base44.functions.invoke('updateGame', { game_id: game.id, patch });
     } catch (e) {
-      console.error('updateGame failed', e);
-      alert('Failed to save game update. Please check your connection or permissions.');
-      throw e;
+      // Connection lost after the optimistic UI already moved. Queue the patch
+      // (survives refresh/crash, retried automatically on reconnect) instead of
+      // throwing so game-level data — team fouls, timeouts, quarter transitions,
+      // final score — can never be lost. Does NOT re-throw: callers keep their
+      // optimistic state and the queue guarantees eventual persistence.
+      console.error('updateGame failed — queuing for retry', e);
+      enqueueGameWrite(game.id, patch);
     }
   };
   const updateGameByIdSafe = async (id, patch) => {
@@ -129,9 +133,8 @@ const [deletingGame, setDeletingGame] = useState(false);
       if (!id) return;
       await base44.functions.invoke('updateGame', { game_id: id, patch });
     } catch (e) {
-      console.error('updateGameById failed', e);
-      alert('Failed to save game update. Please check your connection or permissions.');
-      throw e;
+      console.error('updateGameById failed — queuing for retry', e);
+      enqueueGameWrite(id, patch);
     }
   };
 

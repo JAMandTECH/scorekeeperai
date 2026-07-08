@@ -63,9 +63,44 @@ export function subscribeStatSync(cb) {
 export function enqueueStatWrite(payload) {
   queue.push({
     id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    kind: "stat",
     payload,
     attempts: 0,
   });
+  persist();
+  notify();
+  flush();
+}
+
+// Enqueue a game-level write (team fouls, timeouts, quarter transitions,
+// end-game/final score). Unlike stat writes these are absolute field sets, so
+// on reconnect the LAST queued patch for a game wins — replaying an older patch
+// after a newer one would stomp the newer value. We therefore collapse any
+// pending patch for the same game_id into one, merging fields.
+export function enqueueGameWrite(gameId, patch) {
+  if (!gameId || !patch) return;
+  const existing = queue.find((it) => it.kind === "game" && it.payload?.game_id === gameId);
+  if (existing) {
+    // Merge into the pending patch for this game. "*_delta" fields are additive
+    // (e.g. two queued home_score_delta:+1 must sum to +2, not overwrite), while
+    // absolute fields (home_score, status, quarter_scores…) take the newest value.
+    const merged = { ...existing.payload.patch };
+    Object.entries(patch).forEach(([k, v]) => {
+      if (k.endsWith("_delta") && typeof v === "number") {
+        merged[k] = (merged[k] || 0) + v;
+      } else {
+        merged[k] = v;
+      }
+    });
+    existing.payload.patch = merged;
+  } else {
+    queue.push({
+      id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      kind: "game",
+      payload: { game_id: gameId, patch },
+      attempts: 0,
+    });
+  }
   persist();
   notify();
   flush();
@@ -84,7 +119,8 @@ export async function flush() {
     while (queue.length > 0) {
       const item = queue[0];
       try {
-        await base44.functions.invoke("upsertPlayerStat", item.payload);
+        const fn = item.kind === "game" ? "updateGame" : "upsertPlayerStat";
+        await base44.functions.invoke(fn, item.payload);
         queue.shift();
         persist();
         notify();
