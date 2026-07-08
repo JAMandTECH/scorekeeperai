@@ -691,10 +691,15 @@ const [deletingGame, setDeletingGame] = useState(false);
     if (undoLockRef.current) return;
     undoLockRef.current = true;
     setUndoInProgress(true);
-    // Allow legitimate decreases from server for a short window (undo)
-    allowDecreaseUntilRef.current = Date.now() + 4000;
 
     const lastAction = actionHistory[actionHistory.length - 1];
+    // Only score/foul/timeout undos legitimately decrease team totals, so only
+    // those open the "allow server decrease" window. A rebound/assist/steal/block
+    // undo must NEVER be allowed to pull the score down — that was the bug where
+    // undoing a stat visibly changed the score.
+    if (['score', 'foul', 'timeout'].includes(lastAction.type)) {
+      allowDecreaseUntilRef.current = Date.now() + 4000;
+    }
     try {
       setActionHistory(prev => prev.slice(0, -1));
 
@@ -774,9 +779,13 @@ const [deletingGame, setDeletingGame] = useState(false);
       console.error('Error during undo:', error);
       setActionHistory(prev => [...prev, lastAction]);
       lastWriteTsRef.current = 0;
-      allowDecreaseUntilRef.current = Date.now() + 4000;
-      await refreshGameState();
-      alert('Undo could not be saved. Your score is unchanged — please try again in a moment.');
+      // Only re-sync scores from the server for undos that actually affect the
+      // score. A failed stat undo must not disturb the on-screen score.
+      if (['score', 'foul', 'timeout'].includes(lastAction.type)) {
+        allowDecreaseUntilRef.current = Date.now() + 4000;
+        await refreshGameState();
+      }
+      alert('Undo could not be saved — please try again in a moment.');
     } finally {
       undoLockRef.current = false;
       setUndoInProgress(false);
