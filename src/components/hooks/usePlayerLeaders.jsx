@@ -14,7 +14,7 @@ const keepPrevious = (prev) => prev;
  * Points are recomputed per-game from that game's actual sport, and averages divide
  * the player's total by the number of completed games their team played.
  */
-export function usePlayerLeaders(organizationId) {
+export function usePlayerLeaders(organizationId, teams = []) {
   const { data: games = [] } = useQuery({
     queryKey: ["player-leaders-games", organizationId],
     queryFn: () => base44.entities.Game.filter({ organization_id: organizationId }),
@@ -26,41 +26,40 @@ export function usePlayerLeaders(organizationId) {
   });
 
   const completedGames = games.filter((g) => g.status === "completed");
-  const completedGameIds = completedGames.map((g) => g.id);
+
+  // Fetch all stats for this org's teams in ONE backend call (paginated server-side),
+  // instead of looping over every completed game id from the browser.
+  const teamIds = teams.map((t) => t.id).filter(Boolean).sort();
 
   const { data: playerStats = [] } = useQuery({
-    queryKey: ["player-leaders-stats", organizationId, completedGameIds.join(",")],
+    queryKey: ["player-leaders-stats", organizationId, teamIds.join(",")],
     queryFn: async () => {
-      if (completedGameIds.length === 0) return [];
-      let stats = [];
-      try {
-        const res = await base44.functions.invoke("getGamePlayerStats", { game_ids: completedGameIds });
-        stats = Array.isArray(res.data) ? res.data : [];
-      } catch (e) {
-        console.warn("getGamePlayerStats failed, falling back to direct fetch:", e?.message || e);
-      }
-      if (!stats || stats.length === 0) {
-        const results = [];
-        for (let i = 0; i < completedGameIds.length; i += 50) {
-          const chunk = completedGameIds.slice(i, i + 50);
-          try {
-            const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
-            results.push(...part);
-          } catch (_) {
-            const per = await Promise.all(
-              chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
-            );
-            results.push(...per.flat());
-          }
+      if (teamIds.length === 0) return [];
+      // Fetch directly from the browser, paginated, in team chunks.
+      // Direct entity reads are fast and avoid backend rate-limit churn.
+      const results = [];
+      for (let i = 0; i < teamIds.length; i += 10) {
+        const chunk = teamIds.slice(i, i + 10);
+        let skip = 0;
+        while (true) {
+          const batch = await base44.entities.PlayerGameStats.filter(
+            { team_id: { $in: chunk } },
+            "created_date",
+            500,
+            skip
+          );
+          results.push(...batch);
+          if (batch.length < 500) break;
+          skip += 500;
+          if (skip > 20000) break;
         }
-        stats = results;
       }
-      return stats;
+      return results;
     },
-    enabled: !!organizationId && completedGameIds.length > 0,
+    enabled: !!organizationId && teamIds.length > 0,
     staleTime: 60000,
     gcTime: 10 * 60 * 1000,
-    refetchInterval: 20000,
+    refetchInterval: 30000,
     placeholderData: keepPrevious,
   });
 
