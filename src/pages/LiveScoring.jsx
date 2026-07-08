@@ -648,20 +648,14 @@ const [deletingGame, setDeletingGame] = useState(false);
       setAwayScore(lastAction.oldAwayScore);
       lastWriteTsRef.current = Date.now();
 
-      const scoreUndoPayload = lastAction.team === 'home'
-        ? { home_score: lastAction.oldHomeScore }
-        : { away_score: lastAction.oldAwayScore };
-
       const reverseUpdates = lastAction.statUpdates.map(update => ({
         statType: update.statType,
         value: -update.value,
       }));
       const teamId = lastAction.team === 'home' ? game.home_team_id : game.away_team_id;
 
-      await Promise.all([
-        updateGameSafe(scoreUndoPayload),
-        updatePlayerStats(lastAction.playerId, teamId, reverseUpdates, lastAction.quarter),
-      ]);
+      // Backend recalculates game score from player stats automatically
+      await updatePlayerStats(lastAction.playerId, teamId, reverseUpdates, lastAction.quarter);
       lastGameUpdateAtRef.current = Date.now();
 
     } else if (lastAction.type === 'foul') {
