@@ -196,16 +196,23 @@ export default function RecentActivity({ organizationId, teams = [], players = [
                     </span>
                   </div>
                   {Array.isArray(a.best) && a.best.length > 0 && (
-                    <div className="mt-2.5 ml-[52px] space-y-1.5 border-t border-gray-200 dark:border-[#1c2c4a] pt-2">
-                      {a.best.map((b, idx) => (
-                        <div key={idx} className="flex items-center gap-2 flex-wrap">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-yellow-500 dark:text-yellow-400">
-                            <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                            {b.name}
-                          </span>
-                          <span className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">{b.stats}</span>
-                        </div>
-                      ))}
+                    <div className="mt-2.5 ml-[52px] grid grid-cols-2 gap-3 border-t border-gray-200 dark:border-[#1c2c4a] pt-2">
+                      {[0, 1].map((idx) => {
+                        const b = a.best[idx];
+                        return (
+                          <div key={idx} className={`flex flex-col gap-0.5 ${idx === 1 ? 'items-end text-right' : 'items-start text-left'}`}>
+                            {b ? (
+                              <>
+                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-yellow-500 dark:text-yellow-400">
+                                  <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                                  {b.name}
+                                </span>
+                                <span className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">{b.stats}</span>
+                              </>
+                            ) : null}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
