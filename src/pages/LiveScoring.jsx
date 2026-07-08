@@ -91,8 +91,8 @@ const [deletingGame, setDeletingGame] = useState(false);
 
   // Fetch a single game by id, retrying on transient rate-limit errors with
   // exponential backoff so a brief spike doesn't leave the page stuck loading.
-  const fetchGameByIdWithRetry = async (id, attempts = 4) => {
-    let delay = 800;
+  const fetchGameByIdWithRetry = async (id, attempts = 7) => {
+    let delay = 600;
     for (let i = 0; i < attempts; i++) {
       try {
         const games = await base44.entities.Game.filter({ id });
@@ -101,7 +101,7 @@ const [deletingGame, setDeletingGame] = useState(false);
         const isRateLimit = /rate limit/i.test(e?.message || '');
         if (!isRateLimit || i === attempts - 1) throw e;
         await new Promise((r) => setTimeout(r, delay));
-        delay *= 2;
+        delay = Math.min(delay * 2, 5000);
       }
     }
   };
@@ -288,7 +288,16 @@ const [deletingGame, setDeletingGame] = useState(false);
       return;
     }
 
-    const currentGame = await fetchGameByIdWithRetry(gameId);
+    let currentGame;
+    try {
+      currentGame = await fetchGameByIdWithRetry(gameId);
+    } catch (e) {
+      // Rate limit still tripping after all retries — retry the whole load
+      // shortly rather than crashing the page or bouncing to Games.
+      console.error('Failed to load game (rate limited), retrying shortly:', e);
+      setTimeout(() => { loadGame(); }, 4000);
+      return;
+    }
     if (!currentGame) {
       navigate(createPageUrl("Games"));
       return;
