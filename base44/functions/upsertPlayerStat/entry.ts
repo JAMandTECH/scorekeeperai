@@ -130,16 +130,25 @@ Deno.serve(async (req) => {
       effectiveDelta = 0;
     }
 
+    // The player stat above is the source of truth and is already saved. The
+    // game-score sync below is best-effort: if it hits a rate limit after all
+    // retries, DON'T fail the whole request — the score is recomputed on the
+    // next load/refresh. Failing here would wrongly tell the scorekeeper the
+    // stat wasn't saved (and revert their tap) even though it was.
     let gameScoreUpdate = null;
     if (effectiveDelta !== 0) {
-      const isHome = team_id === game.home_team_id;
-      const newHome = Math.max(0, (Number(game.home_score) || 0) + (isHome ? effectiveDelta : 0));
-      const newAway = Math.max(0, (Number(game.away_score) || 0) + (!isHome ? effectiveDelta : 0));
-      await withRetry(() => base44.asServiceRole.entities.Game.update(game_id, {
-        home_score: newHome,
-        away_score: newAway,
-      }));
-      gameScoreUpdate = { home_score: newHome, away_score: newAway };
+      try {
+        const isHome = team_id === game.home_team_id;
+        const newHome = Math.max(0, (Number(game.home_score) || 0) + (isHome ? effectiveDelta : 0));
+        const newAway = Math.max(0, (Number(game.away_score) || 0) + (!isHome ? effectiveDelta : 0));
+        await withRetry(() => base44.asServiceRole.entities.Game.update(game_id, {
+          home_score: newHome,
+          away_score: newAway,
+        }));
+        gameScoreUpdate = { home_score: newHome, away_score: newAway };
+      } catch (scoreErr) {
+        console.error('Game score sync failed (stat still saved):', scoreErr?.message || scoreErr);
+      }
     }
 
     return Response.json({ success: true, stat: saved, game_score: gameScoreUpdate });
