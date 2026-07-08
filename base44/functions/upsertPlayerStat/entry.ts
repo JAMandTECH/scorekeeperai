@@ -3,16 +3,19 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 // Retry a Base44 SDK call on transient "Rate limit exceeded" errors with
 // exponential backoff. Scoring bursts can briefly trip the account rate limit;
 // retrying here prevents a "Failed to save" from surfacing to the scorekeeper.
-async function withRetry(fn, attempts = 4) {
-  let delay = 500;
+async function withRetry(fn, attempts = 6) {
+  let delay = 400;
   for (let i = 0; i < attempts; i++) {
     try {
       return await fn();
     } catch (e) {
-      const isRateLimit = /rate limit/i.test(e?.message || '');
-      if (!isRateLimit || i === attempts - 1) throw e;
+      const msg = e?.message || '';
+      const status = e?.status || e?.response?.status;
+      // Retry on rate limits and transient 5xx / network blips, not on 4xx.
+      const isTransient = /rate limit|timeout|temporarily|ECONNRESET|network/i.test(msg) || status === 429 || (status >= 500 && status < 600);
+      if (!isTransient || i === attempts - 1) throw e;
       await new Promise((r) => setTimeout(r, delay));
-      delay *= 2;
+      delay = Math.min(delay * 2, 4000);
     }
   }
 }

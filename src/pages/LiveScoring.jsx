@@ -654,8 +654,8 @@ const [deletingGame, setDeletingGame] = useState(false);
     // Allow legitimate decreases from server for a short window (undo)
     allowDecreaseUntilRef.current = Date.now() + 4000;
 
+    const lastAction = actionHistory[actionHistory.length - 1];
     try {
-      const lastAction = actionHistory[actionHistory.length - 1];
       setActionHistory(prev => prev.slice(0, -1));
 
     if (lastAction.type === 'score') {
@@ -719,6 +719,15 @@ const [deletingGame, setDeletingGame] = useState(false);
 
       await updateGameSafe(payload);
     }
+    } catch (error) {
+      // A save failed mid-undo (e.g. a transient rate limit). updatePlayerStats
+      // already reverted its optimistic stat change; restore the action to the
+      // history so the scorekeeper can retry, then re-sync from the server.
+      console.error('Error during undo:', error);
+      setActionHistory(prev => [...prev, lastAction]);
+      alert('Undo failed — nothing was changed. Please try again in a moment.');
+      lastWriteTsRef.current = 0;
+      refreshGameState();
     } finally {
       undoLockRef.current = false;
       setUndoInProgress(false);
