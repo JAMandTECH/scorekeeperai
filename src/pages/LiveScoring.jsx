@@ -421,14 +421,33 @@ const [deletingGame, setDeletingGame] = useState(false);
 
     try {
       lastWriteTsRef.current = Date.now();
-      // Persist via server-side upsert to avoid any client RLS races
-      const resp = await base44.functions.invoke('upsertPlayerStat', {
-        game_id: game.id,
-        player_id: playerId,
-        team_id: teamId,
-        quarter,
-        updates: statUpdates,
-      });
+      // Persist via server-side upsert to avoid any client RLS races.
+      // Retry on transient rate-limit blips so a brief spike doesn't surface a
+      // scary "Failed to save"/"Undo failed" alert for a write that would
+      // succeed on a quick retry.
+      let resp;
+      let lastErr;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          resp = await base44.functions.invoke('upsertPlayerStat', {
+            game_id: game.id,
+            player_id: playerId,
+            team_id: teamId,
+            quarter,
+            updates: statUpdates,
+          });
+          lastErr = null;
+          break;
+        } catch (e) {
+          lastErr = e;
+          const msg = e?.message || e?.response?.data?.error || '';
+          const status = e?.response?.status;
+          const isTransient = /rate limit|timeout|temporarily|network/i.test(msg) || status === 429 || (status >= 500 && status < 600);
+          if (!isTransient || attempt === 2) throw e;
+          await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+        }
+      }
+      if (lastErr) throw lastErr;
       const saved = resp?.data?.stat;
       if (saved?.id) {
         setPlayerStats(prev => ({ ...prev, [key]: { ...prev[key], id: saved.id } }));
