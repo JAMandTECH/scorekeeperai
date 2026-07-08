@@ -254,7 +254,7 @@ export default function Dashboard() {
               )}
 
               {organization && teams.length > 0 && (
-                <DivisionStandings teams={teams} />
+                <DivisionStandings teams={teams} games={games} />
               )}
 
               {organization && (
