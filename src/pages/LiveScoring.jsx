@@ -411,7 +411,16 @@ const [deletingGame, setDeletingGame] = useState(false);
       }
     } catch (error) {
       console.error('Error saving player stats:', error);
-      alert('Failed to save player stats. Please check your permissions or connection.');
+      // Revert optimistic UI update so it matches what was actually saved
+      setPlayerStats(prev => {
+        const existingStat = prev[key] || {};
+        const reverted = { ...existingStat };
+        statUpdates.forEach(({ statType, value }) => {
+          reverted[statType] = Math.max(0, (reverted[statType] || 0) - value);
+        });
+        return { ...prev, [key]: reverted };
+      });
+      throw error;
     }
   };
 
@@ -465,24 +474,30 @@ const [deletingGame, setDeletingGame] = useState(false);
       );
     }
 
-    setActionHistory(prev => [...prev, {
-      type: 'score',
-      team: isHomeTeam ? 'home' : 'away',
-      points: points,
-      playerId: playerId,
-      quarter: currentQuarter,
-      oldHomeScore: oldHomeScore,
-      oldAwayScore: oldAwayScore,
-      statUpdates: statUpdates,
-      snapshot,
-    }]);
+    try {
+      await updatePlayerStats(playerId, teamId, statUpdates);
 
-    await updatePlayerStats(playerId, teamId, statUpdates);
+      lastWriteTsRef.current = Date.now();
+      const scorePayload = isHomeTeam ? { home_score: newHomeScore } : { away_score: newAwayScore };
+      await updateGameSafe(scorePayload);
 
-    lastWriteTsRef.current = Date.now();
-    const scorePayload = isHomeTeam ? { home_score: newHomeScore } : { away_score: newAwayScore };
-    await updateGameSafe(scorePayload);
-
+      setActionHistory(prev => [...prev, {
+        type: 'score',
+        team: isHomeTeam ? 'home' : 'away',
+        points: points,
+        playerId: playerId,
+        quarter: currentQuarter,
+        oldHomeScore: oldHomeScore,
+        oldAwayScore: oldAwayScore,
+        statUpdates: statUpdates,
+        snapshot,
+      }]);
+    } catch (error) {
+      // Stat or score save failed — revert score UI so it matches DB
+      setHomeScore(oldHomeScore);
+      setAwayScore(oldAwayScore);
+      alert('Failed to save — the score was NOT updated. Please check your connection and try again.');
+    }
   };
 
   // Updated addPlayerStat to accept playerId and teamId
@@ -511,15 +526,19 @@ const [deletingGame, setDeletingGame] = useState(false);
       addPlayerStat.lastTs = now;
     }
     const statUpdates = [{ statType, value }];
-    setActionHistory(prev => [...prev, {
-      type: statType,
-      playerId: playerId,
-      teamId: teamId,
-      quarter: currentQuarter,
-      value: value,
-      statUpdates: statUpdates,
-    }]);
-    await updatePlayerStats(playerId, teamId, statUpdates);
+    try {
+      await updatePlayerStats(playerId, teamId, statUpdates);
+      setActionHistory(prev => [...prev, {
+        type: statType,
+        playerId: playerId,
+        teamId: teamId,
+        quarter: currentQuarter,
+        value: value,
+        statUpdates: statUpdates,
+      }]);
+    } catch (error) {
+      alert('Failed to save stat. Please check your connection and try again.');
+    }
   };
 
   // Updated handleFoul to accept playerId and teamId
@@ -535,35 +554,38 @@ const [deletingGame, setDeletingGame] = useState(false);
     const oldTeamFouls = isHomeTeam ? homeTeamFouls : awayTeamFouls;
     
     const statUpdates = [{ statType: 'fouls', value: 1 }];
-    await updatePlayerStats(playerId, teamId, statUpdates);
-    
-    const newTeamFouls = oldTeamFouls + 1;
-    if (isHomeTeam) {
-      setHomeTeamFouls(newTeamFouls);
-      lastWriteTsRef.current = Date.now();
-      await updateGameSafe({ home_team_fouls: newTeamFouls });
-    } else {
-      setAwayTeamFouls(newTeamFouls);
-      lastWriteTsRef.current = Date.now();
-      await updateGameSafe({ away_team_fouls: newTeamFouls });
-    }
+    try {
+      await updatePlayerStats(playerId, teamId, statUpdates);
 
-    setActionHistory(prev => [...prev, {
-      type: 'foul',
-      playerId: playerId,
-      teamId: teamId,
-      quarter: currentQuarter,
-      team: currentTeam,
-      oldTeamFouls: oldTeamFouls,
-      statUpdates: statUpdates,
-    }]);
+      const newTeamFouls = oldTeamFouls + 1;
+      if (isHomeTeam) {
+        setHomeTeamFouls(newTeamFouls);
+        lastWriteTsRef.current = Date.now();
+        await updateGameSafe({ home_team_fouls: newTeamFouls });
+      } else {
+        setAwayTeamFouls(newTeamFouls);
+        lastWriteTsRef.current = Date.now();
+        await updateGameSafe({ away_team_fouls: newTeamFouls });
+      }
 
-    const totalFouls = getTotalPlayerFouls(playerId) + 1;
-    if (totalFouls >= game.player_foul_limit) {
-      alert(`⚠️ Player has reached foul limit (${game.player_foul_limit} fouls) and is disqualified!`);
-      // Keeping player selected visually, but interaction is disabled by PlayerRow component
-    } else if (totalFouls === game.player_foul_limit - 1) {
-      alert(`⚠️ Warning: Player has ${totalFouls} fouls! One more foul and they will be disqualified.`);
+      setActionHistory(prev => [...prev, {
+        type: 'foul',
+        playerId: playerId,
+        teamId: teamId,
+        quarter: currentQuarter,
+        team: currentTeam,
+        oldTeamFouls: oldTeamFouls,
+        statUpdates: statUpdates,
+      }]);
+
+      const totalFouls = getTotalPlayerFouls(playerId) + 1;
+      if (totalFouls >= game.player_foul_limit) {
+        alert(`⚠️ Player has reached foul limit (${game.player_foul_limit} fouls) and is disqualified!`);
+      } else if (totalFouls === game.player_foul_limit - 1) {
+        alert(`⚠️ Warning: Player has ${totalFouls} fouls! One more foul and they will be disqualified.`);
+      }
+    } catch (error) {
+      alert('Failed to save foul — the team foul count was NOT updated. Please check your connection and try again.');
     }
   };
 
