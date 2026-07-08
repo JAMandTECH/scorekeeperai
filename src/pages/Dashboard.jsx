@@ -197,7 +197,7 @@ export default function Dashboard() {
   const organizationCount = isSuperAdmin ? allOrganizations.length : (organization ? 1 : 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 text-gray-900 dark:from-[#0a1120] dark:via-[#0d1830] dark:to-[#0a1120] dark:text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 text-gray-900 dark:from-[#0a0e1a] dark:via-[#0e1428] dark:to-[#0a0e1a] dark:text-white">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -295,8 +295,8 @@ export default function Dashboard() {
                       </div>
                     )}
                   </div>
-                  <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic">
-                    <CardHeader className="border-b border-gray-200/50 dark:border-gray-700/50 py-4">
+                  <Card className="border border-gray-200/50 dark:border-indigo-500/20 bg-white/80 dark:bg-[#141a2e]/90 backdrop-blur-xl shadow-futuristic">
+                    <CardHeader className="border-b border-gray-200/50 dark:border-indigo-500/20 py-4">
                       <CardTitle className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
                         <Calendar className="w-5 h-5 text-purple-500" /> Upcoming Games
                       </CardTitle>
@@ -307,7 +307,7 @@ export default function Dashboard() {
                       ) : (
                         <div className="space-y-2">
                           {upcomingGames.map((g) => (
-                            <Link key={g.id} to="/games" className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+                            <Link key={g.id} to="/games" className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-gray-50 dark:bg-indigo-500/5 hover:bg-gray-100 dark:hover:bg-indigo-500/10 border dark:border-indigo-500/10 transition-colors">
                               <span className="text-sm font-bold text-gray-900 dark:text-white truncate flex-1">
                                 {teamMap[g.home_team_id]?.name || 'TBD'} <span className="text-gray-400">vs</span> {teamMap[g.away_team_id]?.name || 'TBD'}
                               </span>
@@ -328,8 +328,8 @@ export default function Dashboard() {
               )}
 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                <Card className="relative overflow-hidden border border-red-200/50 dark:border-red-800/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 card-hover group">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-red-500/20 to-rose-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
+                <Card className="relative overflow-hidden border border-red-200/50 dark:border-red-500/25 bg-white/80 dark:bg-[#141a2e]/90 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 card-hover group">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-red-500/25 to-rose-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
                   <CardHeader className="relative z-10">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Live</CardTitle>
@@ -344,73 +344,73 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="relative overflow-hidden border border-indigo-200/50 dark:border-indigo-800/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 card-hover group">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-500/20 to-blue-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
+                <Card className="relative overflow-hidden border border-indigo-200/50 dark:border-indigo-500/25 bg-white/80 dark:bg-[#141a2e]/90 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 card-hover group">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-500/25 to-purple-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
                   <CardHeader className="relative z-10">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Completed</CardTitle>
-                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                         <Trophy className="w-5 h-5 text-white" />
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="relative z-10">
-                    <p className="text-5xl font-black bg-gradient-to-r from-indigo-500 to-blue-500 bg-clip-text text-transparent">{completedGamesCount}</p>
+                    <p className="text-5xl font-black bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">{completedGamesCount}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold mt-2">Games played</p>
                   </CardContent>
                 </Card>
 
-                <Card className="relative overflow-hidden border border-blue-200/50 dark:border-blue-800/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 card-hover group">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
+                <Card className="relative overflow-hidden border border-purple-200/50 dark:border-purple-500/25 bg-white/80 dark:bg-[#141a2e]/90 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 card-hover group">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-500/25 to-violet-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
                   <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <CardHeader className="relative z-10">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Organizations</CardTitle>
-                      <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                         <Building2 className="w-5 h-5 text-white" />
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="relative z-10">
-                    <p className="text-5xl font-black text-gradient-primary">{organizationCount}</p>
+                    <p className="text-5xl font-black bg-gradient-to-r from-purple-400 to-violet-500 bg-clip-text text-transparent">{organizationCount}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold mt-2">
                       {isSuperAdmin ? 'System-wide' : 'Your organization'}
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card className="relative overflow-hidden border border-orange-200/50 dark:border-orange-800/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 card-hover group">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
+                <Card className="relative overflow-hidden border border-rose-200/50 dark:border-rose-500/25 bg-white/80 dark:bg-[#141a2e]/90 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 card-hover group">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-rose-500/25 to-red-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
                   <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <CardHeader className="relative z-10">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Teams</CardTitle>
-                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                         <Users className="w-5 h-5 text-white" />
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="relative z-10">
-                    <p className="text-5xl font-black text-gradient-warm">{teams.length}</p>
+                    <p className="text-5xl font-black bg-gradient-to-r from-rose-400 to-red-500 bg-clip-text text-transparent">{teams.length}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold mt-2">
                       Active teams
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card className="relative overflow-hidden border border-green-200/50 dark:border-green-800/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 card-hover group">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
+                <Card className="relative overflow-hidden border border-indigo-200/50 dark:border-indigo-500/25 bg-white/80 dark:bg-[#141a2e]/90 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 card-hover group">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-500/25 to-blue-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
                   <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <CardHeader className="relative z-10">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Players</CardTitle>
-                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                         <Trophy className="w-5 h-5 text-white" />
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="relative z-10">
-                    <p className="text-5xl font-black bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">{players.length}</p>
+                    <p className="text-5xl font-black bg-gradient-to-r from-indigo-400 to-blue-500 bg-clip-text text-transparent">{players.length}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold mt-2">
                       Registered players
                     </p>
@@ -418,19 +418,19 @@ export default function Dashboard() {
                 </Card>
 
                 <Link to="/games" className="block">
-                  <Card className="relative overflow-hidden border border-purple-200/50 dark:border-purple-800/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 h-full cursor-pointer card-hover group">
-                    <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
+                  <Card className="relative overflow-hidden border border-purple-200/50 dark:border-purple-500/25 bg-white/80 dark:bg-[#141a2e]/90 backdrop-blur-xl shadow-futuristic hover:shadow-futuristic-lg transition-all duration-500 h-full cursor-pointer card-hover group">
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-500/25 to-fuchsia-500/20 rounded-full blur-3xl group-hover:opacity-60 transition-opacity"></div>
                     <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <CardHeader className="relative z-10">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400">Games</CardTitle>
-                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                           <Calendar className="w-5 h-5 text-white" />
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="relative z-10">
-                      <p className="text-2xl font-black bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">View Schedule</p>
+                      <p className="text-2xl font-black bg-gradient-to-r from-purple-400 to-fuchsia-500 bg-clip-text text-transparent">View Schedule</p>
                       <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold mt-2">
                         Manage games →
                       </p>
