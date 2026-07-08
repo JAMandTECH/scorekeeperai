@@ -89,6 +89,23 @@ const [deletingGame, setDeletingGame] = useState(false);
     }
   };
 
+  // Fetch a single game by id, retrying on transient rate-limit errors with
+  // exponential backoff so a brief spike doesn't leave the page stuck loading.
+  const fetchGameByIdWithRetry = async (id, attempts = 4) => {
+    let delay = 800;
+    for (let i = 0; i < attempts; i++) {
+      try {
+        const games = await base44.entities.Game.filter({ id });
+        return games && games[0];
+      } catch (e) {
+        const isRateLimit = /rate limit/i.test(e?.message || '');
+        if (!isRateLimit || i === attempts - 1) throw e;
+        await new Promise((r) => setTimeout(r, delay));
+        delay *= 2;
+      }
+    }
+  };
+
   // Service-role backed safe game update (validates user is allowed on backend)
   const updateGameSafe = async (patch) => {
     try {
@@ -210,8 +227,7 @@ const [deletingGame, setDeletingGame] = useState(false);
     if (!game?.id) return;
     if (Date.now() - lastWriteTsRef.current < 1200) return;
     try {
-      const games = await base44.entities.Game.filter({ id: game.id });
-      const currentGame = games && games[0];
+      const currentGame = await fetchGameByIdWithRetry(game.id);
       if (currentGame) {
         if (currentGame.status === 'completed' && !editMode) { navigate(createPageUrl("Games")); return; }
         const srvAt = new Date(currentGame.updated_date || Date.now()).getTime();
@@ -272,8 +288,7 @@ const [deletingGame, setDeletingGame] = useState(false);
       return;
     }
 
-    const games = await base44.entities.Game.filter({ id: gameId });
-    const currentGame = games && games[0];
+    const currentGame = await fetchGameByIdWithRetry(gameId);
     if (!currentGame) {
       navigate(createPageUrl("Games"));
       return;
