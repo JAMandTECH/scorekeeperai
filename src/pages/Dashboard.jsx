@@ -116,10 +116,24 @@ export default function Dashboard() {
     queryKey: ['players', currentOrgId],
     queryFn: async () => {
       const orgTeams = await base44.entities.Team.filter({ organization_id: currentOrgId });
-      const teamIds = orgTeams.map(t => t.id);
+      const teamIds = orgTeams.map(t => t.id).filter(Boolean);
       if (teamIds.length === 0) return [];
-      const allPlayers = await base44.entities.Player.list();
-      return allPlayers.filter(p => teamIds.includes(p.team_id));
+      // Player.list() is paginated and caps results — fetch by team_ids in chunks so no player is missed.
+      const chunkSize = 50;
+      const out = [];
+      for (let i = 0; i < teamIds.length; i += chunkSize) {
+        const chunk = teamIds.slice(i, i + chunkSize);
+        try {
+          const part = await base44.entities.Player.filter({ team_id: { $in: chunk } }, '-created_date', 500);
+          out.push(...part);
+        } catch (_) {
+          const per = await Promise.all(
+            chunk.map((id) => base44.entities.Player.filter({ team_id: id }, '-created_date', 500).catch(() => []))
+          );
+          out.push(...per.flat());
+        }
+      }
+      return out;
     },
     enabled: !!currentOrgId,
     refetchInterval: 15000,
