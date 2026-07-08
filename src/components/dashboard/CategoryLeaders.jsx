@@ -128,7 +128,7 @@ function SportLeaders({ title, image, overlay, categories, sport, ctx, splitDivi
 }
 
 export default function CategoryLeaders({ organizationId, players = [], teams = [], rightColumnExtra = null }) {
-  const { games, playerStats } = usePlayerLeaders(organizationId);
+  const { games, playerStats } = usePlayerLeaders(organizationId, teams);
   const ctx = { games, playerStats, teams, players };
 
   // Resolve the actual division names used by basketball teams so the split matches Home.

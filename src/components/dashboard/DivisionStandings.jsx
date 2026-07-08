@@ -62,7 +62,7 @@ function TeamRow({ team, rank }) {
 function DivisionCard({ division, sport, teams }) {
   const theme = SPORT_THEMES[sport] || SPORT_THEMES.basketball;
   const top3 = [...teams]
-    .sort((a, b) => (b.wins || 0) - (a.wins || 0) || (a.losses || 0) - (b.losses || 0))
+    .sort((a, b) => (b.winPct || 0) - (a.winPct || 0) || (b.diff || 0) - (a.diff || 0))
     .slice(0, 3);
 
   return (
@@ -92,23 +92,57 @@ function DivisionCard({ division, sport, teams }) {
   );
 }
 
-export default function DivisionStandings({ teams = [] }) {
+// Compute live wins/losses from completed games (matches the main standings page,
+// ignoring any stale stored wins/losses on the team records).
+function computeRecords(teams, games) {
+  const rec = {};
+  teams.forEach((t) => { rec[t.id] = { wins: 0, losses: 0, pointsFor: 0, pointsAgainst: 0 }; });
+  games
+    .filter((g) => g.status === "completed" && g.archived !== true)
+    .forEach((g) => {
+      const h = g.home_team_id, a = g.away_team_id;
+      if (!rec[h] || !rec[a]) return;
+      const sport = (g.sport || "").toLowerCase();
+      let hs, as;
+      if (sport === "volleyball" && Array.isArray(g.quarter_scores) && g.quarter_scores.length > 0) {
+        hs = g.quarter_scores.reduce((sum, s) => sum + (s.home || 0), 0);
+        as = g.quarter_scores.reduce((sum, s) => sum + (s.away || 0), 0);
+        const homeSets = g.quarter_scores.filter((s) => (s.home || 0) > (s.away || 0)).length;
+        const awaySets = g.quarter_scores.filter((s) => (s.away || 0) > (s.home || 0)).length;
+        if (homeSets > awaySets) { rec[h].wins++; rec[a].losses++; }
+        else if (awaySets > homeSets) { rec[a].wins++; rec[h].losses++; }
+      } else {
+        hs = Number(g.home_score || 0); as = Number(g.away_score || 0);
+        if (hs > as) { rec[h].wins++; rec[a].losses++; }
+        else if (as > hs) { rec[a].wins++; rec[h].losses++; }
+      }
+      rec[h].pointsFor += hs; rec[h].pointsAgainst += as;
+      rec[a].pointsFor += as; rec[a].pointsAgainst += hs;
+    });
+  return rec;
+}
+
+export default function DivisionStandings({ teams = [], games = [] }) {
   const groups = React.useMemo(() => {
+    const records = computeRecords(teams, games);
     const byKey = {};
     teams
       .filter((t) => t.status !== "rejected")
       .forEach((t) => {
+        const r = records[t.id] || { wins: 0, losses: 0, pointsFor: 0, pointsAgainst: 0 };
+        const gp = r.wins + r.losses;
+        const enriched = { ...t, wins: r.wins, losses: r.losses, winPct: gp > 0 ? r.wins / gp : 0, diff: r.pointsFor - r.pointsAgainst };
         const sport = t.sport || "basketball";
         const division = normalizeDivision(t.division);
         const key = `${sport}__${division}`;
         if (!byKey[key]) byKey[key] = { sport, division, teams: [] };
-        byKey[key].teams.push(t);
+        byKey[key].teams.push(enriched);
       });
     // Sort: basketball first, then by division name
     return Object.values(byKey).sort(
       (a, b) => a.sport.localeCompare(b.sport) || a.division.localeCompare(b.division)
     );
-  }, [teams]);
+  }, [teams, games]);
 
   if (groups.length === 0) return null;
 

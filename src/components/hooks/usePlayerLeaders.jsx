@@ -1,6 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
+// Keep the last successful result on screen while a refetch runs (v5-safe, no named import).
+const keepPrevious = (prev) => prev;
+
 /**
  * Shared player-leader computation used by the Dashboard, Home and Statistics pages
  * so every surface shows identical numbers.
@@ -11,49 +14,51 @@ import { base44 } from "@/api/base44Client";
  * Points are recomputed per-game from that game's actual sport, and averages divide
  * the player's total by the number of completed games their team played.
  */
-export function usePlayerLeaders(organizationId) {
+export function usePlayerLeaders(organizationId, teams = []) {
   const { data: games = [] } = useQuery({
     queryKey: ["player-leaders-games", organizationId],
-    queryFn: () => base44.entities.Game.filter({ organization_id: organizationId }),
+    // Sort + explicit high limit so the FULL completed-game set always loads.
+    // Without this, the default page cap can return a different subset than Home,
+    // shifting each team's games-played divisor and flipping near-tied leaders.
+    queryFn: () => base44.entities.Game.filter({ organization_id: organizationId }, "-game_date", 2000),
     enabled: !!organizationId,
     refetchInterval: 20000,
+    staleTime: 60000,
+    gcTime: 10 * 60 * 1000,
+    placeholderData: keepPrevious,
   });
 
   const completedGames = games.filter((g) => g.status === "completed");
-  const completedGameIds = completedGames.map((g) => g.id);
+
+  // Fetch stats for completed games only, chunked by game_id (the proven path
+  // used by the Statistics page). Each chunk is isolated so one failure never
+  // wipes the whole result set.
+  const completedGameIds = completedGames.map((g) => g.id).filter(Boolean).sort();
 
   const { data: playerStats = [] } = useQuery({
     queryKey: ["player-leaders-stats", organizationId, completedGameIds.join(",")],
     queryFn: async () => {
       if (completedGameIds.length === 0) return [];
-      let stats = [];
-      try {
-        const res = await base44.functions.invoke("getGamePlayerStats", { game_ids: completedGameIds });
-        stats = Array.isArray(res.data) ? res.data : [];
-      } catch (e) {
-        console.warn("getGamePlayerStats failed, falling back to direct fetch:", e?.message || e);
-      }
-      if (!stats || stats.length === 0) {
-        const results = [];
-        for (let i = 0; i < completedGameIds.length; i += 50) {
-          const chunk = completedGameIds.slice(i, i + 50);
-          try {
-            const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
-            results.push(...part);
-          } catch (_) {
-            const per = await Promise.all(
-              chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
-            );
-            results.push(...per.flat());
-          }
+      const results = [];
+      for (let i = 0; i < completedGameIds.length; i += 50) {
+        const chunk = completedGameIds.slice(i, i + 50);
+        try {
+          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
+          results.push(...part);
+        } catch (_) {
+          const per = await Promise.all(
+            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
+          );
+          results.push(...per.flat());
         }
-        stats = results;
       }
-      return stats;
+      return results;
     },
     enabled: !!organizationId && completedGameIds.length > 0,
-    staleTime: 30000,
-    refetchInterval: 20000,
+    staleTime: 60000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 30000,
+    placeholderData: keepPrevious,
   });
 
   return { games, completedGames, playerStats };
