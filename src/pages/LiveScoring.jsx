@@ -19,6 +19,8 @@ import {
 import VoiceAssistant from "@/components/VoiceAssistant";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { loadAllStatsPaginated } from "@/lib/liveScoringHelpers";
+import SyncStatusBadge from "@/components/SyncStatusBadge";
+import { enqueueStatWrite, startStatSync } from "@/lib/statSyncQueue";
 
 export default function LiveScoring() {
   const [game, setGame] = useState(null);
@@ -140,6 +142,7 @@ const [deletingGame, setDeletingGame] = useState(false);
   useEffect(() => {
     loadGame();
     loadUser();
+    startStatSync(); // begin background retry/reconnect handling for queued stat writes
 
     // Load dark mode preference
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -465,17 +468,19 @@ const [deletingGame, setDeletingGame] = useState(false);
         setPlayerStats(prev => ({ ...prev, [key]: { ...prev[key], id: saved.id } }));
       }
     } catch (error) {
-      console.error('Error saving player stats:', error);
-      // Revert optimistic UI update so it matches what was actually saved
-      setPlayerStats(prev => {
-        const existingStat = prev[key] || {};
-        const reverted = { ...existingStat };
-        statUpdates.forEach(({ statType, value }) => {
-          reverted[statType] = Math.max(0, (reverted[statType] || 0) - value);
-        });
-        return { ...prev, [key]: reverted };
+      console.error('Error saving player stats — queuing for retry:', error);
+      // Connection lost or server unreachable after retries. Instead of
+      // reverting (which would silently lose the scorekeeper's tap), persist
+      // the write to the offline queue. It survives refreshes/crashes and is
+      // retried automatically every few seconds and on reconnect, so the
+      // optimistic UI stays correct and nothing is lost.
+      enqueueStatWrite({
+        game_id: game.id,
+        player_id: playerId,
+        team_id: teamId,
+        quarter,
+        updates: statUpdates,
       });
-      throw error;
     }
   };
 
@@ -1252,6 +1257,7 @@ const [deletingGame, setDeletingGame] = useState(false);
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <SyncStatusBadge />
             <Button
               onClick={toggleDarkMode}
               variant="outline"

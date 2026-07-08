@@ -20,6 +20,8 @@ import {
   AlertDescription,
 } from "@/components/ui/alert";
 import VoiceAssistant from "@/components/VoiceAssistant";
+import SyncStatusBadge from "@/components/SyncStatusBadge";
+import { enqueueStatWrite, startStatSync } from "@/lib/statSyncQueue";
 
 
 export default function LiveScoringVolleyball() {
@@ -62,6 +64,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
   useEffect(() => {
     loadGame();
     loadUser();
+    startStatSync(); // begin background retry/reconnect handling for queued stat writes
 
     // Set up periodic game state refresh for real-time sync
     const intervalId = setInterval(() => {
@@ -273,9 +276,17 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
         }));
       }
     } catch (e) {
-      console.error('upsertPlayerStat failed', e);
-      alert('Failed to save player stat. Please check your permissions or connection.');
-      throw e;
+      console.error('upsertPlayerStat failed — queuing for retry', e);
+      // Connection lost: persist to the offline queue instead of losing the
+      // stat. It survives refreshes and retries automatically on reconnect,
+      // so the optimistic UI stays correct and nothing is lost.
+      enqueueStatWrite({
+        game_id: game.id,
+        player_id: playerId,
+        team_id: teamId,
+        quarter: currentSet,
+        updates: statUpdates,
+      });
     }
   };
 
@@ -816,15 +827,18 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
               <p className="text-xs text-gray-400 font-semibold">Volleyball Game Management</p>
             </div>
           </div>
-          <Button
-            onClick={() => navigate(createPageUrl("Dashboard"))}
-            variant="outline"
-            size="sm"
-            className="border-2 border-gray-600 text-white hover:bg-gray-800 font-bold"
-          >
-            <ChevronRight className="w-4 h-4 mr-1 rotate-180" />
-            Back to Dashboard
-          </Button>
+          <div className="flex items-center gap-2">
+            <SyncStatusBadge />
+            <Button
+              onClick={() => navigate(createPageUrl("Dashboard"))}
+              variant="outline"
+              size="sm"
+              className="border-2 border-gray-600 text-white hover:bg-gray-800 font-bold"
+            >
+              <ChevronRight className="w-4 h-4 mr-1 rotate-180" />
+              Back to Dashboard
+            </Button>
+          </div>
         </div>
       </div>
 
