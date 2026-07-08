@@ -147,11 +147,11 @@ export default function Home() {
       for (let i = 0; i < teamIds.length; i += chunkSize) {
         const chunk = teamIds.slice(i, i + chunkSize);
         try {
-          const part = await base44.entities.Player.filter({ team_id: { $in: chunk } }, '-created_date', 2000);
+          const part = await base44.entities.Player.filter({ team_id: { $in: chunk } }, '-created_date', 500);
           out.push(...part);
         } catch (_) {
           const per = await Promise.all(
-            chunk.map((id) => base44.entities.Player.filter({ team_id: id }, '-created_date', 2000).catch(() => []))
+            chunk.map((id) => base44.entities.Player.filter({ team_id: id }, '-created_date', 500).catch(() => []))
           );
           out.push(...per.flat());
         }
@@ -163,9 +163,7 @@ export default function Home() {
   });
   const { data: allGames = [] } = useQuery({
     queryKey: ['all-games-home', orgId],
-    // Explicit sort + high limit so the FULL completed-game set loads — matches the
-    // Dashboard leaderboard hook so both surfaces compute the identical games-played divisor.
-    queryFn: () => orgId ? base44.entities.Game.filter({ organization_id: orgId }, '-game_date', 2000) : base44.entities.Game.list('-game_date', 2000),
+    queryFn: () => orgId ? base44.entities.Game.filter({ organization_id: orgId }) : base44.entities.Game.list('-game_date'),
     enabled: isAuthenticated === true,
     refetchInterval: 10000,
   });
@@ -174,37 +172,48 @@ export default function Home() {
   const games = orgId ? allGames.filter(g => g.organization_id === orgId) : allGames;
   const completedGames = games.filter(g => g.status === 'completed').sort((a, b) => new Date(b.game_date) - new Date(a.game_date));
 
-  const teamIds = teams.map(t => t.id);
-  const completedGameIds = completedGames.map(g => g.id).filter(Boolean);
-
   const { data: allPlayerStats = [] } = useQuery({
-    queryKey: ['all-player-stats-home', completedGameIds.join(',')],
+    queryKey: ['all-player-stats-home', completedGames.map(g => g.id).join(',')],
     queryFn: async () => {
-      if (completedGameIds.length === 0) return [];
-      // Chunk by game_id (proven Statistics-page path); isolate each chunk so
-      // one failure never wipes the whole result set.
-      const results = [];
-      for (let i = 0; i < completedGameIds.length; i += 50) {
-        const chunk = completedGameIds.slice(i, i + 50);
-        try {
-          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
-          results.push(...part);
-        } catch (_) {
-          const per = await Promise.all(
-            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
-          );
-          results.push(...per.flat());
-        }
+      if (completedGames.length === 0) return [];
+      const gameIds = completedGames.map(g => g.id);
+
+      // Primary: backend function (handles batching/backoff) — same as Statistics page
+      let stats = [];
+      try {
+        const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: gameIds });
+        stats = Array.isArray(res.data) ? res.data : [];
+      } catch (e) {
+        console.warn('getGamePlayerStats failed, falling back to direct entity fetch:', e?.message || e);
       }
-      return results;
+
+      // Fallback: fetch directly from entity if function fails or returns empty (safety net) — mirrors Statistics
+      if (!stats || stats.length === 0) {
+        const results = [];
+        for (let i = 0; i < gameIds.length; i += 50) {
+          const chunk = gameIds.slice(i, i + 50);
+          try {
+            const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
+            results.push(...part);
+          } catch (_) {
+            const per = await Promise.all(
+              chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
+            );
+            results.push(...per.flat());
+          }
+        }
+        stats = results;
+      }
+
+      return stats;
     },
-    enabled: isAuthenticated === true && completedGameIds.length > 0,
-    staleTime: 60000,
-    gcTime: 10 * 60 * 1000,
-    refetchInterval: 30000,
-    // Keep previous stats visible during background refetches so the UI never blanks out.
-    placeholderData: (prev) => prev,
+    enabled: isAuthenticated === true,
+    staleTime: 30000,
+    gcTime: 5 * 60 * 1000,
+    refetchInterval: 20000,
   });
+
+  const teamIds = teams.map(t => t.id);
   const players = allPlayers.filter(p => teamIds.includes(p.team_id));
   const playerStats = allPlayerStats;
 

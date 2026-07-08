@@ -167,7 +167,7 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
   }, [players]);
 
   // Same data source & logic as Category Leaders / Home / Statistics so the #1 scorer matches.
-  const { games, playerStats } = usePlayerLeaders(organizationId, teams);
+  const { games, playerStats } = usePlayerLeaders(organizationId);
 
   // Resolve actual basketball division names used by this org.
   const basketballDivisions = React.useMemo(() => [...new Set(

@@ -89,23 +89,6 @@ const [deletingGame, setDeletingGame] = useState(false);
     }
   };
 
-  // Fetch a single game by id, retrying on transient rate-limit errors with
-  // exponential backoff so a brief spike doesn't leave the page stuck loading.
-  const fetchGameByIdWithRetry = async (id, attempts = 7) => {
-    let delay = 600;
-    for (let i = 0; i < attempts; i++) {
-      try {
-        const games = await base44.entities.Game.filter({ id });
-        return games && games[0];
-      } catch (e) {
-        const isRateLimit = /rate limit/i.test(e?.message || '');
-        if (!isRateLimit || i === attempts - 1) throw e;
-        await new Promise((r) => setTimeout(r, delay));
-        delay = Math.min(delay * 2, 5000);
-      }
-    }
-  };
-
   // Service-role backed safe game update (validates user is allowed on backend)
   const updateGameSafe = async (patch) => {
     try {
@@ -227,7 +210,8 @@ const [deletingGame, setDeletingGame] = useState(false);
     if (!game?.id) return;
     if (Date.now() - lastWriteTsRef.current < 1200) return;
     try {
-      const currentGame = await fetchGameByIdWithRetry(game.id);
+      const games = await base44.entities.Game.filter({ id: game.id });
+      const currentGame = games && games[0];
       if (currentGame) {
         if (currentGame.status === 'completed' && !editMode) { navigate(createPageUrl("Games")); return; }
         const srvAt = new Date(currentGame.updated_date || Date.now()).getTime();
@@ -288,16 +272,8 @@ const [deletingGame, setDeletingGame] = useState(false);
       return;
     }
 
-    let currentGame;
-    try {
-      currentGame = await fetchGameByIdWithRetry(gameId);
-    } catch (e) {
-      // Rate limit still tripping after all retries — retry the whole load
-      // shortly rather than crashing the page or bouncing to Games.
-      console.error('Failed to load game (rate limited), retrying shortly:', e);
-      setTimeout(() => { loadGame(); }, 4000);
-      return;
-    }
+    const games = await base44.entities.Game.filter({ id: gameId });
+    const currentGame = games && games[0];
     if (!currentGame) {
       navigate(createPageUrl("Games"));
       return;
@@ -387,18 +363,6 @@ const [deletingGame, setDeletingGame] = useState(false);
     return playerStats[key]?.[statType] || 0;
   };
 
-  // Authoritative team score = sum of every player's points across all quarters,
-  // computed from the same playerStats the UI shows. Used on undo so the score
-  // can never drift from the recorded stats ("wrong qty" bug).
-  const computeTeamScoreFromStats = (teamId, statsSource) => {
-    let total = 0;
-    for (const key in statsSource) {
-      const s = statsSource[key];
-      if (s && s.team_id === teamId) total += Number(s.points || 0);
-    }
-    return total;
-  };
-
   const getTotalPlayerFouls = (playerId) => {
     let totalFouls = 0;
     for (let q = 1; q <= currentQuarter; q++) {
@@ -433,49 +397,21 @@ const [deletingGame, setDeletingGame] = useState(false);
 
     try {
       lastWriteTsRef.current = Date.now();
-      // Persist via server-side upsert to avoid any client RLS races.
-      // Retry on transient rate-limit blips so a brief spike doesn't surface a
-      // scary "Failed to save"/"Undo failed" alert for a write that would
-      // succeed on a quick retry.
-      let resp;
-      let lastErr;
-      for (let attempt = 0; attempt < 3; attempt++) {
-        try {
-          resp = await base44.functions.invoke('upsertPlayerStat', {
-            game_id: game.id,
-            player_id: playerId,
-            team_id: teamId,
-            quarter,
-            updates: statUpdates,
-          });
-          lastErr = null;
-          break;
-        } catch (e) {
-          lastErr = e;
-          const msg = e?.message || e?.response?.data?.error || '';
-          const status = e?.response?.status;
-          const isTransient = /rate limit|timeout|temporarily|network/i.test(msg) || status === 429 || (status >= 500 && status < 600);
-          if (!isTransient || attempt === 2) throw e;
-          await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
-        }
-      }
-      if (lastErr) throw lastErr;
+      // Persist via server-side upsert to avoid any client RLS races
+      const resp = await base44.functions.invoke('upsertPlayerStat', {
+        game_id: game.id,
+        player_id: playerId,
+        team_id: teamId,
+        quarter,
+        updates: statUpdates,
+      });
       const saved = resp?.data?.stat;
       if (saved?.id) {
         setPlayerStats(prev => ({ ...prev, [key]: { ...prev[key], id: saved.id } }));
       }
     } catch (error) {
       console.error('Error saving player stats:', error);
-      // Revert optimistic UI update so it matches what was actually saved
-      setPlayerStats(prev => {
-        const existingStat = prev[key] || {};
-        const reverted = { ...existingStat };
-        statUpdates.forEach(({ statType, value }) => {
-          reverted[statType] = Math.max(0, (reverted[statType] || 0) - value);
-        });
-        return { ...prev, [key]: reverted };
-      });
-      throw error;
+      alert('Failed to save player stats. Please check your permissions or connection.');
     }
   };
 
@@ -529,11 +465,7 @@ const [deletingGame, setDeletingGame] = useState(false);
       );
     }
 
-    // Push to history IMMEDIATELY (before the await) so the undo stack order
-    // always matches the order taps happened — not the order the async saves
-    // happen to resolve in. Otherwise a later-resolving save reorders the stack
-    // and undo pops the wrong action ("dropped points" / "wrong stat" bug).
-    const historyEntry = {
+    setActionHistory(prev => [...prev, {
       type: 'score',
       team: isHomeTeam ? 'home' : 'away',
       points: points,
@@ -543,19 +475,14 @@ const [deletingGame, setDeletingGame] = useState(false);
       oldAwayScore: oldAwayScore,
       statUpdates: statUpdates,
       snapshot,
-    };
-    setActionHistory(prev => [...prev, historyEntry]);
+    }]);
 
-    try {
-      await updatePlayerStats(playerId, teamId, statUpdates);
-    } catch (error) {
-      // Stat or score save failed — revert score UI and drop the history entry
-      // we optimistically added so undo can't reverse a save that never happened.
-      setHomeScore(oldHomeScore);
-      setAwayScore(oldAwayScore);
-      setActionHistory(prev => prev.filter(a => a !== historyEntry));
-      alert('Failed to save — the score was NOT updated. Please check your connection and try again.');
-    }
+    await updatePlayerStats(playerId, teamId, statUpdates);
+
+    lastWriteTsRef.current = Date.now();
+    const scorePayload = isHomeTeam ? { home_score: newHomeScore } : { away_score: newAwayScore };
+    await updateGameSafe(scorePayload);
+
   };
 
   // Updated addPlayerStat to accept playerId and teamId
@@ -584,23 +511,15 @@ const [deletingGame, setDeletingGame] = useState(false);
       addPlayerStat.lastTs = now;
     }
     const statUpdates = [{ statType, value }];
-    // Push to history immediately (before the await) so undo order matches tap
-    // order regardless of which async save resolves first.
-    const historyEntry = {
+    setActionHistory(prev => [...prev, {
       type: statType,
       playerId: playerId,
       teamId: teamId,
       quarter: currentQuarter,
       value: value,
       statUpdates: statUpdates,
-    };
-    setActionHistory(prev => [...prev, historyEntry]);
-    try {
-      await updatePlayerStats(playerId, teamId, statUpdates);
-    } catch (error) {
-      setActionHistory(prev => prev.filter(a => a !== historyEntry));
-      alert('Failed to save stat. Please check your connection and try again.');
-    }
+    }]);
+    await updatePlayerStats(playerId, teamId, statUpdates);
   };
 
   // Updated handleFoul to accept playerId and teamId
@@ -616,8 +535,20 @@ const [deletingGame, setDeletingGame] = useState(false);
     const oldTeamFouls = isHomeTeam ? homeTeamFouls : awayTeamFouls;
     
     const statUpdates = [{ statType: 'fouls', value: 1 }];
-    // Push to history immediately (before the awaits) so undo order matches tap order.
-    const historyEntry = {
+    await updatePlayerStats(playerId, teamId, statUpdates);
+    
+    const newTeamFouls = oldTeamFouls + 1;
+    if (isHomeTeam) {
+      setHomeTeamFouls(newTeamFouls);
+      lastWriteTsRef.current = Date.now();
+      await updateGameSafe({ home_team_fouls: newTeamFouls });
+    } else {
+      setAwayTeamFouls(newTeamFouls);
+      lastWriteTsRef.current = Date.now();
+      await updateGameSafe({ away_team_fouls: newTeamFouls });
+    }
+
+    setActionHistory(prev => [...prev, {
       type: 'foul',
       playerId: playerId,
       teamId: teamId,
@@ -625,31 +556,14 @@ const [deletingGame, setDeletingGame] = useState(false);
       team: currentTeam,
       oldTeamFouls: oldTeamFouls,
       statUpdates: statUpdates,
-    };
-    setActionHistory(prev => [...prev, historyEntry]);
-    try {
-      await updatePlayerStats(playerId, teamId, statUpdates);
+    }]);
 
-      const newTeamFouls = oldTeamFouls + 1;
-      if (isHomeTeam) {
-        setHomeTeamFouls(newTeamFouls);
-        lastWriteTsRef.current = Date.now();
-        await updateGameSafe({ home_team_fouls: newTeamFouls });
-      } else {
-        setAwayTeamFouls(newTeamFouls);
-        lastWriteTsRef.current = Date.now();
-        await updateGameSafe({ away_team_fouls: newTeamFouls });
-      }
-
-      const totalFouls = getTotalPlayerFouls(playerId) + 1;
-      if (totalFouls >= game.player_foul_limit) {
-        alert(`⚠️ Player has reached foul limit (${game.player_foul_limit} fouls) and is disqualified!`);
-      } else if (totalFouls === game.player_foul_limit - 1) {
-        alert(`⚠️ Warning: Player has ${totalFouls} fouls! One more foul and they will be disqualified.`);
-      }
-    } catch (error) {
-      setActionHistory(prev => prev.filter(a => a !== historyEntry));
-      alert('Failed to save foul — the team foul count was NOT updated. Please check your connection and try again.');
+    const totalFouls = getTotalPlayerFouls(playerId) + 1;
+    if (totalFouls >= game.player_foul_limit) {
+      alert(`⚠️ Player has reached foul limit (${game.player_foul_limit} fouls) and is disqualified!`);
+      // Keeping player selected visually, but interaction is disabled by PlayerRow component
+    } else if (totalFouls === game.player_foul_limit - 1) {
+      alert(`⚠️ Warning: Player has ${totalFouls} fouls! One more foul and they will be disqualified.`);
     }
   };
 
@@ -704,38 +618,32 @@ const [deletingGame, setDeletingGame] = useState(false);
     if (undoLockRef.current) return;
     undoLockRef.current = true;
     setUndoInProgress(true);
+    // Allow legitimate decreases from server for a short window (undo)
+    allowDecreaseUntilRef.current = Date.now() + 4000;
 
-    const lastAction = actionHistory[actionHistory.length - 1];
-    // Only score/foul/timeout undos legitimately decrease team totals, so only
-    // those open the "allow server decrease" window. A rebound/assist/steal/block
-    // undo must NEVER be allowed to pull the score down — that was the bug where
-    // undoing a stat visibly changed the score.
-    if (['score', 'foul', 'timeout'].includes(lastAction.type)) {
-      allowDecreaseUntilRef.current = Date.now() + 4000;
-    }
     try {
+      const lastAction = actionHistory[actionHistory.length - 1];
       setActionHistory(prev => prev.slice(0, -1));
 
     if (lastAction.type === 'score') {
+      setHomeScore(lastAction.oldHomeScore);
+      setAwayScore(lastAction.oldAwayScore);
       lastWriteTsRef.current = Date.now();
+
+      const scoreUndoPayload = lastAction.team === 'home'
+        ? { home_score: lastAction.oldHomeScore }
+        : { away_score: lastAction.oldAwayScore };
 
       const reverseUpdates = lastAction.statUpdates.map(update => ({
         statType: update.statType,
         value: -update.value,
       }));
       const teamId = lastAction.team === 'home' ? game.home_team_id : game.away_team_id;
-      const pointsBack = lastAction.points || 0;
 
-      // INSTANT + CORRECT: drop the reversed points straight into the local
-      // score so the UI moves immediately and by exactly the right amount,
-      // instead of awaiting the round-trip and trusting a stale snapshot.
-      const isHome = lastAction.team === 'home';
-      setHomeScore((s) => Math.max(0, isHome ? s - pointsBack : s));
-      setAwayScore((s) => Math.max(0, !isHome ? s - pointsBack : s));
-
-      // Reverse the player stat on the server (retries internally). The backend
-      // also decrements the game score by the same delta, so both stay in sync.
-      await updatePlayerStats(lastAction.playerId, teamId, reverseUpdates, lastAction.quarter);
+      await Promise.all([
+        updateGameSafe(scoreUndoPayload),
+        updatePlayerStats(lastAction.playerId, teamId, reverseUpdates, lastAction.quarter),
+      ]);
       lastGameUpdateAtRef.current = Date.now();
 
     } else if (lastAction.type === 'foul') {
@@ -784,21 +692,6 @@ const [deletingGame, setDeletingGame] = useState(false);
 
       await updateGameSafe(payload);
     }
-    } catch (error) {
-      // The stat write already retried internally and reverted its own optimistic
-      // change on real failure. Restore the action so the scorekeeper can retry,
-      // then re-sync scores from the server (source of truth) so the UI matches
-      // exactly what's stored — no drift, no wrong quantity.
-      console.error('Error during undo:', error);
-      setActionHistory(prev => [...prev, lastAction]);
-      lastWriteTsRef.current = 0;
-      // Only re-sync scores from the server for undos that actually affect the
-      // score. A failed stat undo must not disturb the on-screen score.
-      if (['score', 'foul', 'timeout'].includes(lastAction.type)) {
-        allowDecreaseUntilRef.current = Date.now() + 4000;
-        await refreshGameState();
-      }
-      alert('Undo could not be saved — please try again in a moment.');
     } finally {
       undoLockRef.current = false;
       setUndoInProgress(false);
