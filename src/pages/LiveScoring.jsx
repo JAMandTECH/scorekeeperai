@@ -387,6 +387,18 @@ const [deletingGame, setDeletingGame] = useState(false);
     return playerStats[key]?.[statType] || 0;
   };
 
+  // Authoritative team score = sum of every player's points across all quarters,
+  // computed from the same playerStats the UI shows. Used on undo so the score
+  // can never drift from the recorded stats ("wrong qty" bug).
+  const computeTeamScoreFromStats = (teamId, statsSource) => {
+    let total = 0;
+    for (const key in statsSource) {
+      const s = statsSource[key];
+      if (s && s.team_id === teamId) total += Number(s.points || 0);
+    }
+    return total;
+  };
+
   const getTotalPlayerFouls = (playerId) => {
     let totalFouls = 0;
     for (let q = 1; q <= currentQuarter; q++) {
@@ -687,8 +699,6 @@ const [deletingGame, setDeletingGame] = useState(false);
       setActionHistory(prev => prev.slice(0, -1));
 
     if (lastAction.type === 'score') {
-      setHomeScore(lastAction.oldHomeScore);
-      setAwayScore(lastAction.oldAwayScore);
       lastWriteTsRef.current = Date.now();
 
       const reverseUpdates = lastAction.statUpdates.map(update => ({
@@ -696,8 +706,17 @@ const [deletingGame, setDeletingGame] = useState(false);
         value: -update.value,
       }));
       const teamId = lastAction.team === 'home' ? game.home_team_id : game.away_team_id;
+      const pointsBack = lastAction.points || 0;
 
-      // Backend recalculates game score from player stats automatically
+      // INSTANT + CORRECT: drop the reversed points straight into the local
+      // score so the UI moves immediately and by exactly the right amount,
+      // instead of awaiting the round-trip and trusting a stale snapshot.
+      const isHome = lastAction.team === 'home';
+      setHomeScore((s) => Math.max(0, isHome ? s - pointsBack : s));
+      setAwayScore((s) => Math.max(0, !isHome ? s - pointsBack : s));
+
+      // Reverse the player stat on the server (retries internally). The backend
+      // also decrements the game score by the same delta, so both stay in sync.
       await updatePlayerStats(lastAction.playerId, teamId, reverseUpdates, lastAction.quarter);
       lastGameUpdateAtRef.current = Date.now();
 
@@ -748,14 +767,16 @@ const [deletingGame, setDeletingGame] = useState(false);
       await updateGameSafe(payload);
     }
     } catch (error) {
-      // A save failed mid-undo (e.g. a transient rate limit). updatePlayerStats
-      // already reverted its optimistic stat change; restore the action to the
-      // history so the scorekeeper can retry, then re-sync from the server.
+      // The stat write already retried internally and reverted its own optimistic
+      // change on real failure. Restore the action so the scorekeeper can retry,
+      // then re-sync scores from the server (source of truth) so the UI matches
+      // exactly what's stored — no drift, no wrong quantity.
       console.error('Error during undo:', error);
       setActionHistory(prev => [...prev, lastAction]);
-      alert('Undo failed — nothing was changed. Please try again in a moment.');
       lastWriteTsRef.current = 0;
-      refreshGameState();
+      allowDecreaseUntilRef.current = Date.now() + 4000;
+      await refreshGameState();
+      alert('Undo could not be saved. Your score is unchanged — please try again in a moment.');
     } finally {
       undoLockRef.current = false;
       setUndoInProgress(false);
