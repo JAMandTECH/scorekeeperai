@@ -127,7 +127,7 @@ export default function Dashboard() {
 
   const { data: games = [] } = useQuery({
     queryKey: ['dashboard-games', currentOrgId],
-    queryFn: () => base44.entities.Game.filter({ organization_id: currentOrgId }, '-game_date', 100),
+    queryFn: () => base44.entities.Game.filter({ organization_id: currentOrgId }, '-game_date'),
     enabled: !!currentOrgId,
     refetchInterval: 15000,
   });
