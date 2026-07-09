@@ -185,7 +185,11 @@ export async function renderStatLeaderStyle({
   if (logoImg) {
     const maxH = 125; // 2.5x larger
     const ar = maxH / logoImg.height;
+    // Blend the logo's dark/black box into the light background
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
     ctx.drawImage(logoImg, marginX, footY + 64, logoImg.width * ar, maxH);
+    ctx.restore();
   } else if (orgName) {
     ctx.font = '800 34px Inter, system-ui, Arial';
     ctx.fillStyle = NAVY_DARK;
