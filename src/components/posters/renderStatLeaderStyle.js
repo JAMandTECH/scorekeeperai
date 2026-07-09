@@ -183,7 +183,7 @@ export async function renderStatLeaderStyle({
   ctx.fillText('OF THE GAME', marginX, footY + 46);
 
   if (logoImg) {
-    const maxH = 50;
+    const maxH = 125; // 2.5x larger
     const ar = maxH / logoImg.height;
     ctx.drawImage(logoImg, marginX, footY + 64, logoImg.width * ar, maxH);
   } else if (orgName) {
