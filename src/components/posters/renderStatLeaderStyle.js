@@ -15,6 +15,35 @@ const loadImage = (url) =>
     i.src = url;
   });
 
+// Removes a near-black/dark solid background box from a logo by making dark
+// (low-luminance, low-saturation) pixels transparent. Runs entirely on-canvas
+// so it doesn't depend on any external service. Returns a canvas, or the
+// original image if pixel access is blocked (CORS).
+const stripDarkBox = (img) => {
+  try {
+    const c = document.createElement('canvas');
+    c.width = img.naturalWidth || img.width;
+    c.height = img.naturalHeight || img.height;
+    const cx = c.getContext('2d');
+    cx.drawImage(img, 0, 0, c.width, c.height);
+    const imgData = cx.getImageData(0, 0, c.width, c.height);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      // Dark pixel with little color = part of the black/navy background box
+      if (max < 70 && (max - min) < 40) {
+        d[i + 3] = 0;
+      }
+    }
+    cx.putImageData(imgData, 0, 0);
+    return c;
+  } catch (_) {
+    return img; // CORS-tainted; draw as-is
+  }
+};
+
 
 export async function renderStatLeaderStyle({
   ctx,
@@ -197,13 +226,15 @@ export async function renderStatLeaderStyle({
 
   // Logo sits to the right of the footer heading
   if (logoImg) {
-    const maxH = 100;
-    const ar = maxH / logoImg.height;
+    const cleaned = stripDarkBox(logoImg);
+    const srcW = cleaned.width || logoImg.width;
+    const srcH = cleaned.height || logoImg.height;
+    const maxH = 170; // bigger so it doesn't look shrunken
+    const ar = maxH / srcH;
     const line1W = ctx.measureText('BEST PLAYER').width;
     const line2W = ctx.measureText('OF THE GAME').width;
     const logoX = marginX + Math.max(line1W, line2W) + 40;
-    // Logo already has its background stripped (transparent PNG) before it reaches here
-    ctx.drawImage(logoImg, logoX, footY - 34, logoImg.width * ar, maxH);
+    ctx.drawImage(cleaned, logoX, footY - 80, srcW * ar, maxH);
   } else if (orgName) {
     ctx.font = '800 30px Inter, system-ui, Arial';
     ctx.fillStyle = NAVY_DARK;

@@ -77,20 +77,11 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         if (bestTeamId === game.home_team_id) teamName = String(homeName || 'HOME').toUpperCase();
         else if (bestTeamId === game.away_team_id) teamName = String(awayName || 'AWAY').toUpperCase();
 
-        // Strip the logo's solid background box via removeBg so it sits cleanly on white
-        let cleanLogoUrl = org?.logo_url;
-        if (org?.logo_url) {
-          try {
-            const resp = await base44.functions.invoke('removeBg', { imageUrl: org.logo_url });
-            if (resp?.data?.dataUrl) cleanLogoUrl = resp.data.dataUrl;
-          } catch (_) { /* fall back to original logo */ }
-        }
-
         await renderStatLeaderStyle({
           ctx, W, H,
           backgroundUrl,
           headshotUrl: headSrc,
-          logoUrl: cleanLogoUrl,
+          logoUrl: org?.logo_url,
           player: p,
           stats: statsList,
           playerName,
