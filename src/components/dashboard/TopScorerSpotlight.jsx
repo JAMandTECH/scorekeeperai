@@ -1,6 +1,4 @@
 import React from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Crown, TrendingUp } from "lucide-react";
 import { usePlayerLeaders, buildLeaderboard } from "@/components/hooks/usePlayerLeaders";
@@ -16,24 +14,10 @@ import {
 } from "recharts";
 
 function ScorerCard({ label, topScorer, teamMap }) {
-  const playerId = topScorer?.player?.id;
-
-  // Per-game points for the chart
-  const { data: rawStats = [] } = useQuery({
-    queryKey: ["top-scorer-game-stats", playerId],
-    queryFn: () => base44.entities.PlayerGameStats.filter({ player_id: playerId }),
-    enabled: !!playerId,
-    refetchInterval: 20000,
-  });
-
-  const chartData = React.useMemo(() => {
-    if (!rawStats.length) return [];
-    const byGame = {};
-    rawStats.forEach((s) => {
-      byGame[s.game_id] = (byGame[s.game_id] || 0) + (s.points || 0);
-    });
-    return Object.values(byGame).map((pts, i) => ({ game: `G${i + 1}`, points: pts }));
-  }, [rawStats]);
+  // Chart is built from the SAME eligible game set that drives the GP count,
+  // so the number of points on the graph always equals the GP badge. Games the
+  // player's team played but recorded no stats show as 0 (not dropped).
+  const chartData = topScorer?.chartData || [];
 
   if (!topScorer) {
     return (
@@ -184,10 +168,35 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
     const player = playerMap[ptsRow.id];
     if (!player) return null;
     const rebRow = buildLeaderboard({ ...ctx, statType: "rebounds", limit: 50 }).find((r) => r.id === ptsRow.id);
+
+    // Build per-game points across every completed game this player's team
+    // played in this division (same set the GP count uses), so the chart has
+    // exactly `gp` points. Games with no stat row appear as 0.
+    const teamsById = new Map(teams.map((t) => [t.id, t]));
+    const teamGames = games
+      .filter((g) => {
+        if (g.status !== "completed") return false;
+        if ((g.sport || "").toLowerCase() !== "basketball") return false;
+        if (g.home_team_id !== player.team_id && g.away_team_id !== player.team_id) return false;
+        const homeDiv = teamsById.get(g.home_team_id)?.division || "No Division";
+        const awayDiv = teamsById.get(g.away_team_id)?.division || "No Division";
+        return homeDiv === division || awayDiv === division;
+      })
+      .sort((a, b) => new Date(a.game_date) - new Date(b.game_date));
+
+    const ptsByGame = {};
+    playerStats.forEach((s) => {
+      if (s.player_id !== ptsRow.id) return;
+      ptsByGame[s.game_id] = (ptsByGame[s.game_id] || 0) + Number(s.points || 0);
+    });
+
+    const chartData = teamGames.map((g, i) => ({ game: `G${i + 1}`, points: ptsByGame[g.id] || 0 }));
+
     return {
       player,
       ppg: ptsRow.avgNum,
       gp: ptsRow.gamesPlayed,
+      chartData,
       stats: {
         total_points: ptsRow.total,
         total_rebounds: rebRow?.total || 0,
