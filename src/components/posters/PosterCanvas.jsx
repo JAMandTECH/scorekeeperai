@@ -301,7 +301,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
         if (big) {
           // Huge centered value with a real 3D extruded look, rendered behind the player
-          const valueSize = 600;
+          const valueSize = 420;
           const valueStr = String(value);
           ctx.textBaseline = 'middle';
           ctx.font = `700 ${valueSize}px Oswald, Inter, system-ui, Arial`;
