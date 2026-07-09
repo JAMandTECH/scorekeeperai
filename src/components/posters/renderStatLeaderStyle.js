@@ -142,6 +142,17 @@ export async function renderStatLeaderStyle({
 
   const marginX = 70;
 
+  // Org logo in the upper-right corner
+  if (logoImg) {
+    const cleaned = stripDarkBox(logoImg);
+    const srcW = cleaned.width || logoImg.width;
+    const srcH = cleaned.height || logoImg.height;
+    const maxH = 150;
+    const ar = maxH / srcH;
+    const drawW = srcW * ar;
+    ctx.drawImage(cleaned, W - drawW - 50, 50, drawW, maxH);
+  }
+
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
 
@@ -253,24 +264,6 @@ export async function renderStatLeaderStyle({
   const footY = H - 250;
   ctx.fillText('BEST PLAYER', marginX, footY);
   ctx.fillText('OF THE GAME', marginX, footY + 46);
-
-  // Logo sits to the right of the footer heading
-  if (logoImg) {
-    const cleaned = stripDarkBox(logoImg);
-    const srcW = cleaned.width || logoImg.width;
-    const srcH = cleaned.height || logoImg.height;
-    const maxH = 170; // bigger so it doesn't look shrunken
-    const ar = maxH / srcH;
-    const line1W = ctx.measureText('BEST PLAYER').width;
-    const line2W = ctx.measureText('OF THE GAME').width;
-    const logoX = marginX + Math.max(line1W, line2W) + 40;
-    ctx.drawImage(cleaned, logoX, footY - 80, srcW * ar, maxH);
-  } else if (orgName) {
-    ctx.font = '800 30px Inter, system-ui, Arial';
-    ctx.fillStyle = NAVY_DARK;
-    const line1W = ctx.measureText('BEST PLAYER').width;
-    ctx.fillText(String(orgName).toUpperCase(), marginX + line1W + 40, footY + 24);
-  }
 
   // Final Score — left-aligned below the footer heading, at the left edge
   const hs = Number(homeScore || 0);
