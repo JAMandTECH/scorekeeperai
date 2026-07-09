@@ -300,21 +300,59 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.textAlign = 'center';
 
         if (big) {
-          // Huge centered value (gold gradient) with the label stacked vertically to its right
+          // Huge centered value with a real 3D extruded look, rendered behind the player
           const valueSize = 600;
           const valueStr = String(value);
           ctx.textBaseline = 'middle';
           ctx.font = `700 ${valueSize}px Oswald, Inter, system-ui, Arial`;
 
-          // Flat shiny red number
+          // 1) Extruded depth: stack many offset copies down-right for a solid side wall
+          const depth = 46;            // number of extrusion layers
+          const stepX = 1.6;           // horizontal offset per layer
+          const stepY = 2.0;           // vertical offset per layer
+          ctx.save();
+          for (let d = depth; d >= 1; d--) {
+            // Darken toward the back of the extrusion
+            const t = d / depth;
+            const r = Math.round(60 + (150 - 60) * (1 - t));
+            const g = Math.round(2 + (10 - 2) * (1 - t));
+            const b = Math.round(2 + (12 - 2) * (1 - t));
+            ctx.fillStyle = `rgb(${r},${g},${b})`;
+            ctx.fillText(valueStr, x + d * stepX, y + d * stepY);
+          }
+          ctx.restore();
+
+          // 2) Front face: glossy red gradient
           const grad = ctx.createLinearGradient(0, y - valueSize * 0.5, 0, y + valueSize * 0.55);
-          grad.addColorStop(0, '#c5161a');
-          grad.addColorStop(0.42, '#7e0608');
-          grad.addColorStop(0.5, '#b51519');
-          grad.addColorStop(0.58, '#5e0204');
-          grad.addColorStop(1, '#3d0102');
+          grad.addColorStop(0, '#ff4d52');
+          grad.addColorStop(0.42, '#c5161a');
+          grad.addColorStop(0.5, '#e01c22');
+          grad.addColorStop(0.58, '#a01115');
+          grad.addColorStop(1, '#6e0608');
+          ctx.save();
+          ctx.shadowColor = 'rgba(0,0,0,0.45)';
+          ctx.shadowBlur = 30;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
           ctx.fillStyle = grad;
           ctx.fillText(valueStr, x, y);
+          ctx.restore();
+
+          // 3) Top bevel highlight for a polished 3D edge
+          ctx.save();
+          const hi = ctx.createLinearGradient(0, y - valueSize * 0.5, 0, y - valueSize * 0.12);
+          hi.addColorStop(0, 'rgba(255,255,255,0.75)');
+          hi.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = hi;
+          ctx.fillText(valueStr, x, y - 3);
+          ctx.restore();
+
+          // 4) Crisp outline to separate the number from the background
+          ctx.save();
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = 'rgba(40,0,0,0.55)';
+          ctx.strokeText(valueStr, x, y);
+          ctx.restore();
 
           // Vertical label (always "PTS") to the right of the number — ITC Avant Garde Gothic Extra Light style
           const valueWidth = ctx.measureText(valueStr).width;
