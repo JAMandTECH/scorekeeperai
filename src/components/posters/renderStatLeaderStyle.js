@@ -28,6 +28,7 @@ export async function renderStatLeaderStyle({
   jerseyStr,
   teamName,
   headerStr,
+  stageStr,
   dateStr,
   homeName,
   awayName,
@@ -61,21 +62,21 @@ export async function renderStatLeaderStyle({
     ctx.drawImage(bgImg, dx, dy, dw, dh);
   }
 
-  // Left-side white wash confined to the left 1/3 so the poster background shows through
-  const wash = ctx.createLinearGradient(0, 0, W / 3, 0);
+  // Left-side white wash — widened so all text is covered
+  const wash = ctx.createLinearGradient(0, 0, W * 0.52, 0);
   wash.addColorStop(0, 'rgba(238,241,245,0.96)');
-  wash.addColorStop(0.7, 'rgba(238,241,245,0.85)');
+  wash.addColorStop(0.72, 'rgba(238,241,245,0.9)');
   wash.addColorStop(1, 'rgba(238,241,245,0)');
   ctx.fillStyle = wash;
   ctx.fillRect(0, 0, W, H);
 
-  // Player photo full-bleed on the right
+  // Player photo full-bleed on the right (nudged left so nothing is cut off)
   if (headImg) {
     const targetH = H * 0.9;
     const ar = targetH / headImg.height;
     const dw = headImg.width * ar;
     const dh = targetH;
-    const dx = W - dw * 0.82; // let the player sit toward the right edge
+    const dx = W - dw * 0.94; // pull player toward the left so the edge isn't clipped
     const dy = H - dh; // anchored to bottom
     ctx.drawImage(headImg, dx, dy, dw, dh);
   }
@@ -85,13 +86,27 @@ export async function renderStatLeaderStyle({
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
 
-  // Header (tournament • division) at top-left
-  let topY = 90;
+  // Organization name above the header
+  let topY = 76;
+  if (orgName) {
+    ctx.font = '800 30px Saira, Inter, system-ui, Arial';
+    ctx.fillStyle = NAVY;
+    ctx.fillText(String(orgName).toUpperCase(), marginX, topY);
+    topY += 38;
+  }
+  // Header (tournament • division)
   if (headerStr) {
     ctx.font = '800 26px Saira, Inter, system-ui, Arial';
     ctx.fillStyle = NAVY_DARK;
     ctx.fillText(headerStr, marginX, topY);
     topY += 34;
+  }
+  // Season stage (REGULAR SEASON / SEMI-FINALS / FINALS ...)
+  if (stageStr) {
+    ctx.font = '700 22px Inter, system-ui, Arial';
+    ctx.fillStyle = NAVY_DARK;
+    ctx.fillText(stageStr, marginX, topY);
+    topY += 32;
   }
   // Date line
   if (dateStr) {

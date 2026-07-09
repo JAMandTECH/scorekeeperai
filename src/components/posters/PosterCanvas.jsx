@@ -67,7 +67,9 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         const playerName = [first, last].filter(Boolean).join(' ');
         const dObj = game.game_date ? new Date(game.game_date) : null;
         const dateStr = dObj ? dObj.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase() : '';
-        const headerStr = [org?.tournament_name || org?.name || '', game.division || ''].filter(Boolean).join(' • ').toUpperCase();
+        const headerStr = [org?.tournament_name || '', game.division || ''].filter(Boolean).join(' • ').toUpperCase();
+        const stageMap = { regular_season: 'REGULAR SEASON', pre_season: 'PRE-SEASON', playoffs: 'PLAYOFFS', semi_finals: 'SEMI-FINALS', finals: 'FINALS' };
+        const stageStr = stageMap[game.game_type] || '';
         const jersey = (p?.jersey_number) || (p?.player?.jersey_number) || '';
         const jerseyStr = String(jersey || '').replace(/^#/, '');
         const bestTeamId = (p?.team_id) || (p?.player?.team_id) || null;
@@ -95,6 +97,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           jerseyStr,
           teamName,
           headerStr,
+          stageStr,
           dateStr,
           homeName: String(homeName || 'HOME').toUpperCase(),
           awayName: String(awayName || 'AWAY').toUpperCase(),
