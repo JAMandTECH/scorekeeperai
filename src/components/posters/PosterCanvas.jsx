@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { buildSmartLayout, getSportStatsConfig } from './smartLayout';
 import { renderStatLeaderStyle } from './renderStatLeaderStyle';
+import { renderBoldDarkStyle } from './renderBoldDarkStyle';
 import { base44 } from '@/api/base44Client';
 import { Save, Loader2 } from 'lucide-react';
 
@@ -85,6 +86,69 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           headshotUrl: headSrc,
           logoUrl: org?.logo_url,
           player: p,
+          stats: statsList,
+          playerName,
+          jerseyStr,
+          teamName,
+          headerStr,
+          stageStr,
+          dateStr,
+          homeName: String(homeName || 'HOME').toUpperCase(),
+          awayName: String(awayName || 'AWAY').toUpperCase(),
+          homeScore: Number(game.home_score || 0),
+          awayScore: Number(game.away_score || 0),
+          orgName: org?.name,
+        });
+
+        try {
+          const url = canvas.toDataURL('image/png');
+          setDataUrl(url);
+          onReady && onReady(url);
+        } catch (e) {
+          setDataUrl('');
+          onReady && onReady('');
+        }
+      })();
+      return;
+    }
+
+    // Style 3: "Bold Dark" (NBA social graphic) — black bg, gold stacked stats
+    if (posterStyle === 'bold_dark') {
+      (async () => {
+        try {
+          if (document.fonts && document.fonts.load) {
+            await Promise.all([
+              document.fonts.load('800 170px Oswald'),
+              document.fonts.load('800 40px Saira'),
+              document.fonts.load('700 34px Inter'),
+            ]);
+          }
+        } catch (_) { /* ignore */ }
+
+        const p = (players && players.length > 0) ? players[0] : null;
+        const headSrc = (L?.headshot?.processedImageUrl) || (bestPlayerImageUrl || players?.[0]?.photo_url);
+        const rawStats = getSportStatsConfig(game.sport, p) || [];
+        const statsList = rawStats.filter((s) => s && Number(s.value) !== 0).slice(0, 3);
+        const first = (p?.first_name) || (p?.player?.first_name) || '';
+        const last = (p?.last_name) || (p?.player?.last_name) || '';
+        const playerName = [first, last].filter(Boolean).join(' ');
+        const dObj = game.game_date ? new Date(game.game_date) : null;
+        const dateStr = dObj ? dObj.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase() : '';
+        const headerStr = [org?.tournament_name || '', game.division || ''].filter(Boolean).join(' • ').toUpperCase();
+        const stageMap = { regular_season: 'REGULAR SEASON', pre_season: 'PRE-SEASON', playoffs: 'PLAYOFFS', semi_finals: 'SEMI-FINALS', finals: 'FINALS' };
+        const stageStr = stageMap[game.game_type] || '';
+        const jersey = (p?.jersey_number) || (p?.player?.jersey_number) || '';
+        const jerseyStr = String(jersey || '').replace(/^#/, '');
+        const bestTeamId = (p?.team_id) || (p?.player?.team_id) || null;
+        let teamName = '';
+        if (bestTeamId === game.home_team_id) teamName = String(homeName || 'HOME').toUpperCase();
+        else if (bestTeamId === game.away_team_id) teamName = String(awayName || 'AWAY').toUpperCase();
+
+        await renderBoldDarkStyle({
+          ctx, W, H,
+          backgroundUrl,
+          headshotUrl: headSrc,
+          logoUrl: org?.logo_url,
           stats: statsList,
           playerName,
           jerseyStr,

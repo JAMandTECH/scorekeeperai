@@ -346,6 +346,7 @@ export default function PosterGenerator() {
                 <SelectContent>
                   <SelectItem value="spotlight">Spotlight (Best Player)</SelectItem>
                   <SelectItem value="stat_leader">Best Player of the Game</SelectItem>
+                  <SelectItem value="bold_dark">Bold Dark (Gold Stats)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
