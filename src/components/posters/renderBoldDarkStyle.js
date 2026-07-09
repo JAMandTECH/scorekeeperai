@@ -156,6 +156,11 @@ export async function renderBoldDarkStyle({
   const scoreY = H - 60;
   let infoY = H - 150;
 
+  // "BEST PLAYER OF THE GAME" eyebrow tag above the player name
+  ctx.font = '800 22px Inter, system-ui, Arial';
+  ctx.fillStyle = GOLD;
+  ctx.fillText('BEST PLAYER OF THE GAME', marginX, infoY - 40);
+
   if (nameStr) {
     ctx.font = '800 40px Saira, Inter, system-ui, Arial';
     ctx.fillStyle = WHITE;
