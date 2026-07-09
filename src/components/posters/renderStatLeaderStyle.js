@@ -195,6 +195,12 @@ export async function renderStatLeaderStyle({
     topY += 12;
   }
 
+  // "BEST PLAYER OF THE GAME" eyebrow tag above the player name
+  ctx.font = '800 28px Inter, system-ui, Arial';
+  ctx.fillStyle = '#facc15';
+  ctx.fillText('BEST PLAYER OF THE GAME', marginX, topY + 24);
+  topY += 44;
+
   // Player name (two lines: first name light, last name heavy)
   const nameParts = String(playerName || '').trim().split(/\s+/);
   const firstName = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : '';
@@ -262,15 +268,6 @@ export async function renderStatLeaderStyle({
 
     sy += 150 + pillH + blockGap;
   });
-
-  // Footer: "BEST PLAYER OF THE GAME" with the org logo to its right, bottom-left
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = NAVY;
-  ctx.font = '800 42px Saira, Inter, system-ui, Arial';
-  const footY = H - 250;
-  ctx.fillText('BEST PLAYER', marginX, footY);
-  ctx.fillText('OF THE GAME', marginX, footY + 46);
 
   // Final Score — left-aligned below the footer heading, at the left edge
   const hs = Number(homeScore || 0);
