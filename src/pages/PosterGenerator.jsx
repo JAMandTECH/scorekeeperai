@@ -33,6 +33,7 @@ export default function PosterGenerator() {
   const [uploading, setUploading] = React.useState(false);
   const [removeBgLoading, setRemoveBgLoading] = React.useState(false);
   const [layout, setLayout] = React.useState({});
+  const [posterStyle, setPosterStyle] = React.useState('spotlight');
   const [posterDataUrl, setPosterDataUrl] = React.useState('');
   const [savedOpen, setSavedOpen] = React.useState(false);
   const [localOnlyBgRemove, setLocalOnlyBgRemove] = React.useState(true);
@@ -339,6 +340,17 @@ export default function PosterGenerator() {
             </div>
 
             <div>
+              <label className="text-sm text-muted-foreground">Poster Style</label>
+              <Select value={posterStyle} onValueChange={setPosterStyle}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select style" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="spotlight">Spotlight (Best Player)</SelectItem>
+                  <SelectItem value="stat_leader">Stat Leader of the Game</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
               <label className="text-sm text-muted-foreground">Completed Game</label>
               <Select value={selectedGameId} onValueChange={(v) => setSelectedGameId(v)}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder={gamesQ.isLoading ? 'Loading games...' : 'Select a game'} /></SelectTrigger>
@@ -628,6 +640,7 @@ export default function PosterGenerator() {
                     homeName={teamMap[gameForPoster?.home_team_id] || 'Home Team'}
                     awayName={teamMap[gameForPoster?.away_team_id] || 'Away Team'}
                     layout={layout}
+                    posterStyle={posterStyle}
                     onReady={setPosterDataUrl}
                   />
                   <div className="mt-4">

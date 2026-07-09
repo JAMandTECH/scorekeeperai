@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { buildSmartLayout, getSportStatsConfig } from './smartLayout';
+import { renderStatLeaderStyle } from './renderStatLeaderStyle';
 import { base44 } from '@/api/base44Client';
 import { Save, Loader2 } from 'lucide-react';
 
 // Canvas composer that overlays org logo/info and the single best player's headshot + stats
-export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady }) {
+export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady, posterStyle = 'spotlight' }) {
   const canvasRef = useRef(null);
   const [dataUrl, setDataUrl] = useState('');
   const [saving, setSaving] = useState(false);
@@ -43,6 +44,55 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
     const ctx = canvas.getContext('2d');
     ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+
+    // Style 2: "Stat Leader of the Game" (bet365-inspired) — different renderer
+    if (posterStyle === 'stat_leader') {
+      (async () => {
+        try {
+          if (document.fonts && document.fonts.load) {
+            await Promise.all([
+              document.fonts.load('600 62px Saira'),
+              document.fonts.load('800 82px Saira'),
+              document.fonts.load('800 168px Oswald'),
+            ]);
+          }
+        } catch (_) { /* ignore */ }
+
+        const p = (players && players.length > 0) ? players[0] : null;
+        const headSrc = (L?.headshot?.processedImageUrl) || (bestPlayerImageUrl || players?.[0]?.photo_url);
+        const rawStats = getSportStatsConfig(game.sport, p) || [];
+        const statsList = rawStats.filter((s) => s && Number(s.value) !== 0).slice(0, 3);
+        const first = (p?.first_name) || (p?.player?.first_name) || '';
+        const last = (p?.last_name) || (p?.player?.last_name) || '';
+        const playerName = [first, last].filter(Boolean).join(' ');
+        const dObj = game.game_date ? new Date(game.game_date) : null;
+        const dateStr = dObj ? `${dObj.getMonth() + 1}.${dObj.getDate()}.${String(dObj.getFullYear()).slice(2)}` : '';
+        const oppName = String(awayName || 'OPP').toUpperCase().slice(0, 6);
+        const dateLine = dateStr ? `${dateStr} vs ${oppName}` : '';
+
+        await renderStatLeaderStyle({
+          ctx, W, H,
+          backgroundUrl,
+          headshotUrl: headSrc,
+          logoUrl: org?.logo_url,
+          player: p,
+          stats: statsList,
+          playerName,
+          dateLine,
+          orgName: org?.name,
+        });
+
+        try {
+          const url = canvas.toDataURL('image/png');
+          setDataUrl(url);
+          onReady && onReady(url);
+        } catch (e) {
+          setDataUrl('');
+          onReady && onReady('');
+        }
+      })();
+      return;
+    }
 
     // Gold gradient utilities to mimic poster style
     const makeGoldGradient = (yTop, yBottom) => {
@@ -301,7 +351,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
 
         if (big) {
           // Huge centered value with a real 3D extruded look, rendered behind the player
-          const valueSize = 420;
+          const valueSize = 546;
           const valueStr = String(value);
           ctx.textBaseline = 'middle';
           ctx.font = `700 ${valueSize}px Oswald, Inter, system-ui, Arial`;
@@ -745,7 +795,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         onReady && onReady('');
       }
     })();
-  }, [backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady]);
+  }, [backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady, posterStyle]);
 
   const dataURLtoBlob = (dataURL) => {
     const arr = dataURL.split(',');
