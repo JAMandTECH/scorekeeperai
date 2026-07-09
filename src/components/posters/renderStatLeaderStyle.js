@@ -58,10 +58,7 @@ export async function renderStatLeaderStyle({
     const dh = bgImg.height * scale;
     const dx = (W - dw) / 2;
     const dy = (H - dh) / 2;
-    ctx.save();
-    ctx.globalAlpha = 0.28;
     ctx.drawImage(bgImg, dx, dy, dw, dh);
-    ctx.restore();
   }
 
   // Left-side white wash confined to the left 1/3 so the poster background shows through
