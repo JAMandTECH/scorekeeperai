@@ -57,11 +57,7 @@ export async function renderBoldDarkStyle({
     const dy = (H - dh) / 2;
     ctx.save();
     ctx.globalAlpha = 0.35;
-    if (bgImg.width < W * 4 || bgImg.height < H * 4) {
-      ctx.imageSmoothingEnabled = false;
-    }
     ctx.drawImage(bgImg, dx, dy, dw, dh);
-    ctx.imageSmoothingEnabled = true;
     ctx.restore();
     // Darken overlay
     ctx.fillStyle = 'rgba(10,10,10,0.55)';

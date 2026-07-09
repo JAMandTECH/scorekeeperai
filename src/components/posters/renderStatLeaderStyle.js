@@ -30,7 +30,14 @@ const stripDarkBox = (img) => {
     c.height = h;
     const cx = c.getContext('2d');
     cx.drawImage(img, 0, 0, w, h);
-    const imgData = cx.getImageData(0, 0, w, h);
+    // If the image is cross-origin without CORS headers, getImageData throws.
+    // Catch it and return the raw <img> so we never taint the main canvas.
+    let imgData;
+    try {
+      imgData = cx.getImageData(0, 0, w, h);
+    } catch (_) {
+      return img;
+    }
     const d = imgData.data;
 
     // Average the four corners to estimate the background color
@@ -118,12 +125,7 @@ export async function renderStatLeaderStyle({
     const dh = bgImg.height * scale;
     const dx = (W - dw) / 2;
     const dy = (H - dh) / 2;
-    // Keep upscaled low-res templates crisp instead of soft (canvas renders at 4x)
-    if (bgImg.width < W * 4 || bgImg.height < H * 4) {
-      ctx.imageSmoothingEnabled = false;
-    }
     ctx.drawImage(bgImg, dx, dy, dw, dh);
-    ctx.imageSmoothingEnabled = true;
   }
 
   // Left-side white wash — widened so all text is covered
@@ -150,8 +152,8 @@ export async function renderStatLeaderStyle({
   // Org logo in the upper-right corner
   if (logoImg) {
     const cleaned = stripDarkBox(logoImg);
-    const srcW = cleaned.width || logoImg.width;
-    const srcH = cleaned.height || logoImg.height;
+    const srcW = cleaned.naturalWidth || cleaned.width || logoImg.width;
+    const srcH = cleaned.naturalHeight || cleaned.height || logoImg.height;
     const maxH = 169;
     const ar = maxH / srcH;
     const drawW = srcW * ar;
