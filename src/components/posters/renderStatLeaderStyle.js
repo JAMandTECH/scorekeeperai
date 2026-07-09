@@ -64,10 +64,10 @@ export async function renderStatLeaderStyle({
     ctx.restore();
   }
 
-  // Left-side white-to-transparent wash so the stat column stays readable
-  const wash = ctx.createLinearGradient(0, 0, W * 0.75, 0);
+  // Left-side white wash confined to the left 1/3 so the poster background shows through
+  const wash = ctx.createLinearGradient(0, 0, W / 3, 0);
   wash.addColorStop(0, 'rgba(238,241,245,0.96)');
-  wash.addColorStop(0.55, 'rgba(238,241,245,0.7)');
+  wash.addColorStop(0.7, 'rgba(238,241,245,0.85)');
   wash.addColorStop(1, 'rgba(238,241,245,0)');
   ctx.fillStyle = wash;
   ctx.fillRect(0, 0, W, H);
@@ -174,69 +174,71 @@ export async function renderStatLeaderStyle({
     sy += 150 + pillH + blockGap;
   });
 
-  // Footer: "BEST PLAYER OF THE GAME" + org logo/name, bottom-left
+  // Footer: "BEST PLAYER OF THE GAME" with the org logo to its right, bottom-left
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = NAVY;
   ctx.font = '800 42px Saira, Inter, system-ui, Arial';
-  const footY = H - 190;
+  const footY = H - 250;
   ctx.fillText('BEST PLAYER', marginX, footY);
   ctx.fillText('OF THE GAME', marginX, footY + 46);
 
+  // Logo sits to the right of the footer heading
   if (logoImg) {
-    const maxH = 125; // 2.5x larger
+    const maxH = 100;
     const ar = maxH / logoImg.height;
+    const line1W = ctx.measureText('BEST PLAYER').width;
+    const line2W = ctx.measureText('OF THE GAME').width;
+    const logoX = marginX + Math.max(line1W, line2W) + 40;
     // Logo already has its background stripped (transparent PNG) before it reaches here
-    ctx.drawImage(logoImg, marginX, footY + 64, logoImg.width * ar, maxH);
+    ctx.drawImage(logoImg, logoX, footY - 34, logoImg.width * ar, maxH);
   } else if (orgName) {
-    ctx.font = '800 34px Inter, system-ui, Arial';
+    ctx.font = '800 30px Inter, system-ui, Arial';
     ctx.fillStyle = NAVY_DARK;
-    ctx.fillText(String(orgName).toUpperCase(), marginX, footY + 96);
+    const line1W = ctx.measureText('BEST PLAYER').width;
+    ctx.fillText(String(orgName).toUpperCase(), marginX + line1W + 40, footY + 24);
   }
 
-  // Final Score row — anchored to the bottom, full-width band (fixed placement)
+  // Final Score — left-aligned below the footer heading, at the left edge
   const hs = Number(homeScore || 0);
   const as = Number(awayScore || 0);
   const homeWins = hs >= as;
-  const scoreY = H - 56;
-
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  const center = W / 2;
-
-  const gap = 26;
-  ctx.font = '800 44px Saira, Inter, system-ui, Arial';
-  const hsW = ctx.measureText(String(hs)).width;
-  const asW = ctx.measureText(String(as)).width;
-  ctx.font = '700 26px Inter, system-ui, Arial';
-  const vsW = ctx.measureText('VS').width;
-
-  // Draw the score cluster centered
-  const total = hsW + gap + vsW + gap + asW;
-  let cursor = center - total / 2;
+  const scoreY = H - 130;
 
   ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+
+  const gap = 20;
+  let cursor = marginX;
+
+  // Home name
+  ctx.font = '700 24px Inter, system-ui, Arial';
+  ctx.fillStyle = NAVY_DARK;
+  ctx.fillText(String(homeName || 'HOME'), cursor, scoreY);
+  cursor += ctx.measureText(String(homeName || 'HOME')).width + gap;
+
+  // Home score
   ctx.font = '800 44px Saira, Inter, system-ui, Arial';
   ctx.fillStyle = homeWins ? '#facc15' : NAVY;
   ctx.fillText(String(hs), cursor, scoreY);
-  cursor += hsW + gap;
+  cursor += ctx.measureText(String(hs)).width + gap;
 
+  // VS
   ctx.font = '700 26px Inter, system-ui, Arial';
   ctx.fillStyle = NAVY_DARK;
   ctx.fillText('VS', cursor, scoreY);
-  cursor += vsW + gap;
+  cursor += ctx.measureText('VS').width + gap;
 
+  // Away score
   ctx.font = '800 44px Saira, Inter, system-ui, Arial';
   ctx.fillStyle = !homeWins ? '#facc15' : NAVY;
   ctx.fillText(String(as), cursor, scoreY);
+  cursor += ctx.measureText(String(as)).width + gap;
 
-  // Team names flanking the cluster
+  // Away name
   ctx.font = '700 24px Inter, system-ui, Arial';
   ctx.fillStyle = NAVY_DARK;
-  ctx.textAlign = 'right';
-  ctx.fillText(String(homeName || 'HOME'), center - total / 2 - 20, scoreY);
-  ctx.textAlign = 'left';
-  ctx.fillText(String(awayName || 'AWAY'), center + total / 2 + 20, scoreY);
+  ctx.fillText(String(awayName || 'AWAY'), cursor, scoreY);
 
   // Footer tag bottom-right
   ctx.textAlign = 'right';
