@@ -147,7 +147,7 @@ export async function renderStatLeaderStyle({
     const cleaned = stripDarkBox(logoImg);
     const srcW = cleaned.width || logoImg.width;
     const srcH = cleaned.height || logoImg.height;
-    const maxH = 150;
+    const maxH = 225;
     const ar = maxH / srcH;
     const drawW = srcW * ar;
     ctx.drawImage(cleaned, W - drawW - 24, 24, drawW, maxH);
