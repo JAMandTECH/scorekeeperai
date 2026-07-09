@@ -150,7 +150,7 @@ export async function renderStatLeaderStyle({
     const maxH = 150;
     const ar = maxH / srcH;
     const drawW = srcW * ar;
-    ctx.drawImage(cleaned, W - drawW - 50, 50, drawW, maxH);
+    ctx.drawImage(cleaned, W - drawW - 24, 24, drawW, maxH);
   }
 
   ctx.textAlign = 'left';
