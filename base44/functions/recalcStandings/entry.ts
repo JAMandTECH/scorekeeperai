@@ -33,8 +33,9 @@ Deno.serve(async (req) => {
     const games = await base44.asServiceRole.entities.Game.filter({ organization_id: organizationId, status: 'completed' });
 
     for (const g of games) {
-      // Preseason games are exhibition only — exclude from standings.
-      if (g.game_type === 'pre_season') continue;
+      // Only regular season games count toward standings; exclude preseason,
+      // playoffs, semi-finals and finals.
+      if ((g.game_type || 'regular_season') !== 'regular_season') continue;
 
       const homeId = g.home_team_id;
       const awayId = g.away_team_id;

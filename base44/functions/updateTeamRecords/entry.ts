@@ -32,10 +32,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: insufficient permissions' }, { status: 403 });
     }
 
-    // Preseason games are exhibition only — they must NOT affect team
-    // standings (wins/losses). Acknowledge success without touching records.
-    if (game.game_type === 'pre_season') {
-      return Response.json({ success: true, skipped: 'pre_season' });
+    // Only regular season games count toward team standings (wins/losses).
+    // Preseason, playoffs, semi-finals and finals are excluded — acknowledge
+    // success without touching records.
+    if ((game.game_type || 'regular_season') !== 'regular_season') {
+      return Response.json({ success: true, skipped: game.game_type });
     }
 
     const homeTeamId = game.home_team_id;
