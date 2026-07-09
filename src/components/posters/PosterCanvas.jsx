@@ -43,6 +43,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
     canvas.style.height = H + 'px';
 
     const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
 
     // Style 2: "Stat Leader of the Game" (bet365-inspired) — different renderer
