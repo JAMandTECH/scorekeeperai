@@ -1,6 +1,6 @@
-// Renders the "Stat Leader of the Game" poster style (bet365-inspired reference).
-// Left column: player name + up to 3 stacked stats (value + label pill).
-// Right side: full-bleed player photo. Bottom-left: "STAT LEADER OF THE GAME" + org name.
+// Renders the "Best Player of the Game" poster style (bet365-inspired reference).
+// Left column: header/date, player name, jersey/team, up to 3 stacked stats (value + label pill).
+// Right side: full-bleed player photo. Bottom: final score row + org name + footer tag.
 //
 // Draws onto an existing 2D context already scaled for the 1080x1350 canvas.
 // Returns the composed data URL via canvas.toDataURL by the caller.
@@ -22,10 +22,16 @@ export async function renderStatLeaderStyle({
   backgroundUrl,
   headshotUrl,
   logoUrl,
-  player,
   stats, // [{label, value}, ...] already filtered/ordered
   playerName,
-  dateLine, // e.g. "2.26.25 vs TOR"
+  jerseyStr,
+  teamName,
+  headerStr,
+  dateStr,
+  homeName,
+  awayName,
+  homeScore,
+  awayScore,
   orgName,
 }) {
   const NAVY = '#12305c';
@@ -78,52 +84,72 @@ export async function renderStatLeaderStyle({
 
   const marginX = 70;
 
-  // Player name (two lines: first name light, last name heavy) — top-left
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+
+  // Header (tournament • division) at top-left
+  let topY = 90;
+  if (headerStr) {
+    ctx.font = '800 26px Saira, Inter, system-ui, Arial';
+    ctx.fillStyle = NAVY_DARK;
+    ctx.fillText(headerStr, marginX, topY);
+    topY += 34;
+  }
+  // Date line
+  if (dateStr) {
+    ctx.font = '600 24px Inter, system-ui, Arial';
+    ctx.fillStyle = NAVY_DARK;
+    ctx.fillText(dateStr, marginX, topY);
+    topY += 46;
+  } else {
+    topY += 12;
+  }
+
+  // Player name (two lines: first name light, last name heavy)
   const nameParts = String(playerName || '').trim().split(/\s+/);
   const firstName = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : '';
   const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : nameParts[0] || '';
 
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = NAVY;
-
-  let topY = 150;
   if (firstName) {
-    ctx.font = '600 62px Saira, Inter, system-ui, Arial';
-    ctx.fillText(firstName.toUpperCase(), marginX, topY);
-    topY += 66;
+    ctx.font = '600 58px Saira, Inter, system-ui, Arial';
+    ctx.fillText(firstName.toUpperCase(), marginX, topY + 50);
+    topY += 62;
   }
-  ctx.font = '800 82px Saira, Inter, system-ui, Arial';
-  ctx.fillText(lastName.toUpperCase(), marginX, topY);
+  ctx.font = '800 78px Saira, Inter, system-ui, Arial';
+  ctx.fillText(lastName.toUpperCase(), marginX, topY + 50);
+  topY += 62;
 
-  // Date / opponent line
-  if (dateLine) {
-    ctx.font = '600 30px Inter, system-ui, Arial';
+  // Team + jersey line
+  const teamLine = [teamName, jerseyStr ? `#${jerseyStr}` : ''].filter(Boolean).join('  ');
+  if (teamLine) {
+    ctx.font = '700 30px Inter, system-ui, Arial';
     ctx.fillStyle = NAVY_DARK;
-    ctx.fillText(String(dateLine), marginX, topY + 44);
+    ctx.fillText(teamLine, marginX, topY + 44);
+    topY += 44;
   }
 
   // Stacked stats (up to 3): big navy number + small dark label pill under it
   const list = (stats || []).slice(0, 3);
   let sy = topY + 150;
-  const blockGap = 40;
+  const blockGap = 34;
 
   list.forEach((s) => {
     const valueStr = String(s.value);
     // Big value
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
-    ctx.font = '800 168px Oswald, Saira, Inter, system-ui, Arial';
+    ctx.font = '800 150px Oswald, Saira, Inter, system-ui, Arial';
     ctx.fillStyle = NAVY;
     ctx.fillText(valueStr, marginX, sy);
 
     // Label pill
     const label = String(s.label || '').toUpperCase();
-    ctx.font = '800 34px Inter, system-ui, Arial';
+    ctx.font = '800 32px Inter, system-ui, Arial';
     const padX = 16;
     const textW = ctx.measureText(label).width;
     const pillW = textW + padX * 2;
-    const pillH = 46;
+    const pillH = 44;
     const pillX = marginX;
     const pillY = sy + 14;
     ctx.fillStyle = NAVY_DARK;
@@ -144,25 +170,75 @@ export async function renderStatLeaderStyle({
     ctx.textBaseline = 'middle';
     ctx.fillText(label, pillX + padX, pillY + pillH / 2 + 2);
 
-    sy += 168 + pillH + blockGap;
+    sy += 150 + pillH + blockGap;
   });
 
-  // Footer: "STAT LEADER OF THE GAME" + org name / logo, bottom-left
+  // Footer: "BEST PLAYER OF THE GAME" + org logo/name, bottom-left
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = NAVY;
-  ctx.font = '800 44px Saira, Inter, system-ui, Arial';
-  const footY = H - 130;
-  ctx.fillText('STAT LEADER', marginX, footY);
-  ctx.fillText('OF THE GAME', marginX, footY + 48);
+  ctx.font = '800 42px Saira, Inter, system-ui, Arial';
+  const footY = H - 190;
+  ctx.fillText('BEST PLAYER', marginX, footY);
+  ctx.fillText('OF THE GAME', marginX, footY + 46);
 
   if (logoImg) {
-    const maxH = 56;
+    const maxH = 50;
     const ar = maxH / logoImg.height;
-    ctx.drawImage(logoImg, marginX, footY + 68, logoImg.width * ar, maxH);
+    ctx.drawImage(logoImg, marginX, footY + 64, logoImg.width * ar, maxH);
   } else if (orgName) {
-    ctx.font = '800 40px Inter, system-ui, Arial';
+    ctx.font = '800 34px Inter, system-ui, Arial';
     ctx.fillStyle = NAVY_DARK;
-    ctx.fillText(String(orgName).toUpperCase(), marginX, footY + 100);
+    ctx.fillText(String(orgName).toUpperCase(), marginX, footY + 96);
   }
+
+  // Final Score row — anchored to the bottom, full-width band (fixed placement)
+  const hs = Number(homeScore || 0);
+  const as = Number(awayScore || 0);
+  const homeWins = hs >= as;
+  const scoreY = H - 56;
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const center = W / 2;
+
+  const gap = 26;
+  ctx.font = '800 44px Saira, Inter, system-ui, Arial';
+  const hsW = ctx.measureText(String(hs)).width;
+  const asW = ctx.measureText(String(as)).width;
+  ctx.font = '700 26px Inter, system-ui, Arial';
+  const vsW = ctx.measureText('VS').width;
+
+  // Draw the score cluster centered
+  const total = hsW + gap + vsW + gap + asW;
+  let cursor = center - total / 2;
+
+  ctx.textAlign = 'left';
+  ctx.font = '800 44px Saira, Inter, system-ui, Arial';
+  ctx.fillStyle = homeWins ? '#facc15' : NAVY;
+  ctx.fillText(String(hs), cursor, scoreY);
+  cursor += hsW + gap;
+
+  ctx.font = '700 26px Inter, system-ui, Arial';
+  ctx.fillStyle = NAVY_DARK;
+  ctx.fillText('VS', cursor, scoreY);
+  cursor += vsW + gap;
+
+  ctx.font = '800 44px Saira, Inter, system-ui, Arial';
+  ctx.fillStyle = !homeWins ? '#facc15' : NAVY;
+  ctx.fillText(String(as), cursor, scoreY);
+
+  // Team names flanking the cluster
+  ctx.font = '700 24px Inter, system-ui, Arial';
+  ctx.fillStyle = NAVY_DARK;
+  ctx.textAlign = 'right';
+  ctx.fillText(String(homeName || 'HOME'), center - total / 2 - 20, scoreY);
+  ctx.textAlign = 'left';
+  ctx.fillText(String(awayName || 'AWAY'), center + total / 2 + 20, scoreY);
+
+  // Footer tag bottom-right
+  ctx.textAlign = 'right';
+  ctx.font = '600 16px Inter, system-ui, Arial';
+  ctx.fillStyle = NAVY_DARK;
+  ctx.fillText('Generated with ScorekeeperAI', W - 24, H - 20);
 }

@@ -345,7 +345,7 @@ export default function PosterGenerator() {
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Select style" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="spotlight">Spotlight (Best Player)</SelectItem>
-                  <SelectItem value="stat_leader">Stat Leader of the Game</SelectItem>
+                  <SelectItem value="stat_leader">Best Player of the Game</SelectItem>
                 </SelectContent>
               </Select>
             </div>
