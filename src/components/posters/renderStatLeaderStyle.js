@@ -15,28 +15,58 @@ const loadImage = (url) =>
     i.src = url;
   });
 
-// Removes a near-black/dark solid background box from a logo by making dark
-// (low-luminance, low-saturation) pixels transparent. Runs entirely on-canvas
-// so it doesn't depend on any external service. Returns a canvas, or the
+// Removes a logo's solid/circular background by sampling the corner color and
+// flood-filling from the edges: any pixel connected to the border whose color
+// is close to the background is made transparent. This strips both dark boxes
+// and circular gradient backgrounds while preserving the central artwork.
+// Runs entirely on-canvas (no external service). Returns a canvas, or the
 // original image if pixel access is blocked (CORS).
 const stripDarkBox = (img) => {
   try {
+    const w = img.naturalWidth || img.width;
+    const h = img.naturalHeight || img.height;
     const c = document.createElement('canvas');
-    c.width = img.naturalWidth || img.width;
-    c.height = img.naturalHeight || img.height;
+    c.width = w;
+    c.height = h;
     const cx = c.getContext('2d');
-    cx.drawImage(img, 0, 0, c.width, c.height);
-    const imgData = cx.getImageData(0, 0, c.width, c.height);
+    cx.drawImage(img, 0, 0, w, h);
+    const imgData = cx.getImageData(0, 0, w, h);
     const d = imgData.data;
-    for (let i = 0; i < d.length; i += 4) {
-      const r = d[i], g = d[i + 1], b = d[i + 2];
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      // Dark pixel with little color = part of the black/navy background box
-      if (max < 70 && (max - min) < 40) {
-        d[i + 3] = 0;
-      }
+
+    // Average the four corners to estimate the background color
+    const corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + (w - 1)) * 4];
+    let br = 0, bg = 0, bb = 0;
+    corners.forEach((p) => { br += d[p]; bg += d[p + 1]; bb += d[p + 2]; });
+    br /= 4; bg /= 4; bb /= 4;
+
+    const TOL = 90; // color distance tolerance for "background"
+    const near = (i) => {
+      const dr = d[i] - br, dg = d[i + 1] - bg, db = d[i + 2] - bb;
+      return Math.sqrt(dr * dr + dg * dg + db * db) <= TOL;
+    };
+
+    // Flood fill from all border pixels inward
+    const visited = new Uint8Array(w * h);
+    const stack = [];
+    const push = (x, y) => {
+      if (x < 0 || y < 0 || x >= w || y >= h) return;
+      const idx = y * w + x;
+      if (visited[idx]) return;
+      visited[idx] = 1;
+      stack.push(idx);
+    };
+    for (let x = 0; x < w; x++) { push(x, 0); push(x, h - 1); }
+    for (let y = 0; y < h; y++) { push(0, y); push(w - 1, y); }
+
+    while (stack.length) {
+      const idx = stack.pop();
+      const i = idx * 4;
+      if (!near(i)) continue;
+      d[i + 3] = 0; // transparent
+      const x = idx % w, y = (idx - x) / w;
+      push(x + 1, y); push(x - 1, y); push(x, y + 1); push(x, y - 1);
     }
+
     cx.putImageData(imgData, 0, 0);
     return c;
   } catch (_) {
