@@ -353,7 +353,15 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const dh = ih * scale;
       const dx = (W - dw) / 2;
       const dy = (H - dh) / 2;
+      // When the template image is being upscaled past its native resolution
+      // (relative to the 4x canvas), disable smoothing so it stays crisp
+      // instead of turning soft/blurry.
+      const upscalingBg = (dw * SCALE) > iw || (dh * SCALE) > ih;
+      if (upscalingBg) {
+        ctx.imageSmoothingEnabled = false;
+      }
       ctx.drawImage(bgImg, dx, dy, dw, dh);
+      ctx.imageSmoothingEnabled = true;
 
       // Stronger vignette for readability
       const grad = ctx.createLinearGradient(0, 0, 0, H);

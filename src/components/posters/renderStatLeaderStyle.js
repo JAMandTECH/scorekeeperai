@@ -118,7 +118,12 @@ export async function renderStatLeaderStyle({
     const dh = bgImg.height * scale;
     const dx = (W - dw) / 2;
     const dy = (H - dh) / 2;
+    // Keep upscaled low-res templates crisp instead of soft (canvas renders at 4x)
+    if (bgImg.width < W * 4 || bgImg.height < H * 4) {
+      ctx.imageSmoothingEnabled = false;
+    }
     ctx.drawImage(bgImg, dx, dy, dw, dh);
+    ctx.imageSmoothingEnabled = true;
   }
 
   // Left-side white wash — widened so all text is covered
