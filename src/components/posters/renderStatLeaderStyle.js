@@ -15,6 +15,36 @@ const loadImage = (url) =>
     i.src = url;
   });
 
+// Knocks out a solid rectangular background box from a logo by flood-matching
+// the corner color. Returns a transparent-background canvas, or the original
+// image if the pixels can't be read (e.g. CORS-tainted).
+const removeLogoBox = (img) => {
+  try {
+    const c = document.createElement('canvas');
+    c.width = img.width;
+    c.height = img.height;
+    const cx = c.getContext('2d');
+    cx.drawImage(img, 0, 0);
+    const data = cx.getImageData(0, 0, c.width, c.height);
+    const px = data.data;
+    // Reference = top-left corner color
+    const r0 = px[0], g0 = px[1], b0 = px[2];
+    const tol = 60; // color distance tolerance
+    for (let i = 0; i < px.length; i += 4) {
+      const dr = px[i] - r0;
+      const dg = px[i + 1] - g0;
+      const db = px[i + 2] - b0;
+      if (dr * dr + dg * dg + db * db < tol * tol) {
+        px[i + 3] = 0; // make transparent
+      }
+    }
+    cx.putImageData(data, 0, 0);
+    return c;
+  } catch (_) {
+    return img;
+  }
+};
+
 export async function renderStatLeaderStyle({
   ctx,
   W,
@@ -185,11 +215,9 @@ export async function renderStatLeaderStyle({
   if (logoImg) {
     const maxH = 125; // 2.5x larger
     const ar = maxH / logoImg.height;
-    // Blend the logo's dark/black box into the light background
-    ctx.save();
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.drawImage(logoImg, marginX, footY + 64, logoImg.width * ar, maxH);
-    ctx.restore();
+    // Knock out the logo's solid background box so it sits cleanly on white
+    const cleanLogo = removeLogoBox(logoImg);
+    ctx.drawImage(cleanLogo, marginX, footY + 64, logoImg.width * ar, maxH);
   } else if (orgName) {
     ctx.font = '800 34px Inter, system-ui, Arial';
     ctx.fillStyle = NAVY_DARK;
