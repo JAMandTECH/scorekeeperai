@@ -936,8 +936,10 @@ function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag,
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const handleMouseDown = (e) => {
-    if (e.target.closest('.action-button')) return;
-    if (e.target.closest('.team-slot-area')) return;
+    // Only the dedicated drag handle moves the card. Team slots and the
+    // series selector remain free so @hello-pangea/dnd can handle team drags.
+    e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
     onSelect();
@@ -979,11 +981,18 @@ function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag,
         top: `${match.position.y}px`,
         zIndex: isDragging ? 100 : isSelected ? 50 : 1
       }}
-      className={`${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-      onMouseDown={handleMouseDown}
+      onMouseDown={() => onSelect()}
     >
       <div className={`bg-gray-900 rounded-lg border-2 ${isConnecting ? 'border-blue-500 shadow-2xl' : isSelected ? 'border-purple-500' : 'border-gray-800'} overflow-hidden hover:border-${theme.accent}-600 transition-all`} style={{ width: '240px' }}>
-        <div className="absolute top-2 right-2 flex gap-1 z-10 action-button">
+        <div
+          onMouseDown={handleMouseDown}
+          className={`flex items-center gap-1.5 px-2 py-1.5 bg-gray-800/80 border-b border-gray-700 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          title="Drag to move this match card"
+        >
+          <GripVertical className="w-4 h-4 text-gray-400 shrink-0" />
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Move</span>
+        </div>
+        <div className="absolute top-1.5 right-2 flex gap-1 z-10 action-button">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -1012,7 +1021,7 @@ function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag,
             </svg>
           </button>
         </div>
-        <div className="space-y-1 p-2 pt-10 team-slot-area">
+        <div className="space-y-1 p-2 team-slot-area">
           {renderTeamSlot(match, 'home', match.home_team_id, false, match.id)}
           {renderTeamSlot(match, 'away', match.away_team_id, false, match.id)}
         </div>
