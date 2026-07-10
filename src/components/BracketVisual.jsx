@@ -965,9 +965,7 @@ function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag,
   }, [isDragging, dragStart, match.position]);
 
   return (
-    <motion.div
-      initial={{ scale: 0, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
+    <div
       style={{
         position: 'absolute',
         left: `${match.position.x}px`,
@@ -1035,6 +1033,6 @@ function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag,
           </select>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
