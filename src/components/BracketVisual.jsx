@@ -296,8 +296,8 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
         className={`${theme.matchBg} rounded-xl border-2 overflow-hidden backdrop-blur-md transition-all ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
         style={{ 
-          width: '240px', 
-          minWidth: '200px',
+          width: '280px', 
+          minWidth: '240px',
           borderColor: `${theme.accentColor}40`,
           boxShadow: `0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`
         }}
@@ -750,7 +750,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                       const toMatch = manualMatches.find(m => m.id === conn.to);
                       if (!fromMatch || !toMatch) return null;
                       
-                      const x1 = fromMatch.position.x + 240;
+                      const x1 = fromMatch.position.x + 280;
                       const y1 = fromMatch.position.y + 50;
                       const x2 = toMatch.position.x;
                       const y2 = toMatch.position.y + 50;
@@ -892,7 +892,7 @@ if (roundIdx > 0) {
                                             <svg 
                                               className="absolute pointer-events-none" 
                                               style={{
-                                                left: '240px',
+                                                left: '280px',
                                                 top: `${MATCH_HEIGHT / 2}px`,
                                                 width: '100px',
                                                 height: `${matchGap / 2 + MATCH_HEIGHT / 2}px`,
@@ -916,7 +916,7 @@ if (roundIdx > 0) {
                                             <svg 
                                               className="absolute pointer-events-none" 
                                               style={{
-                                                left: '240px',
+                                                left: '280px',
                                                 top: `${MATCH_HEIGHT / 2 - (matchGap / 2 + MATCH_HEIGHT / 2)}px`,
                                                 width: '50px',
                                                 height: `${matchGap / 2 + MATCH_HEIGHT / 2}px`,
@@ -1111,7 +1111,7 @@ function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag,
       }}
       onMouseDown={() => onSelect()}
     >
-      <div className={`bg-gray-900 rounded-lg border-2 ${isConnecting ? 'border-blue-500 shadow-2xl' : isSelected ? 'border-purple-500' : 'border-gray-800'} overflow-hidden hover:border-${theme.accent}-600 transition-all`} style={{ width: '240px' }}>
+      <div className={`bg-gray-900 rounded-lg border-2 ${isConnecting ? 'border-blue-500 shadow-2xl' : isSelected ? 'border-purple-500' : 'border-gray-800'} overflow-hidden hover:border-${theme.accent}-600 transition-all`} style={{ width: '280px' }}>
         <div
           onMouseDown={handleMouseDown}
           className={`flex items-center gap-1.5 px-2 py-1.5 bg-gray-800/80 border-b border-gray-700 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
