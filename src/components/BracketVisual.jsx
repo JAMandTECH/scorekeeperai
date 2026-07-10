@@ -120,6 +120,18 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
         onTeamDrop(sourceMatchId, sourceSlot, destMatchId, destSlot);
       }
     }
+    // Handle removing a team from a match slot back to the available pool
+    else if (sourceId.startsWith('match-') && destId === 'available-teams') {
+      const { matchId, slot } = parseMatchDroppable(sourceId);
+
+      if (matchId.startsWith('manual-')) {
+        setManualMatches(prev => prev.map(m =>
+          m.id === matchId ? { ...m, [`${slot}_team_id`]: null } : m
+        ));
+      } else {
+        onTeamDrop(matchId, slot, null);
+      }
+    }
     // Handle match card reordering within a round
     else if (sourceId.startsWith('round-') && destId.startsWith('round-')) {
       const sourceRound = sourceId.replace('round-', '');

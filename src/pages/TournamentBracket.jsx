@@ -236,8 +236,15 @@ export default function TournamentBracket() {
     const match = allMatches.find(m => m.id === matchId);
     if (!match) return;
 
+    // Removing a team from a slot (dropped back into available pool)
+    if (teamIdOrDestMatchId === null && !destSlot) {
+      await updateMatchMutation.mutateAsync({
+        id: matchId,
+        data: { [`${slot}_team_id`]: null, status: 'pending' },
+      });
+    }
     // Dropping a team from available list
-    if (typeof teamIdOrDestMatchId === 'string' && !destSlot) {
+    else if (typeof teamIdOrDestMatchId === 'string' && !destSlot) {
       const teamId = teamIdOrDestMatchId;
       const update = {};
       update[`${slot}_team_id`] = teamId;
