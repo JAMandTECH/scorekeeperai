@@ -87,15 +87,38 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
     if (sourceId === 'available-teams' && destId.startsWith('match-')) {
       const { matchId, slot } = parseMatchDroppable(destId);
       const teamId = availableTeams[source.index].id;
-      
-      onTeamDrop(matchId, slot, teamId);
+
+      // Manual bracket cards live only in local state, not in the DB match list.
+      if (matchId.startsWith('manual-')) {
+        setManualMatches(prev => prev.map(m =>
+          m.id === matchId ? { ...m, [`${slot}_team_id`]: teamId } : m
+        ));
+      } else {
+        onTeamDrop(matchId, slot, teamId);
+      }
     }
     // Handle team swapping between match slots
     else if (sourceId.startsWith('match-') && destId.startsWith('match-')) {
       const { matchId: sourceMatchId, slot: sourceSlot } = parseMatchDroppable(sourceId);
       const { matchId: destMatchId, slot: destSlot } = parseMatchDroppable(destId);
-      
-      onTeamDrop(sourceMatchId, sourceSlot, destMatchId, destSlot);
+
+      // Manual card slot-to-slot swap handled in local state.
+      if (sourceMatchId.startsWith('manual-') || destMatchId.startsWith('manual-')) {
+        setManualMatches(prev => {
+          const src = prev.find(m => m.id === sourceMatchId);
+          const dst = prev.find(m => m.id === destMatchId);
+          if (!src || !dst) return prev;
+          const srcTeam = src[`${sourceSlot}_team_id`];
+          const dstTeam = dst[`${destSlot}_team_id`];
+          return prev.map(m => {
+            if (m.id === sourceMatchId) return { ...m, [`${sourceSlot}_team_id`]: dstTeam };
+            if (m.id === destMatchId) return { ...m, [`${destSlot}_team_id`]: srcTeam };
+            return m;
+          });
+        });
+      } else {
+        onTeamDrop(sourceMatchId, sourceSlot, destMatchId, destSlot);
+      }
     }
     // Handle match card reordering within a round
     else if (sourceId.startsWith('round-') && destId.startsWith('round-')) {
