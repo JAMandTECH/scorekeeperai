@@ -333,6 +333,12 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
     ));
   };
 
+  const handleSetRequiredWins = (matchId, requiredWins) => {
+    setManualMatches(manualMatches.map(m => 
+      m.id === matchId ? { ...m, required_wins: requiredWins } : m
+    ));
+  };
+
   const handleConnectMatches = (fromId, toId) => {
     if (fromId === toId) return;
     const existingConnector = connectors.find(c => c.from === fromId && c.to === toId);
@@ -615,6 +621,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                       getTeam={getTeam}
                       renderTeamSlot={renderTeamSlot}
                       onDrag={handleManualMatchDrag}
+                      onSetRequiredWins={handleSetRequiredWins}
                       onDelete={handleDeleteManualMatch}
                       onConnect={() => {
                         if (connectingFrom) {
@@ -939,7 +946,14 @@ style={{
   );
 }
 
-function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag, onDelete, onConnect, isConnecting, isSelected, onSelect }) {
+const SERIES_OPTIONS = [
+  { label: 'SINGLE GAME', wins: 1 },
+  { label: 'BEST OF 3', wins: 2 },
+  { label: 'BEST OF 5', wins: 3 },
+  { label: 'BEST OF 7', wins: 4 },
+];
+
+function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag, onSetRequiredWins, onDelete, onConnect, isConnecting, isSelected, onSelect }) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
@@ -1023,10 +1037,21 @@ function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag,
           {renderTeamSlot(match, 'home', match.home_team_id, false, match.id)}
           {renderTeamSlot(match, 'away', match.away_team_id, false, match.id)}
         </div>
-        <div className={`px-2 py-1.5 bg-${theme.accent}-900/30 border-t border-${theme.accent}-800/50 text-center`}>
-          <span className={`text-[10px] text-${theme.accent}-400 font-bold`}>
-            {match.required_wins > 1 ? `BEST OF ${(match.required_wins * 2) - 1}` : 'SINGLE GAME'}
-          </span>
+        <div className={`px-2 py-1.5 bg-${theme.accent}-900/30 border-t border-${theme.accent}-800/50 text-center action-button`}>
+          <select
+            value={match.required_wins || 1}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onChange={(e) => onSetRequiredWins(match.id, Number(e.target.value))}
+            className={`w-full bg-transparent text-[10px] text-${theme.accent}-400 font-bold text-center cursor-pointer outline-none appearance-none`}
+            title="Set number of games for this match"
+          >
+            {SERIES_OPTIONS.map((opt) => (
+              <option key={opt.wins} value={opt.wins} className="bg-gray-900 text-white">
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
     </motion.div>
