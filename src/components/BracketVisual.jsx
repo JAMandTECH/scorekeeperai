@@ -959,6 +959,7 @@ function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag,
 
   const handleMouseDown = (e) => {
     if (e.target.closest('.action-button')) return;
+    if (e.target.closest('.team-slot-area')) return;
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
     onSelect();
@@ -1033,7 +1034,7 @@ function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag,
             </svg>
           </button>
         </div>
-        <div className="space-y-1 p-2 pt-10">
+        <div className="space-y-1 p-2 pt-10 team-slot-area">
           {renderTeamSlot(match, 'home', match.home_team_id, false, match.id)}
           {renderTeamSlot(match, 'away', match.away_team_id, false, match.id)}
         </div>
