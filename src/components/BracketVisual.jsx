@@ -119,30 +119,23 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
       return (
         <Droppable droppableId={`match-${matchId}-${slot}`} isDropDisabled={!isEditable}>
           {(provided, snapshot) => (
-            <motion.div
+            <div
               ref={provided.innerRef}
               {...provided.droppableProps}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.02, borderColor: theme.accentColor }}
-              className={`flex items-center justify-center gap-2 px-3 py-2.5 border-2 border-dashed rounded-xl transition-all backdrop-blur-sm ${
+              className={`flex items-center justify-center gap-2 px-3 py-2.5 border-2 border-dashed rounded-xl transition-colors backdrop-blur-sm ${
                 snapshot.isDraggingOver 
-                  ? `border-cyan-400 bg-cyan-500/20 ${theme.glow}` 
+                  ? 'border-cyan-400 bg-cyan-500/20' 
                   : 'border-gray-700/50 bg-gray-900/30'
               }`}
               style={{
                 boxShadow: snapshot.isDraggingOver ? `0 0 20px ${theme.accentColor}40` : 'none'
               }}
             >
-              <motion.span 
-                className="text-xs text-gray-400 font-bold tracking-wider"
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
+              <span className="text-xs text-gray-400 font-bold tracking-wider">
                 TBD
-              </motion.span>
+              </span>
               {provided.placeholder}
-            </motion.div>
+            </div>
           )}
         </Droppable>
       );
