@@ -14,6 +14,7 @@ import AdminSidebar from "@/components/AdminSidebar";
 import TournamentForm from "@/components/TournamentForm";
 import BracketVisual from "@/components/BracketVisual";
 import BracketShareButton from "@/components/tournament/BracketShareButton";
+import LinkGameDialog from "@/components/tournament/LinkGameDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +34,7 @@ export default function TournamentBracket() {
   const [editingTournament, setEditingTournament] = useState(null);
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [deletingTournament, setDeletingTournament] = useState(null);
+  const [linkingMatch, setLinkingMatch] = useState(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -107,6 +109,35 @@ export default function TournamentBracket() {
     queryFn: () => base44.entities.BracketMatch.filter({ tournament_id: selectedTournament.id }),
     enabled: !!selectedTournament,
   });
+
+  const { data: allGames = [] } = useQuery({
+    queryKey: ['tournament-games', user?.organization_id],
+    queryFn: () => base44.entities.Game.filter({ organization_id: user?.organization_id }, '-game_date'),
+    enabled: !!user?.organization_id && !!selectedTournament,
+  });
+
+  // Link or unlink a scheduled game to a bracket match. Series wins recompute
+  // automatically when a linked game is completed (handled server-side).
+  const handleToggleGameLink = async (match, gameId, shouldLink) => {
+    const current = Array.isArray(match.game_ids) ? match.game_ids : [];
+    const nextIds = shouldLink
+      ? [...new Set([...current, gameId])]
+      : current.filter(id => id !== gameId);
+
+    await updateMatchMutation.mutateAsync({ id: match.id, data: { game_ids: nextIds } });
+    setLinkingMatch(prev => (prev ? { ...prev, game_ids: nextIds } : prev));
+
+    // If the toggled game is already completed, sync series wins immediately.
+    const game = allGames.find(g => g.id === gameId);
+    if (game?.status === 'completed') {
+      try {
+        await base44.functions.invoke('syncBracketFromGame', { game_id: gameId });
+        queryClient.invalidateQueries(['bracket-matches']);
+      } catch (e) {
+        console.error('Bracket sync failed:', e);
+      }
+    }
+  };
 
   const saveTournamentMutation = useMutation({
     mutationFn: async ({ id, data }) => {
@@ -476,11 +507,21 @@ export default function TournamentBracket() {
                       onTeamDrop={handleTeamDrop}
                       onMatchReorder={handleMatchReorder}
                       onSave={handleSaveBracket}
+                      onLinkGame={(match) => setLinkingMatch(match)}
                       canEdit={selectedTournament.status === 'setup'}
                     />
                   </div>
                 </div>
               )}
+
+              <LinkGameDialog
+                open={!!linkingMatch}
+                onOpenChange={(open) => { if (!open) setLinkingMatch(null); }}
+                match={linkingMatch}
+                teams={teams}
+                games={allGames}
+                onToggleGame={handleToggleGameLink}
+              />
 
               <Dialog open={showForm} onOpenChange={(open) => {
                 setShowForm(open);

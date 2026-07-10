@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, GripVertical, Save, Palette, Plus } from "lucide-react";
+import { Trophy, GripVertical, Save, Palette, Plus, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -45,7 +45,7 @@ const THEME_OPTIONS = {
   }
 };
 
-export default function BracketVisual({ tournament, matches, teams, onMatchClick, onTeamDrop, onMatchReorder, onSave, canEdit = true }) {
+export default function BracketVisual({ tournament, matches, teams, onMatchClick, onTeamDrop, onMatchReorder, onSave, onLinkGame, canEdit = true }) {
   const [selectedTheme, setSelectedTheme] = useState('neon');
   const [manualMode, setManualMode] = useState(tournament?.is_manual_bracket || false);
   const [manualMatches, setManualMatches] = useState(tournament?.manual_matches || []);
@@ -147,9 +147,24 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
     }
   };
 
+  const renderWinBox = (winCount) => (
+    <div
+      className="ml-auto shrink-0 flex items-center justify-center rounded-md font-black text-xs w-7 h-7"
+      style={{
+        background: `${theme.accentColor}20`,
+        border: `1px solid ${theme.accentColor}60`,
+        color: theme.accentColor,
+      }}
+      title="Series wins"
+    >
+      {winCount}
+    </div>
+  );
+
   const renderTeamSlot = (match, slot, teamId, isWinner, matchId) => {
     const team = getTeam(teamId);
     const isEditable = canEdit && (match.status === 'pending' || match.status === 'ready');
+    const winCount = slot === 'home' ? Number(match.home_team_wins || 0) : Number(match.away_team_wins || 0);
     
     if (!team) {
       return (
@@ -225,6 +240,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   {isWinner && (
                     <Trophy className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
                   )}
+                  {renderWinBox(winCount)}
                 </div>
               )}
             </Draggable>
@@ -290,6 +306,18 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
             {match.required_wins > 1 ? `BEST OF ${(match.required_wins * 2) - 1}` : 'SINGLE GAME'}
           </span>
         </motion.div>
+
+        {onLinkGame && match.home_team_id && match.away_team_id && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onLinkGame(match); }}
+            className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 text-[10px] font-bold tracking-wider transition-colors relative z-10"
+            style={{ color: theme.accentColor, borderTop: `1px solid ${theme.accentColor}20` }}
+            title="Link a scheduled game to auto-count wins"
+          >
+            <Link2 className="w-3 h-3" />
+            {(match.game_ids?.length || 0) > 0 ? `${match.game_ids.length} GAME${match.game_ids.length > 1 ? 'S' : ''} LINKED` : 'LINK GAME'}
+          </button>
+        )}
       </motion.div>
     );
 
