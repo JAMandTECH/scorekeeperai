@@ -50,6 +50,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
   const [manualMode, setManualMode] = useState(tournament?.is_manual_bracket || false);
   const [manualMatches, setManualMatches] = useState(tournament?.manual_matches || []);
   const [connectors, setConnectors] = useState(tournament?.manual_connectors || []);
+  const [sectionLabels, setSectionLabels] = useState(tournament?.manual_sections || []);
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [connectingFrom, setConnectingFrom] = useState(null);
   const theme = THEME_OPTIONS[selectedTheme];
@@ -361,6 +362,25 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
     setConnectingFrom(null);
   };
 
+  const handleAddSectionLabel = (labelText) => {
+    const newLabel = {
+      id: `section-${Date.now()}`,
+      text: labelText,
+      position: { x: 100 + (sectionLabels.length * 320), y: 20 }
+    };
+    setSectionLabels([...sectionLabels, newLabel]);
+  };
+
+  const handleSectionLabelDrag = (labelId, newPosition) => {
+    setSectionLabels(sectionLabels.map(l =>
+      l.id === labelId ? { ...l, position: newPosition } : l
+    ));
+  };
+
+  const handleDeleteSectionLabel = (labelId) => {
+    setSectionLabels(sectionLabels.filter(l => l.id !== labelId));
+  };
+
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="space-y-6">
@@ -592,6 +612,22 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                     <Plus className="w-4 h-4 mr-2" />
                     Add Match Card
                   </Button>
+                  <div className="flex items-center gap-1.5 bg-gray-800/60 rounded-lg p-1 border border-gray-700">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1.5">Section</span>
+                    {['Quarter Finals', 'Semi Finals', 'Finals'].map((label) => (
+                      <Button
+                        key={label}
+                        onClick={() => handleAddSectionLabel(label)}
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs font-bold"
+                        style={{ borderColor: `${theme.accentColor}40`, color: theme.accentColor }}
+                      >
+                        <Plus className="w-3 h-3 mr-1" />
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
                   {connectingFrom && (
                     <Button 
                       onClick={() => setConnectingFrom(null)}
@@ -603,7 +639,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   )}
                   {manualMatches.length > 0 && onSave && (
                     <Button 
-                      onClick={() => onSave({ manualMatches, connectors })}
+                      onClick={() => onSave({ manualMatches, connectors, sectionLabels })}
                       className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold"
                     >
                       <Save className="w-4 h-4 mr-2" />
@@ -618,6 +654,15 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                 </div>
                 
                 <div className="relative" style={{ minHeight: '600px', minWidth: '1000px' }}>
+                  {sectionLabels.map((label) => (
+                    <SectionLabel
+                      key={label.id}
+                      label={label}
+                      theme={theme}
+                      onDrag={handleSectionLabelDrag}
+                      onDelete={handleDeleteSectionLabel}
+                    />
+                  ))}
                   {manualMatches.map((match) => (
                     <ManualMatchCard
                       key={match.id}
@@ -1067,6 +1112,80 @@ function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag,
             ))}
           </select>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function SectionLabel({ label, theme, onDrag, onDelete }) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
+    onDrag(label.id, {
+      x: label.position.x + deltaX,
+      y: label.position.y + deltaY
+    });
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseUp = () => setIsDragging(false);
+
+  React.useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragStart, label.position]);
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: `${label.position.x}px`,
+        top: `${label.position.y}px`,
+        zIndex: isDragging ? 200 : 60
+      }}
+    >
+      <div
+        onMouseDown={handleMouseDown}
+        className={`group bg-gradient-to-r ${theme.primary} rounded-xl px-6 py-3 inline-flex items-center gap-3 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        style={{ boxShadow: `0 0 30px ${theme.accentColor}50, 0 8px 20px rgba(0,0,0,0.4)` }}
+        title="Drag to move this section label"
+      >
+        <GripVertical className="w-4 h-4 text-white/70 shrink-0" />
+        <h3 className="text-sm font-black text-white uppercase tracking-widest" style={{ textShadow: '0 0 10px rgba(0,0,0,0.5)' }}>
+          {label.text}
+        </h3>
+        <button
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(label.id);
+          }}
+          className="opacity-0 group-hover:opacity-100 p-1 bg-black/20 hover:bg-red-600 rounded transition-all shrink-0"
+          title="Delete section label"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+            <path d="M3 6h18"/>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+          </svg>
+        </button>
       </div>
     </div>
   );

@@ -89,6 +89,14 @@
       },
       "default": [],
       "description": "Manual bracket connector lines"
+    },
+    "manual_sections": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": [],
+      "description": "Manual bracket section labels (Quarter Finals, Semi Finals, Finals) with positions"
     }
   },
   "required": [

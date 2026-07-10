@@ -286,6 +286,7 @@ export default function TournamentBracket() {
             is_manual_bracket: true,
             manual_matches: manualData.manualMatches,
             manual_connectors: manualData.connectors,
+            manual_sections: manualData.sectionLabels || [],
             status: 'in_progress'
           }
         : { status: 'in_progress' };
