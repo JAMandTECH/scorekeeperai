@@ -56,6 +56,26 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
   const theme = THEME_OPTIONS[selectedTheme];
   const getTeam = (teamId) => teams.find(t => t.id === teamId);
 
+  // Seed ranking within each division: order by wins desc, then losses asc.
+  // Produces { [teamId]: rankNumber } scoped per division so #1 is the top team
+  // in that team's own division.
+  const seedByTeamId = React.useMemo(() => {
+    const map = {};
+    const byDivision = {};
+    teams
+      .filter(t => t.sport === tournament.sport)
+      .forEach(t => {
+        const div = t.division || '__none__';
+        (byDivision[div] = byDivision[div] || []).push(t);
+      });
+    Object.values(byDivision).forEach(divTeams => {
+      divTeams
+        .sort((a, b) => (b.wins || 0) - (a.wins || 0) || (a.losses || 0) - (b.losses || 0))
+        .forEach((t, idx) => { map[t.id] = idx + 1; });
+    });
+    return map;
+  }, [teams, tournament.sport]);
+
   const teamsInBracket = new Set();
   matches.forEach(match => {
     if (match.home_team_id) teamsInBracket.add(match.home_team_id);
@@ -234,6 +254,15 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                       {team.name?.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
+                  {seedByTeamId[team.id] && (
+                    <span
+                      className="shrink-0 flex items-center justify-center rounded-md font-black text-[10px] w-5 h-5"
+                      style={{ background: `${theme.accentColor}25`, color: theme.accentColor, border: `1px solid ${theme.accentColor}50` }}
+                      title="Division seed"
+                    >
+                      {seedByTeamId[team.id]}
+                    </span>
+                  )}
                   <span className="text-xs font-bold uppercase flex-1 truncate">
                     {team.name}
                   </span>
