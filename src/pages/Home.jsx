@@ -323,7 +323,7 @@ export default function Home() {
     return divisions.map(division => ({
       division,
       teams: sportTeams.filter(t => (t.division || 'No Division') === division).map(team => {
-        const teamGames = games.filter(g => g.status === 'completed' && (g.sport || '').toLowerCase() === sport.toLowerCase() && g.archived !== true && (g.home_team_id === team.id || g.away_team_id === team.id));
+        const teamGames = games.filter(g => g.status === 'completed' && (g.game_type || 'regular_season') === 'regular_season' && (g.sport || '').toLowerCase() === sport.toLowerCase() && g.archived !== true && (g.home_team_id === team.id || g.away_team_id === team.id));
         let wins = 0, losses = 0, pointsFor = 0, pointsAgainst = 0;
         teamGames.forEach(game => {
           const isHome = game.home_team_id === team.id;

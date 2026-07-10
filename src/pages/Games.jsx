@@ -1339,7 +1339,9 @@ export default function Games() {
                       >
                         <option value="pre_season">Pre-Season</option>
                         <option value="regular_season">Regular Season</option>
+                        <option value="play_in">Play In</option>
                         <option value="playoffs">Playoffs</option>
+                        <option value="quarter_finals">Quarter Finals</option>
                         <option value="semi_finals">Semi Finals</option>
                         <option value="finals">Finals</option>
                       </select>

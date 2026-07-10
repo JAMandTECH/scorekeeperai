@@ -52,7 +52,9 @@
       "type": "string",
       "enum": [
         "regular_season",
+        "play_in",
         "playoffs",
+        "quarter_finals",
         "semi_finals",
         "finals",
         "pre_season"
