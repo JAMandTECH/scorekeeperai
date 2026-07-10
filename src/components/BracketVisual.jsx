@@ -155,16 +155,10 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
           >
             <Draggable draggableId={`team-${teamId}-${matchId}-${slot}`} index={0} isDragDisabled={!isEditable}>
               {(provided, snapshot) => (
-                <motion.div
+                <div
                   ref={provided.innerRef}
                   {...provided.draggableProps}
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  whileHover={{ 
-                    scale: 1.03,
-                    boxShadow: `0 0 25px ${theme.accentColor}60`
-                  }}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  {...(isEditable ? provided.dragHandleProps : {})}
                   className={`flex items-center gap-2 px-3 py-2 border-2 rounded-xl backdrop-blur-sm transition-all duration-300 ${
                     snapshot.isDragging ? `scale-105 border-cyan-400 ${theme.glow}` : ''
                   } ${
@@ -173,25 +167,19 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                       : 'bg-gray-900/60 border-gray-700/50 text-gray-100'
                   } ${isEditable ? 'cursor-move' : 'cursor-pointer'}`}
                   style={{
+                    ...provided.draggableProps.style,
                     boxShadow: snapshot.isDragging ? `0 10px 40px ${theme.accentColor}60, 0 0 30px ${theme.accentColor}40` : isWinner ? `0 0 20px ${theme.accentColor}30` : 'none'
                   }}
                 >
                   {isEditable && (
-                    <div {...provided.dragHandleProps}>
-                      <GripVertical className="w-3 h-3 text-gray-500" />
-                    </div>
+                    <GripVertical className="w-3 h-3 text-gray-500 shrink-0" />
                   )}
-                  <motion.div 
-                    className={`w-1 h-6 rounded-full`}
+                  <div 
+                    className={`w-1 h-6 rounded-full shrink-0`}
                     style={{ 
                       background: `linear-gradient(to bottom, ${theme.accentColor}, ${theme.accentColor}80)`,
                       boxShadow: `0 0 10px ${theme.accentColor}`
                     }}
-                    animate={{ 
-                      scale: [1, 1.2, 1],
-                      opacity: [0.8, 1, 0.8]
-                    }}
-                    transition={{ duration: 2, repeat: Infinity }}
                   />
                   <Avatar className="w-6 h-6 border border-gray-600">
                     <AvatarImage src={team.logo_url} />
@@ -203,15 +191,9 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                     {team.name}
                   </span>
                   {isWinner && (
-                    <motion.div
-                      initial={{ rotate: -10, scale: 0 }}
-                      animate={{ rotate: 0, scale: 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                    >
-                      <Trophy className="w-3.5 h-3.5 text-yellow-400" />
-                    </motion.div>
+                    <Trophy className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
                   )}
-                </motion.div>
+                </div>
               )}
             </Draggable>
             {provided.placeholder}
@@ -506,49 +488,42 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                     {availableTeams.map((team, index) => (
                       <Draggable key={team.id} draggableId={`available-${team.id}`} index={index}>
                         {(provided, snapshot) => (
-                          <motion.div
+                          <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            whileHover={{ 
-                              scale: 1.02,
-                              boxShadow: `0 0 20px ${theme.accentColor}40`
-                            }}
                             className={`flex items-center gap-2 px-3 py-2 bg-gray-900/60 border-2 rounded-xl backdrop-blur-sm transition-all ${
                               snapshot.isDragging ? 'shadow-2xl scale-105' : ''
                             }`}
                             style={{
+                              ...provided.draggableProps.style,
                               borderColor: snapshot.isDragging ? theme.accentColor : `${theme.accentColor}30`,
                               boxShadow: snapshot.isDragging ? `0 10px 40px ${theme.accentColor}60` : 'none'
                             }}
                           >
-                            <GripVertical className="w-4 h-4 text-gray-500" />
-                            <motion.div 
-                              className="w-1 h-6 rounded-full"
+                            <GripVertical className="w-4 h-4 text-gray-500 shrink-0" />
+                            <div 
+                              className="w-1 h-6 rounded-full shrink-0"
                               style={{ 
                                 background: `linear-gradient(to bottom, ${theme.accentColor}, ${theme.accentColor}60)`,
                                 boxShadow: `0 0 8px ${theme.accentColor}`
                               }}
-                              animate={{ opacity: [0.6, 1, 0.6] }}
-                              transition={{ duration: 2, repeat: Infinity }}
                             />
-                            <motion.div whileHover={{ scale: 1.1, rotate: 5 }}>
-                              <Avatar className="w-6 h-6 border-2" style={{ borderColor: `${theme.accentColor}60` }}>
-                                <AvatarImage src={team.logo_url} />
-                                <AvatarFallback 
-                                  className="text-white text-xs font-bold"
-                                  style={{ 
-                                    background: `linear-gradient(135deg, ${theme.accentColor}, ${theme.accentColor}80)`
-                                  }}
-                                >
-                                  {team.name?.substring(0, 2).toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                            </motion.div>
+                            <Avatar className="w-6 h-6 border-2 shrink-0" style={{ borderColor: `${theme.accentColor}60` }}>
+                              <AvatarImage src={team.logo_url} />
+                              <AvatarFallback 
+                                className="text-white text-xs font-bold"
+                                style={{ 
+                                  background: `linear-gradient(135deg, ${theme.accentColor}, ${theme.accentColor}80)`
+                                }}
+                              >
+                                {team.name?.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
                             <span className="text-sm font-bold text-white uppercase flex-1 truncate">
                               {team.name}
                             </span>
-                          </motion.div>
+                          </div>
                         )}
                       </Draggable>
                     ))}
