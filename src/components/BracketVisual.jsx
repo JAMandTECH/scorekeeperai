@@ -614,7 +614,7 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
                   </Button>
                   <div className="flex items-center gap-1.5 bg-gray-800/60 rounded-lg p-1 border border-gray-700">
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1.5">Section</span>
-                    {['Quarter Finals', 'Semi Finals', 'Finals'].map((label) => (
+                    {['Play In', 'Quarter Finals', 'Semi Finals', 'Finals'].map((label) => (
                       <Button
                         key={label}
                         onClick={() => handleAddSectionLabel(label)}
