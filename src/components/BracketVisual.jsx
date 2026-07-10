@@ -74,23 +74,26 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
     const sourceId = source.droppableId;
     const destId = destination.droppableId;
     
+    // droppableId format: `match-<matchId>-<slot>` where matchId may itself contain
+    // hyphens (e.g. `manual-1712345678`). Parse by stripping the prefix and taking
+    // the trailing slot segment, rejoining the rest as the matchId.
+    const parseMatchDroppable = (id) => {
+      const rest = id.slice('match-'.length);
+      const lastDash = rest.lastIndexOf('-');
+      return { matchId: rest.slice(0, lastDash), slot: rest.slice(lastDash + 1) };
+    };
+
     // Handle team dragging from available teams
     if (sourceId === 'available-teams' && destId.startsWith('match-')) {
-      const parts = destId.split('-');
-      const matchId = parts[1];
-      const slot = parts[2];
+      const { matchId, slot } = parseMatchDroppable(destId);
       const teamId = availableTeams[source.index].id;
       
       onTeamDrop(matchId, slot, teamId);
     }
     // Handle team swapping between match slots
     else if (sourceId.startsWith('match-') && destId.startsWith('match-')) {
-      const sourceParts = sourceId.split('-');
-      const destParts = destId.split('-');
-      const sourceMatchId = sourceParts[1];
-      const sourceSlot = sourceParts[2];
-      const destMatchId = destParts[1];
-      const destSlot = destParts[2];
+      const { matchId: sourceMatchId, slot: sourceSlot } = parseMatchDroppable(sourceId);
+      const { matchId: destMatchId, slot: destSlot } = parseMatchDroppable(destId);
       
       onTeamDrop(sourceMatchId, sourceSlot, destMatchId, destSlot);
     }
