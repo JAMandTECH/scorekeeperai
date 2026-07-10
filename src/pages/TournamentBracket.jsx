@@ -8,6 +8,7 @@ import { Plus, Trophy, Trash2, Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { toast } from "@/components/ui/use-toast";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import TournamentForm from "@/components/TournamentForm";
@@ -294,10 +295,17 @@ export default function TournamentBracket() {
         data: updateData
       });
 
-      alert("Bracket saved successfully!");
+      toast({
+        title: "Bracket saved",
+        description: "Your bracket was saved successfully.",
+      });
     } catch (error) {
       console.error("Error saving bracket:", error);
-      alert("Error saving bracket. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Save failed",
+        description: "Something went wrong saving the bracket. Please try again.",
+      });
     }
   };
 
