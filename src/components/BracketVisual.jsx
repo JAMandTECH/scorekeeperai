@@ -45,7 +45,7 @@ const THEME_OPTIONS = {
   }
 };
 
-export default function BracketVisual({ tournament, matches, teams, onMatchClick, onTeamDrop, onMatchReorder, onSave, onLinkGame, canEdit = true }) {
+export default function BracketVisual({ tournament, matches, teams, games = [], onMatchClick, onTeamDrop, onMatchReorder, onSave, onLinkGame, canEdit = true }) {
   const [selectedTheme, setSelectedTheme] = useState('neon');
   const [manualMode, setManualMode] = useState(tournament?.is_manual_bracket || false);
   const [manualMatches, setManualMatches] = useState(tournament?.manual_matches || []);
@@ -56,25 +56,63 @@ export default function BracketVisual({ tournament, matches, teams, onMatchClick
   const theme = THEME_OPTIONS[selectedTheme];
   const getTeam = (teamId) => teams.find(t => t.id === teamId);
 
-  // Seed ranking within each division: order by wins desc, then losses asc.
-  // Produces { [teamId]: rankNumber } scoped per division so #1 is the top team
-  // in that team's own division.
+  // Seed ranking within each division — MUST match the Home page standings exactly:
+  // computed from completed, non-archived, regular_season games, ordered by
+  // win% desc then point-differential desc. Produces { [teamId]: rankNumber }
+  // scoped per division so #1 is the top team in that team's own division.
   const seedByTeamId = React.useMemo(() => {
-    const map = {};
-    const byDivision = {};
-    teams
-      .filter(t => t.sport === tournament.sport)
-      .forEach(t => {
-        const div = t.division || '__none__';
-        (byDivision[div] = byDivision[div] || []).push(t);
+    const sport = (tournament.sport || '').toLowerCase();
+    const sportTeams = teams.filter(t => (t.sport || '').toLowerCase() === sport);
+
+    // Compute per-team record from games, mirroring Home's getTeamStandings.
+    const computed = sportTeams.map(team => {
+      const teamGames = games.filter(g =>
+        g.status === 'completed' &&
+        (g.game_type || 'regular_season') === 'regular_season' &&
+        (g.sport || '').toLowerCase() === sport &&
+        g.archived !== true &&
+        (g.home_team_id === team.id || g.away_team_id === team.id)
+      );
+      let wins = 0, losses = 0, pointsFor = 0, pointsAgainst = 0;
+      teamGames.forEach(game => {
+        const isHome = game.home_team_id === team.id;
+        let teamScore = isHome ? game.home_score : game.away_score;
+        let oppScore = isHome ? game.away_score : game.home_score;
+        if (sport === 'volleyball' && Array.isArray(game.quarter_scores) && game.quarter_scores.length > 0) {
+          const homeTotal = game.quarter_scores.reduce((s, q) => s + (q.home || 0), 0);
+          const awayTotal = game.quarter_scores.reduce((s, q) => s + (q.away || 0), 0);
+          const homeSets = game.quarter_scores.filter(q => q.home > q.away).length;
+          const awaySets = game.quarter_scores.filter(q => q.away > q.home).length;
+          teamScore = isHome ? homeTotal : awayTotal;
+          oppScore = isHome ? awayTotal : homeTotal;
+          if (homeSets > awaySets) isHome ? wins++ : losses++;
+          else if (awaySets > homeSets) isHome ? losses++ : wins++;
+        } else {
+          if (teamScore > oppScore) wins++; else losses++;
+        }
+        pointsFor += Number(teamScore || 0);
+        pointsAgainst += Number(oppScore || 0);
       });
+      const gamesPlayed = wins + losses;
+      return {
+        id: team.id,
+        division: team.division || '__none__',
+        winPct: gamesPlayed > 0 ? wins / gamesPlayed : 0,
+        diff: pointsFor - pointsAgainst,
+      };
+    });
+
+    const byDivision = {};
+    computed.forEach(t => { (byDivision[t.division] = byDivision[t.division] || []).push(t); });
+
+    const map = {};
     Object.values(byDivision).forEach(divTeams => {
       divTeams
-        .sort((a, b) => (b.wins || 0) - (a.wins || 0) || (a.losses || 0) - (b.losses || 0))
+        .sort((a, b) => b.winPct - a.winPct || b.diff - a.diff)
         .forEach((t, idx) => { map[t.id] = idx + 1; });
     });
     return map;
-  }, [teams, tournament.sport]);
+  }, [teams, games, tournament.sport]);
 
   const teamsInBracket = new Set();
   matches.forEach(match => {

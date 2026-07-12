@@ -503,6 +503,7 @@ export default function TournamentBracket() {
                       tournament={selectedTournament}
                       matches={allMatches}
                       teams={teams}
+                      games={allGames}
                       onMatchClick={handleMatchClick}
                       onTeamDrop={handleTeamDrop}
                       onMatchReorder={handleMatchReorder}
