@@ -108,6 +108,10 @@ export default function TournamentBracket() {
     queryKey: ['bracket-matches', selectedTournament?.id],
     queryFn: () => base44.entities.BracketMatch.filter({ tournament_id: selectedTournament.id }),
     enabled: !!selectedTournament,
+    // Poll every 5s so backend automation changes (game completion → bracket
+    // sync) show up without requiring a manual page refresh.
+    refetchInterval: selectedTournament?.status !== 'completed' ? 5000 : false,
+    refetchOnWindowFocus: true,
   });
 
   const { data: allGames = [] } = useQuery({
