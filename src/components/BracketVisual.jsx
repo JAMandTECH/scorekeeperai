@@ -56,6 +56,37 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
   const theme = THEME_OPTIONS[selectedTheme];
   const getTeam = (teamId) => teams.find(t => t.id === teamId);
 
+  // Lookup BracketMatch entities by team pairing so manual bracket cards can
+  // display real series wins/winner synced from completed games. The manual
+  // cards (tournament.manual_matches) carry only layout + team assignments;
+  // the live series state lives on BracketMatch records. We bridge the two by
+  // matching on home_team_id + away_team_id.
+  const bracketMatchByTeams = React.useMemo(() => {
+    const map = {};
+    (matches || []).forEach((bm) => {
+      if (bm.home_team_id && bm.away_team_id) {
+        map[`${bm.home_team_id}|${bm.away_team_id}`] = bm;
+      }
+    });
+    return map;
+  }, [matches]);
+
+  const enrichManualMatch = (mm) => {
+    const bm = (mm.home_team_id && mm.away_team_id)
+      ? bracketMatchByTeams[`${mm.home_team_id}|${mm.away_team_id}`]
+      : null;
+    if (!bm) return mm;
+    return {
+      ...mm,
+      home_team_wins: bm.home_team_wins || 0,
+      away_team_wins: bm.away_team_wins || 0,
+      winner_team_id: bm.winner_team_id || null,
+      status: bm.status || mm.status || 'pending',
+      game_ids: bm.game_ids || [],
+      bracket_match_id: bm.id,
+    };
+  };
+
   // Seed ranking within each division — MUST match the Home page standings exactly:
   // computed from completed, non-archived, regular_season games, ordered by
   // win% desc then point-differential desc. Produces { [teamId]: rankNumber }
@@ -758,7 +789,9 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
                       onDelete={handleDeleteSectionLabel}
                     />
                   ))}
-                  {manualMatches.map((match) => (
+                  {manualMatches.map((rawMatch) => {
+                    const match = enrichManualMatch(rawMatch);
+                    return (
                     <ManualMatchCard
                       key={match.id}
                       match={match}
@@ -779,10 +812,11 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
                       isConnecting={connectingFrom === match.id}
                       isSelected={selectedMatch === match.id}
                       onSelect={() => setSelectedMatch(match.id)}
-                    />
-                  ))}
-                  
-                  <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: '2000px', zIndex: 1000 }}>
+                      />
+                      );
+                      })}
+
+                      <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: '100%', height: '2000px', zIndex: 1000 }}>
                     {connectors.map((conn, idx) => {
                       const fromMatch = manualMatches.find(m => m.id === conn.from);
                       const toMatch = manualMatches.find(m => m.id === conn.to);
@@ -1188,8 +1222,8 @@ function ManualMatchCard({ match, theme, teams, getTeam, renderTeamSlot, onDrag,
           </button>
         </div>
         <div className="space-y-1 p-2 team-slot-area">
-          {renderTeamSlot(match, 'home', match.home_team_id, false, match.id)}
-          {renderTeamSlot(match, 'away', match.away_team_id, false, match.id)}
+          {renderTeamSlot(match, 'home', match.home_team_id, match.winner_team_id && match.winner_team_id === match.home_team_id, match.id)}
+          {renderTeamSlot(match, 'away', match.away_team_id, match.winner_team_id && match.winner_team_id === match.away_team_id, match.id)}
         </div>
         <div className={`px-2 py-1.5 bg-${theme.accent}-900/30 border-t border-${theme.accent}-800/50 text-center action-button`}>
           <select
