@@ -71,79 +71,130 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
     return map;
   }, [matches]);
 
-  // Enrich manual match cards with real series data from their BracketMatch
-  // entity (bridged by team pairing) AND propagate series winners into the
-  // connected destination manual cards so the next stage auto-fills.
+  // Enrich manual match cards with real series state computed directly from
+  // completed playoff games between the card's two teams, and propagate
+  // series winners through the visual connectors into the next stage.
   //
-  // Manual brackets keep two parallel representations:
-  //   - manual_matches / manual_connectors  → visual layout (this UI)
-  //   - BracketMatch entities (next_match_id) → backend series state
-  // The backend advances a winner into the next BracketMatch's slot
-  // (home/away via is_home_slot). We mirror that here: when a source manual
-  // card's BracketMatch is decided, push its winner into the connected
-  // destination manual card's matching slot, so the next stage renders the
-  // advanced team without a manual refresh.
+  // Why compute from games (not BracketMatch entities): manual brackets and
+  // BracketMatch entities are only loosely coupled. The auto-generated
+  // BracketMatch rows are often empty (null teams) for manual brackets, and
+  // their home/away slot layout can differ from the manual card layout. So
+  // we derive win counts / winner from the actual completed games between
+  // the two teams (playoff game types only), which is reliable regardless of
+  // BracketMatch state. bracket_match_id is still attached when a
+  // BracketMatch pairs by teams, so the "Link Game" dialog keeps working.
+  const PLAYOFF_TYPES = ['play_in', 'playoffs', 'quarter_finals', 'semi_finals', 'finals'];
+
+  const gameWinner = (g) => {
+    if (g.winning_team_id) return g.winning_team_id;
+    if (g.is_default && g.defaulted_team_id) {
+      return g.defaulted_team_id === g.home_team_id ? g.away_team_id : g.home_team_id;
+    }
+    if (g.home_score > g.away_score) return g.home_team_id;
+    if (g.away_score > g.home_score) return g.away_team_id;
+    return null;
+  };
+
+  const computeSeries = (homeId, awayId, requiredWins) => {
+    if (!homeId || !awayId) return null;
+    const series = (games || []).filter(g =>
+      g.status === 'completed' &&
+      PLAYOFF_TYPES.includes(g.game_type) &&
+      ((g.home_team_id === homeId && g.away_team_id === awayId) ||
+       (g.home_team_id === awayId && g.away_team_id === homeId))
+    );
+    if (!series.length) return null;
+    let homeWins = 0, awayWins = 0;
+    series.forEach(g => {
+      const w = gameWinner(g);
+      if (w === homeId) homeWins++;
+      else if (w === awayId) awayWins++;
+    });
+    const required = requiredWins || 1;
+    const winner = homeWins >= required ? homeId : awayWins >= required ? awayId : null;
+    return {
+      home_team_wins: homeWins,
+      away_team_wins: awayWins,
+      winner_team_id: winner,
+      status: winner ? 'completed' : 'in_progress',
+      game_ids: series.map(g => g.id),
+    };
+  };
+
   const enrichedManualMatches = React.useMemo(() => {
     const byId = {};
     manualMatches.forEach(m => {
       byId[m.id] = {
         ...m,
-        home_team_wins: m.home_team_wins || 0,
-        away_team_wins: m.away_team_wins || 0,
-        winner_team_id: m.winner_team_id || null,
-        _bm: null,
+        home_team_wins: 0,
+        away_team_wins: 0,
+        winner_team_id: null,
+        status: m.status || 'pending',
+        game_ids: [],
+        _advanced: false,
       };
     });
 
-    const applyBm = (card, bm) => {
-      if (!bm) return;
-      card.home_team_wins = bm.home_team_wins || 0;
-      card.away_team_wins = bm.away_team_wins || 0;
-      card.winner_team_id = bm.winner_team_id || null;
-      card.status = bm.status || card.status || 'pending';
-      card.game_ids = bm.game_ids || [];
-      card.bracket_match_id = bm.id;
-      card._bm = bm;
-    };
-
-    // Pass 1: enrich each card with its own BracketMatch (by team pairing).
+    // Pass 1: derive series state from completed games for each card with both
+    // teams. Attach bracket_match_id from a pairing BracketMatch if present.
     manualMatches.forEach(m => {
-      if (m.home_team_id && m.away_team_id) {
-        applyBm(byId[m.id], bracketMatchByTeams[`${m.home_team_id}|${m.away_team_id}`]);
+      const card = byId[m.id];
+      const bm = (m.home_team_id && m.away_team_id)
+        ? bracketMatchByTeams[`${m.home_team_id}|${m.away_team_id}`]
+        : null;
+      if (bm) card.bracket_match_id = bm.id;
+      const s = computeSeries(m.home_team_id, m.away_team_id, m.required_wins);
+      if (s) {
+        card.home_team_wins = s.home_team_wins;
+        card.away_team_wins = s.away_team_wins;
+        card.winner_team_id = s.winner_team_id;
+        card.status = s.status;
+        card.game_ids = s.game_ids;
+      } else if (bm) {
+        // No completed games yet — fall back to BracketMatch placeholder state.
+        card.home_team_wins = bm.home_team_wins || 0;
+        card.away_team_wins = bm.away_team_wins || 0;
+        card.status = bm.status || card.status;
+        card.game_ids = bm.game_ids || [];
       }
     });
 
-    // Pass 2: propagate winners into connected destination cards. Manual
-    // brackets may not rely on next_match_id, so we drive advancement purely
-    // from the visual connectors. is_home_slot (when set) maps the winner to
-    // the destination's home/away slot; otherwise we fill the empty slot.
+    // Pass 2: advance each decided card's winner into the connected
+    // destination card's EMPTY slot. We intentionally do NOT use is_home_slot
+    // here: that field describes BracketMatch slots, which may not match the
+    // manual card layout (e.g. the destination's home slot may already hold a
+    // seeded team). Filling the empty slot matches what the user sees.
     connectors.forEach(c => {
       const src = byId[c.from];
-      if (!src || !src._bm) return;
-      const bm = src._bm;
-      if (!bm.winner_team_id) return;
+      if (!src || !src.winner_team_id) return;
       const dest = byId[c.to];
       if (!dest) return;
-      const slotKey = bm.is_home_slot === false ? 'away_team_id'
-        : bm.is_home_slot === true ? 'home_team_id'
-        : (!dest.away_team_id && dest.home_team_id ? 'away_team_id' : 'home_team_id');
-      if (!dest[slotKey]) dest[slotKey] = bm.winner_team_id;
-    });
-
-    // Pass 3: re-enrich destination cards that now have both teams filled.
-    Object.values(byId).forEach(card => {
-      if (card._bm) return;
-      if (card.home_team_id && card.away_team_id) {
-        applyBm(card, bracketMatchByTeams[`${card.home_team_id}|${card.away_team_id}`]);
+      const slotKey = dest.home_team_id ? 'away_team_id' : 'home_team_id';
+      if (!dest[slotKey]) {
+        dest[slotKey] = src.winner_team_id;
+        dest._advanced = true;
       }
     });
 
-    // Preserve original order; strip internal _bm ref.
+    // Pass 3: recompute series state for destination cards that just received
+    // an advanced team (both slots now filled) so their counts render too.
+    Object.values(byId).forEach(card => {
+      if (!card._advanced) return;
+      const s = computeSeries(card.home_team_id, card.away_team_id, card.required_wins);
+      if (s) {
+        card.home_team_wins = s.home_team_wins;
+        card.away_team_wins = s.away_team_wins;
+        card.winner_team_id = s.winner_team_id;
+        card.status = s.status;
+        card.game_ids = s.game_ids;
+      }
+    });
+
     return manualMatches.map(m => {
-      const { _bm, ...rest } = byId[m.id];
+      const { _advanced, ...rest } = byId[m.id];
       return rest;
     });
-  }, [manualMatches, connectors, bracketMatchByTeams]);
+  }, [manualMatches, connectors, games, bracketMatchByTeams]);
 
   // Seed ranking within each division — MUST match the Home page standings exactly:
   // computed from completed, non-archived, regular_season games, ordered by
