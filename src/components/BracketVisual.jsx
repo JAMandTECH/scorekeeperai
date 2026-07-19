@@ -71,21 +71,79 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
     return map;
   }, [matches]);
 
-  const enrichManualMatch = (mm) => {
-    const bm = (mm.home_team_id && mm.away_team_id)
-      ? bracketMatchByTeams[`${mm.home_team_id}|${mm.away_team_id}`]
-      : null;
-    if (!bm) return mm;
-    return {
-      ...mm,
-      home_team_wins: bm.home_team_wins || 0,
-      away_team_wins: bm.away_team_wins || 0,
-      winner_team_id: bm.winner_team_id || null,
-      status: bm.status || mm.status || 'pending',
-      game_ids: bm.game_ids || [],
-      bracket_match_id: bm.id,
+  // Enrich manual match cards with real series data from their BracketMatch
+  // entity (bridged by team pairing) AND propagate series winners into the
+  // connected destination manual cards so the next stage auto-fills.
+  //
+  // Manual brackets keep two parallel representations:
+  //   - manual_matches / manual_connectors  → visual layout (this UI)
+  //   - BracketMatch entities (next_match_id) → backend series state
+  // The backend advances a winner into the next BracketMatch's slot
+  // (home/away via is_home_slot). We mirror that here: when a source manual
+  // card's BracketMatch is decided, push its winner into the connected
+  // destination manual card's matching slot, so the next stage renders the
+  // advanced team without a manual refresh.
+  const enrichedManualMatches = React.useMemo(() => {
+    const byId = {};
+    manualMatches.forEach(m => {
+      byId[m.id] = {
+        ...m,
+        home_team_wins: m.home_team_wins || 0,
+        away_team_wins: m.away_team_wins || 0,
+        winner_team_id: m.winner_team_id || null,
+        _bm: null,
+      };
+    });
+
+    const applyBm = (card, bm) => {
+      if (!bm) return;
+      card.home_team_wins = bm.home_team_wins || 0;
+      card.away_team_wins = bm.away_team_wins || 0;
+      card.winner_team_id = bm.winner_team_id || null;
+      card.status = bm.status || card.status || 'pending';
+      card.game_ids = bm.game_ids || [];
+      card.bracket_match_id = bm.id;
+      card._bm = bm;
     };
-  };
+
+    // Pass 1: enrich each card with its own BracketMatch (by team pairing).
+    manualMatches.forEach(m => {
+      if (m.home_team_id && m.away_team_id) {
+        applyBm(byId[m.id], bracketMatchByTeams[`${m.home_team_id}|${m.away_team_id}`]);
+      }
+    });
+
+    // Pass 2: propagate winners into connected destination cards. Manual
+    // brackets may not rely on next_match_id, so we drive advancement purely
+    // from the visual connectors. is_home_slot (when set) maps the winner to
+    // the destination's home/away slot; otherwise we fill the empty slot.
+    connectors.forEach(c => {
+      const src = byId[c.from];
+      if (!src || !src._bm) return;
+      const bm = src._bm;
+      if (!bm.winner_team_id) return;
+      const dest = byId[c.to];
+      if (!dest) return;
+      const slotKey = bm.is_home_slot === false ? 'away_team_id'
+        : bm.is_home_slot === true ? 'home_team_id'
+        : (!dest.away_team_id && dest.home_team_id ? 'away_team_id' : 'home_team_id');
+      if (!dest[slotKey]) dest[slotKey] = bm.winner_team_id;
+    });
+
+    // Pass 3: re-enrich destination cards that now have both teams filled.
+    Object.values(byId).forEach(card => {
+      if (card._bm) return;
+      if (card.home_team_id && card.away_team_id) {
+        applyBm(card, bracketMatchByTeams[`${card.home_team_id}|${card.away_team_id}`]);
+      }
+    });
+
+    // Preserve original order; strip internal _bm ref.
+    return manualMatches.map(m => {
+      const { _bm, ...rest } = byId[m.id];
+      return rest;
+    });
+  }, [manualMatches, connectors, bracketMatchByTeams]);
 
   // Seed ranking within each division — MUST match the Home page standings exactly:
   // computed from completed, non-archived, regular_season games, ordered by
@@ -789,8 +847,7 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
                       onDelete={handleDeleteSectionLabel}
                     />
                   ))}
-                  {manualMatches.map((rawMatch) => {
-                    const match = enrichManualMatch(rawMatch);
+                  {enrichedManualMatches.map((match) => {
                     return (
                     <ManualMatchCard
                       key={match.id}
