@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy, GripVertical, Save, Palette, Plus, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import BracketPosterOverlay from "@/components/tournament/BracketPosterOverlay";
 
 const THEME_OPTIONS = {
   neon: {
@@ -45,7 +46,7 @@ const THEME_OPTIONS = {
   }
 };
 
-export default function BracketVisual({ tournament, matches, teams, games = [], onMatchClick, onTeamDrop, onMatchReorder, onSave, onLinkGame, canEdit = true }) {
+export default function BracketVisual({ tournament, matches, teams, games = [], onMatchClick, onTeamDrop, onMatchReorder, onSave, onLinkGame, canEdit = true, organization }) {
   const [selectedTheme, setSelectedTheme] = useState('neon');
   const [manualMode, setManualMode] = useState(tournament?.is_manual_bracket || false);
   const [manualMatches, setManualMatches] = useState(tournament?.manual_matches || []);
@@ -823,7 +824,9 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
             </motion.div>
           )}
 
-          <div 
+          <div className="relative">
+            <BracketPosterOverlay organization={organization} tournament={tournament} />
+            <div 
             className="bg-gradient-to-br from-gray-950 via-indigo-950/30 to-gray-950 rounded-2xl p-4 md:p-8 backdrop-blur-xl shadow-2xl overflow-x-auto relative"
             style={{
               border: `1px solid ${theme.accentColor}20`,
@@ -1227,6 +1230,7 @@ style={{
               )}
             </div>
             )}
+          </div>
           </div>
         </div>
       </div>
