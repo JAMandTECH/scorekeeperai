@@ -4,13 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, Users, Trophy, Calendar, TrendingUp, Plus, PlayCircle, Sun, Moon, LogOut, Sparkles } from "lucide-react";
+import { Building2, Users, Trophy, Calendar, TrendingUp, Plus, PlayCircle, Sun, Moon, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
-import AIInsights from "@/components/AIInsights";
 import AIAssistant from "@/components/AIAssistant";
 import SubscriptionBadge from "@/components/subscription/SubscriptionBadge";
 import RecentActivity from "@/components/dashboard/RecentActivity";
@@ -25,16 +22,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
-  const [showAIInsights, setShowAIInsights] = useState(() => localStorage.getItem('hideAIInsights') !== 'true');
   const navigate = useNavigate();
 
-  const toggleAIInsights = () => {
-    setShowAIInsights((prev) => {
-      const next = !prev;
-      localStorage.setItem('hideAIInsights', (!next).toString());
-      return next;
-    });
-  };
   const currentOrgId = user?.active_organization_id || user?.organization_id;
 
   useEffect(() => {
@@ -438,24 +427,6 @@ export default function Dashboard() {
                   </Card>
                 </Link>
               </div>
-
-              {organization && teams.length > 0 && isAdmin && (
-                <div>
-                  <div className="flex items-center justify-end gap-3 mb-4">
-                    <Sparkles className="w-4 h-4 text-purple-500" />
-                    <Label htmlFor="toggle-ai-insights" className="text-sm font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">AI Insights</Label>
-                    <Switch id="toggle-ai-insights" checked={showAIInsights} onCheckedChange={toggleAIInsights} />
-                  </div>
-                  {showAIInsights && (
-                    <AIInsights
-                      teams={teams}
-                      players={players}
-                      games={[]}
-                      organizationName={organization.name}
-                    />
-                  )}
-                </div>
-              )}
 
               {organization && players.length > 0 && (
                 <TopScorerSpotlight organizationId={currentOrgId} players={players} teams={teams} />

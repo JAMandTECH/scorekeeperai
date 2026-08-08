@@ -3,16 +3,13 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Calendar, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, BarChart3, Home as HomeIcon, PlayCircle, MessageCircle, UserPlus, Video, Sparkles } from "lucide-react";
+import { Calendar, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, BarChart3, Home as HomeIcon, PlayCircle, MessageCircle, UserPlus, Video } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
-import AIInsights from "@/components/AIInsights";
 import AIAssistant from "@/components/AIAssistant";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 import BasketballSection from "@/components/home/BasketballSection";
@@ -29,17 +26,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [bbDivTab, setBbDivTab] = useState('open');
-  const [showAIInsights, setShowAIInsights] = useState(() => localStorage.getItem('hideAIInsights') !== 'true');
   const { autoRefreshStats, refreshIntervalMs } = useStatsRefresh();
   const navigate = useNavigate();
-
-  const toggleAIInsights = () => {
-    setShowAIInsights((prev) => {
-      const next = !prev;
-      localStorage.setItem('hideAIInsights', (!next).toString());
-      return next;
-    });
-  };
 
   useEffect(() => {
     initializePage();
@@ -467,17 +455,6 @@ export default function Home() {
 
           {user && (
             <div className="max-w-7xl mx-auto px-4 py-16">
-              {isAdmin && (teams.length > 0 || games.length > 0) && (
-                <div className="mb-12">
-                  <div className="flex items-center justify-end gap-3 mb-4">
-                    <Sparkles className="w-4 h-4 text-purple-500" />
-                    <Label htmlFor="toggle-ai-insights" className="text-sm font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">AI Insights</Label>
-                    <Switch id="toggle-ai-insights" checked={showAIInsights} onCheckedChange={toggleAIInsights} />
-                  </div>
-                  {showAIInsights && <AIInsights teams={teams} players={players} games={games} organizationName={organization?.name || "ScorekeeperAI"} />}
-                </div>
-              )}
-
               {games.filter(g => g.status === 'in_progress').length > 0 && (
                 <section className="mb-12">
                   <div className="flex items-center gap-3 mb-6"><div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg"><PlayCircle className="w-5 h-5 text-white animate-pulse" /></div><h2 className="text-3xl font-black text-gray-900 dark:text-white">Games In Progress</h2><Badge className="bg-red-500 text-white font-bold animate-pulse">LIVE</Badge></div>
