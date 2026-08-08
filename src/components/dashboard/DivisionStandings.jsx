@@ -98,7 +98,7 @@ function computeRecords(teams, games) {
   const rec = {};
   teams.forEach((t) => { rec[t.id] = { wins: 0, losses: 0, pointsFor: 0, pointsAgainst: 0 }; });
   games
-    .filter((g) => g.status === "completed" && g.archived !== true)
+    .filter((g) => g.status === "completed" && g.archived !== true && (g.game_type || 'regular_season') === 'regular_season')
     .forEach((g) => {
       const h = g.home_team_id, a = g.away_team_id;
       if (!rec[h] || !rec[a]) return;
