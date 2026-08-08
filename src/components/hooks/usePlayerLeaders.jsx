@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { useStatsRefresh } from "@/lib/StatsRefreshContext";
 
 // Keep the last successful result on screen while a refetch runs (v5-safe, no named import).
 const keepPrevious = (prev) => prev;
@@ -15,6 +16,7 @@ const keepPrevious = (prev) => prev;
  * the player's total by the number of completed games their team played.
  */
 export function usePlayerLeaders(organizationId, teams = []) {
+  const { autoRefreshStats, refreshIntervalMs } = useStatsRefresh();
   const { data: games = [], isLoading: isGamesLoading, isFetching: isGamesFetching } = useQuery({
     queryKey: ["player-leaders-games", organizationId],
     // Sort + explicit high limit so the FULL completed-game set always loads.
@@ -22,7 +24,7 @@ export function usePlayerLeaders(organizationId, teams = []) {
     // shifting each team's games-played divisor and flipping near-tied leaders.
     queryFn: () => base44.entities.Game.filter({ organization_id: organizationId }, "-game_date", 2000),
     enabled: !!organizationId,
-    refetchInterval: 20000,
+    refetchInterval: autoRefreshStats ? refreshIntervalMs : false,
     staleTime: 60000,
     gcTime: 10 * 60 * 1000,
     placeholderData: keepPrevious,
@@ -57,7 +59,7 @@ export function usePlayerLeaders(organizationId, teams = []) {
     enabled: !!organizationId && completedGameIds.length > 0,
     staleTime: 60000,
     gcTime: 10 * 60 * 1000,
-    refetchInterval: 30000,
+    refetchInterval: autoRefreshStats ? refreshIntervalMs : false,
     placeholderData: keepPrevious,
   });
 

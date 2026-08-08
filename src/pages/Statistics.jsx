@@ -12,6 +12,8 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import TopAssistLeaders from "@/components/leaders/TopAssistLeaders";
 import StatsFetchingIndicator from "@/components/stats/StatsFetchingIndicator";
+import StatsRefreshControl from "@/components/stats/StatsRefreshControl";
+import { useStatsRefresh } from "@/lib/StatsRefreshContext";
 import { createPageUrl } from "@/utils";
 
 export default function Statistics() {
@@ -28,6 +30,7 @@ export default function Statistics() {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
   const isAdmin = user?.role === 'admin';
+  const { autoRefreshStats, refreshIntervalMs } = useStatsRefresh();
 
   useEffect(() => {
     loadUser();
@@ -168,7 +171,7 @@ export default function Statistics() {
     enabled: gameIdsForStats.length > 0,
     staleTime: 30000,
     gcTime: 5 * 60 * 1000,
-    refetchInterval: 20000,
+    refetchInterval: autoRefreshStats ? refreshIntervalMs : false,
   });
 
 
@@ -755,6 +758,8 @@ Please provide:
                   </div>
                 </CardContent>
               </Card>
+
+              <StatsRefreshControl />
 
               <Tabs defaultValue="overview" className="space-y-6">
                 <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl shadow-lg print:hidden">

@@ -13,6 +13,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import PosterGenerator from './pages/PosterGenerator';
 import PosterChat from './pages/PosterChat';
 import WidgetStandings from './pages/WidgetStandings';
+import { StatsRefreshProvider } from '@/lib/StatsRefreshContext';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -70,12 +71,14 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <NavigationTracker />
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
-        <VisualEditAgent />
+        <StatsRefreshProvider>
+          <Router>
+            <NavigationTracker />
+            <AuthenticatedApp />
+          </Router>
+          <Toaster />
+          <VisualEditAgent />
+        </StatsRefreshProvider>
       </QueryClientProvider>
     </AuthProvider>
   )
