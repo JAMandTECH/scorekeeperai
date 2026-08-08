@@ -64,13 +64,14 @@ export async function renderBoldDarkStyle({
     ctx.fillRect(0, 0, W, H);
   }
 
-  // Player photo full-bleed on the right, anchored to bottom, centered within frame
+  // Player photo on the right with margin from edge (reduced 10%, properly positioned)
   if (headImg) {
-    const targetH = H * 0.88;
+    const targetH = H * 0.792; // reduced 10% from 0.88
     const ar = targetH / headImg.height;
     const dw = headImg.width * ar;
     const dh = targetH;
-    const dx = W - dw * 0.96; // nudge closer to edge so subject is fully visible
+    const rightMargin = 40; // keep clear of the right edge
+    const dx = W - dw - rightMargin;
     const dy = (H - dh) / 2 + 40; // vertically centered with slight downward bias
     ctx.drawImage(headImg, dx, dy, dw, dh);
   }

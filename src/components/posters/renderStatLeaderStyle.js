@@ -136,13 +136,14 @@ export async function renderStatLeaderStyle({
   ctx.fillStyle = wash;
   ctx.fillRect(0, 0, W, H);
 
-  // Player photo full-bleed on the right (nudged left so nothing is cut off)
+  // Player photo on the right with margin from edge (reduced 10%, properly positioned)
   if (headImg) {
-    const targetH = H * 0.86;
+    const targetH = H * 0.774; // reduced 10% from 0.86
     const ar = targetH / headImg.height;
     const dw = headImg.width * ar;
     const dh = targetH;
-    const dx = W - dw * 0.97; // pull player toward the left so the edge isn't clipped
+    const rightMargin = 40; // keep clear of the right edge
+    const dx = W - dw - rightMargin;
     const dy = (H - dh) / 2 + 50; // vertically centered with slight downward bias
     ctx.drawImage(headImg, dx, dy, dw, dh);
   }
