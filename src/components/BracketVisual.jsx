@@ -825,7 +825,7 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
           )}
 
           <div className="relative">
-            <BracketPosterOverlay organization={organization} tournament={tournament} />
+            {!manualMode && <BracketPosterOverlay organization={organization} tournament={tournament} />}
             <div 
             className="bg-gradient-to-br from-gray-950 via-indigo-950/30 to-gray-950 rounded-2xl p-4 md:p-8 backdrop-blur-xl shadow-2xl overflow-x-auto relative"
             style={{
@@ -890,7 +890,9 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
                     </span>
                   </div>
                 </div>
-                
+
+                <BracketPosterOverlay organization={organization} tournament={tournament} manualMode />
+
                 <div className="relative" style={{ minHeight: '600px', minWidth: '1000px' }}>
                   {sectionLabels.map((label) => (
                     <SectionLabel
