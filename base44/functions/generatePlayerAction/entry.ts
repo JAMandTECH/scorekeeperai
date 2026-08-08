@@ -63,45 +63,70 @@ Deno.serve(async (req) => {
     if (!actionImageUrl) return Response.json({ error: 'Image generation returned no URL' }, { status: 500 });
 
     // Face swap step: swap the original player's face onto the generated action image
+    // Using Replicate's cdingram/face-swap model (~$0.012/run)
     if (faceSwap) {
-      const segmindKey = Deno.env.get('SEGMIND_API_KEY');
-      if (segmindKey) {
+      const replicateToken = Deno.env.get('REPLICATE_API_TOKEN');
+      if (replicateToken) {
         try {
-          const swapResp = await fetch('https://api.segmind.com/v1/faceswap-v2', {
+          const FACE_SWAP_VERSION = 'd1d6ea8c8be89d664a07a457526f7128109dee7030fdac424788d762c71ed111';
+
+          const createResp = await fetch('https://api.replicate.com/v1/predictions', {
             method: 'POST',
             headers: {
-              'x-api-key': segmindKey,
+              'Authorization': `Bearer ${replicateToken}`,
               'Content-Type': 'application/json',
+              'Prefer': 'wait',
             },
             body: JSON.stringify({
-              source_img: playerImageUrl,
-              target_img: actionImageUrl,
-              face_restore: 'codeformer-v0.1.0.pth',
-              input_faces_index: '0',
-              source_faces_index: '0',
-              base64: false,
+              version: FACE_SWAP_VERSION,
+              input: {
+                swap_image: playerImageUrl,
+                input_image: actionImageUrl,
+              },
             }),
           });
 
-          if (swapResp.ok) {
-            const arrayBuf = await swapResp.arrayBuffer();
-            const bytes = new Uint8Array(arrayBuf);
-            const contentType = swapResp.headers.get('content-type') || 'image/png';
-            const mime = contentType.includes('jpeg') ? 'image/jpeg' : 'image/png';
-            const base64 = bytesToBase64(bytes);
-            const dataUrl = `data:${mime};base64,${base64}`;
-            return Response.json({ url: dataUrl, faceSwapped: true }, { status: 200 });
+          if (createResp.ok) {
+            let result = await createResp.json();
+
+            // Poll if prediction didn't complete synchronously
+            if (result.status !== 'succeeded' && result.status !== 'failed') {
+              const pollUrl = result.urls?.get;
+              for (let i = 0; i < 30 && pollUrl; i++) {
+                await new Promise((r) => setTimeout(r, 2000));
+                const pollResp = await fetch(pollUrl, {
+                  headers: { 'Authorization': `Bearer ${replicateToken}` },
+                });
+                result = await pollResp.json();
+                if (result.status === 'succeeded' || result.status === 'failed') break;
+              }
+            }
+
+            if (result.status === 'succeeded' && result.output) {
+              const outputUrl = typeof result.output === 'string' ? result.output : result.output[0];
+              // Fetch and convert to base64 to avoid canvas CORS/tainting issues
+              const imgResp = await fetch(outputUrl);
+              if (imgResp.ok) {
+                const arrayBuf = await imgResp.arrayBuffer();
+                const bytes = new Uint8Array(arrayBuf);
+                const contentType = imgResp.headers.get('content-type') || 'image/png';
+                const mime = contentType.includes('jpeg') ? 'image/jpeg' : 'image/png';
+                const base64 = bytesToBase64(bytes);
+                const dataUrl = `data:${mime};base64,${base64}`;
+                return Response.json({ url: dataUrl, faceSwapped: true }, { status: 200 });
+              }
+            } else if (result.status === 'failed') {
+              console.error('Replicate face swap failed', result.error);
+            }
           } else {
-            const errText = await swapResp.text();
-            console.error('Segmind face swap error', swapResp.status, errText);
-            // Fall through to return the non-swapped image
+            const errText = await createResp.text();
+            console.error('Replicate face swap error', createResp.status, errText);
           }
         } catch (swapErr) {
-          console.error('Segmind face swap exception', swapErr);
-          // Fall through to return the non-swapped image
+          console.error('Replicate face swap exception', swapErr);
         }
       } else {
-        console.warn('Face swap requested but SEGMIND_API_KEY not configured');
+        console.warn('Face swap requested but REPLICATE_API_TOKEN not configured');
       }
     }
 
