@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Calendar, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, BarChart3, Home as HomeIcon, PlayCircle, MessageCircle, UserPlus, Video, Sparkles } from "lucide-react";
+import { Calendar, ArrowRight, Sun, Moon, Building2, Trophy, Users, LogOut, BarChart3, Home as HomeIcon, PlayCircle, MessageCircle, UserPlus, Video, Sparkles, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,7 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [bbDivTab, setBbDivTab] = useState('open');
   const [showAIInsights, setShowAIInsights] = useState(() => localStorage.getItem('hideAIInsights') !== 'true');
+  const [autoRefreshStats, setAutoRefreshStats] = useState(() => localStorage.getItem('autoRefreshStats') !== 'false');
   const navigate = useNavigate();
 
   const toggleAIInsights = () => {
@@ -178,7 +179,7 @@ export default function Home() {
   const teamIds = teams.map(t => t.id);
   const completedGameIds = completedGames.map(g => g.id).filter(Boolean);
 
-  const { data: allPlayerStats = [], isFetching: isStatsFetching } = useQuery({
+  const { data: allPlayerStats = [], isFetching: isStatsFetching, refetch: refetchPlayerStats } = useQuery({
     queryKey: ['all-player-stats-home', completedGameIds.join(',')],
     queryFn: async () => {
       if (completedGameIds.length === 0) return [];
@@ -202,10 +203,23 @@ export default function Home() {
     enabled: isAuthenticated === true && completedGameIds.length > 0,
     staleTime: 60000,
     gcTime: 10 * 60 * 1000,
-    refetchInterval: 30000,
+    // Auto-refresh every 3 minutes when enabled; manual refresh always available via the button.
+    refetchInterval: autoRefreshStats ? 180000 : false,
     // Keep previous stats visible during background refetches so the UI never blanks out.
     placeholderData: (prev) => prev,
   });
+
+  const toggleAutoRefreshStats = () => {
+    setAutoRefreshStats((prev) => {
+      const next = !prev;
+      localStorage.setItem('autoRefreshStats', next.toString());
+      return next;
+    });
+  };
+
+  const handleManualRefreshStats = () => {
+    refetchPlayerStats();
+  };
   const players = allPlayers.filter(p => teamIds.includes(p.team_id));
   const playerStats = allPlayerStats;
 
@@ -470,6 +484,35 @@ export default function Home() {
                   </div>
                 </section>
               )}
+
+              <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-xl bg-white/60 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">Player Statistics Refresh</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Auto-refreshes every 3 minutes when enabled</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="toggle-auto-refresh-stats" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">Auto (3 min)</Label>
+                    <Switch
+                      id="toggle-auto-refresh-stats"
+                      checked={autoRefreshStats}
+                      onCheckedChange={toggleAutoRefreshStats}
+                    />
+                  </div>
+                  <Button
+                    onClick={handleManualRefreshStats}
+                    disabled={isStatsFetching}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    size="sm"
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-2 ${isStatsFetching ? 'animate-spin' : ''}`} />
+                    {isStatsFetching ? 'Refreshing…' : 'Refresh Now'}
+                  </Button>
+                </div>
+              </div>
 
               {isStatsFetching && (
                 <div className="mb-4">
