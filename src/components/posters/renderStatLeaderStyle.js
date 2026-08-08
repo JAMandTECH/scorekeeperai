@@ -198,7 +198,7 @@ export async function renderStatLeaderStyle({
 
   // "BEST PLAYER OF THE GAME" eyebrow tag above the player name
   ctx.font = '800 28px Inter, system-ui, Arial';
-  ctx.fillStyle = '#FFD700';
+  ctx.fillStyle = '#FF4500'; // red-orange
   ctx.fillText('BEST PLAYER OF THE GAME', marginX, topY + 24);
   topY += 44;
 
@@ -290,7 +290,7 @@ export async function renderStatLeaderStyle({
 
   // Home score
   ctx.font = '800 44px Saira, Inter, system-ui, Arial';
-  ctx.fillStyle = homeWins ? '#FFD700' : NAVY;
+  ctx.fillStyle = homeWins ? '#FF4500' : NAVY; // red-orange for winner
   ctx.fillText(String(hs), cursor, scoreY);
   cursor += ctx.measureText(String(hs)).width + gap;
 
@@ -302,7 +302,7 @@ export async function renderStatLeaderStyle({
 
   // Away score
   ctx.font = '800 44px Saira, Inter, system-ui, Arial';
-  ctx.fillStyle = !homeWins ? '#FFD700' : NAVY;
+  ctx.fillStyle = !homeWins ? '#FF4500' : NAVY; // red-orange for winner
   ctx.fillText(String(as), cursor, scoreY);
   cursor += ctx.measureText(String(as)).width + gap;
 
