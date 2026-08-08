@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
           const swapResp = await fetch('https://api.segmind.com/v1/faceswap-v2', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${segmindKey}`,
+              'x-api-key': segmindKey,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
