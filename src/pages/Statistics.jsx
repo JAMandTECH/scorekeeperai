@@ -78,7 +78,10 @@ export default function Statistics() {
 
   const { data: games = [] } = useQuery({
     queryKey: ['games', orgId],
-    queryFn: () => orgId ? base44.entities.Game.filter({ organization_id: orgId }) : base44.entities.Game.list(),
+    // Explicit high limit so ALL games load — without this, the default page cap
+    // returns only the first ~50 games, missing later completed games and making
+    // leaderboard totals/averages diverge from the Dashboard.
+    queryFn: () => orgId ? base44.entities.Game.filter({ organization_id: orgId }, '-game_date', 2000) : base44.entities.Game.list('-game_date', 2000),
     enabled: !!user,
   });
 
