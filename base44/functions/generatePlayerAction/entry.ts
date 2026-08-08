@@ -18,6 +18,16 @@ const ACTION_PROMPTS: Record<string, string> = {
   digging: 'digging the volleyball, diving low to pass the ball, defensive floor move',
 };
 
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode.apply(null, chunk);
+  }
+  return btoa(binary);
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -26,7 +36,7 @@ Deno.serve(async (req) => {
     if (user.role !== 'admin') return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
 
     const body = await req.json();
-    const { playerImageUrl, action, sport, jerseyNumber, teamName } = body || {};
+    const { playerImageUrl, action, sport, jerseyNumber, teamName, faceSwap } = body || {};
     if (!playerImageUrl) return Response.json({ error: 'playerImageUrl is required' }, { status: 400 });
     if (!action || !ACTION_PROMPTS[action]) return Response.json({ error: 'A valid action is required' }, { status: 400 });
 
@@ -49,7 +59,53 @@ Deno.serve(async (req) => {
       existing_image_urls: [playerImageUrl],
     });
 
-    return Response.json({ url: gen?.url || null }, { status: 200 });
+    const actionImageUrl = gen?.url;
+    if (!actionImageUrl) return Response.json({ error: 'Image generation returned no URL' }, { status: 500 });
+
+    // Face swap step: swap the original player's face onto the generated action image
+    if (faceSwap) {
+      const segmindKey = Deno.env.get('SEGMIND_API_KEY');
+      if (segmindKey) {
+        try {
+          const swapResp = await fetch('https://api.segmind.com/v1/faceswap-v2', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${segmindKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              source_img: playerImageUrl,
+              target_img: actionImageUrl,
+              face_restore: 'codeformer-v0.1.0.pth',
+              input_faces_index: '0',
+              source_faces_index: '0',
+              base64: false,
+            }),
+          });
+
+          if (swapResp.ok) {
+            const arrayBuf = await swapResp.arrayBuffer();
+            const bytes = new Uint8Array(arrayBuf);
+            const contentType = swapResp.headers.get('content-type') || 'image/png';
+            const mime = contentType.includes('jpeg') ? 'image/jpeg' : 'image/png';
+            const base64 = bytesToBase64(bytes);
+            const dataUrl = `data:${mime};base64,${base64}`;
+            return Response.json({ url: dataUrl, faceSwapped: true }, { status: 200 });
+          } else {
+            const errText = await swapResp.text();
+            console.error('Segmind face swap error', swapResp.status, errText);
+            // Fall through to return the non-swapped image
+          }
+        } catch (swapErr) {
+          console.error('Segmind face swap exception', swapErr);
+          // Fall through to return the non-swapped image
+        }
+      } else {
+        console.warn('Face swap requested but SEGMIND_API_KEY not configured');
+      }
+    }
+
+    return Response.json({ url: actionImageUrl, faceSwapped: false }, { status: 200 });
   } catch (error) {
     console.error('generatePlayerAction error', error);
     return Response.json({ error: error.message }, { status: 500 });

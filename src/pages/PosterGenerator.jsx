@@ -59,6 +59,7 @@ export default function PosterGenerator() {
   const [posterDataUrl, setPosterDataUrl] = React.useState('');
   const [playerAction, setPlayerAction] = React.useState('');
   const [actionLoading, setActionLoading] = React.useState(false);
+  const [faceSwap, setFaceSwap] = React.useState(true);
   const [savedOpen, setSavedOpen] = React.useState(false);
   const [localOnlyBgRemove, setLocalOnlyBgRemove] = React.useState(true);
   // Template upload dialog state
@@ -329,11 +330,17 @@ export default function PosterGenerator() {
         sport,
         jerseyNumber: topPlayer?.jersey_number,
         teamName: topPlayer?.team_id ? teamMap[topPlayer.team_id] : '',
+        faceSwap,
       });
       if (res?.data?.url) {
         setBestPlayerImageUrl(res.data.url);
         setBestPlayerFile(null);
-        toast({ title: 'Action image generated', description: 'Use "Remove Background" to make it transparent for the poster.' });
+        toast({
+          title: 'Action image generated',
+          description: res?.data?.faceSwapped
+            ? 'Face swap applied — identity preserved. Use "Remove Background" to make it transparent.'
+            : 'Use "Remove Background" to make it transparent for the poster.',
+        });
       } else {
         toast({ variant: 'destructive', title: 'Generation failed', description: 'No image returned.' });
       }
@@ -532,7 +539,16 @@ export default function PosterGenerator() {
 
             <div>
               <label className="text-sm text-muted-foreground">Player Action Pose</label>
-              <p className="text-xs text-muted-foreground mt-0.5">Generate the best player in a game action — preserves face & jersey. Use "Remove Background" after to make it transparent.</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Generate the best player in a game action. Face swap preserves identity; use "Remove Background" after to make it transparent.</p>
+              <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={faceSwap}
+                  onChange={(e) => setFaceSwap(e.target.checked)}
+                  className="h-4 w-4 rounded border-border accent-primary"
+                />
+                <span className="text-xs text-muted-foreground">Preserve face accuracy (AI face swap)</span>
+              </label>
               <div className="mt-2 flex items-center gap-2">
                 <Select value={playerAction} onValueChange={setPlayerAction}>
                   <SelectTrigger className="flex-1"><SelectValue placeholder="Select action" /></SelectTrigger>
