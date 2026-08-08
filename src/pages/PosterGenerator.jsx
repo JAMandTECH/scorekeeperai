@@ -553,6 +553,7 @@ export default function PosterGenerator() {
                 <Select value={playerAction} onValueChange={setPlayerAction}>
                   <SelectTrigger className="flex-1"><SelectValue placeholder="Select action" /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">None (use photo as-is)</SelectItem>
                     {(ACTION_OPTIONS[sport] || ACTION_OPTIONS.basketball).map(a => (
                       <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>
                     ))}
@@ -561,7 +562,7 @@ export default function PosterGenerator() {
                 <Button
                   variant="secondary"
                   className="gap-2 shrink-0"
-                  disabled={!playerAction || actionLoading || !actionSourceUrl}
+                  disabled={!playerAction || playerAction === 'none' || actionLoading || !actionSourceUrl}
                   onClick={handleGenerateAction}
                 >
                   {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
