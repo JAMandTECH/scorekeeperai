@@ -130,31 +130,29 @@ export default function Players() {
   enabled: !!user?.organization_id,
   });
 
-  // Load stats only from completed games (robust via function + fallback)
+  // Load stats from completed games — direct PlayerGameStats.filter in chunks of 50,
+  // the SAME path used by the Dashboard (usePlayerLeaders) and Home. The
+  // getGamePlayerStats backend function can return partial data on timeout,
+  // which made the Players leaderboard diverge from the Dashboard.
   const { data: playerGameStats = [] } = useQuery({
     queryKey: ['playerGameStatsPlayers', user?.organization_id, (completedGames || []).map(g => g.id).join(',')],
     queryFn: async () => {
       const gameIds = (completedGames || []).map(g => g.id);
       if (gameIds.length === 0) return [];
-      try {
-        const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: gameIds });
-        return Array.isArray(res.data) ? res.data : [];
-      } catch (e) {
-        const results = [];
-        for (let i = 0; i < gameIds.length; i += 50) {
-          const chunk = gameIds.slice(i, i + 50);
-          try {
-            const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
-            results.push(...part);
-          } catch (_) {
-            const per = await Promise.all(
-              chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
-            );
-            results.push(...per.flat());
-          }
+      const results = [];
+      for (let i = 0; i < gameIds.length; i += 50) {
+        const chunk = gameIds.slice(i, i + 50);
+        try {
+          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
+          results.push(...part);
+        } catch (_) {
+          const per = await Promise.all(
+            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
+          );
+          results.push(...per.flat());
         }
-        return results;
       }
+      return results;
     },
     enabled: (completedGames || []).length > 0,
     staleTime: 30000,
@@ -965,6 +963,7 @@ export default function Players() {
                 teamName={statsPlayer ? getTeamName(statsPlayer.team_id) : ""}
                 teamLogo={statsPlayer ? getTeamLogo(statsPlayer.team_id) : null}
                 statRecords={statsPlayer ? getPlayerStatRecords(statsPlayer.id) : []}
+                gamesPlayed={statsPlayer ? (statsPlayer.games_played || 0) : 0}
               />
 
               <AlertDialog open={!!deletingPlayer} onOpenChange={() => setDeletingPlayer(null)}>

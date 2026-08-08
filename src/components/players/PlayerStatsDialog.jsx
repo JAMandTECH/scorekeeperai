@@ -21,13 +21,17 @@ export default function PlayerStatsDialog({
   teamName,
   teamLogo,
   statRecords = [],
+  gamesPlayed = 0,
 }) {
   const isVolleyball = sport === "volleyball";
 
   const { games, averages, totals, monthly } = useMemo(() => {
     const recs = statRecords || [];
     const gameIds = [...new Set(recs.map((r) => r.game_id))];
-    const gp = gameIds.length || 0;
+    // Use team games-played as the divisor (same as Dashboard/Home/Statistics
+    // leaderboards) so PPG matches everywhere. Fall back to distinct stat
+    // games only when team gamesPlayed is unavailable.
+    const gp = gamesPlayed > 0 ? gamesPlayed : (gameIds.length || 0);
     const sum = (key) => recs.reduce((a, r) => a + (Number(r[key]) || 0), 0);
 
     let totalsObj = {};
