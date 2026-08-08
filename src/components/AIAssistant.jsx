@@ -340,7 +340,8 @@ IMPORTANT INSTRUCTIONS:
 
       let replyText = '';
       try {
-        const coreRes = await base44.integrations.Core.InvokeLLM({ prompt });
+        // Use the cost-efficient model for this navigation/guidance task.
+        const coreRes = await base44.integrations.Core.InvokeLLM({ prompt, model: "gpt_5_mini" });
         replyText = typeof coreRes === 'string' ? coreRes : JSON.stringify(coreRes, null, 2);
       } catch (e) {
         try {

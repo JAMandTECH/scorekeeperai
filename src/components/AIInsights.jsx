@@ -1,15 +1,60 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sparkles, TrendingUp, Trophy, Users, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
+// Credit-saving controls: cache AI insights for 24h and throttle manual refreshes.
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const REFRESH_COOLDOWN_MS = 30000; // 30 seconds
+
 export default function AIInsights({ teams, players, games, organizationName }) {
   const [insights, setInsights] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
+  const cooldownTimer = useRef(null);
 
-  const generateInsights = async () => {
+  // Cache key derived from the exact data signature the insights depend on,
+  // so cached results are only reused when the underlying data is unchanged.
+  const getCacheKey = () => {
+    const basketballTeams = teams.filter(t => t.sport === 'basketball').length;
+    const volleyballTeams = teams.filter(t => t.sport === 'volleyball').length;
+    const completedGames = games.filter(g => g.status === 'completed').length;
+    const upcomingGames = games.filter(g => g.status === 'scheduled').length;
+    return `ai-insights-${organizationName || 'ALAB'}-b${basketballTeams}-v${volleyballTeams}-p${players.length}-c${completedGames}-u${upcomingGames}`;
+  };
+
+  const loadFromCache = () => {
+    try {
+      const raw = localStorage.getItem(getCacheKey());
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed.timestamp || Date.now() - parsed.timestamp > CACHE_TTL_MS) return null;
+      return Array.isArray(parsed.insights) ? parsed.insights : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const saveToCache = (insightsData) => {
+    try {
+      localStorage.setItem(getCacheKey(), JSON.stringify({ timestamp: Date.now(), insights: insightsData }));
+    } catch {
+      // Storage may be full or unavailable — silently skip, generation still works.
+    }
+  };
+
+  const generateInsights = async (force = false) => {
+    // Serve cached insights when available and fresh (unless forced by manual refresh).
+    if (!force) {
+      const cached = loadFromCache();
+      if (cached) {
+        setInsights(cached);
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       // Prepare data summary
@@ -61,7 +106,8 @@ Focus on: league growth, team participation, player engagement, and upcoming eve
 
       let insightsOut = [];
       try {
-        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema });
+        // Use the cost-efficient model for this structured summarization task.
+        const result = await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema, model: "gpt_5_mini" });
         insightsOut = result.insights || [];
       } catch (err) {
         try {
@@ -74,6 +120,7 @@ Focus on: league growth, team participation, player engagement, and upcoming eve
       }
 
       setInsights(insightsOut);
+      saveToCache(insightsOut);
     } catch (error) {
       console.error("Error generating insights:", error);
       setInsights([]);
@@ -81,10 +128,20 @@ Focus on: league growth, team participation, player engagement, and upcoming eve
     setLoading(false);
   };
 
+  // Manual refresh: force regeneration and apply a cooldown to prevent rapid-fire calls.
+  const handleManualRefresh = () => {
+    if (cooldown || loading) return;
+    generateInsights(true);
+    setCooldown(true);
+    if (cooldownTimer.current) clearTimeout(cooldownTimer.current);
+    cooldownTimer.current = setTimeout(() => setCooldown(false), REFRESH_COOLDOWN_MS);
+  };
+
   useEffect(() => {
     if (teams.length > 0 || games.length > 0) {
       generateInsights();
     }
+    return () => { if (cooldownTimer.current) clearTimeout(cooldownTimer.current); };
   }, [teams.length, games.length]);
 
   const getIcon = (iconName) => {
@@ -119,11 +176,12 @@ Focus on: league growth, team participation, player engagement, and upcoming eve
             </CardTitle>
           </div>
           <Button
-            onClick={generateInsights}
-            disabled={loading}
+            onClick={handleManualRefresh}
+            disabled={loading || cooldown}
             size="sm"
             variant="outline"
             className="border-purple-300 dark:border-purple-700"
+            title={cooldown ? "Please wait a moment before refreshing" : "Refresh insights"}
           >
             {loading ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
