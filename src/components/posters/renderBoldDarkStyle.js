@@ -70,7 +70,7 @@ export async function renderBoldDarkStyle({
     const ar = targetH / headImg.height;
     const dw = headImg.width * ar;
     const dh = targetH;
-    const rightMargin = 40; // keep clear of the right edge
+    const rightMargin = 60; // 1.5x margin for better positioning
     const dx = W - dw - rightMargin;
     const dy = (H - dh) / 2 + 40; // vertically centered with slight downward bias
     ctx.drawImage(headImg, dx, dy, dw, dh);
