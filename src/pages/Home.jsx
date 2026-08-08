@@ -184,8 +184,8 @@ export default function Home() {
       // Chunk by game_id (proven Statistics-page path); isolate each chunk so
       // one failure never wipes the whole result set.
       const results = [];
-      for (let i = 0; i < completedGameIds.length; i += 50) {
-        const chunk = completedGameIds.slice(i, i + 50);
+      for (let i = 0; i < completedGameIds.length; i += 10) {
+        const chunk = completedGameIds.slice(i, i + 10);
         try {
           const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
           results.push(...part);

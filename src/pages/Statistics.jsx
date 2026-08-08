@@ -150,8 +150,8 @@ export default function Statistics() {
     queryFn: async () => {
       if (gameIdsForStats.length === 0) return [];
       const results = [];
-      for (let i = 0; i < gameIdsForStats.length; i += 50) {
-        const chunk = gameIdsForStats.slice(i, i + 50);
+      for (let i = 0; i < gameIdsForStats.length; i += 10) {
+        const chunk = gameIdsForStats.slice(i, i + 10);
         try {
           const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
           results.push(...part);
@@ -504,7 +504,7 @@ Please provide:
     // so every player shows their real season totals regardless of current filters.
     const allCompletedIds = games.filter(g => g.status === 'completed').map(g => g.id);
     let allStats = [];
-    const CHUNK = 25;
+    const CHUNK = 10;
     for (let i = 0; i < allCompletedIds.length; i += CHUNK) {
       const chunk = allCompletedIds.slice(i, i + CHUNK);
       let chunkStats = [];

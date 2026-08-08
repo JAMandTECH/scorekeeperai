@@ -140,8 +140,8 @@ export default function Players() {
       const gameIds = (completedGames || []).map(g => g.id);
       if (gameIds.length === 0) return [];
       const results = [];
-      for (let i = 0; i < gameIds.length; i += 50) {
-        const chunk = gameIds.slice(i, i + 50);
+      for (let i = 0; i < gameIds.length; i += 10) {
+        const chunk = gameIds.slice(i, i + 10);
         try {
           const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
           results.push(...part);
