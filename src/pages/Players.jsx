@@ -183,14 +183,30 @@ export default function Players() {
     return team?.sport || 'basketball';
   };
 
-  // Only include stats from completed games
-  const completedGameIds = new Set((completedGames || []).map(g => g.id));
+  // Filter completed games by the selected division/sport so that stats and the
+  // games-played divisor match the Dashboard/Home/Statistics leaderboards exactly.
+  // A game belongs to a division if either team's division matches (same rule as
+  // buildLeaderboard in usePlayerLeaders).
+  const teamsById = new Map(teams.map(t => [t.id, t]));
+  const eligibleCompletedGames = (completedGames || []).filter(g => {
+    if (selectedSport !== 'all' && (g.sport || '').toLowerCase() !== selectedSport) return false;
+    if (selectedDivision !== 'all') {
+      const homeDiv = teamsById.get(g.home_team_id)?.division || 'No Division';
+      const awayDiv = teamsById.get(g.away_team_id)?.division || 'No Division';
+      if (homeDiv !== selectedDivision && awayDiv !== selectedDivision) return false;
+    }
+    return true;
+  });
 
-  // Team games-played divisor — how many completed games each team played (home or away).
-  // Mirrors the Dashboard/Home/Statistics leaderboards so "games played" matches everywhere.
+  // Only include stats from eligible completed games
+  const completedGameIds = new Set(eligibleCompletedGames.map(g => g.id));
+
+  // Team games-played divisor — how many eligible completed games each team played
+  // (home or away). Mirrors the Dashboard/Home/Statistics leaderboards so "games
+  // played" matches everywhere.
   const teamGamesPlayedMap = (() => {
     const m = new Map();
-    (completedGames || []).forEach((g) => {
+    eligibleCompletedGames.forEach((g) => {
       if (g.home_team_id) m.set(g.home_team_id, (m.get(g.home_team_id) || 0) + 1);
       if (g.away_team_id) m.set(g.away_team_id, (m.get(g.away_team_id) || 0) + 1);
     });
