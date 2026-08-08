@@ -17,7 +17,27 @@ import { Link, useNavigate } from 'react-router-dom';
 import SocialShare from '@/components/social/SocialShare';
 import 'onnxruntime-web';
 
-
+const ACTION_OPTIONS = {
+  basketball: [
+    { value: 'shooting', label: 'Shooting' },
+    { value: 'dribbling', label: 'Dribbling' },
+    { value: 'driving', label: 'Driving' },
+    { value: 'layup', label: 'Lay Up' },
+    { value: 'dunking', label: 'Dunking' },
+    { value: 'assisting', label: 'Assisting' },
+    { value: 'guarding', label: 'Guarding' },
+    { value: 'blocking', label: 'Blocking' },
+    { value: 'celebrating', label: 'Celebrating' },
+  ],
+  volleyball: [
+    { value: 'spiking', label: 'Spiking' },
+    { value: 'setting', label: 'Setting' },
+    { value: 'serving', label: 'Serving' },
+    { value: 'digging', label: 'Digging' },
+    { value: 'blocking', label: 'Blocking' },
+    { value: 'celebrating', label: 'Celebrating' },
+  ],
+};
 
 export default function PosterGenerator() {
   const qc = useQueryClient();
@@ -37,6 +57,8 @@ export default function PosterGenerator() {
   const [printMode, setPrintMode] = React.useState(false);
   const [paperSize, setPaperSize] = React.useState('a4');
   const [posterDataUrl, setPosterDataUrl] = React.useState('');
+  const [playerAction, setPlayerAction] = React.useState('');
+  const [actionLoading, setActionLoading] = React.useState(false);
   const [savedOpen, setSavedOpen] = React.useState(false);
   const [localOnlyBgRemove, setLocalOnlyBgRemove] = React.useState(true);
   // Template upload dialog state
@@ -294,6 +316,35 @@ export default function PosterGenerator() {
     }
   };
 
+  const actionSourceUrl = bestPlayerImageUrl || (topQ.data?.topPlayers?.[0]?.photo_url) || '';
+
+  const handleGenerateAction = async () => {
+    if (!playerAction || !actionSourceUrl) return;
+    setActionLoading(true);
+    try {
+      const topPlayer = topQ.data?.topPlayers?.[0];
+      const res = await base44.functions.invoke('generatePlayerAction', {
+        playerImageUrl: actionSourceUrl,
+        action: playerAction,
+        sport,
+        jerseyNumber: topPlayer?.jersey_number,
+        teamName: topPlayer?.team_id ? teamMap[topPlayer.team_id] : '',
+      });
+      if (res?.data?.url) {
+        setBestPlayerImageUrl(res.data.url);
+        setBestPlayerFile(null);
+        toast({ title: 'Action image generated', description: 'Use "Remove Background" to make it transparent for the poster.' });
+      } else {
+        toast({ variant: 'destructive', title: 'Generation failed', description: 'No image returned.' });
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Please try again later.';
+      toast({ variant: 'destructive', title: 'Action generation failed', description: String(msg).slice(0, 300) });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (user && user.role !== 'admin') {
     return (
       <div className="p-6 max-w-5xl mx-auto">
@@ -477,6 +528,30 @@ export default function PosterGenerator() {
                 </label>
               </div>
               <p className="text-xs text-muted-foreground mt-1">Optional: overrides player profile photo for this poster.</p>
+            </div>
+
+            <div>
+              <label className="text-sm text-muted-foreground">Player Action Pose</label>
+              <p className="text-xs text-muted-foreground mt-0.5">Generate the best player in a game action — preserves face & jersey. Use "Remove Background" after to make it transparent.</p>
+              <div className="mt-2 flex items-center gap-2">
+                <Select value={playerAction} onValueChange={setPlayerAction}>
+                  <SelectTrigger className="flex-1"><SelectValue placeholder="Select action" /></SelectTrigger>
+                  <SelectContent>
+                    {(ACTION_OPTIONS[sport] || ACTION_OPTIONS.basketball).map(a => (
+                      <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="secondary"
+                  className="gap-2 shrink-0"
+                  disabled={!playerAction || actionLoading || !actionSourceUrl}
+                  onClick={handleGenerateAction}
+                >
+                  {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  Generate
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
