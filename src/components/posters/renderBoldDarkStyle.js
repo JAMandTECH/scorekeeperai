@@ -64,13 +64,16 @@ export async function renderBoldDarkStyle({
     ctx.fillRect(0, 0, W, H);
   }
 
-  // Player photo on the right with margin from edge (reduced 10%, properly positioned)
+  // Player photo on the right — contained within the right portion so wide action-pose
+  // images (after bg removal) stay aligned with regular headshots and never overflow left
   if (headImg) {
-    const targetH = H * 0.792; // reduced 10% from 0.88
-    const ar = targetH / headImg.height;
-    const dw = headImg.width * ar;
-    const dh = targetH;
-    const rightMargin = 100; // 100px margin for better positioning
+    const maxH = H * 0.792; // reduced 10% from 0.88
+    const rightMargin = 100;
+    const leftBound = W * 0.35; // leftmost edge the image may reach (wash covers left side)
+    const maxW = W - rightMargin - leftBound;
+    const scale = Math.min(maxW / headImg.width, maxH / headImg.height);
+    const dw = headImg.width * scale;
+    const dh = headImg.height * scale;
     const dx = W - dw - rightMargin;
     const dy = (H - dh) / 2 + 40; // vertically centered with slight downward bias
     ctx.drawImage(headImg, dx, dy, dw, dh);
