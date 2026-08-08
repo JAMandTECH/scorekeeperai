@@ -6,8 +6,15 @@ import { renderBoldDarkStyle } from './renderBoldDarkStyle';
 import { base44 } from '@/api/base44Client';
 import { Save, Loader2 } from 'lucide-react';
 
+// Standard paper sizes — portrait, normalized to 1350px logical height
+export const PAPER_SIZES = {
+  a4: { label: 'A4 (210×297mm)', w: 955, h: 1350 },
+  letter: { label: 'Letter (8.5×11")', w: 1044, h: 1350 },
+  tabloid: { label: 'Tabloid (11×17")', w: 874, h: 1350 },
+};
+
 // Canvas composer that overlays org logo/info and the single best player's headshot + stats
-export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady, posterStyle = 'spotlight' }) {
+export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady, posterStyle = 'spotlight', printMode = false, paperSize = 'a4' }) {
   const canvasRef = useRef(null);
   const [dataUrl, setDataUrl] = useState('');
   const [saving, setSaving] = useState(false);
@@ -31,22 +38,33 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const W = 1080;
-    const H = 1350;
     const SCALE = 4; // Render at 4x for 4K-quality output
+    const PRINT_MARGIN = printMode ? 48 : 0; // safe print margin in logical px
+    const paper = printMode ? (PAPER_SIZES[paperSize] || PAPER_SIZES.a4) : { w: 1080, h: 1350 };
+    const fullW = paper.w;
+    const fullH = paper.h;
+    const W = fullW - 2 * PRINT_MARGIN; // content area width (passed to renderers)
+    const H = fullH - 2 * PRINT_MARGIN; // content area height (passed to renderers)
     const baseMeta = layout || {};
     const smart = buildSmartLayout({ sport: game.sport, meta: baseMeta });
     // Smart layout takes precedence; template metadata can still override unique fields
     const L = { ...baseMeta, ...smart };
-    canvas.width = W * SCALE;
-    canvas.height = H * SCALE;
-    canvas.style.width = W + 'px';
-    canvas.style.height = H + 'px';
+    canvas.width = fullW * SCALE;
+    canvas.height = fullH * SCALE;
+    canvas.style.width = fullW + 'px';
+    canvas.style.height = fullH + 'px';
 
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+
+    // Print mode: fill white background and inset content by safe margin
+    if (printMode) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, fullW, fullH);
+      ctx.translate(PRINT_MARGIN, PRINT_MARGIN);
+    }
 
     // Style 2: "Stat Leader of the Game" (bet365-inspired) — different renderer
     if (posterStyle === 'stat_leader') {
@@ -881,7 +899,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         onReady && onReady('');
       }
     })();
-  }, [backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady, posterStyle]);
+  }, [backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady, posterStyle, printMode, paperSize]);
 
   const dataURLtoBlob = (dataURL) => {
     const arr = dataURL.split(',');
@@ -908,8 +926,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         player_id: players?.[0]?.id || players?.[0]?.player_id || null,
         team_id: players?.[0]?.team_id || null,
         image_url,
-        width: 1080,
-        height: 1350,
+        width: printMode ? (PAPER_SIZES[paperSize] || PAPER_SIZES.a4).w : 1080,
+        height: printMode ? (PAPER_SIZES[paperSize] || PAPER_SIZES.a4).h : 1350,
         title: `${String(homeName||'HOME')} vs ${String(awayName||'AWAY')} - Best Player`
       };
       const rec = await base44.entities.Poster.create(payload);

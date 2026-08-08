@@ -34,6 +34,8 @@ export default function PosterGenerator() {
   const [removeBgLoading, setRemoveBgLoading] = React.useState(false);
   const [layout, setLayout] = React.useState({});
   const [posterStyle, setPosterStyle] = React.useState('spotlight');
+  const [printMode, setPrintMode] = React.useState(false);
+  const [paperSize, setPaperSize] = React.useState('a4');
   const [posterDataUrl, setPosterDataUrl] = React.useState('');
   const [savedOpen, setSavedOpen] = React.useState(false);
   const [localOnlyBgRemove, setLocalOnlyBgRemove] = React.useState(true);
@@ -352,6 +354,24 @@ export default function PosterGenerator() {
             </div>
 
             <div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm text-muted-foreground">Print Mode</label>
+                <Switch checked={printMode} onCheckedChange={setPrintMode} />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Adjusts aspect ratio & margins for standard paper sizes.</p>
+              {printMode && (
+                <Select value={paperSize} onValueChange={setPaperSize}>
+                  <SelectTrigger className="mt-2"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="a4">A4 (210×297mm)</SelectItem>
+                    <SelectItem value="letter">Letter (8.5×11")</SelectItem>
+                    <SelectItem value="tabloid">Tabloid (11×17")</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            <div>
               <label className="text-sm text-muted-foreground">Completed Game</label>
               <Select value={selectedGameId} onValueChange={(v) => setSelectedGameId(v)}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder={gamesQ.isLoading ? 'Loading games...' : 'Select a game'} /></SelectTrigger>
@@ -642,6 +662,8 @@ export default function PosterGenerator() {
                     awayName={teamMap[gameForPoster?.away_team_id] || 'Away Team'}
                     layout={layout}
                     posterStyle={posterStyle}
+                    printMode={printMode}
+                    paperSize={paperSize}
                     onReady={setPosterDataUrl}
                   />
                   <div className="mt-4">
