@@ -77,20 +77,6 @@ export default function BracketPosterOverlay({ organization, tournament, manualM
         </div>
       )}
 
-      {/* Bottom-right organization logo (absolute in both modes) */}
-      {orgLogo && (
-        <div className="pointer-events-none absolute bottom-3 right-3 z-30 select-none">
-          <Avatar
-            className="w-14 h-14 md:w-16 md:h-16 border-2 border-white/20 shadow-2xl"
-            style={{ filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.5))" }}
-          >
-            <AvatarImage src={orgLogo} className="object-cover" />
-            <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-base md:text-lg">
-              {orgName?.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-        </div>
-      )}
     </>
   );
 }
