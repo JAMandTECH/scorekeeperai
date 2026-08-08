@@ -175,16 +175,16 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       return;
     }
 
-    // Gold gradient utilities to mimic poster style
+    // Gold gradient utilities — vibrant high-visibility metallic gold
     const makeGoldGradient = (yTop, yBottom) => {
       const g = ctx.createLinearGradient(0, yTop, 0, yBottom);
-      g.addColorStop(0, '#F9E6A1');   // light highlight
-      g.addColorStop(0.35, '#F2C14E'); // mid gold
-      g.addColorStop(0.7, '#D79A1E');  // deep gold
-      g.addColorStop(1, '#8C5A00');    // shadow
+      g.addColorStop(0, '#FFF9C4');   // soft white-gold highlight
+      g.addColorStop(0.35, '#FFD700'); // pure gold
+      g.addColorStop(0.7, '#B8860B');  // deep gold (dark goldenrod)
+      g.addColorStop(1, '#8B6914');    // warm shadow
       return g;
     };
-    const goldStroke = '#6E4300';
+    const goldStroke = '#8B6914';
 
     // Swirl/Halo effect behind best player – mimics animated light trails
     const drawSwirlHalo = (cx, cy, baseR = 220) => {
@@ -565,12 +565,12 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const teamLabelY = (L.nameLabel?.y ?? ((L.bestTitle?.y ?? 950) - 70)) - 56; // team label sits above name
       const anchorTopY = y; // stats row center
       const anchorBottomY = teamLabelY; // team name center
-      const HEADSHOT_BIAS_TOWARDS_STATS = L.headshot?.biasTowardsStats ?? 0.35; // 0 (at stats) .. 1 (at team label) — pushed further down
+      const HEADSHOT_BIAS_TOWARDS_STATS = L.headshot?.biasTowardsStats ?? 0.42; // 0 (at stats) .. 1 (at team label) — balanced centering
       const midY = Math.round(anchorTopY + (anchorBottomY - anchorTopY) * HEADSHOT_BIAS_TOWARDS_STATS);
 
       if (headImg) {
         const HEAD_SCALE = ((L.headshot?.scale ?? 2) * 1.4175 * 1.3 * 0.8 * 0.85); // additional 15% reduction
-        const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 56; // even larger safe gap below stats to avoid overlap
+        const MIN_GAP_FROM_STATS = L.headshot?.minGapFromStats ?? 72; // larger safe gap below stats to avoid overlap
         const freeMove = L.headshot?.freeMove ?? true;
         const poly = freeMove ? null : L.headshot?.polygon;
         if (Array.isArray(poly) && poly.length >= 3) {
@@ -830,9 +830,14 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         ctx.font = 'italic 800 22px Saira, Inter, system-ui, Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = highlight ? '#facc15' : '#ffffff';
+        ctx.fillStyle = highlight ? '#FFD700' : '#ffffff';
+        if (highlight) {
+          ctx.shadowColor = 'rgba(255,215,0,0.6)';
+          ctx.shadowBlur = 12;
+        }
         const wBox = ctx.measureText(text).width + pad * 2;
         ctx.fillText(text, x + wBox / 2, yVal);
+        if (highlight) ctx.shadowBlur = 0;
         return wBox;
       };
 

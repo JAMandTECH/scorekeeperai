@@ -35,7 +35,7 @@ export async function renderBoldDarkStyle({
   awayScore,
   orgName,
 }) {
-  const GOLD = '#f5a623';
+  const GOLD = '#FFD700'; // high-visibility metallic gold
   const WHITE = '#ffffff';
 
   const [bgImg, headImg, logoImg] = await Promise.all([
@@ -64,14 +64,14 @@ export async function renderBoldDarkStyle({
     ctx.fillRect(0, 0, W, H);
   }
 
-  // Player photo full-bleed on the right, anchored to bottom
+  // Player photo full-bleed on the right, anchored to bottom, centered within frame
   if (headImg) {
-    const targetH = H * 0.92;
+    const targetH = H * 0.88;
     const ar = targetH / headImg.height;
     const dw = headImg.width * ar;
     const dh = targetH;
-    const dx = W - dw * 0.92; // pull toward the right edge
-    const dy = H - dh;
+    const dx = W - dw * 0.96; // nudge closer to edge so subject is fully visible
+    const dy = (H - dh) / 2 + 40; // vertically centered with slight downward bias
     ctx.drawImage(headImg, dx, dy, dw, dh);
   }
 

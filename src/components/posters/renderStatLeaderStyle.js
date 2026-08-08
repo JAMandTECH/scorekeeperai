@@ -138,12 +138,12 @@ export async function renderStatLeaderStyle({
 
   // Player photo full-bleed on the right (nudged left so nothing is cut off)
   if (headImg) {
-    const targetH = H * 0.9;
+    const targetH = H * 0.86;
     const ar = targetH / headImg.height;
     const dw = headImg.width * ar;
     const dh = targetH;
-    const dx = W - dw * 0.94; // pull player toward the left so the edge isn't clipped
-    const dy = H - dh; // anchored to bottom
+    const dx = W - dw * 0.97; // pull player toward the left so the edge isn't clipped
+    const dy = (H - dh) / 2 + 50; // vertically centered with slight downward bias
     ctx.drawImage(headImg, dx, dy, dw, dh);
   }
 
@@ -197,7 +197,7 @@ export async function renderStatLeaderStyle({
 
   // "BEST PLAYER OF THE GAME" eyebrow tag above the player name
   ctx.font = '800 28px Inter, system-ui, Arial';
-  ctx.fillStyle = '#facc15';
+  ctx.fillStyle = '#FFD700';
   ctx.fillText('BEST PLAYER OF THE GAME', marginX, topY + 24);
   topY += 44;
 
@@ -289,7 +289,7 @@ export async function renderStatLeaderStyle({
 
   // Home score
   ctx.font = '800 44px Saira, Inter, system-ui, Arial';
-  ctx.fillStyle = homeWins ? '#facc15' : NAVY;
+  ctx.fillStyle = homeWins ? '#FFD700' : NAVY;
   ctx.fillText(String(hs), cursor, scoreY);
   cursor += ctx.measureText(String(hs)).width + gap;
 
@@ -301,7 +301,7 @@ export async function renderStatLeaderStyle({
 
   // Away score
   ctx.font = '800 44px Saira, Inter, system-ui, Arial';
-  ctx.fillStyle = !homeWins ? '#facc15' : NAVY;
+  ctx.fillStyle = !homeWins ? '#FFD700' : NAVY;
   ctx.fillText(String(as), cursor, scoreY);
   cursor += ctx.measureText(String(as)).width + gap;
 
