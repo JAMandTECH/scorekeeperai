@@ -417,26 +417,24 @@ export default function Home() {
             <div className="max-w-7xl mx-auto text-center relative z-10">
               {organization && user ? (
                 <div className="space-y-6">
-                  <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10">
-                    {/* Left: Logo + Org name */}
-                    <div className="flex items-center gap-5 flex-shrink-0">
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl blur-2xl opacity-30 animate-pulse"></div>
-                        <Avatar className="relative w-24 h-24 border-4 border-white/20 shadow-2xl backdrop-blur-sm"><AvatarImage src={organization.logo_url} className="object-cover" /><AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-3xl">{organization.name?.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar>
-                      </div>
-                      <div className="text-center lg:text-left">
-                        <Badge className="mb-2 bg-orange-500/20 text-orange-300 border border-orange-400/30 text-xs font-bold px-4 py-1 backdrop-blur-sm">YOUR ORGANIZATION</Badge>
-                        <h1 className="text-3xl md:text-4xl font-black tracking-tight">{organization.name}</h1>
-                        {organization.tournament_name && <p className="text-base text-blue-100 font-medium mt-1">{organization.tournament_name}</p>}
-                      </div>
+                  {/* Logo + Org name */}
+                  <div className="flex items-center justify-center gap-5">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl blur-2xl opacity-30 animate-pulse"></div>
+                      <Avatar className="relative w-24 h-24 border-4 border-white/20 shadow-2xl backdrop-blur-sm"><AvatarImage src={organization.logo_url} className="object-cover" /><AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-3xl">{organization.name?.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar>
                     </div>
-                    {/* Right: Stat cards */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1 lg:max-w-2xl lg:ml-auto w-full">
-                      <div className="glass-card rounded-xl p-4 text-center"><div className="text-3xl font-black text-gradient-primary">{teams.length}</div><div className="text-xs text-cyan-200 font-semibold mt-1">Teams</div></div>
-                      <div className="glass-card rounded-xl p-4 text-center"><div className="text-3xl font-black text-gradient-warm">{players.length}</div><div className="text-xs text-cyan-200 font-semibold mt-1">Players</div></div>
-                      <div className="glass-card rounded-xl p-4 text-center"><div className="text-3xl font-black bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">{games.length}</div><div className="text-xs text-cyan-200 font-semibold mt-1">Games</div></div>
-                      <div className="glass-card rounded-xl p-4 text-center"><div className="text-3xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">{completedGames.length}</div><div className="text-xs text-cyan-200 font-semibold mt-1">Completed</div></div>
+                    <div className="text-center">
+                      <Badge className="mb-2 bg-orange-500/20 text-orange-300 border border-orange-400/30 text-xs font-bold px-4 py-1 backdrop-blur-sm">YOUR ORGANIZATION</Badge>
+                      <h1 className="text-3xl md:text-4xl font-black tracking-tight">{organization.name}</h1>
+                      {organization.tournament_name && <p className="text-base text-blue-100 font-medium mt-1">{organization.tournament_name}</p>}
                     </div>
+                  </div>
+                  {/* Stat cards below org name */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
+                    <div className="glass-card rounded-xl p-4 text-center"><div className="text-3xl font-black text-gradient-primary">{teams.length}</div><div className="text-xs text-cyan-200 font-semibold mt-1">Teams</div></div>
+                    <div className="glass-card rounded-xl p-4 text-center"><div className="text-3xl font-black text-gradient-warm">{players.length}</div><div className="text-xs text-cyan-200 font-semibold mt-1">Players</div></div>
+                    <div className="glass-card rounded-xl p-4 text-center"><div className="text-3xl font-black bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">{games.length}</div><div className="text-xs text-cyan-200 font-semibold mt-1">Games</div></div>
+                    <div className="glass-card rounded-xl p-4 text-center"><div className="text-3xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">{completedGames.length}</div><div className="text-xs text-cyan-200 font-semibold mt-1">Completed</div></div>
                   </div>
                   <div className="flex gap-6 justify-center flex-wrap">{isAdmin && <Link to={createPageUrl("Dashboard")}><Button className="btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white text-lg px-12 py-6 font-bold shadow-2xl rounded-2xl">Go to Dashboard<ArrowRight className="w-5 h-5 ml-2" /></Button></Link>}{!isAdmin && isAuthenticated && <Link to={createPageUrl("TeamRegistration")}><Button className="btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white text-lg px-12 py-6 font-bold shadow-2xl rounded-2xl"><UserPlus className="w-5 h-5 mr-2" />Register Your Team</Button></Link>}</div>
                 </div>
