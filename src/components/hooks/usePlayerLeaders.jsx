@@ -15,7 +15,7 @@ const keepPrevious = (prev) => prev;
  * the player's total by the number of completed games their team played.
  */
 export function usePlayerLeaders(organizationId, teams = []) {
-  const { data: games = [] } = useQuery({
+  const { data: games = [], isLoading: isGamesLoading, isFetching: isGamesFetching } = useQuery({
     queryKey: ["player-leaders-games", organizationId],
     // Sort + explicit high limit so the FULL completed-game set always loads.
     // Without this, the default page cap can return a different subset than Home,
@@ -35,7 +35,7 @@ export function usePlayerLeaders(organizationId, teams = []) {
   // wipes the whole result set.
   const completedGameIds = completedGames.map((g) => g.id).filter(Boolean).sort();
 
-  const { data: playerStats = [] } = useQuery({
+  const { data: playerStats = [], isLoading: isStatsLoading, isFetching: isStatsFetching } = useQuery({
     queryKey: ["player-leaders-stats", organizationId, completedGameIds.join(",")],
     queryFn: async () => {
       if (completedGameIds.length === 0) return [];
@@ -61,7 +61,16 @@ export function usePlayerLeaders(organizationId, teams = []) {
     placeholderData: keepPrevious,
   });
 
-  return { games, completedGames, playerStats };
+  // isLoading = first load with no data yet (show skeleton/empty state).
+  // isFetching = any network request in flight, including background refetches
+  // (show a subtle indicator while keeping previous data visible).
+  return {
+    games,
+    completedGames,
+    playerStats,
+    isLoading: isGamesLoading || isStatsLoading,
+    isFetching: isGamesFetching || isStatsFetching,
+  };
 }
 
 /**

@@ -17,6 +17,7 @@ import AIAssistant from "@/components/AIAssistant";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 import BasketballSection from "@/components/home/BasketballSection";
 import VolleyballSection from "@/components/home/VolleyballSection";
+import StatsFetchingIndicator from "@/components/stats/StatsFetchingIndicator";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -177,7 +178,7 @@ export default function Home() {
   const teamIds = teams.map(t => t.id);
   const completedGameIds = completedGames.map(g => g.id).filter(Boolean);
 
-  const { data: allPlayerStats = [] } = useQuery({
+  const { data: allPlayerStats = [], isFetching: isStatsFetching } = useQuery({
     queryKey: ['all-player-stats-home', completedGameIds.join(',')],
     queryFn: async () => {
       if (completedGameIds.length === 0) return [];
@@ -470,6 +471,11 @@ export default function Home() {
                 </section>
               )}
 
+              {isStatsFetching && (
+                <div className="mb-4">
+                  <StatsFetchingIndicator fetching={isStatsFetching} label="Refreshing live stats…" />
+                </div>
+              )}
               <BasketballSection bbDivTab={bbDivTab} setBbDivTab={setBbDivTab} organization={organization} basketballStandingsOpen={basketballStandingsOpen} basketballStandingsVeterans={basketballStandingsVeterans} topScorersOpen={topScorersOpen} topScorersVeterans={topScorersVeterans} topReboundersOpen={topReboundersOpen} topReboundersVeterans={topReboundersVeterans} topBlockersOpen={topBlockersOpen} topBlockersVeterans={topBlockersVeterans} top3PointersOpen={top3PointersOpen} top3PointersVeterans={top3PointersVeterans} upcomingBasketballGamesOpen={upcomingBasketballGamesOpen} upcomingBasketballGamesVeterans={upcomingBasketballGamesVeterans} completedBasketballGamesOpen={completedBasketballGamesOpen} completedBasketballGamesVeterans={completedBasketballGamesVeterans} allPlayerStats={allPlayerStats} allPlayers={allPlayers} allTeams={allTeams} isAdmin={isAdmin} orgId={orgId} getTeamName={getTeamName} />
 
               <VolleyballSection organization={organization} volleyballStandings={volleyballStandings} topVolleyballScorers={topVolleyballScorers} topVolleyballAttackers={topVolleyballAttackers} topVolleyballBlockers={topVolleyballBlockers} topVolleyballAces={topVolleyballAces} upcomingVolleyballGames={upcomingVolleyballGames} completedVolleyballGames={completedVolleyballGames} allPlayerStats={allPlayerStats} allPlayers={allPlayers} allTeams={allTeams} isAdmin={isAdmin} getTeamName={getTeamName} />

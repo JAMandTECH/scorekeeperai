@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import TopAssistLeaders from "@/components/leaders/TopAssistLeaders";
+import StatsFetchingIndicator from "@/components/stats/StatsFetchingIndicator";
 import { createPageUrl } from "@/utils";
 
 export default function Statistics() {
@@ -145,7 +146,7 @@ export default function Statistics() {
   // backend function can return partial data on rate-limit/timeout, which made
   // the Statistics leaderboard diverge from the Dashboard. Matching the
   // Dashboard's approach guarantees identical numbers on both surfaces.
-  const { data: playerGameStats = [] } = useQuery({
+  const { data: playerGameStats = [], isFetching: isStatsFetching } = useQuery({
     queryKey: ['playerGameStats', orgId, JSON.stringify(gameIdsForStats)],
     queryFn: async () => {
       if (gameIdsForStats.length === 0) return [];
@@ -920,6 +921,7 @@ Please provide:
 
                 {/* PLAYER LEADERS TAB */}
                 <TabsContent value="players" className="space-y-6">
+                  <StatsFetchingIndicator fetching={isStatsFetching} label="Refreshing leaderboards…">
                   <div className="grid lg:grid-cols-2 gap-6 print:grid-cols-2 print:gap-4">
                     {/* Top Scorers */}
                     <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
@@ -1117,11 +1119,12 @@ Please provide:
                           </div>
                         </CardContent>
                       </Card>
-                    </div>
-                  )}
-                </TabsContent>
+                      </div>
+                      )}
+                      </StatsFetchingIndicator>
+                      </TabsContent>
 
-                {/* TEAM PLAYERS TAB */}
+                      {/* TEAM PLAYERS TAB */}
                 <TabsContent value="team-players" className="space-y-6">
                   {/* Team Filter */}
                   <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">

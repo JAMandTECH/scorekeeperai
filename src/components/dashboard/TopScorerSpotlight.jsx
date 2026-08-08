@@ -2,6 +2,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Crown, TrendingUp } from "lucide-react";
 import { usePlayerLeaders, buildLeaderboard } from "@/components/hooks/usePlayerLeaders";
+import StatsFetchingIndicator from "@/components/stats/StatsFetchingIndicator";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -151,7 +152,7 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
   }, [players]);
 
   // Same data source & logic as Category Leaders / Home / Statistics so the #1 scorer matches.
-  const { games, playerStats } = usePlayerLeaders(organizationId, teams);
+  const { games, playerStats, isLoading, isFetching } = usePlayerLeaders(organizationId, teams);
 
   // Resolve actual basketball division names used by this org.
   const basketballDivisions = React.useMemo(() => [...new Set(
@@ -208,9 +209,11 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
   const veteranTop = React.useMemo(() => buildTop(veteranDivision), [buildTop, veteranDivision]);
 
   return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <ScorerCard label="Open" topScorer={openTop} teamMap={teamMap} />
-      <ScorerCard label="Veterans" topScorer={veteranTop} teamMap={teamMap} />
-    </div>
+    <StatsFetchingIndicator loading={isLoading} fetching={isFetching} label="Refreshing top scorers…">
+      <div className="grid md:grid-cols-2 gap-6">
+        <ScorerCard label="Open" topScorer={openTop} teamMap={teamMap} />
+        <ScorerCard label="Veterans" topScorer={veteranTop} teamMap={teamMap} />
+      </div>
+    </StatsFetchingIndicator>
   );
 }
