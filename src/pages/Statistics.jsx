@@ -140,42 +140,29 @@ export default function Statistics() {
 
   const gameIdsForStats = filteredGameIds.length > 0 ? filteredGameIds : completedIds;
 
+  // Use the SAME stats-fetching path as the Dashboard/Home (usePlayerLeaders):
+  // direct PlayerGameStats.filter with $in chunks of 50. The getGamePlayerStats
+  // backend function can return partial data on rate-limit/timeout, which made
+  // the Statistics leaderboard diverge from the Dashboard. Matching the
+  // Dashboard's approach guarantees identical numbers on both surfaces.
   const { data: playerGameStats = [] } = useQuery({
     queryKey: ['playerGameStats', orgId, JSON.stringify(gameIdsForStats)],
     queryFn: async () => {
       if (gameIdsForStats.length === 0) return [];
-
-      // Split into smaller frontend chunks so each backend call stays under
-      // rate-limit / response-size limits. Without this, large divisions
-      // (e.g. Veterans with many games) can return partial data and the
-      // leaderboards appear empty.
-      const FRONTEND_CHUNK = 25;
-      const allStats = [];
-      for (let i = 0; i < gameIdsForStats.length; i += FRONTEND_CHUNK) {
-        const chunk = gameIdsForStats.slice(i, i + FRONTEND_CHUNK);
-        let chunkStats = [];
+      const results = [];
+      for (let i = 0; i < gameIdsForStats.length; i += 50) {
+        const chunk = gameIdsForStats.slice(i, i + 50);
         try {
-          const res = await base44.functions.invoke('getGamePlayerStats', { game_ids: chunk });
-          chunkStats = Array.isArray(res.data) ? res.data : [];
-        } catch (e) {
-          console.warn('getGamePlayerStats chunk failed, falling back to direct fetch:', e?.message || e);
+          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
+          results.push(...part);
+        } catch (_) {
+          const per = await Promise.all(
+            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
+          );
+          results.push(...per.flat());
         }
-
-        // Fallback: direct entity fetch for this chunk if function returned empty
-        if (!chunkStats || chunkStats.length === 0) {
-          try {
-            chunkStats = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
-          } catch (_) {
-            const per = await Promise.all(
-              chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
-            );
-            chunkStats = per.flat();
-          }
-        }
-        allStats.push(...(chunkStats || []));
       }
-
-      return allStats;
+      return results;
     },
     enabled: gameIdsForStats.length > 0,
     staleTime: 30000,
