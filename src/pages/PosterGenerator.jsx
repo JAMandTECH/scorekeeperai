@@ -119,9 +119,13 @@ export default function PosterGenerator() {
       maxY = Math.min(h - 1, maxY + margin);
       const cropW = maxX - minX + 1;
       const cropH = maxY - minY + 1;
+      const scale = 2;
       const out = document.createElement('canvas');
-      out.width = cropW; out.height = cropH;
-      out.getContext('2d').drawImage(c, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
+      out.width = cropW * scale; out.height = cropH * scale;
+      const outCtx = out.getContext('2d');
+      outCtx.imageSmoothingEnabled = true;
+      outCtx.imageSmoothingQuality = 'high';
+      outCtx.drawImage(c, minX, minY, cropW, cropH, 0, 0, cropW * scale, cropH * scale);
       const outBlob = await new Promise((resolve) => out.toBlob((b) => resolve(b || inBlob), 'image/png'));
       return outBlob || inBlob;
     } catch (_) {
