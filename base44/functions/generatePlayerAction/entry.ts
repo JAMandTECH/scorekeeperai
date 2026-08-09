@@ -50,8 +50,9 @@ Deno.serve(async (req) => {
       `The athlete is ${actionDesc}.`,
       `CRITICAL: Maintain the exact same facial features, face structure, skin tone, and hair as the reference photo.`,
       `The athlete is ${jerseyHint} ${teamHint}—keep the jersey design, colors, and number identical to the reference.`,
-      `Dynamic full-body action pose, stadium arena background with dramatic professional lighting.`,
-      `Ultra-detailed, sharp focus, professional sports magazine quality, no text or watermarks.`,
+      `COMPOSITION: Tight full-body action shot, athlete centered and filling 90% of the frame edge-to-edge, head near top, feet near bottom, minimal empty space around the body.`,
+      `Clean solid dark background, studio backdrop, easy to cut out, no stadium, no crowd, no complex scenery behind the athlete.`,
+      `Dynamic action pose, dramatic professional lighting on the athlete, sharp focus, professional sports magazine quality, no text or watermarks.`,
     ].join(' ');
 
     const gen = await base44.integrations.Core.GenerateImage({
