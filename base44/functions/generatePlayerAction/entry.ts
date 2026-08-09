@@ -36,20 +36,20 @@ Deno.serve(async (req) => {
     if (user.role !== 'admin') return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
 
     const body = await req.json();
-    const { playerImageUrl, action, sport, jerseyNumber, teamName, faceSwap } = body || {};
+    const { playerImageUrl, action, sport, faceSwap } = body || {};
     if (!playerImageUrl) return Response.json({ error: 'playerImageUrl is required' }, { status: 400 });
     if (!action || !ACTION_PROMPTS[action]) return Response.json({ error: 'A valid action is required' }, { status: 400 });
 
     const sportLabel = sport === 'volleyball' ? 'volleyball' : 'basketball';
     const actionDesc = ACTION_PROMPTS[action];
-    const jerseyHint = jerseyNumber ? `wearing jersey #${jerseyNumber}` : 'wearing the team jersey';
-    const teamHint = teamName ? `for team ${teamName}` : '';
 
     const prompt = [
       `Photorealistic professional ${sportLabel} sports photography of the exact same athlete shown in the reference photo.`,
       `The athlete is ${actionDesc}.`,
       `CRITICAL: Maintain the exact same facial features, face structure, skin tone, and hair as the reference photo.`,
-      `The athlete is ${jerseyHint} ${teamHint}—keep the jersey design, colors, and number identical to the reference.`,
+      `JERSEY: Preserve the exact jersey colors, design, and uniform style from the reference photo.`,
+      `DO NOT render, invent, or alter any jersey numbers, team names, logos, or text on the jersey—leave all text areas blank and clean.`,
+      `The jersey should have the correct colors and design but no printed text or numbers.`,
       `COMPOSITION: Tight full-body action shot, athlete centered and filling 90% of the frame edge-to-edge, head near top, feet near bottom, minimal empty space around the body.`,
       `Clean solid dark background, studio backdrop, easy to cut out, no stadium, no crowd, no complex scenery behind the athlete.`,
       `Dynamic action pose, dramatic professional lighting on the athlete, sharp focus, professional sports magazine quality, no text or watermarks.`,
