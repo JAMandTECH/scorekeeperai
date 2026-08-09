@@ -49,7 +49,8 @@ Deno.serve(async (req) => {
       `CRITICAL: Maintain the exact same facial features, face structure, skin tone, and hair as the reference photo.`,
       `JERSEY: Copy the jersey EXACTLY from the reference photo—same colors, design, font, numbers, and team name text as they appear in the reference.`,
       `CRITICAL: Do NOT invent, change, or alter any jersey numbers or team name text. Reproduce them exactly as shown in the reference photo.`,
-      `COMPOSITION: Tight full-body action shot, athlete centered and filling 90% of the frame edge-to-edge, head near top, feet near bottom, minimal empty space around the body.`,
+      `COMPOSITION: FULL-BODY shot from head to toe—capture the entire athlete including the top of the head and the bottom of the shoes, nothing cropped or cut off.`,
+      `Frame the athlete centered with the full body visible: head near the top edge and feet/shoes near the bottom edge, with a small margin so no body parts are clipped.`,
       `Clean solid dark background, studio backdrop, easy to cut out, no stadium, no crowd, no complex scenery behind the athlete.`,
       `Dynamic action pose, dramatic professional lighting on the athlete, sharp focus, professional sports magazine quality, no text or watermarks.`,
     ].join(' ');
