@@ -78,7 +78,7 @@ export default function PosterGenerator() {
   const [dateTo, setDateTo] = React.useState('');
 
   // Trim transparent margins to keep only the main subject area
-  const trimTransparentPNG = async (inBlob, threshold = 10, margin = 8) => {
+  const trimTransparentPNG = async (inBlob, threshold = 1, margin = 24) => {
     try {
       let img;
       if ('createImageBitmap' in window) {
@@ -489,7 +489,7 @@ export default function PosterGenerator() {
                           }
                         });
                         // Auto-trim to main subject (remove transparent margins)
-                        const trimmed = await trimTransparentPNG(blob, 10, 8);
+                        const trimmed = await trimTransparentPNG(blob, 1, 24);
                         const processedFile = new File([trimmed], `player-nobg-${Date.now()}.png`, { type: 'image/png' });
                         const upload = await base44.integrations.Core.UploadFile({ file: processedFile });
                         setBestPlayerImageUrl(upload.file_url);
@@ -504,7 +504,7 @@ export default function PosterGenerator() {
                         if (res?.data?.dataUrl) {
                           // Convert dataURL → Blob, trim to subject, then upload for a clean URL
                           const rawBlob = await (await fetch(res.data.dataUrl)).blob();
-                          const trimmed = await trimTransparentPNG(rawBlob, 10, 8);
+                          const trimmed = await trimTransparentPNG(rawBlob, 1, 24);
                           const processedFile = new File([trimmed], `player-nobg-${Date.now()}.png`, { type: 'image/png' });
                           const upload = await base44.integrations.Core.UploadFile({ file: processedFile });
                           setBestPlayerImageUrl(upload.file_url);
