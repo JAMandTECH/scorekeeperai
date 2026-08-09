@@ -21,6 +21,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { loadAllStatsPaginated } from "@/lib/liveScoringHelpers";
 import SyncStatusBadge from "@/components/SyncStatusBadge";
 import { enqueueStatWrite, enqueueGameWrite, startStatSync } from "@/lib/statSyncQueue";
+import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 
 export default function LiveScoring() {
   const [game, setGame] = useState(null);
@@ -1320,6 +1321,13 @@ const [deletingGame, setDeletingGame] = useState(false);
               <Button onClick={() => setShowMoveStat(true)} variant="outline" className="border-2 border-yellow-600 text-yellow-700 dark:text-yellow-200">Move Stats</Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Live Stream Embed (YouTube) — hidden automatically when stream_url is empty */}
+      {game.stream_url && game.stream_url.trim().length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 mt-4">
+          <LiveStreamEmbed streamUrl={game.stream_url} gameTitle={`${homeTeam.name} vs ${awayTeam.name}`} />
         </div>
       )}
 
