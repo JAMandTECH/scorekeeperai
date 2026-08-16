@@ -170,6 +170,9 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
       if (!src || !src.winner_team_id) return;
       const dest = byId[c.to];
       if (!dest) return;
+      // Don't advance a winner that is already placed in this destination card
+      // (prevents duplicate same-team in both slots when home was pre-seeded).
+      if (dest.home_team_id === src.winner_team_id || dest.away_team_id === src.winner_team_id) return;
       const slotKey = dest.home_team_id ? 'away_team_id' : 'home_team_id';
       if (!dest[slotKey]) {
         dest[slotKey] = src.winner_team_id;
