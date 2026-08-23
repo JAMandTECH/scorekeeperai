@@ -2,6 +2,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 // Playoff game types that map directly to bracket round names.
 const PLAYOFF_ROUND_TYPES = ['play_in', 'quarter_finals', 'semi_finals', 'finals'];
+// Broader set for series recomputation — includes 'playoffs' catch-all.
+// Matches the frontend's PLAYOFF_TYPES in BracketVisual.jsx.
+const SERIES_GAME_TYPES = ['play_in', 'playoffs', 'quarter_finals', 'semi_finals', 'finals'];
 
 // Determines the winning team id of a completed game.
 function getGameWinner(game) {
@@ -64,6 +67,13 @@ Deno.serve(async (req) => {
     if (game.status !== 'completed') {
       return Response.json({ success: true, updated: 0, message: 'game not completed' });
     }
+
+    // Load all organization games once — used to recompute each match's series
+    // from ALL completed games between its two teams (not just stored
+    // game_ids, which can be stale or incomplete). Mirrors the frontend.
+    const orgGames = await base44.asServiceRole.entities.Game.filter({
+      organization_id: game.organization_id,
+    });
 
     // Find all bracket matches that already reference this game.
     const allMatches = await base44.asServiceRole.entities.BracketMatch.list();
@@ -155,58 +165,91 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, updated: 0, message: 'No linked bracket matches and no auto-link candidate found' });
     }
 
-    let updated = 0;
-    for (const match of linkedMatches) {
-      // Load all games linked to this match.
-      const games = [];
-      for (const gid of match.game_ids) {
-        const g = await base44.asServiceRole.entities.Game.filter({ id: gid });
-        if (g && g[0]) games.push(g[0]);
+    // Recompute a match's series from ALL completed org games between its two
+    // teams (not just stored game_ids). Returns update data or null if no change.
+    const recompute = (match) => {
+      if (!match.home_team_id || !match.away_team_id) return null;
+      const teams = [match.home_team_id, match.away_team_id];
+      const seriesGames = orgGames.filter(g =>
+        g.status === 'completed' &&
+        SERIES_GAME_TYPES.includes(g.game_type) &&
+        ((g.home_team_id === teams[0] && g.away_team_id === teams[1]) ||
+         (g.home_team_id === teams[1] && g.away_team_id === teams[0]))
+      );
+      let homeWins = 0, awayWins = 0;
+      for (const g of seriesGames) {
+        const w = getGameWinner(g);
+        if (w === match.home_team_id) homeWins++;
+        else if (w === match.away_team_id) awayWins++;
       }
+      const required = Number(match.required_wins || 1);
+      const winner = homeWins >= required ? match.home_team_id
+        : awayWins >= required ? match.away_team_id : null;
+      const newStatus = winner ? 'completed'
+        : (homeWins + awayWins) > 0 ? 'in_progress' : match.status;
+      const newGameIds = [...new Set(seriesGames.map(g => g.id))];
 
-      const { homeWins, awayWins } = computeSeriesFromGames(match, games);
-      const requiredWins = Number(match.required_wins || 1);
-
-      const updateData = {
+      // Skip write if nothing changed — protects working data.
+      if (match.home_team_wins === homeWins && match.away_team_wins === awayWins &&
+          match.winner_team_id === winner && match.status === newStatus) {
+        return null;
+      }
+      return {
         home_team_wins: homeWins,
         away_team_wins: awayWins,
+        winner_team_id: winner,
+        status: newStatus,
+        game_ids: newGameIds,
       };
+    };
 
-      // Decide series winner / status
-      if (homeWins >= requiredWins) {
-        updateData.winner_team_id = match.home_team_id;
-        updateData.status = 'completed';
-      } else if (awayWins >= requiredWins) {
-        updateData.winner_team_id = match.away_team_id;
-        updateData.status = 'completed';
-      } else {
-        updateData.winner_team_id = null;
-        updateData.status = (homeWins + awayWins) > 0 ? 'in_progress' : match.status;
-      }
+    // Iteratively recompute series and advance winners through the bracket
+    // tree until no match changes. This cascades QF → SF → Finals in one call.
+    let updated = 0;
+    let currentBatch = [...linkedMatches];
+    let iterations = 0;
+    while (currentBatch.length > 0 && iterations < 10) {
+      iterations++;
+      const nextBatch = [];
 
-      await base44.asServiceRole.entities.BracketMatch.update(match.id, updateData);
-      updated++;
-      console.log(`Match ${match.id} (${match.round_name}): home=${homeWins} away=${awayWins} required=${requiredWins} winner=${updateData.winner_team_id || 'none'}`);
-
-      // Advance winner into the next match slot, if decided and linked.
-      if (updateData.winner_team_id && match.next_match_id) {
-        const slotField = match.is_home_slot ? 'home_team_id' : 'away_team_id';
-        const nextUpdate = { [slotField]: updateData.winner_team_id };
-
-        // Update next match status to 'ready' if both slots will be filled.
-        const nextMatchResult = await base44.asServiceRole.entities.BracketMatch.filter({ id: match.next_match_id });
-        const nextMatch = nextMatchResult && nextMatchResult[0];
-        if (nextMatch) {
-          const otherSlot = match.is_home_slot ? 'away_team_id' : 'home_team_id';
-          const otherTeam = nextMatch[otherSlot];
-          if (otherTeam) {
-            nextUpdate.status = 'ready';
-          }
+      for (const match of currentBatch) {
+        const updateData = recompute(match);
+        let current = match;
+        if (updateData) {
+          await base44.asServiceRole.entities.BracketMatch.update(match.id, updateData);
+          current = { ...match, ...updateData };
+          updated++;
+          console.log(`Match ${match.id} (${match.round_name}): home=${updateData.home_team_wins} away=${updateData.away_team_wins} winner=${updateData.winner_team_id || 'none'}`);
         }
 
-        await base44.asServiceRole.entities.BracketMatch.update(match.next_match_id, nextUpdate);
-        console.log(`Advanced winner ${updateData.winner_team_id} to next match ${match.next_match_id} (${slotField})`);
+        // Advance winner to next match and queue it for recomputation (cascade).
+        if (current.winner_team_id && current.next_match_id) {
+          const nextRes = await base44.asServiceRole.entities.BracketMatch.filter({ id: current.next_match_id });
+          const nextMatch = nextRes && nextRes[0];
+          if (nextMatch) {
+            const slot = current.is_home_slot ? 'home_team_id' : 'away_team_id';
+            // Only fill empty slots — never overwrite an existing team.
+            if (!nextMatch[slot] && nextMatch[slot] !== current.winner_team_id) {
+              const upd = { [slot]: current.winner_team_id };
+              const other = current.is_home_slot ? 'away_team_id' : 'home_team_id';
+              if (nextMatch[other]) upd.status = 'ready';
+              await base44.asServiceRole.entities.BracketMatch.update(current.next_match_id, upd);
+              console.log(`Advanced winner ${current.winner_team_id} → ${current.next_match_id} (${slot})`);
+            }
+            // Queue the fresh next match for recomputation (cascade).
+            const fresh = await base44.asServiceRole.entities.BracketMatch.filter({ id: current.next_match_id });
+            if (fresh && fresh[0]) nextBatch.push(fresh[0]);
+          }
+        }
       }
+
+      // Deduplicate next batch by match id.
+      const seen = new Set();
+      currentBatch = nextBatch.filter(m => {
+        if (seen.has(m.id)) return false;
+        seen.add(m.id);
+        return true;
+      });
     }
 
     return Response.json({ success: true, updated });
