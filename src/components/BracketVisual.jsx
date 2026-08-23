@@ -160,39 +160,48 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
       }
     });
 
-    // Pass 2: advance each decided card's winner into the connected
-    // destination card's EMPTY slot. We intentionally do NOT use is_home_slot
-    // here: that field describes BracketMatch slots, which may not match the
-    // manual card layout (e.g. the destination's home slot may already hold a
-    // seeded team). Filling the empty slot matches what the user sees.
-    connectors.forEach(c => {
-      const src = byId[c.from];
-      if (!src || !src.winner_team_id) return;
-      const dest = byId[c.to];
-      if (!dest) return;
-      // Don't advance a winner that is already placed in this destination card
-      // (prevents duplicate same-team in both slots when home was pre-seeded).
-      if (dest.home_team_id === src.winner_team_id || dest.away_team_id === src.winner_team_id) return;
-      const slotKey = dest.home_team_id ? 'away_team_id' : 'home_team_id';
-      if (!dest[slotKey]) {
-        dest[slotKey] = src.winner_team_id;
-        dest._advanced = true;
-      }
-    });
+    // Iteratively advance winners through connectors and recompute series
+    // state until no card changes in a full pass. This cascades QF winners
+    // into SF, then SF winners into Finals — a single pass would miss the
+    // second hop because SF winners are only computed after QF winners land.
+    let changed = true;
+    let iterations = 0;
+    while (changed && iterations < 10) {
+      changed = false;
+      iterations++;
 
-    // Pass 3: recompute series state for destination cards that just received
-    // an advanced team (both slots now filled) so their counts render too.
-    Object.values(byId).forEach(card => {
-      if (!card._advanced) return;
-      const s = computeSeries(card.home_team_id, card.away_team_id, card.required_wins);
-      if (s) {
-        card.home_team_wins = s.home_team_wins;
-        card.away_team_wins = s.away_team_wins;
-        card.winner_team_id = s.winner_team_id;
-        card.status = s.status;
-        card.game_ids = s.game_ids;
-      }
-    });
+      connectors.forEach(c => {
+        const src = byId[c.from];
+        if (!src || !src.winner_team_id) return;
+        const dest = byId[c.to];
+        if (!dest) return;
+        // Don't advance a winner that is already placed in this destination card
+        // (prevents duplicate same-team in both slots when home was pre-seeded).
+        if (dest.home_team_id === src.winner_team_id || dest.away_team_id === src.winner_team_id) return;
+        const slotKey = dest.home_team_id ? 'away_team_id' : 'home_team_id';
+        if (!dest[slotKey]) {
+          dest[slotKey] = src.winner_team_id;
+          dest._advanced = true;
+          changed = true;
+        }
+      });
+
+      // Recompute series state for cards that just received an advanced team
+      // so their counts render and their winner can advance next iteration.
+      Object.values(byId).forEach(card => {
+        if (!card._advanced) return;
+        card._advanced = false;
+        const s = computeSeries(card.home_team_id, card.away_team_id, card.required_wins);
+        if (s) {
+          card.home_team_wins = s.home_team_wins;
+          card.away_team_wins = s.away_team_wins;
+          card.winner_team_id = s.winner_team_id;
+          card.status = s.status;
+          card.game_ids = s.game_ids;
+          if (s.winner_team_id) changed = true;
+        }
+      });
+    }
 
     return manualMatches.map(m => {
       const { _advanced, ...rest } = byId[m.id];
