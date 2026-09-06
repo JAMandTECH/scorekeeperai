@@ -2,34 +2,39 @@
 
 Independent version of ScorekeeperAI, migrated away from Base44 toward Supabase.
 
-## Current branch
+## Branch safety
 
-`scorepilot-ai-independent`
-
-The original `main` branch is preserved and is not modified by this migration.
+`scorepilot-ai-independent` is the independent implementation branch. The original `main` branch remains preserved and is not overwritten by this migration.
 
 ## Architecture
 
 - React + Vite frontend
 - Supabase Auth
 - Supabase PostgreSQL
-- Supabase Storage / Realtime as needed
+- Supabase Storage
+- Supabase Realtime
 - Supabase Edge Functions
-- No Base44 SDK dependency in the frontend
+- No Base44 SDK or Base44 Vite plugin in the application runtime
 
-## Migration status
+## Independent implementation
 
-The branch now includes:
+The branch contains the independent application/data foundation and the major live-scoring backend paths:
 
-- Supabase-native authentication and login flow
-- Supabase client and data compatibility layer
-- Basketball and volleyball standings logic
-- Player-game aggregation and leaderboards
-- Supabase Edge Function dispatcher
-- Initial JSONB compatibility schema for safe transition
-- Relational production schema for organizations, memberships, teams, players, divisions, games, player game stats, season stats, and notifications
+- Supabase-native authentication and profile bootstrap
+- Supabase relational schema for organizations, memberships, teams, players, divisions, games, player-game stats, season stats and notifications
+- Organization-aware Row Level Security
+- Realtime support for live game/stat updates
+- Basketball standings and volleyball set-based standings
+- Game score updates and player-stat upserts
+- Player-game leaderboards and season assist leaders
+- Player-stat aggregation after completed games
+- Public live-game scoreboard through a dedicated safe Edge Function
+- Supabase Storage helpers
+- Edge Function dispatcher for privileged server operations
+- AI function integration point for Gemini-compatible providers
+- Independence guard in CI to prevent accidental Base44 runtime dependencies
 
-The relational migration is stored under `supabase/migrations/002_scorepilot_relational.sql` and has not been applied to the inactive Supabase project yet.
+The old `base44/` directory is retained only as a migration/reference source. The browser application does not use the Base44 SDK.
 
 ## Environment
 
@@ -38,13 +43,21 @@ Create `.env` from `.env.example` and provide:
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 
-Do not put a Supabase service-role/secret key in the browser environment.
+Never place a Supabase service-role/secret key in browser environment variables.
 
-## Next migration stage
+## Supabase deployment
 
-1. Restore/activate the intended Supabase project when ready.
-2. Apply and verify the relational migrations.
-3. Migrate the compatibility layer from `scorepilot_entities` to the relational tables.
-4. Port remaining privileged Base44 server functions to Supabase Edge Functions.
-5. Run the full frontend build/typecheck and live functional tests.
-6. Remove the remaining `base44/` reference implementation after parity is verified.
+The SQL migrations are committed under `supabase/migrations/` in dependency order. The intended Supabase project is currently inactive, so these migrations have been deliberately kept in GitHub and have not been executed against that project.
+
+When the project is restored/activated, apply migrations `001` through `007`, deploy the Edge Functions under `supabase/functions/`, configure the required provider secrets, then run the application CI and live scoring smoke tests.
+
+## Validation
+
+GitHub Actions runs:
+
+1. dependency installation
+2. Base44 independence verification
+3. TypeScript typecheck
+4. production Vite build
+
+The latest branch CI is used as the final code-level validation gate before production deployment.
