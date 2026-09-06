@@ -49,13 +49,7 @@ const matches = (row, filters = {}) => Object.entries(filters).every(([key, valu
 });
 
 const mapGenericRow = (row) => (row ? { ...row.data, id: row.id, created_date: row.created_at, updated_date: row.updated_at } : null);
-
-const mapRelationalRow = (row, table) => {
-  if (!row) return null;
-  const result = { ...row, created_date: row.created_at, updated_date: row.updated_at };
-  if (table === 'scorepilot_organizations') result.theme = result.settings?.theme ?? result.theme;
-  return result;
-};
+const mapRelationalRow = (row) => (row ? { ...row, created_date: row.created_at, updated_date: row.updated_at } : null);
 
 const cleanRelationalPayload = (table, payload = {}) => {
   const allowed = new Set(RELATIONAL_COLUMNS[table] || []);
@@ -73,7 +67,7 @@ const makeSubscription = (filters, entityName, callback) => {
     .channel(`scorepilot:${entityName}:${crypto.randomUUID()}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: table || ENTITY_TABLE }, (payload) => {
       const source = payload.new && Object.keys(payload.new).length ? payload.new : payload.old;
-      const row = table ? mapRelationalRow(source, table) : mapGenericRow(source);
+      const row = table ? mapRelationalRow(source) : mapGenericRow(source);
       if (!row || !matches(row, filters)) return;
       callback({ type: String(payload.eventType || '').toLowerCase(), event: payload.eventType, id: row.id, data: row });
     })
@@ -85,39 +79,37 @@ const relationalEntity = (entityName, table) => ({
   async list(sort, limit) {
     const { data, error } = await supabase.from(table).select('*');
     if (error) throw error;
-    const rows = sortRows((data || []).map((row) => mapRelationalRow(row, table)), sort);
+    const rows = sortRows((data || []).map(mapRelationalRow), sort);
     return typeof limit === 'number' ? rows.slice(0, limit) : rows;
   },
   async filter(filters = {}, sort, limit) {
     let query = supabase.from(table).select('*');
     const relationalKeys = new Set(RELATIONAL_COLUMNS[table] || []);
     for (const [key, value] of Object.entries(filters)) {
-      if (value !== undefined && value !== null && value !== '' && relationalKeys.has(key)) {
-        query = Array.isArray(value) ? query.in(key, value) : query.eq(key, value);
-      }
+      if (value !== undefined && value !== null && value !== '' && relationalKeys.has(key)) query = Array.isArray(value) ? query.in(key, value) : query.eq(key, value);
     }
     const { data, error } = await query;
     if (error) throw error;
-    const rows = sortRows((data || []).map((row) => mapRelationalRow(row, table)).filter((row) => matches(row, filters)), sort);
+    const rows = sortRows((data || []).map(mapRelationalRow).filter((row) => matches(row, filters)), sort);
     return typeof limit === 'number' ? rows.slice(0, limit) : rows;
   },
   async get(id) {
     const { data, error } = await supabase.from(table).select('*').eq('id', id).maybeSingle();
     if (error) throw error;
-    return mapRelationalRow(data, table);
+    return mapRelationalRow(data);
   },
   async create(payload) {
     const clean = cleanRelationalPayload(table, payload);
     if (payload.id) clean.id = payload.id;
     const { data, error } = await supabase.from(table).insert(clean).select('*').single();
     if (error) throw error;
-    return mapRelationalRow(data, table);
+    return mapRelationalRow(data);
   },
   async update(id, payload) {
     const clean = cleanRelationalPayload(table, payload);
     const { data, error } = await supabase.from(table).update(clean).eq('id', id).select('*').single();
     if (error) throw error;
-    return mapRelationalRow(data, table);
+    return mapRelationalRow(data);
   },
   async delete(id) {
     const { error } = await supabase.from(table).delete().eq('id', id);
@@ -213,15 +205,33 @@ const calculateStandings = async (payload = {}) => {
   const completed = games.filter((game) => !game.archived && String(game.game_type || 'regular_season') === 'regular_season' && String(game.sport || sport).toLowerCase() === sport);
   const table = new Map(scopedTeams.map((team) => [team.id, { ...team, wins: 0, losses: 0 }]));
   for (const game of completed) {
-    const home = table.get(game.home_team_id); const away = table.get(game.away_team_id); if (!home || !away) continue;
-    let homeWon = false; let awayWon = false;
+    const home = table.get(game.home_team_id);
+    const away = table.get(game.away_team_id);
+    if (!home || !away) continue;
+    let homeWon = false;
+    let awayWon = false;
     if (sport === 'volleyball') {
-      let homeSets = 0; let awaySets = 0;
-      for (const set of Array.isArray(game.quarter_scores) ? game.quarter_scores : []) { const hs = num(set?.home); const as = num(set?.away); if (hs > as) homeSets++; else if (as > hs) awaySets++; }
-      if (homeSets !== awaySets) { homeWon = homeSets > awaySets; awayWon = awaySets > homeSets; }
-      else { homeWon = num(game.home_score) > num(game.away_score); awayWon = num(game.away_score) > num(game.home_score); }
-    } else { homeWon = num(game.home_score) > num(game.away_score); awayWon = num(game.away_score) > num(game.home_score); }
-    if (homeWon) { home.wins++; away.losses++; } else if (awayWon) { away.wins++; home.losses++; }
+      let homeSets = 0;
+      let awaySets = 0;
+      for (const set of Array.isArray(game.quarter_scores) ? game.quarter_scores : []) {
+        const hs = num(set?.home);
+        const as = num(set?.away);
+        if (hs > as) homeSets++;
+        else if (as > hs) awaySets++;
+      }
+      if (homeSets !== awaySets) {
+        homeWon = homeSets > awaySets;
+        awayWon = awaySets > homeSets;
+      } else {
+        homeWon = num(game.home_score) > num(game.away_score);
+        awayWon = num(game.away_score) > num(game.home_score);
+      }
+    } else {
+      homeWon = num(game.home_score) > num(game.away_score);
+      awayWon = num(game.away_score) > num(game.home_score);
+    }
+    if (homeWon) { home.wins++; away.losses++; }
+    else if (awayWon) { away.wins++; home.losses++; }
   }
   let rows = [...table.values()];
   if (division) rows = rows.filter((team) => String(team.division || '').toLowerCase().includes(division));
@@ -230,9 +240,9 @@ const calculateStandings = async (payload = {}) => {
 };
 
 const getTopAssistLeadersLocal = async (payload = {}) => {
-  const [stats, players] = await Promise.all([getEntities('PlayerSeasonStats', {}), getEntities('Player', {})]);
+  const [stats, players] = await Promise.all([entity('PlayerSeasonStats').filter(payload.organization_id ? { organization_id: payload.organization_id } : {}), entity('Player').list()]);
   const playerById = new Map(players.map((player) => [player.id, player]));
-  return stats.filter((row) => !payload.organization_id || row.organization_id === payload.organization_id).sort((a, b) => num(b.assists) - num(a.assists) || num(b.points) - num(a.points)).slice(0, Number(payload.limit || 10)).map((row) => ({ ...row, player_name: playerById.get(row.player_id)?.name || 'Unknown Player' }));
+  return stats.sort((a, b) => num(b.assists) - num(a.assists) || num(b.points) - num(a.points)).slice(0, Number(payload.limit || 10)).map((row) => ({ ...row, player_name: playerById.get(row.player_id)?.name || 'Unknown Player' }));
 };
 
 const getTopPlayersForGameLocal = async (payload = {}) => {
@@ -241,11 +251,13 @@ const getTopPlayersForGameLocal = async (payload = {}) => {
   const playerById = new Map(players.map((player) => [player.id, player]));
   const totals = new Map();
   const statKeys = ['points', 'rebounds', 'assists', 'steals', 'blocks', 'fouls', 'three_pointers', 'field_goals_made', 'field_goals_attempted', 'free_throws_made', 'free_throws_attempted', 'aces', 'attacks', 'rally_errors'];
-  for (const row of rows) { const entry = totals.get(row.player_id) || { player_id: row.player_id, team_id: row.team_id, game_id: row.game_id }; for (const key of statKeys) entry[key] = num(entry[key]) + num(row[key]); totals.set(row.player_id, entry); }
+  for (const row of rows) {
+    const entry = totals.get(row.player_id) || { player_id: row.player_id, team_id: row.team_id, game_id: row.game_id };
+    for (const key of statKeys) entry[key] = num(entry[key]) + num(row[key]);
+    totals.set(row.player_id, entry);
+  }
   return [...totals.values()].map((row) => ({ ...row, player_name: playerById.get(row.player_id)?.name || 'Unknown Player' })).sort((a, b) => num(b.points) - num(a.points) || num(b.assists) - num(a.assists) || num(b.rebounds) - num(a.rebounds));
 };
-
-const getEntities = async (name, filters = {}) => entity(name).filter(filters);
 
 const uploadFile = async ({ file, path, bucket = MEDIA_BUCKET } = {}) => {
   if (!file) throw new Error('file is required');
@@ -262,8 +274,8 @@ const createFileSignedUrl = async ({ file_uri, expires_in = 300, bucket = MEDIA_
   const parts = String(file_uri).split('/');
   const uriBucket = parts.shift();
   const objectPath = parts.join('/');
-  const targetBucket = uriBucket === bucket ? bucket : bucket;
-  const { data, error } = await supabase.storage.from(targetBucket).createSignedUrl(uriBucket === targetBucket ? objectPath : file_uri, Number(expires_in));
+  const targetBucket = uriBucket || bucket;
+  const { data, error } = await supabase.storage.from(targetBucket).createSignedUrl(objectPath, Number(expires_in));
   if (error) throw error;
   return { signed_url: data.signedUrl, file_url: data.signedUrl };
 };
@@ -292,18 +304,35 @@ const integrations = {
 const invokeLocal = async (name, payload = {}) => {
   switch (name) {
     case 'updateGame': return { data: await entity('Game').update(payload.game_id, payload.patch || {}) };
-    case 'getGamePlayerStats': { const ids = payload.game_ids || []; const rows = await entity('PlayerGameStats').list(); return { data: ids.length ? rows.filter((row) => ids.includes(row.game_id)) : rows }; }
+    case 'getGamePlayerStats': {
+      const ids = payload.game_ids || [];
+      const rows = await entity('PlayerGameStats').list();
+      return { data: ids.length ? rows.filter((row) => ids.includes(row.game_id)) : rows };
+    }
     case 'upsertPlayerStat': {
       const rows = await entity('PlayerGameStats').filter({ game_id: payload.game_id, player_id: payload.player_id });
       const existing = rows.find((row) => num(row.quarter) === num(payload.quarter));
       return { data: existing ? await entity('PlayerGameStats').update(existing.id, payload) : await entity('PlayerGameStats').create(payload) };
     }
-    case 'getDivisionStandings': try { return { data: await callEdgeFunction('getDivisionStandings', payload) }; } catch (_) { return { data: await calculateStandings(payload) }; }
-    case 'getTopAssistLeaders': try { return { data: await callEdgeFunction('getTopAssistLeaders', payload) }; } catch (_) { return { data: await getTopAssistLeadersLocal(payload) }; }
-    case 'getTopPlayersForGame': try { return { data: await callEdgeFunction('getTopPlayersForGame', payload) }; } catch (_) { return { data: await getTopPlayersForGameLocal(payload) }; }
-    case 'recalcStandings': return { data: await callEdgeFunction('recalcStandings', payload) };
+    case 'getDivisionStandings':
+      try { return { data: await callEdgeFunction(name, payload) }; } catch (_) { return { data: await calculateStandings(payload) }; }
+    case 'getTopAssistLeaders':
+      try { return { data: await callEdgeFunction(name, payload) }; } catch (_) { return { data: await getTopAssistLeadersLocal(payload) }; }
+    case 'getTopPlayersForGame':
+      try { return { data: await callEdgeFunction(name, payload) }; } catch (_) { return { data: await getTopPlayersForGameLocal(payload) }; }
+    case 'recalcStandings': return { data: await callEdgeFunction(name, payload) };
     case 'aggregatePlayerStats':
-    case 'onGameCompletedAggregate': return { data: await callEdgeFunction(name, payload) };
+    case 'onGameCompletedAggregate':
+    case 'getScorekeepers':
+    case 'scheduledStatsBackfill':
+    case 'finalizeMostRecentCompleted':
+    case 'repairGameScores':
+    case 'autoFixDataIntegrity':
+    case 'runDataHealthChecks':
+    case 'updateTeamRecords':
+    case 'rebuildPlayerSeasonStats':
+    case 'syncBracketFromGame':
+      return { data: await callEdgeFunction(name, payload) };
     default: return { data: await callEdgeFunction(name, payload) };
   }
 };
