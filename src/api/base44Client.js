@@ -48,16 +48,12 @@ const matches = (row, filters = {}) => Object.entries(filters).every(([key, valu
   return Array.isArray(value) ? value.includes(row?.[key]) : row?.[key] === value;
 });
 
-const mapGenericRow = (row) => (
-  row ? { ...row.data, id: row.id, created_date: row.created_at, updated_date: row.updated_at } : null
-);
+const mapGenericRow = (row) => (row ? { ...row.data, id: row.id, created_date: row.created_at, updated_date: row.updated_at } : null);
 
 const mapRelationalRow = (row, table) => {
   if (!row) return null;
   const result = { ...row, created_date: row.created_at, updated_date: row.updated_at };
-  // Preserve unknown legacy fields in a nested object where the relational schema supports one.
   if (table === 'scorepilot_organizations') result.theme = result.settings?.theme ?? result.theme;
-  if (table === 'scorepilot_players') result.metadata = result.metadata || {};
   return result;
 };
 
@@ -67,26 +63,19 @@ const cleanRelationalPayload = (table, payload = {}) => {
   for (const [key, value] of Object.entries(payload)) {
     if (allowed.has(key) && !['created_date', 'updated_date', 'created_at', 'updated_at'].includes(key)) clean[key] = value;
   }
-  if (table === 'scorepilot_organizations' && payload.theme) {
-    clean.settings = { ...(clean.settings || {}), theme: payload.theme };
-  }
+  if (table === 'scorepilot_organizations' && payload.theme) clean.settings = { ...(clean.settings || {}), theme: payload.theme };
   return clean;
 };
 
 const makeSubscription = (filters, entityName, callback) => {
+  const table = RELATIONAL_ENTITIES[entityName];
   const channel = supabase
     .channel(`scorepilot:${entityName}:${crypto.randomUUID()}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: RELATIONAL_ENTITIES[entityName] || ENTITY_TABLE }, (payload) => {
-      const table = RELATIONAL_ENTITIES[entityName];
+    .on('postgres_changes', { event: '*', schema: 'public', table: table || ENTITY_TABLE }, (payload) => {
       const source = payload.new && Object.keys(payload.new).length ? payload.new : payload.old;
       const row = table ? mapRelationalRow(source, table) : mapGenericRow(source);
       if (!row || !matches(row, filters)) return;
-      callback({
-        type: String(payload.eventType || '').toLowerCase(),
-        event: payload.eventType,
-        id: row.id,
-        data: row,
-      });
+      callback({ type: String(payload.eventType || '').toLowerCase(), event: payload.eventType, id: row.id, data: row });
     })
     .subscribe();
   return () => supabase.removeChannel(channel);
@@ -104,8 +93,7 @@ const relationalEntity = (entityName, table) => ({
     const relationalKeys = new Set(RELATIONAL_COLUMNS[table] || []);
     for (const [key, value] of Object.entries(filters)) {
       if (value !== undefined && value !== null && value !== '' && relationalKeys.has(key)) {
-        if (Array.isArray(value)) query = query.in(key, value);
-        else query = query.eq(key, value);
+        query = Array.isArray(value) ? query.in(key, value) : query.eq(key, value);
       }
     }
     const { data, error } = await query;
@@ -136,15 +124,12 @@ const relationalEntity = (entityName, table) => ({
     if (error) throw error;
     return { success: true };
   },
-  subscribe(callback, filters = {}) {
-    return makeSubscription(filters, entityName, callback);
-  },
+  subscribe(callback, filters = {}) { return makeSubscription(filters, entityName, callback); },
 });
 
 const genericEntity = (entityName) => ({
   async list(sort, limit) {
-    let query = supabase.from(ENTITY_TABLE).select('*').eq('entity_type', entityName);
-    const { data, error } = await query;
+    const { data, error } = await supabase.from(ENTITY_TABLE).select('*').eq('entity_type', entityName);
     if (error) throw error;
     const rows = sortRows((data || []).map(mapGenericRow), sort);
     return typeof limit === 'number' ? rows.slice(0, limit) : rows;
@@ -167,13 +152,7 @@ const genericEntity = (entityName) => ({
     const clean = { ...payload };
     delete clean.created_date;
     delete clean.updated_date;
-    const { data, error } = await supabase.from(ENTITY_TABLE).insert({
-      id,
-      entity_type: entityName,
-      organization_id: clean.organization_id || null,
-      created_by: clean.created_by || null,
-      data: clean,
-    }).select('*').single();
+    const { data, error } = await supabase.from(ENTITY_TABLE).insert({ id, entity_type: entityName, organization_id: clean.organization_id || null, created_by: clean.created_by || null, data: clean }).select('*').single();
     if (error) throw error;
     return mapGenericRow(data);
   },
@@ -183,10 +162,7 @@ const genericEntity = (entityName) => ({
     const merged = { ...existing, ...payload, id };
     delete merged.created_date;
     delete merged.updated_date;
-    const { data, error } = await supabase.from(ENTITY_TABLE).update({
-      organization_id: merged.organization_id || null,
-      data: merged,
-    }).eq('entity_type', entityName).eq('id', id).select('*').single();
+    const { data, error } = await supabase.from(ENTITY_TABLE).update({ organization_id: merged.organization_id || null, data: merged }).eq('entity_type', entityName).eq('id', id).select('*').single();
     if (error) throw error;
     return mapGenericRow(data);
   },
@@ -195,28 +171,17 @@ const genericEntity = (entityName) => ({
     if (error) throw error;
     return { success: true };
   },
-  subscribe(callback, filters = {}) {
-    return makeSubscription(filters, entityName, callback);
-  },
+  subscribe(callback, filters = {}) { return makeSubscription(filters, entityName, callback); },
 });
 
-const entity = (entityName) => {
-  const table = RELATIONAL_ENTITIES[entityName];
-  return table ? relationalEntity(entityName, table) : genericEntity(entityName);
-};
-
-const getEntities = async (name, filters = {}) => entity(name).filter(filters);
+const entity = (entityName) => RELATIONAL_ENTITIES[entityName] ? relationalEntity(entityName, RELATIONAL_ENTITIES[entityName]) : genericEntity(entityName);
 
 const auth = {
   async me() {
     const { data: { user: authUser }, error } = await supabase.auth.getUser();
     if (error) throw error;
     if (!authUser) throw Object.assign(new Error('Not authenticated'), { status: 401 });
-    const { data: profile, error: profileError } = await supabase
-      .from('scorepilot_profiles')
-      .select('*')
-      .eq('id', authUser.id)
-      .maybeSingle();
+    const { data: profile, error: profileError } = await supabase.from('scorepilot_profiles').select('*').eq('id', authUser.id).maybeSingle();
     if (profileError) throw profileError;
     return { id: authUser.id, email: authUser.email, ...(profile || {}) };
   },
@@ -224,19 +189,14 @@ const auth = {
     const { data: { session } } = await supabase.auth.getSession();
     return !!session;
   },
-  async logout() {
-    await supabase.auth.signOut();
-    window.location.assign('/');
-  },
-  redirectToLogin(returnUrl = window.location.href) {
-    window.location.assign(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
-  },
+  async logout() { await supabase.auth.signOut(); window.location.assign('/'); },
+  redirectToLogin(returnUrl = window.location.href) { window.location.assign(`/login?returnUrl=${encodeURIComponent(returnUrl)}`); },
 };
 
 const callEdgeFunction = async (name, payload = {}) => {
-  const { data, error } = await supabase.functions.invoke('scorepilot-functions', {
-    body: { function: name, payload },
-  });
+  const functionName = name === 'geminiChat' ? 'gemini-chat' : 'scorepilot-functions';
+  const body = name === 'geminiChat' ? payload : { function: name, payload };
+  const { data, error } = await supabase.functions.invoke(functionName, { body });
   if (error) throw error;
   if (data?.error) throw new Error(data.error);
   return data?.data ?? data;
@@ -257,62 +217,35 @@ const calculateStandings = async (payload = {}) => {
     let homeWon = false; let awayWon = false;
     if (sport === 'volleyball') {
       let homeSets = 0; let awaySets = 0;
-      for (const set of Array.isArray(game.quarter_scores) ? game.quarter_scores : []) {
-        const hs = num(set?.home); const as = num(set?.away);
-        if (hs > as) homeSets += 1; else if (as > hs) awaySets += 1;
-      }
+      for (const set of Array.isArray(game.quarter_scores) ? game.quarter_scores : []) { const hs = num(set?.home); const as = num(set?.away); if (hs > as) homeSets++; else if (as > hs) awaySets++; }
       if (homeSets !== awaySets) { homeWon = homeSets > awaySets; awayWon = awaySets > homeSets; }
       else { homeWon = num(game.home_score) > num(game.away_score); awayWon = num(game.away_score) > num(game.home_score); }
     } else { homeWon = num(game.home_score) > num(game.away_score); awayWon = num(game.away_score) > num(game.home_score); }
-    if (homeWon) { home.wins += 1; away.losses += 1; }
-    else if (awayWon) { away.wins += 1; home.losses += 1; }
+    if (homeWon) { home.wins++; away.losses++; } else if (awayWon) { away.wins++; home.losses++; }
   }
   let rows = [...table.values()];
   if (division) rows = rows.filter((team) => String(team.division || '').toLowerCase().includes(division));
   rows.sort((a, b) => (b.wins - a.wins) || (a.losses - b.losses) || String(a.name || '').localeCompare(String(b.name || '')));
-  return {
-    organization: { id: orgId },
-    sport,
-    division: payload.division || null,
-    teams: rows.slice(0, Number(payload.limit || 200)).map((team, index) => ({
-      rank: index + 1,
-      team_id: team.id,
-      name: team.name,
-      division: team.division || '',
-      wins: team.wins,
-      losses: team.losses,
-      win_pct: team.wins + team.losses ? Number((team.wins / (team.wins + team.losses)).toFixed(3)) : 0,
-      logo_url: team.logo_url || null,
-    })),
-    updated_at: new Date().toISOString(),
-  };
+  return { organization: { id: orgId }, sport, division: payload.division || null, teams: rows.slice(0, Number(payload.limit || 200)).map((team, index) => ({ rank: index + 1, team_id: team.id, name: team.name, division: team.division || '', wins: team.wins, losses: team.losses, win_pct: team.wins + team.losses ? Number((team.wins / (team.wins + team.losses)).toFixed(3)) : 0, logo_url: team.logo_url || null })), updated_at: new Date().toISOString() };
 };
 
 const getTopAssistLeadersLocal = async (payload = {}) => {
-  const [stats, players] = await Promise.all([getEntities('PlayerSeasonStats'), getEntities('Player')]);
+  const [stats, players] = await Promise.all([getEntities('PlayerSeasonStats', {}), getEntities('Player', {})]);
   const playerById = new Map(players.map((player) => [player.id, player]));
-  return stats
-    .filter((row) => !payload.organization_id || row.organization_id === payload.organization_id)
-    .sort((a, b) => num(b.assists) - num(a.assists) || num(b.points) - num(a.points))
-    .slice(0, Number(payload.limit || 10))
-    .map((row) => ({ ...row, player_name: playerById.get(row.player_id)?.name || 'Unknown Player' }));
+  return stats.filter((row) => !payload.organization_id || row.organization_id === payload.organization_id).sort((a, b) => num(b.assists) - num(a.assists) || num(b.points) - num(a.points)).slice(0, Number(payload.limit || 10)).map((row) => ({ ...row, player_name: playerById.get(row.player_id)?.name || 'Unknown Player' }));
 };
 
 const getTopPlayersForGameLocal = async (payload = {}) => {
   const rows = await entity('PlayerGameStats').filter({ game_id: payload.game_id });
-  const players = await getEntities('Player');
+  const players = await entity('Player').list();
   const playerById = new Map(players.map((player) => [player.id, player]));
   const totals = new Map();
   const statKeys = ['points', 'rebounds', 'assists', 'steals', 'blocks', 'fouls', 'three_pointers', 'field_goals_made', 'field_goals_attempted', 'free_throws_made', 'free_throws_attempted', 'aces', 'attacks', 'rally_errors'];
-  for (const row of rows) {
-    const entry = totals.get(row.player_id) || { player_id: row.player_id, team_id: row.team_id, game_id: row.game_id };
-    for (const key of statKeys) entry[key] = num(entry[key]) + num(row[key]);
-    totals.set(row.player_id, entry);
-  }
-  return [...totals.values()]
-    .map((row) => ({ ...row, player_name: playerById.get(row.player_id)?.name || 'Unknown Player' }))
-    .sort((a, b) => num(b.points) - num(a.points) || num(b.assists) - num(a.assists) || num(b.rebounds) - num(a.rebounds));
+  for (const row of rows) { const entry = totals.get(row.player_id) || { player_id: row.player_id, team_id: row.team_id, game_id: row.game_id }; for (const key of statKeys) entry[key] = num(entry[key]) + num(row[key]); totals.set(row.player_id, entry); }
+  return [...totals.values()].map((row) => ({ ...row, player_name: playerById.get(row.player_id)?.name || 'Unknown Player' })).sort((a, b) => num(b.points) - num(a.points) || num(b.assists) - num(a.assists) || num(b.rebounds) - num(a.rebounds));
 };
+
+const getEntities = async (name, filters = {}) => entity(name).filter(filters);
 
 const uploadFile = async ({ file, path, bucket = MEDIA_BUCKET } = {}) => {
   if (!file) throw new Error('file is required');
@@ -326,32 +259,26 @@ const uploadFile = async ({ file, path, bucket = MEDIA_BUCKET } = {}) => {
 
 const createFileSignedUrl = async ({ file_uri, expires_in = 300, bucket = MEDIA_BUCKET } = {}) => {
   if (!file_uri) throw new Error('file_uri is required');
-  const [uriBucket, ...rest] = String(file_uri).split('/');
-  const objectPath = uriBucket === bucket ? rest.join('/') : String(file_uri);
-  const { data, error } = await supabase.storage.from(uriBucket === bucket ? bucket : MEDIA_BUCKET).createSignedUrl(objectPath, Number(expires_in));
+  const parts = String(file_uri).split('/');
+  const uriBucket = parts.shift();
+  const objectPath = parts.join('/');
+  const targetBucket = uriBucket === bucket ? bucket : bucket;
+  const { data, error } = await supabase.storage.from(targetBucket).createSignedUrl(uriBucket === targetBucket ? objectPath : file_uri, Number(expires_in));
   if (error) throw error;
   return { signed_url: data.signedUrl, file_url: data.signedUrl };
 };
 
-const invokeLLM = async (params = {}) => {
-  const result = await callEdgeFunction('geminiChat', params);
-  return result?.output ?? result;
-};
-
 const integrations = {
   Core: {
-    InvokeLLM: invokeLLM,
+    InvokeLLM: async (params = {}) => {
+      const result = await callEdgeFunction('geminiChat', params);
+      return result?.output ?? result;
+    },
     UploadFile: uploadFile,
     CreateFileSignedUrl: createFileSignedUrl,
-    GenerateImage: async () => {
-      throw new Error('Image generation is not configured yet. Configure an image provider in Supabase Edge Functions.');
-    },
-    SendEmail: async () => {
-      throw new Error('Email delivery is not configured yet. Configure Resend or another provider in Supabase Edge Functions.');
-    },
-    SendSMS: async () => {
-      throw new Error('SMS delivery is not configured yet. Configure Twilio or another provider in Supabase Edge Functions.');
-    },
+    GenerateImage: async () => { throw new Error('Image generation is not configured yet. Configure an image provider in Supabase Edge Functions.'); },
+    SendEmail: async () => { throw new Error('Email delivery is not configured yet. Configure a provider in Supabase Edge Functions.'); },
+    SendSMS: async () => { throw new Error('SMS delivery is not configured yet. Configure a provider in Supabase Edge Functions.'); },
     ExtractDataFromUploadedFile: async ({ file_url } = {}) => {
       if (!file_url) throw new Error('file_url is required');
       const response = await fetch(file_url);
@@ -364,37 +291,21 @@ const integrations = {
 
 const invokeLocal = async (name, payload = {}) => {
   switch (name) {
-    case 'updateGame':
-      return { data: await entity('Game').update(payload.game_id, payload.patch || {}) };
-    case 'getGamePlayerStats': {
-      const ids = payload.game_ids || [];
-      const rows = await entity('PlayerGameStats').filter({});
-      return { data: ids.length ? rows.filter((row) => ids.includes(row.game_id)) : rows };
-    }
+    case 'updateGame': return { data: await entity('Game').update(payload.game_id, payload.patch || {}) };
+    case 'getGamePlayerStats': { const ids = payload.game_ids || []; const rows = await entity('PlayerGameStats').list(); return { data: ids.length ? rows.filter((row) => ids.includes(row.game_id)) : rows }; }
     case 'upsertPlayerStat': {
       const rows = await entity('PlayerGameStats').filter({ game_id: payload.game_id, player_id: payload.player_id });
       const existing = rows.find((row) => num(row.quarter) === num(payload.quarter));
       return { data: existing ? await entity('PlayerGameStats').update(existing.id, payload) : await entity('PlayerGameStats').create(payload) };
     }
-    case 'getDivisionStandings':
-      try { return { data: await callEdgeFunction('getDivisionStandings', payload) }; } catch (_) { return { data: await calculateStandings(payload) }; }
-    case 'getTopAssistLeaders':
-      try { return { data: await callEdgeFunction('getTopAssistLeaders', payload) }; } catch (_) { return { data: await getTopAssistLeadersLocal(payload) }; }
-    case 'getTopPlayersForGame':
-      try { return { data: await callEdgeFunction('getTopPlayersForGame', payload) }; } catch (_) { return { data: await getTopPlayersForGameLocal(payload) }; }
-    case 'recalcStandings':
-      return { data: await callEdgeFunction('recalcStandings', payload) };
+    case 'getDivisionStandings': try { return { data: await callEdgeFunction('getDivisionStandings', payload) }; } catch (_) { return { data: await calculateStandings(payload) }; }
+    case 'getTopAssistLeaders': try { return { data: await callEdgeFunction('getTopAssistLeaders', payload) }; } catch (_) { return { data: await getTopAssistLeadersLocal(payload) }; }
+    case 'getTopPlayersForGame': try { return { data: await callEdgeFunction('getTopPlayersForGame', payload) }; } catch (_) { return { data: await getTopPlayersForGameLocal(payload) }; }
+    case 'recalcStandings': return { data: await callEdgeFunction('recalcStandings', payload) };
     case 'aggregatePlayerStats':
-    case 'onGameCompletedAggregate':
-      return { data: await callEdgeFunction(name, payload) };
-    default:
-      return { data: await callEdgeFunction(name, payload) };
+    case 'onGameCompletedAggregate': return { data: await callEdgeFunction(name, payload) };
+    default: return { data: await callEdgeFunction(name, payload) };
   }
 };
 
-export const base44 = {
-  entities: new Proxy({}, { get: (_target, name) => entity(name) }),
-  auth,
-  integrations,
-  functions: { invoke: invokeLocal },
-};
+export const base44 = { entities: new Proxy({}, { get: (_target, name) => entity(name) }), auth, integrations, functions: { invoke: invokeLocal } };
