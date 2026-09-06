@@ -1,27 +1,87 @@
 import { supabase } from '@/lib/supabaseClient';
 
 const ENTITY_TABLE = 'scorepilot_entities';
-const normalize = r => ({ ...r.data, id: r.id, created_date: r.created_at, updated_date: r.updated_at });
-const num = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+const RELATIONAL_TABLES = {
+  Organization: 'scorepilot_organizations',
+  UserOrganization: 'scorepilot_memberships',
+  Team: 'scorepilot_teams',
+  Player: 'scorepilot_players',
+  Division: 'scorepilot_divisions',
+  Game: 'scorepilot_games',
+  PlayerGameStats: 'scorepilot_player_game_stats',
+  PlayerSeasonStats: 'scorepilot_player_season_stats',
+  Notification: 'scorepilot_notifications',
+};
 
+const num = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+const toLegacy = (row) => row ? ({ ...row, created_date: row.created_at, updated_date: row.updated_at }) : row;
 const sortRows = (rows, sort) => {
   if (!sort) return rows;
-  const desc = sort.startsWith('-');
-  const field = desc ? sort.slice(1) : sort;
+  const desc = String(sort).startsWith('-');
+  const field = desc ? String(sort).slice(1) : String(sort);
   return [...rows].sort((a, b) => {
     const av = a[field]; const bv = b[field];
     if (typeof av === 'number' && typeof bv === 'number') return desc ? bv - av : av - bv;
-    const cmp = String(av ?? '').localeCompare(String(bv ?? ''), undefined, { numeric: true, sensitivity: 'base' });
-    return desc ? -cmp : cmp;
+    return desc ? String(bv ?? '').localeCompare(String(av ?? ''), undefined, { numeric: true, sensitivity: 'base' }) : String(av ?? '').localeCompare(String(bv ?? ''), undefined, { numeric: true, sensitivity: 'base' });
   });
 };
-const matches = (row, filters = {}) => Object.entries(filters).every(([key, value]) => Array.isArray(value) ? value.includes(row[key]) : row[key] === value);
+const matches = (row, filters = {}) => Object.entries(filters).every(([key, value]) => {
+  if (value === undefined || value === null || value === '') return true;
+  return Array.isArray(value) ? value.includes(row[key]) : row[key] === value;
+});
 
-const entity = entityName => ({
+const directEntity = (entityName, table) => ({
+  async list(sort, limit) {
+    let query = supabase.from(table).select('*');
+    if (sort) { const desc = String(sort).startsWith('-'); const field = desc ? String(sort).slice(1) : sort; query = query.order(field, { ascending: !desc }); }
+    if (typeof limit === 'number') query = query.limit(limit);
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data || []).map(toLegacy);
+  },
+  async filter(filters = {}, sort, limit) {
+    let query = supabase.from(table).select('*');
+    for (const [key, value] of Object.entries(filters)) {
+      if (value === undefined || value === null || value === '') continue;
+      query = Array.isArray(value) ? query.in(key, value) : query.eq(key, value);
+    }
+    if (sort) { const desc = String(sort).startsWith('-'); const field = desc ? String(sort).slice(1) : sort; query = query.order(field, { ascending: !desc }); }
+    if (typeof limit === 'number') query = query.limit(limit);
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data || []).map(toLegacy);
+  },
+  async get(id) {
+    const { data, error } = await supabase.from(table).select('*').eq('id', id).maybeSingle();
+    if (error) throw error;
+    return toLegacy(data);
+  },
+  async create(payload) {
+    const row = { ...payload };
+    delete row.created_date; delete row.updated_date;
+    const { data, error } = await supabase.from(table).insert(row).select('*').single();
+    if (error) throw error;
+    return toLegacy(data);
+  },
+  async update(id, payload) {
+    const patch = { ...payload };
+    delete patch.id; delete patch.created_date; delete patch.updated_date;
+    const { data, error } = await supabase.from(table).update(patch).eq('id', id).select('*').single();
+    if (error) throw error;
+    return toLegacy(data);
+  },
+  async delete(id) {
+    const { error } = await supabase.from(table).delete().eq('id', id);
+    if (error) throw error;
+    return { success: true };
+  }
+});
+
+const genericEntity = (entityName) => ({
   async list(sort, limit) {
     const { data, error } = await supabase.from(ENTITY_TABLE).select('*').eq('entity_type', entityName);
     if (error) throw error;
-    const rows = sortRows((data || []).map(normalize), sort);
+    const rows = sortRows((data || []).map(r => ({ ...r.data, id: r.id, created_date: r.created_at, updated_date: r.updated_at })), sort);
     return typeof limit === 'number' ? rows.slice(0, limit) : rows;
   },
   async filter(filters = {}, sort, limit) {
@@ -29,27 +89,27 @@ const entity = entityName => ({
     if (filters.organization_id) query = query.eq('organization_id', filters.organization_id);
     const { data, error } = await query;
     if (error) throw error;
-    const rows = sortRows((data || []).map(normalize).filter(r => matches(r, filters)), sort);
+    const rows = sortRows((data || []).map(r => ({ ...r.data, id: r.id, created_date: r.created_at, updated_date: r.updated_at })).filter(r => matches(r, filters)), sort);
     return typeof limit === 'number' ? rows.slice(0, limit) : rows;
   },
   async get(id) {
     const { data, error } = await supabase.from(ENTITY_TABLE).select('*').eq('entity_type', entityName).eq('id', id).maybeSingle();
     if (error) throw error;
-    return data ? normalize(data) : null;
+    return data ? { ...data.data, id: data.id, created_date: data.created_at, updated_date: data.updated_at } : null;
   },
   async create(payload) {
     const id = payload.id || crypto.randomUUID();
     const { data, error } = await supabase.from(ENTITY_TABLE).insert({ id, entity_type: entityName, organization_id: payload.organization_id || null, created_by: payload.created_by || null, data: payload }).select('*').single();
     if (error) throw error;
-    return normalize(data);
+    return { ...data.data, id: data.id, created_date: data.created_at, updated_date: data.updated_at };
   },
   async update(id, payload) {
-    const existing = await entity(entityName).get(id);
+    const existing = await genericEntity(entityName).get(id);
     if (!existing) throw new Error(`${entityName} ${id} not found`);
     const merged = { ...existing, ...payload, id };
     const { data, error } = await supabase.from(ENTITY_TABLE).update({ organization_id: merged.organization_id || null, data: merged }).eq('entity_type', entityName).eq('id', id).select('*').single();
     if (error) throw error;
-    return normalize(data);
+    return { ...data.data, id: data.id, created_date: data.created_at, updated_date: data.updated_at };
   },
   async delete(id) {
     const { error } = await supabase.from(ENTITY_TABLE).delete().eq('entity_type', entityName).eq('id', id);
@@ -57,6 +117,8 @@ const entity = entityName => ({
     return { success: true };
   }
 });
+
+const entity = entityName => RELATIONAL_TABLES[entityName] ? directEntity(entityName, RELATIONAL_TABLES[entityName]) : genericEntity(entityName);
 
 const auth = {
   async me() {
@@ -103,9 +165,8 @@ const getDivisionStandings = async payload => {
 
 const getTopAssistLeaders = async payload => {
   const rows = await getEntities('PlayerGameStats');
-  const filtered = payload.organization_id ? rows.filter(r => r.organization_id === payload.organization_id || r.org_id === payload.organization_id) : rows;
   const players = await getEntities('Player'); const playerMap = new Map(players.map(p => [p.id, p])); const totals = new Map();
-  for (const row of filtered) { const current = totals.get(row.player_id) || { assists: 0, games: new Set(), points: 0 }; current.assists += num(row.assists); current.points += num(row.points); current.games.add(row.game_id); totals.set(row.player_id, current); }
+  for (const row of rows.filter(r => !payload.organization_id || players.find(p => p.id === r.player_id)?.organization_id === payload.organization_id)) { const current = totals.get(row.player_id) || { assists: 0, games: new Set(), points: 0 }; current.assists += num(row.assists); current.points += num(row.points); current.games.add(row.game_id); totals.set(row.player_id, current); }
   return [...totals.entries()].map(([player_id, v]) => ({ player_id, player_name: playerMap.get(player_id)?.name || playerMap.get(player_id)?.full_name || 'Unknown Player', assists: v.assists, games_played: v.games.size, points: v.points })).sort((a,b) => b.assists - a.assists || b.points - a.points).slice(0, Number(payload.limit || 10));
 };
 
