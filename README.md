@@ -1,26 +1,50 @@
 # ScorePilot AI
 
-Independent edition of ScorekeeperAI, migrated away from Base44.
+Independent version of ScorekeeperAI, migrated away from Base44 toward Supabase.
 
-## Stack
+## Current branch
 
-- React + Vite
+`scorepilot-ai-independent`
+
+The original `main` branch is preserved and is not modified by this migration.
+
+## Architecture
+
+- React + Vite frontend
 - Supabase Auth
 - Supabase PostgreSQL
+- Supabase Storage / Realtime as needed
 - Supabase Edge Functions
-- Supabase Realtime / Storage as migration phases are completed
+- No Base44 SDK dependency in the frontend
 
-## Setup
+## Migration status
 
-1. Copy `.env.example` to `.env.local`.
-2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (or Supabase publishable key).
-3. Install dependencies with `npm install`.
-4. Run locally with `npm run dev`.
+The branch now includes:
 
-## Database
+- Supabase-native authentication and login flow
+- Supabase client and data compatibility layer
+- Basketball and volleyball standings logic
+- Player-game aggregation and leaderboards
+- Supabase Edge Function dispatcher
+- Initial JSONB compatibility schema for safe transition
+- Relational production schema for organizations, memberships, teams, players, divisions, games, player game stats, season stats, and notifications
 
-The first migration is stored at `supabase/migrations/001_scorepilot_core.sql`. The existing Supabase project is currently inactive, so migrations are intentionally committed here first and are not applied automatically.
+The relational migration is stored under `supabase/migrations/002_scorepilot_relational.sql` and has not been applied to the inactive Supabase project yet.
 
-## Branch safety
+## Environment
 
-This branch is `scorepilot-ai-independent`. The original ScorekeeperAI version remains on the original branch and is not overwritten.
+Create `.env` from `.env.example` and provide:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+Do not put a Supabase service-role/secret key in the browser environment.
+
+## Next migration stage
+
+1. Restore/activate the intended Supabase project when ready.
+2. Apply and verify the relational migrations.
+3. Migrate the compatibility layer from `scorepilot_entities` to the relational tables.
+4. Port remaining privileged Base44 server functions to Supabase Edge Functions.
+5. Run the full frontend build/typecheck and live functional tests.
+6. Remove the remaining `base44/` reference implementation after parity is verified.
