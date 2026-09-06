@@ -1,48 +1,19 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useAuth } from './AuthContext';
-import { base44 } from '@/api/base44Client';
-// Avoid importing pages config here to prevent circular/runtime issues
-// import { pagesConfig } from '@/pages.config';
+import { useAuth } from './ScorePilotAuthContext';
 
 export default function NavigationTracker() {
-    const location = useLocation();
-    const { isAuthenticated } = useAuth();
-    // Derive main page name safely from current URL only
-    const Pages = {};
-    const mainPageKey = 'Home';
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
 
-    // Post navigation changes to parent window
-    useEffect(() => {
-        window.parent?.postMessage({
-            type: "app_changed_url",
-            url: window.location.href
-        }, '*');
-    }, [location]);
+  useEffect(() => {
+    window.parent?.postMessage({ type: 'app_changed_url', url: window.location.href }, '*');
+  }, [location]);
 
-    // Log user activity when navigating to a page
-    useEffect(() => {
-        // Extract page name from pathname
-        const pathname = location.pathname;
-        let pageName;
-        
-        if (pathname === '/' || pathname === '') {
-            pageName = mainPageKey;
-        } else {
-            // Remove leading slash and get the first segment
-            const pathSegment = pathname.replace(/^\//, '').split('/')[0];
-            
-            // Try case-insensitive lookup in Pages config
-            // Best-effort: use URL segment as pageName
-            pageName = pathSegment || null;
-        }
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    window.dispatchEvent(new CustomEvent('scorepilot:navigation', { detail: { pathname: location.pathname } }));
+  }, [location.pathname, isAuthenticated]);
 
-        if (isAuthenticated && pageName) {
-            base44.appLogs.logUserInApp(pageName).catch(() => {
-                // Silently fail - logging shouldn't break the app
-            });
-        }
-    }, [location, isAuthenticated, Pages, mainPageKey]);
-
-    return null;
+  return null;
 }
