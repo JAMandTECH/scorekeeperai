@@ -1,18 +1,18 @@
 {
-  "name": "base44-app",
+  "name": "scorepilot-ai",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0-independent",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "typecheck": "tsc -p ./jsconfig.json",
+    "verify:independent": "node scripts/verify-scorepilot-independence.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@base44/sdk": "^0.8.44",
-    "@base44/vite-plugin": "^1.0.32",
+    "@supabase/supabase-js": "^2.57.4",
     "@hello-pangea/dnd": "^17.0.0",
     "@hookform/resolvers": "^4.1.2",
     "@imgly/background-removal": "^1.7.0",
