@@ -29,17 +29,18 @@ const AuthenticatedApp = () => {
   const location = useLocation();
   const { isLoadingAuth, authError, isAuthenticated, navigateToLogin } = useAuth();
 
-  if (location.pathname === '/login') return <ScorePilotLogin />;
+  useEffect(() => {
+    if (!isLoadingAuth && location.pathname !== '/login' && !isAuthenticated) {
+      navigateToLogin(location.pathname + location.search);
+    }
+  }, [isLoadingAuth, isAuthenticated, location.pathname, location.search, navigateToLogin]);
 
+  if (location.pathname === '/login') return <ScorePilotLogin />;
   if (isLoadingAuth) {
     return <div className="fixed inset-0 flex items-center justify-center"><div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" /></div>;
   }
-
   if (authError?.type === 'user_not_registered') return <UserNotRegisteredError />;
-  if (!isAuthenticated || authError?.type === 'auth_required') {
-    navigateToLogin(location.pathname + location.search);
-    return null;
-  }
+  if (!isAuthenticated) return null;
 
   return (
     <LayoutWrapper currentPageName={mainPageKey}>
