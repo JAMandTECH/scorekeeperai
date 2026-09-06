@@ -24,9 +24,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
       - name: Install dependencies
         run: npm install
+
+      - name: Verify Base44 independence
+        run: npm run verify:independent
 
       - name: Typecheck
         run: npm run typecheck
