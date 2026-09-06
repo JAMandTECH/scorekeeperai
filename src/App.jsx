@@ -15,41 +15,51 @@ import PosterGenerator from './pages/PosterGenerator';
 import PosterChat from './pages/PosterChat';
 import WidgetStandings from './pages/WidgetStandings';
 import ScorePilotLogin from './pages/ScorePilotLogin';
+import PublicLanding from './pages/PublicLanding';
+import PublicGameView from './pages/PublicGameView';
 import { StatsRefreshProvider } from '@/lib/StatsRefreshContext';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+const PUBLIC_PATHS = new Set(['/PublicLanding', '/PublicGameView']);
 
 setupIframeMessaging();
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
 
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/" element={<MainPage />} />
+    {Object.entries(Pages).map(([path, Page]) => <Route key={path} path={`/${path}`} element={<Page />} />)}
+    <Route path="/PosterGenerator" element={<PosterGenerator />} />
+    <Route path="/PosterChat" element={<PosterChat />} />
+    <Route path="/widget/standings" element={<WidgetStandings />} />
+    <Route path="*" element={<PageNotFound />} />
+  </Routes>
+);
+
 const AuthenticatedApp = () => {
   const location = useLocation();
   const { isLoadingAuth, authError, isAuthenticated, navigateToLogin } = useAuth();
+  const isPublicRoute = PUBLIC_PATHS.has(location.pathname);
 
   useEffect(() => {
-    if (!isLoadingAuth && location.pathname !== '/login' && !isAuthenticated) navigateToLogin(location.pathname + location.search);
-  }, [isLoadingAuth, isAuthenticated, location.pathname, location.search, navigateToLogin]);
+    if (!isLoadingAuth && !isPublicRoute && location.pathname !== '/login' && !isAuthenticated) {
+      navigateToLogin(location.pathname + location.search);
+    }
+  }, [isLoadingAuth, isAuthenticated, isPublicRoute, location.pathname, location.search, navigateToLogin]);
 
   if (location.pathname === '/login') return <ScorePilotLogin />;
+  if (isPublicRoute) {
+    const publicPage = location.pathname === '/PublicLanding' ? <PublicLanding /> : <PublicGameView />;
+    return <LayoutWrapper currentPageName={location.pathname.slice(1)}>{publicPage}</LayoutWrapper>;
+  }
   if (isLoadingAuth) return <div className="fixed inset-0 flex items-center justify-center"><div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" /></div>;
   if (authError?.type === 'user_not_registered') return <UserNotRegisteredError />;
   if (!isAuthenticated) return null;
 
-  return (
-    <LayoutWrapper currentPageName={mainPageKey}>
-      <Routes>
-        <Route path="/" element={<MainPage />} />
-        {Object.entries(Pages).map(([path, Page]) => <Route key={path} path={`/${path}`} element={<Page />} />)}
-        <Route path="/PosterGenerator" element={<PosterGenerator />} />
-        <Route path="/PosterChat" element={<PosterChat />} />
-        <Route path="/widget/standings" element={<WidgetStandings />} />
-        <Route path="*" element={<PageNotFound />} />
-      </Routes>
-    </LayoutWrapper>
-  );
+  return <LayoutWrapper currentPageName={mainPageKey}><AppRoutes /></LayoutWrapper>;
 };
 
 function App() {
