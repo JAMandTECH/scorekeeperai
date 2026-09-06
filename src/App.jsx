@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect } from 'react'
 import './App.css'
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -16,7 +16,7 @@ import PosterChat from './pages/PosterChat';
 import WidgetStandings from './pages/WidgetStandings';
 import ScorePilotLogin from './pages/ScorePilotLogin';
 import PublicLanding from './pages/PublicLanding';
-import PublicGameView from './pages/PublicGameView';
+import PublicGameView from './pages/PublicGameViewIndependent';
 import { StatsRefreshProvider } from '@/lib/StatsRefreshContext';
 
 const { Pages, Layout, mainPage } = pagesConfig;
