@@ -8,7 +8,10 @@ const sortRows = (rows, sort) => {
   const desc = sort.startsWith('-');
   const field = desc ? sort.slice(1) : sort;
   return [...rows].sort((a, b) => {
-    const cmp = String(a[field] ?? '').localeCompare(String(b[field] ?? ''), undefined, { numeric: true });
+    const av = a[field];
+    const bv = b[field];
+    if (typeof av === 'number' && typeof bv === 'number') return desc ? bv - av : av - bv;
+    const cmp = String(av ?? '').localeCompare(String(bv ?? ''), undefined, { numeric: true, sensitivity: 'base' });
     return desc ? -cmp : cmp;
   });
 };
@@ -71,7 +74,105 @@ const auth = {
   redirectToLogin(returnUrl = window.location.href) { window.location.assign(`/login?returnUrl=${encodeURIComponent(returnUrl)}`); }
 };
 
-const invokeLocal = async (name, payload) => {
+const getEntities = async (name, filters = {}) => entity(name).filter(filters);
+const num = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+
+const getDivisionStandings = async payload => {
+  const orgId = payload.orgId || payload.organization_id;
+  if (!orgId) throw new Error('orgId is required');
+  const sport = String(payload.sport || 'basketball').toLowerCase();
+  const division = String(payload.division || '').trim().toLowerCase();
+  const limit = Number(payload.limit || 200);
+
+  const [teams, games] = await Promise.all([
+    getEntities('Team', { organization_id: orgId, sport }),
+    getEntities('Game', { organization_id: orgId, sport })
+  ]);
+
+  const completed = games.filter(g => g.status === 'completed' && !g.archived);
+  const byTeam = new Map(teams.map(t => [t.id, { ...t, wins: 0, losses: 0 }]));
+  for (const game of completed) {
+    const home = byTeam.get(game.home_team_id);
+    const away = byTeam.get(game.away_team_id);
+    if (!home || !away) continue;
+    const hs = num(game.home_score);
+    const as = num(game.away_score);
+    if (hs === as) continue;
+    const winner = hs > as ? home : away;
+    const loser = hs > as ? away : home;
+    winner.wins += 1;
+    loser.losses += 1;
+  }
+
+  let filtered = [...byTeam.values()];
+  if (division) filtered = filtered.filter(t => String(t.division || '').toLowerCase().includes(division));
+  filtered.sort((a, b) => (b.wins - a.wins) || (a.losses - b.losses) || String(a.name || '').localeCompare(String(b.name || '')));
+
+  const organization = (await getEntities('Organization', { id: orgId }))[0] || null;
+  return {
+    organization: organization ? { id: organization.id, name: organization.name } : { id: orgId },
+    sport,
+    division: payload.division || null,
+    teams: filtered.slice(0, limit).map((t, idx) => {
+      const gp = t.wins + t.losses;
+      return {
+        rank: idx + 1,
+        team_id: t.id,
+        name: t.name,
+        division: t.division || '',
+        wins: t.wins,
+        losses: t.losses,
+        win_pct: gp ? Number((t.wins / gp).toFixed(3)) : 0,
+        logo_url: t.logo_url || null
+      };
+    }),
+    updated_at: new Date().toISOString()
+  };
+};
+
+const getTopAssistLeaders = async payload => {
+  const rows = await getEntities('PlayerGameStats');
+  const filtered = payload.organization_id
+    ? rows.filter(r => r.organization_id === payload.organization_id || r.org_id === payload.organization_id)
+    : rows;
+  const players = await getEntities('Player');
+  const playerMap = new Map(players.map(p => [p.id, p]));
+  const totals = new Map();
+  for (const row of filtered) {
+    const current = totals.get(row.player_id) || { assists: 0, games: new Set(), points: 0 };
+    current.assists += num(row.assists);
+    current.points += num(row.points);
+    current.games.add(row.game_id);
+    totals.set(row.player_id, current);
+  }
+  return [...totals.entries()]
+    .map(([player_id, v]) => ({
+      player_id,
+      player_name: playerMap.get(player_id)?.name || playerMap.get(player_id)?.full_name || 'Unknown Player',
+      assists: v.assists,
+      games_played: v.games.size,
+      points: v.points
+    }))
+    .sort((a, b) => b.assists - a.assists || b.points - a.points)
+    .slice(0, Number(payload.limit || 10));
+};
+
+const getTopPlayersForGame = async payload => {
+  const rows = await entity('PlayerGameStats').filter({ game_id: payload.game_id });
+  const players = await getEntities('Player');
+  const playerMap = new Map(players.map(p => [p.id, p]));
+  const totals = new Map();
+  for (const row of rows) {
+    const current = totals.get(row.player_id) || { ...row };
+    for (const key of ['points','rebounds','assists','steals','blocks','fouls','three_pointers','field_goals_made','field_goals_attempted','free_throws_made','free_throws_attempted','aces','attacks','rally_errors']) current[key] = num(current[key]) + num(row[key]);
+    totals.set(row.player_id, current);
+  }
+  return [...totals.values()]
+    .map(row => ({ ...row, player_name: playerMap.get(row.player_id)?.name || playerMap.get(row.player_id)?.full_name || 'Unknown Player' }))
+    .sort((a,b) => b.points - a.points || b.assists - a.assists || b.rebounds - a.rebounds);
+};
+
+const invokeLocal = async (name, payload = {}) => {
   if (name === 'updateGame') {
     const game = await entity('Game').get(payload.game_id);
     if (!game) throw new Error('Game not found');
@@ -79,19 +180,18 @@ const invokeLocal = async (name, payload) => {
   }
   if (name === 'getGamePlayerStats') {
     const ids = payload.game_ids || [];
-    return { data: await entity('PlayerGameStats').filter({}, '-created_date').then(rows => rows.filter(r => ids.includes(r.game_id))) };
+    const rows = await entity('PlayerGameStats').filter({}, '-created_date');
+    return { data: rows.filter(r => ids.includes(r.game_id)) };
   }
   if (name === 'upsertPlayerStat') {
-    const existing = (await entity('PlayerGameStats').filter({ game_id: payload.game_id, player_id: payload.player_id })).find(r => r.period === payload.quarter || r.quarter === payload.quarter);
+    const rows = await entity('PlayerGameStats').filter({ game_id: payload.game_id, player_id: payload.player_id });
+    const existing = rows.find(r => num(r.quarter) === num(payload.quarter));
     return { data: existing ? await entity('PlayerGameStats').update(existing.id, payload) : await entity('PlayerGameStats').create(payload) };
   }
-  if (name === 'getDivisionStandings' || name === 'getTopAssistLeaders' || name === 'getTopPlayersForGame') {
-    return { data: [] };
-  }
-  if (name === 'recalcStandings') {
-    return { data: { success: true, independent: true } };
-  }
-  // Remaining server functions are intentionally routed through Supabase Edge Functions.
+  if (name === 'getDivisionStandings') return { data: await getDivisionStandings(payload) };
+  if (name === 'getTopAssistLeaders') return { data: await getTopAssistLeaders(payload) };
+  if (name === 'getTopPlayersForGame') return { data: await getTopPlayersForGame(payload) };
+  if (name === 'recalcStandings') return { data: { success: true, independent: true, recalculated_at: new Date().toISOString() } };
   const { data, error } = await supabase.functions.invoke(name, { body: payload });
   if (error) throw error;
   return { data };
