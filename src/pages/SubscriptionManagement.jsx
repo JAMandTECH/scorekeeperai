@@ -83,19 +83,19 @@ export default function SubscriptionManagement() {
     base44.auth.logout(createPageUrl("Home"));
   };
 
-  const { data: organizations = [] } = useQuery({
-    queryKey: ['all-organizations-subscriptions'],
-    queryFn: () => base44.entities.Organization.list('-created_date'),
+  const { data: superAdminData } = useQuery({
+    queryKey: ['super-admin-data'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getSuperAdminData', {});
+      return response.data;
+    },
     enabled: !!user,
     refetchInterval: 10000,
     refetchOnWindowFocus: true,
   });
 
-  const { data: allTeams = [] } = useQuery({
-    queryKey: ['all-teams-subscriptions'],
-    queryFn: () => base44.entities.Team.list(),
-    enabled: !!user,
-  });
+  const organizations = superAdminData?.organizations || [];
+  const allTeams = superAdminData?.teams || [];
 
   const updateSubscriptionMutation = useMutation({
     mutationFn: async ({ orgId, data }) => {
