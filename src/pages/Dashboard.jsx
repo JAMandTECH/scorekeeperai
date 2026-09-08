@@ -94,14 +94,14 @@ export default function Dashboard() {
   };
 
   const { data: organization } = useQuery({
-    queryKey: ['organization', currentOrgId],
+    queryKey: ['user-organization', currentOrgId],
     queryFn: async () => {
-      const orgs = await base44.entities.Organization.list();
-      return orgs.find(o => o.id === currentOrgId);
+      const res = await base44.functions.invoke('getUserOrganization', {});
+      return res.data?.organization || null;
     },
     enabled: !!currentOrgId,
     refetchOnWindowFocus: true,
-    refetchInterval: 10000,
+    refetchInterval: 30000,
   });
 
   const { data: allOrganizations = [] } = useQuery({
