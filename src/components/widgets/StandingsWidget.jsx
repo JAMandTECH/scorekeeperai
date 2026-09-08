@@ -11,6 +11,7 @@ export default function StandingsWidget({ title, teams }) {
               <th className="text-left px-3 py-2 w-10">#</th>
               <th className="text-left px-3 py-2">Team</th>
               <th className="text-center px-2 py-2 w-12">W</th>
+              <th className="text-center px-2 py-2 w-12">D</th>
               <th className="text-center px-2 py-2 w-12">L</th>
               <th className="text-center px-2 py-2 w-16">Win%</th>
             </tr>
@@ -28,13 +29,14 @@ export default function StandingsWidget({ title, teams }) {
                   <span className="truncate">{t.name}</span>
                 </td>
                 <td className="px-2 py-2 text-center">{t.wins}</td>
+                <td className="px-2 py-2 text-center">{t.draws ?? 0}</td>
                 <td className="px-2 py-2 text-center">{t.losses}</td>
                 <td className="px-2 py-2 text-center">{t.win_pct.toFixed(3)}</td>
               </tr>
             ))}
             {(!teams || teams.length === 0) && (
               <tr>
-                <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">No teams found.</td>
+                <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">No teams found.</td>
               </tr>
             )}
           </tbody>

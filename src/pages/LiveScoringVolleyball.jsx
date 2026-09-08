@@ -496,6 +496,11 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
         mode: 'apply_winner',
         winner_team: homeSetsWon > awaySetsWon ? 'home' : 'away',
       });
+    } else {
+      await base44.functions.invoke('updateTeamRecords', {
+        game_id: game.id,
+        mode: 'apply_draw',
+      });
     }
 
     // Find best player (highest total points = attacks + blocks + aces)

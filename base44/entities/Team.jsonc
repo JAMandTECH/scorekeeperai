@@ -35,6 +35,11 @@
       "type": "number",
       "default": 0
     },
+    "draws": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of drawn games (equal scores)"
+    },
     "status": {
       "type": "string",
       "enum": [

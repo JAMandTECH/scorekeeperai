@@ -323,7 +323,7 @@ export default function Home() {
       division,
       teams: sportTeams.filter(t => (t.division || 'No Division') === division).map(team => {
         const teamGames = games.filter(g => g.status === 'completed' && (g.game_type || 'regular_season') === 'regular_season' && (g.sport || '').toLowerCase() === sport.toLowerCase() && g.archived !== true && (g.home_team_id === team.id || g.away_team_id === team.id));
-        let wins = 0, losses = 0, pointsFor = 0, pointsAgainst = 0;
+        let wins = 0, losses = 0, draws = 0, pointsFor = 0, pointsAgainst = 0;
         teamGames.forEach(game => {
           const isHome = game.home_team_id === team.id;
           let teamScore = isHome ? game.home_score : game.away_score;
@@ -337,19 +337,23 @@ export default function Home() {
             oppScore = isHome ? awayTotal : homeTotal;
             if (homeSets > awaySets) isHome ? wins++ : losses++;
             else if (awaySets > homeSets) isHome ? losses++ : wins++;
+            else draws++;
           } else {
-            if (teamScore > oppScore) wins++; else losses++;
+            if (teamScore > oppScore) wins++;
+            else if (oppScore > teamScore) losses++;
+            else draws++;
           }
           pointsFor += Number(teamScore || 0);
           pointsAgainst += Number(oppScore || 0);
         });
-        const gamesPlayed = wins + losses;
+        const gamesPlayed = wins + losses + draws;
         return {
           ...team,
           wins,
           losses,
+          draws,
           gamesPlayed,
-          winPct: gamesPlayed > 0 ? wins / gamesPlayed : 0,
+          winPct: gamesPlayed > 0 ? (wins + draws * 0.5) / gamesPlayed : 0,
           avgPointsFor: gamesPlayed > 0 ? (pointsFor / gamesPlayed).toFixed(1) : 0,
           avgPointsAgainst: gamesPlayed > 0 ? (pointsAgainst / gamesPlayed).toFixed(1) : 0,
           diff: pointsFor - pointsAgainst,

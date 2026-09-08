@@ -35,6 +35,7 @@ function TeamRow({ team, rank }) {
   const RankIcon = meta.icon;
   const wins = team.wins || 0;
   const losses = team.losses || 0;
+  const draws = team.draws || 0;
   return (
     <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
       <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${meta.badge}`}>
@@ -52,6 +53,8 @@ function TeamRow({ team, rank }) {
       <span className="flex-1 min-w-0 text-sm font-bold text-gray-900 dark:text-white truncate">{team.name}</span>
       <div className="flex items-center gap-1.5 shrink-0 text-sm font-black">
         <span className="text-green-600 dark:text-green-400">{wins}</span>
+        <span className="text-gray-300 dark:text-slate-600">-</span>
+        <span className="text-amber-500 dark:text-amber-400">{draws}</span>
         <span className="text-gray-300 dark:text-slate-600">-</span>
         <span className="text-red-500 dark:text-red-400">{losses}</span>
       </div>
@@ -96,7 +99,7 @@ function DivisionCard({ division, sport, teams }) {
 // ignoring any stale stored wins/losses on the team records).
 function computeRecords(teams, games) {
   const rec = {};
-  teams.forEach((t) => { rec[t.id] = { wins: 0, losses: 0, pointsFor: 0, pointsAgainst: 0 }; });
+  teams.forEach((t) => { rec[t.id] = { wins: 0, losses: 0, draws: 0, pointsFor: 0, pointsAgainst: 0 }; });
   games
     .filter((g) => g.status === "completed" && g.archived !== true && (g.game_type || 'regular_season') === 'regular_season')
     .forEach((g) => {
@@ -111,10 +114,12 @@ function computeRecords(teams, games) {
         const awaySets = g.quarter_scores.filter((s) => (s.away || 0) > (s.home || 0)).length;
         if (homeSets > awaySets) { rec[h].wins++; rec[a].losses++; }
         else if (awaySets > homeSets) { rec[a].wins++; rec[h].losses++; }
+        else { rec[h].draws++; rec[a].draws++; }
       } else {
         hs = Number(g.home_score || 0); as = Number(g.away_score || 0);
         if (hs > as) { rec[h].wins++; rec[a].losses++; }
         else if (as > hs) { rec[a].wins++; rec[h].losses++; }
+        else { rec[h].draws++; rec[a].draws++; }
       }
       rec[h].pointsFor += hs; rec[h].pointsAgainst += as;
       rec[a].pointsFor += as; rec[a].pointsAgainst += hs;
@@ -129,9 +134,9 @@ export default function DivisionStandings({ teams = [], games = [] }) {
     teams
       .filter((t) => t.status !== "rejected")
       .forEach((t) => {
-        const r = records[t.id] || { wins: 0, losses: 0, pointsFor: 0, pointsAgainst: 0 };
-        const gp = r.wins + r.losses;
-        const enriched = { ...t, wins: r.wins, losses: r.losses, winPct: gp > 0 ? r.wins / gp : 0, diff: r.pointsFor - r.pointsAgainst };
+        const r = records[t.id] || { wins: 0, losses: 0, draws: 0, pointsFor: 0, pointsAgainst: 0 };
+        const gp = r.wins + r.losses + r.draws;
+        const enriched = { ...t, wins: r.wins, losses: r.losses, draws: r.draws, winPct: gp > 0 ? (r.wins + r.draws * 0.5) / gp : 0, diff: r.pointsFor - r.pointsAgainst };
         const sport = t.sport || "basketball";
         const division = normalizeDivision(t.division);
         const key = `${sport}__${division}`;

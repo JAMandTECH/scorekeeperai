@@ -25,16 +25,20 @@ Deno.serve(async (req) => {
       .slice()
       .sort((a, b) => {
         const aw = a.wins ?? 0, bw = b.wins ?? 0;
+        const ad = a.draws ?? 0, bd = b.draws ?? 0;
         const al = a.losses ?? 0, bl = b.losses ?? 0;
-        if (bw !== aw) return bw - aw; // wins desc
+        const aPoints = aw + ad * 0.5;
+        const bPoints = bw + bd * 0.5;
+        if (bPoints !== aPoints) return bPoints - aPoints; // wins + half-draws desc
         if (al !== bl) return al - bl; // losses asc
         return String(a.name || '').localeCompare(String(b.name || ''));
       })
       .map((t, idx) => {
         const wins = Number(t.wins || 0);
         const losses = Number(t.losses || 0);
-        const gp = wins + losses;
-        const win_pct = gp > 0 ? Number((wins / gp).toFixed(3)) : 0;
+        const draws = Number(t.draws || 0);
+        const gp = wins + losses + draws;
+        const win_pct = gp > 0 ? Number(((wins + draws * 0.5) / gp).toFixed(3)) : 0;
         return {
           rank: idx + 1,
           team_id: t.id,
@@ -42,6 +46,7 @@ Deno.serve(async (req) => {
           division: t.division || '',
           wins,
           losses,
+          draws,
           win_pct,
           logo_url: t.logo_url || null,
         };

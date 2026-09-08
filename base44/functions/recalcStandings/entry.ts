@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     // Fetch teams in org
     const teams = await base44.asServiceRole.entities.Team.filter({ organization_id: organizationId });
     const teamMap = new Map();
-    teams.forEach(t => teamMap.set(t.id, { wins: 0, losses: 0 }));
+    teams.forEach(t => teamMap.set(t.id, { wins: 0, losses: 0, draws: 0 }));
 
     // Fetch completed games in org
     const games = await base44.asServiceRole.entities.Game.filter({ organization_id: organizationId, status: 'completed' });
@@ -49,13 +49,17 @@ Deno.serve(async (req) => {
         } else if (awaySets > homeSets) {
           teamMap.get(awayId).wins++;
           teamMap.get(homeId).losses++;
+        } else if (Array.isArray(g.quarter_scores) && g.quarter_scores.length > 0) {
+          // Sets recorded but equal wins — draw
+          teamMap.get(homeId).draws++;
+          teamMap.get(awayId).draws++;
         } else {
-          // If sets not available, fall back to total points
+          // No sets recorded — fall back to total points
           const h = Number(g.home_score || 0);
           const a = Number(g.away_score || 0);
           if (h > a) { teamMap.get(homeId).wins++; teamMap.get(awayId).losses++; }
           else if (a > h) { teamMap.get(awayId).wins++; teamMap.get(homeId).losses++; }
-          // equal points -> skip (cannot decide winner)
+          else { teamMap.get(homeId).draws++; teamMap.get(awayId).draws++; }
         }
       } else {
         // Basketball and others: use final score
@@ -63,6 +67,7 @@ Deno.serve(async (req) => {
         const a = Number(g.away_score || 0);
         if (h > a) { teamMap.get(homeId).wins++; teamMap.get(awayId).losses++; }
         else if (a > h) { teamMap.get(awayId).wins++; teamMap.get(homeId).losses++; }
+        else { teamMap.get(homeId).draws++; teamMap.get(awayId).draws++; }
       }
     }
 
@@ -73,8 +78,9 @@ Deno.serve(async (req) => {
       if (!rec) continue;
       const curW = Number(t.wins || 0);
       const curL = Number(t.losses || 0);
-      if (rec.wins !== curW || rec.losses !== curL) {
-        updates.push(base44.asServiceRole.entities.Team.update(t.id, { wins: rec.wins, losses: rec.losses }));
+      const curD = Number(t.draws || 0);
+      if (rec.wins !== curW || rec.losses !== curL || rec.draws !== curD) {
+        updates.push(base44.asServiceRole.entities.Team.update(t.id, { wins: rec.wins, losses: rec.losses, draws: rec.draws }));
       }
     }
     if (updates.length) await Promise.all(updates);

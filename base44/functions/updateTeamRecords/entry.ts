@@ -49,15 +49,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Teams not found' }, { status: 404 });
     }
 
-    const inc = async (teamId, winsDelta, lossesDelta) => {
+    const inc = async (teamId, winsDelta, lossesDelta, drawsDelta) => {
       const team = teamId === homeTeamId ? homeTeam : awayTeam;
       const wins = Math.max(0, (team.wins || 0) + (winsDelta || 0));
       const losses = Math.max(0, (team.losses || 0) + (lossesDelta || 0));
-      const updated = await base44.asServiceRole.entities.Team.update(teamId, { wins, losses });
+      const draws = Math.max(0, (team.draws || 0) + (drawsDelta || 0));
+      const updated = await base44.asServiceRole.entities.Team.update(teamId, { wins, losses, draws });
       if (teamId === homeTeamId) {
-        homeTeam.wins = updated.wins; homeTeam.losses = updated.losses;
+        homeTeam.wins = updated.wins; homeTeam.losses = updated.losses; homeTeam.draws = updated.draws;
       } else {
-        awayTeam.wins = updated.wins; awayTeam.losses = updated.losses;
+        awayTeam.wins = updated.wins; awayTeam.losses = updated.losses; awayTeam.draws = updated.draws;
       }
     };
 
@@ -77,6 +78,9 @@ Deno.serve(async (req) => {
       const oppId = defaulted_team === 'home' ? awayTeamId : homeTeamId;
       await inc(oppId, +1, 0);
       await inc(defId, 0, +1);
+    } else if (mode === 'apply_draw') {
+      await inc(homeTeamId, 0, 0, +1);
+      await inc(awayTeamId, 0, 0, +1);
     } else if (mode === 'undo_default') {
       // Use game fields to revert default
       const defId = game.defaulted_team_id;

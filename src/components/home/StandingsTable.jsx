@@ -60,11 +60,12 @@ export default function StandingsTable({ divisionData, organization, accent = "o
 
       {/* Column headers */}
       <div className="px-4 sm:px-6 pt-5 pb-2">
-        <div className="grid grid-cols-[40px_1fr_repeat(6,minmax(0,40px))] sm:grid-cols-[56px_1fr_repeat(6,minmax(0,56px))] items-center gap-2 text-[10px] sm:text-xs font-bold tracking-widest text-muted-foreground uppercase px-2">
+        <div className="grid grid-cols-[40px_1fr_repeat(7,minmax(0,40px))] sm:grid-cols-[56px_1fr_repeat(7,minmax(0,56px))] items-center gap-2 text-[10px] sm:text-xs font-bold tracking-widest text-muted-foreground uppercase px-2">
           <div className="text-left">Pos</div>
           <div className="text-left pl-1">Team</div>
           <div className="text-center">W</div>
           <div className="text-center">L</div>
+          <div className="text-center">D</div>
           <div className="text-center">Pct</div>
           <div className="text-center">PF</div>
           <div className="text-center">PA</div>
@@ -77,7 +78,7 @@ export default function StandingsTable({ divisionData, organization, accent = "o
         {divisionData.teams.map((team, i) => (
           <div
             key={team.id}
-            className="group relative grid grid-cols-[40px_1fr_repeat(6,minmax(0,40px))] sm:grid-cols-[56px_1fr_repeat(6,minmax(0,56px))] items-center gap-2 rounded-full pl-2 pr-3 sm:pr-5 py-2.5 bg-muted/50 hover:bg-muted dark:bg-white/[0.03] dark:hover:bg-white/[0.07] border border-border hover:border-primary/40 transition-all duration-300"
+            className="group relative grid grid-cols-[40px_1fr_repeat(7,minmax(0,40px))] sm:grid-cols-[56px_1fr_repeat(7,minmax(0,56px))] items-center gap-2 rounded-full pl-2 pr-3 sm:pr-5 py-2.5 bg-muted/50 hover:bg-muted dark:bg-white/[0.03] dark:hover:bg-white/[0.07] border border-border hover:border-primary/40 transition-all duration-300"
           >
             {/* accent leading bar for top rank */}
             {i === 0 && (
@@ -99,6 +100,7 @@ export default function StandingsTable({ divisionData, organization, accent = "o
             </div>
             <div className="text-center font-bold text-foreground text-sm sm:text-base">{team.wins}</div>
             <div className="text-center font-bold text-foreground text-sm sm:text-base">{team.losses}</div>
+            <div className="text-center font-bold text-foreground text-sm sm:text-base">{team.draws || 0}</div>
             <div className="text-center font-bold text-foreground text-sm sm:text-base">{(team.winPct * 100).toFixed(0)}%</div>
             <div className="text-center font-semibold text-muted-foreground text-sm sm:text-base">{team.avgPointsFor}</div>
             <div className="text-center font-semibold text-muted-foreground text-sm sm:text-base">{team.avgPointsAgainst}</div>

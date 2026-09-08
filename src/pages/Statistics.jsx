@@ -333,7 +333,7 @@ export default function Statistics() {
       (g) => g.status === 'completed' && (g.home_team_id === team.id || g.away_team_id === team.id) && g.sport === team.sport
     );
     
-    let wins = 0, losses = 0, totalFouls = 0, totalTimeouts = 0;
+    let wins = 0, losses = 0, draws = 0, totalFouls = 0, totalTimeouts = 0;
     let totalPointsFor = 0, totalPointsAgainst = 0;
     
     teamGames.forEach(game => {
@@ -345,7 +345,8 @@ export default function Statistics() {
       totalPointsAgainst += oppScore;
       
       if (teamScore > oppScore) wins++;
-      else losses++;
+      else if (oppScore > teamScore) losses++;
+      else draws++;
       
       totalFouls += isHome ? (game.home_team_fouls || 0) : (game.away_team_fouls || 0);
       totalTimeouts += isHome ? (5 - (game.home_timeouts || 5)) : (5 - (game.away_timeouts || 5));
@@ -356,13 +357,16 @@ export default function Statistics() {
       const isHome = game.home_team_id === team.id;
       const teamScore = isHome ? game.home_score : game.away_score;
       const oppScore = isHome ? game.away_score : game.home_score;
-      return teamScore > oppScore ? 'W' : 'L';
+      if (teamScore > oppScore) return 'W';
+      if (oppScore > teamScore) return 'L';
+      return 'D';
     });
 
     return {
       ...team,
       wins,
       losses,
+      draws,
       gamesPlayed: teamGames.length,
       avgPointsFor: teamGames.length > 0 ? (totalPointsFor / teamGames.length).toFixed(1) : 0,
       avgPointsAgainst: teamGames.length > 0 ? (totalPointsAgainst / teamGames.length).toFixed(1) : 0,
@@ -1316,7 +1320,7 @@ Please provide:
                             <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
                               <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">TEAM</th>
                               <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">SPORT</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">W-L</th>
+                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">W-D-L</th>
                               <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">WIN%</th>
                               <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">PPG</th>
                               <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">PAPG</th>
@@ -1350,10 +1354,10 @@ Please provide:
                                   </Badge>
                                 </td>
                                 <td className="py-4 px-4 text-center font-bold text-gray-900 dark:text-white print:py-2 print:px-2 print:text-xs">
-                                  {team.wins}-{team.losses}
+                                  {team.wins}-{team.draws || 0}-{team.losses}
                                 </td>
                                 <td className="py-4 px-4 text-center font-bold text-gray-900 dark:text-white print:py-2 print:px-2 print:text-xs">
-                                  {team.gamesPlayed > 0 ? ((team.wins / team.gamesPlayed) * 100).toFixed(0) : 0}%
+                                  {team.gamesPlayed > 0 ? (((team.wins + (team.draws || 0) * 0.5) / team.gamesPlayed) * 100).toFixed(0) : 0}%
                                 </td>
                                 <td className="py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-semibold print:py-2 print:px-2 print:text-xs">
                                   {team.avgPointsFor}

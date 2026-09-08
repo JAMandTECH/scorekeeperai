@@ -945,12 +945,19 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
           await base44.entities.Team.update(game.away_team_id, {
             losses: (away.losses || 0) + 1
           });
-        } else {
+        } else if (awayScore > homeScore) {
           await base44.entities.Team.update(game.home_team_id, {
             losses: (home.losses || 0) + 1
           });
           await base44.entities.Team.update(game.away_team_id, {
             wins: (away.wins || 0) + 1
+          });
+        } else {
+          await base44.entities.Team.update(game.home_team_id, {
+            draws: (home.draws || 0) + 1
+          });
+          await base44.entities.Team.update(game.away_team_id, {
+            draws: (away.draws || 0) + 1
           });
         }
       }
