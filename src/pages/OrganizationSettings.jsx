@@ -67,9 +67,18 @@ export default function OrganizationSettings() {
 
   const currentOrgId = user?.active_organization_id || user?.organization_id;
 
+  const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
+
   const { data: organization, refetch: refetchOrganization } = useQuery({
-    queryKey: ['organization', currentOrgId],
+    queryKey: ['organization', currentOrgId, isSuperAdmin],
     queryFn: async () => {
+      // Super admins: RLS blocks Organization.list() because user_condition with
+      // is_super_admin can't be evaluated — use service-role backend function instead.
+      if (isSuperAdmin) {
+        const res = await base44.functions.invoke('getSuperAdminData', {});
+        const orgs = res.data?.organizations || res.organizations || [];
+        return orgs.find(o => o.id === currentOrgId);
+      }
       const orgs = await base44.entities.Organization.list();
       return orgs.find(o => o.id === currentOrgId);
     },
