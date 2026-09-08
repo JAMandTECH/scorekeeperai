@@ -71,8 +71,11 @@ export default function TournamentBracket() {
         navigate(createPageUrl("Home"));
         return;
       }
-      
-      setUser(currentUser);
+
+      // Fetch fresh user record — JWT token claims (organization_id etc.) can be stale.
+      const freshUsers = await base44.entities.User.filter({ email: currentUser.email });
+      const freshUser = freshUsers[0] || currentUser;
+      setUser({ ...currentUser, ...freshUser });
     } catch (error) {
       console.error("Error loading user:", error);
       base44.auth.redirectToLogin(createPageUrl("TournamentBracket"));
@@ -84,10 +87,10 @@ export default function TournamentBracket() {
   };
 
   const { data: organization } = useQuery({
-    queryKey: ['organization', user?.organization_id],
+    queryKey: ['user-organization', user?.organization_id],
     queryFn: async () => {
-      const orgs = await base44.entities.Organization.list();
-      return orgs.find(o => o.id === user?.organization_id) || null;
+      const res = await base44.functions.invoke('getUserOrganization', {});
+      return res.data?.organization || null;
     },
     enabled: !!user?.organization_id,
   });
