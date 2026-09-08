@@ -147,7 +147,7 @@ export default function OrganizationSettings() {
     );
   }
 
-  if (!currentOrgId || (!organization && !orgMembers)) {
+  if (!currentOrgId || !organization) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6">
         <Card className="max-w-md text-center p-8">
