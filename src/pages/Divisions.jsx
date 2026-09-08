@@ -98,7 +98,14 @@ export default function Divisions() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Division.create(data),
+    mutationFn: async (data) => {
+      let seasonId = null;
+      try {
+        const res = await base44.functions.invoke('getActiveSeason', {});
+        seasonId = res.data?.season?.id || null;
+      } catch (_) {}
+      return base44.entities.Division.create({ ...data, season_id: seasonId });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['divisions']);
       queryClient.invalidateQueries(['teams']); // Invalidate teams as new division might change team contexts

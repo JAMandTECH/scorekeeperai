@@ -153,9 +153,17 @@ export default function TeamRegistration() {
         throw new Error("Organization or user not found");
       }
 
+      // Resolve active season for tagging
+      let seasonId = null;
+      try {
+        const res = await base44.functions.invoke('getActiveSeason', {});
+        seasonId = res.data?.season?.id || null;
+      } catch (_) {}
+
       // Create team with pending status
       const team = await base44.entities.Team.create({
         organization_id: organization.id,
+        season_id: seasonId,
         name: teamData.name,
         sport: teamData.sport,
         division: teamData.division,
@@ -174,6 +182,7 @@ export default function TeamRegistration() {
         .map(player =>
           base44.entities.Player.create({
             team_id: team.id,
+            season_id: seasonId,
             jersey_number: player.jersey_number,
             first_name: player.first_name,
             last_name: player.last_name,

@@ -173,9 +173,15 @@ export default function TournamentBracket() {
         return await base44.entities.Tournament.update(id, data);
       } else {
         // Create new tournament
+        let seasonId = null;
+        try {
+          const res = await base44.functions.invoke('getActiveSeason', {});
+          seasonId = res.data?.season?.id || null;
+        } catch (_) {}
         const tournament = await base44.entities.Tournament.create({
           ...data,
           organization_id: orgId,
+          season_id: seasonId,
           status: 'setup',
         });
         

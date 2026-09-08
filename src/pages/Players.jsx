@@ -283,7 +283,14 @@ export default function Players() {
   };
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Player.create(data),
+    mutationFn: async (data) => {
+      let seasonId = null;
+      try {
+        const res = await base44.functions.invoke('getActiveSeason', {});
+        seasonId = res.data?.season?.id || null;
+      } catch (_) {}
+      return base44.entities.Player.create({ ...data, season_id: seasonId });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['players']);
       setShowForm(false);

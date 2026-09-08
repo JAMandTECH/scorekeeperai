@@ -234,8 +234,14 @@ export default function Games() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
+      let seasonId = null;
+      try {
+        const res = await base44.functions.invoke('getActiveSeason', {});
+        seasonId = res.data?.season?.id || null;
+      } catch (_) {}
+      const withSeason = (g) => ({ ...g, season_id: seasonId });
       if (Array.isArray(data)) {
-        return base44.entities.Game.bulkCreate(data);
+        return base44.entities.Game.bulkCreate(data.map(withSeason));
       } else if (recurringConfig.enabled) {
         const seriesId = Date.now().toString();
         const gamesToCreate = [];
@@ -249,16 +255,16 @@ export default function Games() {
             gameDate.setDate(gameDate.getDate() + (i * recurringConfig.interval));
           }
           
-          gamesToCreate.push({
+          gamesToCreate.push(withSeason({
             ...data,
             game_date: gameDate.toISOString(),
             recurring_series_id: seriesId,
-          });
+          }));
         }
         
         return Promise.all(gamesToCreate.map(game => base44.entities.Game.create(game)));
       } else {
-        return base44.entities.Game.create(data);
+        return base44.entities.Game.create(withSeason(data));
       }
     },
     onSuccess: () => {
