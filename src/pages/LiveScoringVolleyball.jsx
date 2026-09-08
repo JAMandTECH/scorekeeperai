@@ -47,6 +47,7 @@ export default function LiveScoringVolleyball() {
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
   const [hideLiveStream, setHideLiveStream] = useState(false);
+  const [hideScoreOverlay, setHideScoreOverlay] = useState(false);
   const navigate = useNavigate();
 const urlParams = new URLSearchParams(window.location.search);
 const editMode = urlParams.get('edit') === '1' || urlParams.get('mode') === 'edit';
@@ -863,6 +864,18 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                 </Label>
               </div>
             )}
+            {game?.stream_url && !hideLiveStream && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md border-2 border-gray-600 bg-gray-800">
+                <Switch
+                  checked={!hideScoreOverlay}
+                  onCheckedChange={(checked) => setHideScoreOverlay(!checked)}
+                  id="hide-overlay-toggle-volleyball"
+                />
+                <Label htmlFor="hide-overlay-toggle-volleyball" className="text-xs font-bold text-gray-300 cursor-pointer">
+                  {hideScoreOverlay ? "Score Overlay Hidden" : "Score Overlay Visible"}
+                </Label>
+              </div>
+            )}
             <Button
               onClick={() => navigate(createPageUrl("Dashboard"))}
               variant="outline"
@@ -914,6 +927,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
               away_timeouts: awayTimeouts,
             }}
             showScoreOverlay
+            hideScoreOverlay={hideScoreOverlay}
           />
         </div>
       )}
