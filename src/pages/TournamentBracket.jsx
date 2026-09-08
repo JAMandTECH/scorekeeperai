@@ -109,6 +109,18 @@ export default function TournamentBracket() {
     enabled: !!orgId,
   });
 
+  // Keep selectedTournament in sync with the latest tournament data from
+  // the query so the bracket visual always has current manual_matches,
+  // connectors, and sections after saves or background refetches.
+  useEffect(() => {
+    if (selectedTournament && tournaments.length > 0) {
+      const updated = tournaments.find(t => t.id === selectedTournament.id);
+      if (updated && updated !== selectedTournament) {
+        setSelectedTournament(updated);
+      }
+    }
+  }, [tournaments, selectedTournament]);
+
   const { data: allMatches = [] } = useQuery({
     queryKey: ['bracket-matches', selectedTournament?.id],
     queryFn: () => base44.entities.BracketMatch.filter({ tournament_id: selectedTournament.id }),
@@ -509,6 +521,7 @@ export default function TournamentBracket() {
                   </div>
                   <div className="bracket-visual-container">
                     <BracketVisual
+                      key={selectedTournament.id}
                       tournament={selectedTournament}
                       matches={allMatches}
                       teams={teams}
