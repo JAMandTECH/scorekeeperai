@@ -57,10 +57,15 @@ export default function Home() {
         }
 
         setUser(currentUser);
-        const activeOrgId = currentUser?.active_organization_id || currentUser?.organization_id;
+        const activeOrgId = currentUser?.active_organization_id || currentUser?.organization_id
+          || currentUser?.data?.active_organization_id || currentUser?.data?.organization_id;
         if (activeOrgId) {
-          const orgs = await base44.entities.Organization.list();
-          setOrganization(orgs.find(o => o.id === activeOrgId) || null);
+          try {
+            const res = await base44.functions.invoke('getUserOrganization', {});
+            setOrganization(res?.data?.organization || null);
+          } catch {
+            setOrganization(null);
+          }
         }
       } else {
         setUser(null);
