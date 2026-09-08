@@ -23,6 +23,9 @@ import VoiceAssistant from "@/components/VoiceAssistant";
 import SyncStatusBadge from "@/components/SyncStatusBadge";
 import BroadcastOverlayDialog from "@/components/BroadcastOverlayDialog";
 import { Radio } from "lucide-react";
+import LiveStreamEmbed from "@/components/LiveStreamEmbed";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { enqueueStatWrite, enqueueGameWrite, startStatSync } from "@/lib/statSyncQueue";
 
 
@@ -43,6 +46,7 @@ export default function LiveScoringVolleyball() {
   const [showSetStats, setShowSetStats] = useState(true);
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
+  const [hideLiveStream, setHideLiveStream] = useState(false);
   const navigate = useNavigate();
 const urlParams = new URLSearchParams(window.location.search);
 const editMode = urlParams.get('edit') === '1' || urlParams.get('mode') === 'edit';
@@ -847,6 +851,18 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                 Broadcast Overlay
               </Button>
             )}
+            {game?.stream_url && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md border-2 border-gray-600 bg-gray-800">
+                <Switch
+                  checked={!hideLiveStream}
+                  onCheckedChange={(checked) => setHideLiveStream(!checked)}
+                  id="hide-stream-toggle-volleyball"
+                />
+                <Label htmlFor="hide-stream-toggle-volleyball" className="text-xs font-bold text-gray-300 cursor-pointer">
+                  {hideLiveStream ? "Stream Hidden" : "Stream Visible"}
+                </Label>
+              </div>
+            )}
             <Button
               onClick={() => navigate(createPageUrl("Dashboard"))}
               variant="outline"
@@ -879,6 +895,13 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
               </AlertDescription>
             </Alert>
           </div>
+        </div>
+      )}
+
+      {/* Live Stream Embed — hidden automatically when stream_url is empty or toggled off */}
+      {game.stream_url && game.stream_url.trim().length > 0 && !hideLiveStream && (
+        <div className="max-w-7xl mx-auto px-4 mt-4">
+          <LiveStreamEmbed streamUrl={game.stream_url} gameTitle={`${homeTeam.name} vs ${awayTeam.name}`} game={game} showScoreOverlay />
         </div>
       )}
 
