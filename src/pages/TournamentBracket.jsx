@@ -99,13 +99,19 @@ export default function TournamentBracket() {
 
   const { data: tournaments = [] } = useQuery({
     queryKey: ['tournaments', orgId],
-    queryFn: () => base44.entities.Tournament.filter({ organization_id: orgId }, '-created_date'),
+    queryFn: async () => {
+      const res = await base44.functions.invoke('getTournaments', {});
+      return res.data?.tournaments || [];
+    },
     enabled: !!orgId,
   });
 
   const { data: teams = [] } = useQuery({
     queryKey: ['teams', orgId],
-    queryFn: () => base44.entities.Team.filter({ organization_id: orgId }),
+    queryFn: async () => {
+      const res = await base44.functions.invoke('getTeams', {});
+      return res.data?.teams || [];
+    },
     enabled: !!orgId,
   });
 
