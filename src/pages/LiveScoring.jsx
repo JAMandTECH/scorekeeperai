@@ -1356,7 +1356,22 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
       {/* Live Stream Embed (YouTube) — hidden automatically when stream_url is empty or toggled off */}
       {game.stream_url && game.stream_url.trim().length > 0 && !hideLiveStream && (
         <div className="max-w-7xl mx-auto px-4 mt-4">
-          <LiveStreamEmbed streamUrl={game.stream_url} gameTitle={`${homeTeam.name} vs ${awayTeam.name}`} game={game} showScoreOverlay />
+          <LiveStreamEmbed
+            streamUrl={game.stream_url}
+            gameTitle={`${homeTeam.name} vs ${awayTeam.name}`}
+            game={{
+              ...game,
+              home_score: homeScore,
+              away_score: awayScore,
+              current_quarter: currentQuarter,
+              quarter_scores: quarterScores,
+              home_team_fouls: homeTeamFouls,
+              away_team_fouls: awayTeamFouls,
+              home_timeouts: homeTimeouts,
+              away_timeouts: awayTimeouts,
+            }}
+            showScoreOverlay
+          />
         </div>
       )}
 

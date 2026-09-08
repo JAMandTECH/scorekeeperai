@@ -15,8 +15,23 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
   const [game, setGame] = useState(initialGame);
   const [teams, setTeams] = useState(teamsMap || {});
 
-  // Keep local state in sync if parent passes a new game object
-  useEffect(() => { setGame(initialGame); }, [initialGame?.id]);
+  // Keep local state in sync if parent passes updated score fields (live scoring pages
+  // pass an enriched game object with current local scores; the ID stays constant but
+  // the score fields change as the scorekeeper records points).
+  useEffect(() => {
+    setGame(initialGame);
+  }, [
+    initialGame?.id,
+    initialGame?.home_score,
+    initialGame?.away_score,
+    initialGame?.current_quarter,
+    initialGame?.quarter_scores,
+    initialGame?.home_team_fouls,
+    initialGame?.away_team_fouls,
+    initialGame?.home_timeouts,
+    initialGame?.away_timeouts,
+    initialGame?.status,
+  ]);
   useEffect(() => { if (teamsMap) setTeams(teamsMap); }, [teamsMap]);
 
   // Fetch teams if not provided
