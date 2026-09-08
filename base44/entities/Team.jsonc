@@ -3,8 +3,7 @@
   "type": "object",
   "properties": {
     "organization_id": {
-      "type": "string",
-      "description": "Organization this team belongs to"
+      "type": "string"
     },
     "name": {
       "type": "string"
@@ -43,12 +42,10 @@
         "approved",
         "rejected"
       ],
-      "default": "pending",
-      "description": "Team approval status"
+      "default": "pending"
     },
     "submitted_by": {
-      "type": "string",
-      "description": "Email of user who submitted the team"
+      "type": "string"
     }
   },
   "required": [
@@ -67,13 +64,13 @@
           }
         },
         {
-          "organization_id": "{{user.organization_id}}"
+          "data.organization_id": "{{user.data.organization_id}}"
         },
         {
-          "organization_id": "{{user.active_organization_id}}"
+          "data.organization_id": "{{user.data.active_organization_id}}"
         },
         {
-          "submitted_by": "{{user.email}}"
+          "data.submitted_by": "{{user.email}}"
         }
       ]
     },
@@ -86,10 +83,16 @@
           }
         },
         {
-          "user_condition": {
-            "role": "admin"
-          },
-          "organization_id": "{{user.organization_id}}"
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
         }
       ]
     },
@@ -102,10 +105,16 @@
           }
         },
         {
-          "user_condition": {
-            "role": "admin"
-          },
-          "organization_id": "{{user.organization_id}}"
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
         }
       ]
     }

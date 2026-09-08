@@ -71,8 +71,11 @@ export default function TournamentBracket() {
         navigate(createPageUrl("Home"));
         return;
       }
-      
-      setUser(currentUser);
+
+      // Fetch fresh user record — JWT token claims (organization_id etc.) can be stale.
+      const freshUsers = await base44.entities.User.filter({ email: currentUser.email });
+      const freshUser = freshUsers[0] || currentUser;
+      setUser({ ...currentUser, ...freshUser });
     } catch (error) {
       console.error("Error loading user:", error);
       base44.auth.redirectToLogin(createPageUrl("TournamentBracket"));
@@ -84,24 +87,26 @@ export default function TournamentBracket() {
   };
 
   const { data: organization } = useQuery({
-    queryKey: ['organization', user?.organization_id],
+    queryKey: ['user-organization'],
     queryFn: async () => {
-      const orgs = await base44.entities.Organization.list();
-      return orgs.find(o => o.id === user?.organization_id) || null;
+      const res = await base44.functions.invoke('getUserOrganization', {});
+      return res.data?.organization || null;
     },
-    enabled: !!user?.organization_id,
+    enabled: !!user,
   });
 
+  const orgId = organization?.id || user?.organization_id;
+
   const { data: tournaments = [] } = useQuery({
-    queryKey: ['tournaments', user?.organization_id],
-    queryFn: () => base44.entities.Tournament.filter({ organization_id: user?.organization_id }, '-created_date'),
-    enabled: !!user?.organization_id,
+    queryKey: ['tournaments', orgId],
+    queryFn: () => base44.entities.Tournament.filter({ organization_id: orgId }, '-created_date'),
+    enabled: !!orgId,
   });
 
   const { data: teams = [] } = useQuery({
-    queryKey: ['teams', user?.organization_id],
-    queryFn: () => base44.entities.Team.filter({ organization_id: user?.organization_id }),
-    enabled: !!user?.organization_id,
+    queryKey: ['teams', orgId],
+    queryFn: () => base44.entities.Team.filter({ organization_id: orgId }),
+    enabled: !!orgId,
   });
 
   const { data: allMatches = [] } = useQuery({
@@ -115,9 +120,9 @@ export default function TournamentBracket() {
   });
 
   const { data: allGames = [] } = useQuery({
-    queryKey: ['tournament-games', user?.organization_id],
-    queryFn: () => base44.entities.Game.filter({ organization_id: user?.organization_id }, '-game_date'),
-    enabled: !!user?.organization_id && !!selectedTournament,
+    queryKey: ['tournament-games', orgId],
+    queryFn: () => base44.entities.Game.filter({ organization_id: orgId }, '-game_date'),
+    enabled: !!orgId && !!selectedTournament,
   });
 
   // Link or unlink a scheduled game to a bracket match. Series wins recompute
@@ -152,7 +157,7 @@ export default function TournamentBracket() {
         // Create new tournament
         const tournament = await base44.entities.Tournament.create({
           ...data,
-          organization_id: user?.organization_id,
+          organization_id: orgId,
           status: 'setup',
         });
         
@@ -499,7 +504,7 @@ export default function TournamentBracket() {
                     <BracketShareButton 
                       tournament={selectedTournament}
                       user={user}
-                      organizationId={user?.organization_id}
+                      organizationId={orgId}
                     />
                   </div>
                   <div className="bracket-visual-container">

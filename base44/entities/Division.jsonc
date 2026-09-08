@@ -3,24 +3,20 @@
   "type": "object",
   "properties": {
     "organization_id": {
-      "type": "string",
-      "description": "Organization this division belongs to"
+      "type": "string"
     },
     "name": {
-      "type": "string",
-      "description": "Division name"
+      "type": "string"
     },
     "sport": {
       "type": "string",
       "enum": [
         "basketball",
         "volleyball"
-      ],
-      "description": "Sport this division is for"
+      ]
     },
     "description": {
-      "type": "string",
-      "description": "Division description or details"
+      "type": "string"
     }
   },
   "required": [
@@ -38,10 +34,16 @@
           }
         },
         {
-          "user_condition": {
-            "role": "admin"
-          },
-          "organization_id": "{{user.organization_id}}"
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
         }
       ]
     },
@@ -54,10 +56,10 @@
           }
         },
         {
-          "organization_id": "{{user.organization_id}}"
+          "data.organization_id": "{{user.data.organization_id}}"
         },
         {
-          "organization_id": "{{user.active_organization_id}}"
+          "data.organization_id": "{{user.data.active_organization_id}}"
         }
       ]
     },
@@ -70,10 +72,16 @@
           }
         },
         {
-          "user_condition": {
-            "role": "admin"
-          },
-          "organization_id": "{{user.organization_id}}"
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
         }
       ]
     },
@@ -86,10 +94,16 @@
           }
         },
         {
-          "user_condition": {
-            "role": "admin"
-          },
-          "organization_id": "{{user.organization_id}}"
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
         }
       ]
     }

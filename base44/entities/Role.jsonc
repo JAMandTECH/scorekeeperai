@@ -3,25 +3,20 @@
   "type": "object",
   "properties": {
     "organization_id": {
-      "type": "string",
-      "description": "Organization this role belongs to"
+      "type": "string"
     },
     "name": {
-      "type": "string",
-      "description": "Role name (e.g., Admin, Scorekeeper, Coach, Viewer)"
+      "type": "string"
     },
     "description": {
-      "type": "string",
-      "description": "Role description"
+      "type": "string"
     },
     "is_system_role": {
       "type": "boolean",
-      "default": false,
-      "description": "Whether this is a system-defined role that cannot be deleted"
+      "default": false
     },
     "permissions": {
       "type": "object",
-      "description": "Permissions object defining what this role can do",
       "properties": {
         "manage_organization": {
           "type": "boolean",
@@ -95,10 +90,16 @@
           }
         },
         {
-          "user_condition": {
-            "role": "admin"
-          },
-          "organization_id": "{{user.organization_id}}"
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
         }
       ]
     },
@@ -111,10 +112,10 @@
           }
         },
         {
-          "organization_id": "{{user.organization_id}}"
+          "data.organization_id": "{{user.data.organization_id}}"
         },
         {
-          "organization_id": "{{user.active_organization_id}}"
+          "data.organization_id": "{{user.data.active_organization_id}}"
         }
       ]
     },
@@ -127,10 +128,16 @@
           }
         },
         {
-          "user_condition": {
-            "role": "admin"
-          },
-          "organization_id": "{{user.organization_id}}"
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
         }
       ]
     },
@@ -143,11 +150,19 @@
           }
         },
         {
-          "user_condition": {
-            "role": "admin"
-          },
-          "organization_id": "{{user.organization_id}}",
-          "is_system_role": false
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            },
+            {
+              "data.is_system_role": false
+            }
+          ]
         }
       ]
     }
