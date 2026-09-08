@@ -47,6 +47,17 @@ export default function OrganizationSettings() {
 
   const loadUser = async () => {
     const currentUser = await base44.auth.me();
+    // Fetch fresh user data from DB (auth.me() may return stale token data)
+    try {
+      const allUsers = await base44.entities.User.list();
+      const freshUser = allUsers.find(u => u.id === currentUser.id);
+      if (freshUser) {
+        setUser({ ...currentUser, ...freshUser });
+        return;
+      }
+    } catch (e) {
+      console.error('Failed to fetch fresh user data:', e);
+    }
     setUser(currentUser);
   };
 

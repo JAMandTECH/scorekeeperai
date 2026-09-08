@@ -50,8 +50,18 @@ export default function Dashboard() {
     try {
       const currentUser = await base44.auth.me();
 
+      // Fetch fresh user data from DB (auth.me() may return stale token data)
+      let user = currentUser;
+      try {
+        const allUsers = await base44.entities.User.list();
+        const freshUser = allUsers.find(u => u.id === currentUser.id);
+        if (freshUser) user = { ...currentUser, ...freshUser };
+      } catch (e) {
+        console.error('Failed to fetch fresh user data:', e);
+      }
+
       // Super admins manage the whole platform — send them to the platform dashboard
-      if (currentUser.role === 'admin' && currentUser.is_super_admin === true) {
+      if (user.role === 'admin' && user.is_super_admin === true) {
         navigate("/SuperAdminHome");
         return;
       }
@@ -64,13 +74,13 @@ export default function Dashboard() {
       
       // Admins and registered organization members can view the dashboard.
       // Users with no organization association are sent home.
-      const belongsToOrg = currentUser.active_organization_id || currentUser.organization_id;
-      if (currentUser.role !== 'admin' && !belongsToOrg) {
+      const belongsToOrg = user.active_organization_id || user.organization_id;
+      if (user.role !== 'admin' && !belongsToOrg) {
         navigate("/");
         return;
       }
       
-      setUser(currentUser);
+      setUser(user);
     } catch (error) {
       console.error("Error loading user:", error);
       base44.auth.redirectToLogin("/dashboard");
