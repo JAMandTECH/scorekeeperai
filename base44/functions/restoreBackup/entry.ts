@@ -40,7 +40,9 @@ Deno.serve(async (req) => {
       teams: 0,
       players: 0,
       games: 0,
-      stats: 0
+      stats: 0,
+      tournaments: 0,
+      bracket_matches: 0
     };
 
     if (mode === 'replace') {
@@ -148,6 +150,68 @@ Deno.serve(async (req) => {
         restoredCounts.stats++;
       } catch (error) {
         console.error(`Error restoring player stat:`, error.message);
+      }
+    }
+
+    // Restore tournaments (remap team IDs in initial_teams + manual_matches)
+    const tournamentIdMap = {};
+    for (const tournament of backupData.tournaments || []) {
+      const { id, created_date, updated_date, created_by, ...tournamentData } = tournament;
+      try {
+        const remapped = { ...tournamentData };
+        // Remap initial_teams array
+        if (Array.isArray(remapped.initial_teams)) {
+          remapped.initial_teams = remapped.initial_teams.map(tid => teamIdMap[tid] || tid);
+        }
+        // Remap team IDs inside manual_matches
+        if (Array.isArray(remapped.manual_matches)) {
+          remapped.manual_matches = remapped.manual_matches.map(m => ({
+            ...m,
+            home_team_id: m.home_team_id ? (teamIdMap[m.home_team_id] || m.home_team_id) : m.home_team_id,
+            away_team_id: m.away_team_id ? (teamIdMap[m.away_team_id] || m.away_team_id) : m.away_team_id,
+            winner_team_id: m.winner_team_id ? (teamIdMap[m.winner_team_id] || m.winner_team_id) : m.winner_team_id,
+          }));
+        }
+        const newTournament = await base44.asServiceRole.entities.Tournament.create(remapped);
+        tournamentIdMap[id] = newTournament.id;
+        restoredCounts.tournaments = (restoredCounts.tournaments || 0) + 1;
+      } catch (error) {
+        console.error(`Error restoring tournament ${tournament.name}:`, error.message);
+      }
+    }
+
+    // Restore bracket matches (remap tournament, team, game, and next-match IDs)
+    const bracketMatchIdMap = {};
+    // First pass: create all matches so we can remap next_match_id
+    for (const match of backupData.bracket_matches || []) {
+      const { id, created_date, updated_date, created_by, tournament_id, home_team_id, away_team_id, winner_team_id, next_match_id, game_ids, ...matchData } = match;
+      try {
+        const newMatch = await base44.asServiceRole.entities.BracketMatch.create({
+          ...matchData,
+          tournament_id: tournamentIdMap[tournament_id] || tournament_id,
+          home_team_id: home_team_id ? (teamIdMap[home_team_id] || home_team_id) : home_team_id,
+          away_team_id: away_team_id ? (teamIdMap[away_team_id] || away_team_id) : away_team_id,
+          winner_team_id: winner_team_id ? (teamIdMap[winner_team_id] || winner_team_id) : winner_team_id,
+          game_ids: Array.isArray(game_ids) ? game_ids.map(gid => gameIdMap[gid] || gid) : game_ids,
+          next_match_id: null, // set in second pass once all IDs exist
+        });
+        bracketMatchIdMap[id] = newMatch.id;
+        restoredCounts.bracket_matches = (restoredCounts.bracket_matches || 0) + 1;
+      } catch (error) {
+        console.error(`Error restoring bracket match:`, error.message);
+      }
+    }
+    // Second pass: link next_match_id using the new match IDs
+    for (const match of backupData.bracket_matches || []) {
+      if (match.next_match_id && bracketMatchIdMap[match.next_match_id]) {
+        try {
+          await base44.asServiceRole.entities.BracketMatch.update(
+            bracketMatchIdMap[match.id],
+            { next_match_id: bracketMatchIdMap[match.next_match_id] }
+          );
+        } catch (error) {
+          console.error(`Error linking bracket match next_match_id:`, error.message);
+        }
       }
     }
 
