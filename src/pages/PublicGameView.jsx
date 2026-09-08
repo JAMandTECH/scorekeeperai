@@ -14,7 +14,7 @@ import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 
 export default function PublicGameView() {
   const [darkMode, setDarkMode] = useState(false);
-  const [hideScoreOverlay, setHideScoreOverlay] = useState(false);
+  const [hideScoreboard, setHideScoreboard] = useState(false);
   
   // Get game_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -123,6 +123,19 @@ export default function PublicGameView() {
             </Button>
           </Link>
           <div className="flex items-center gap-3">
+            {game.stream_url && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/10 backdrop-blur-sm border border-white/20">
+                {hideScoreboard ? <EyeOff className="w-4 h-4 text-white/70" /> : <Eye className="w-4 h-4 text-white" />}
+                <Switch
+                  checked={!hideScoreboard}
+                  onCheckedChange={(checked) => setHideScoreboard(!checked)}
+                  id="scoreboard-toggle"
+                />
+                <Label htmlFor="scoreboard-toggle" className="text-xs font-bold text-white cursor-pointer whitespace-nowrap">
+                  {hideScoreboard ? "Scoreboard Hidden" : "Scoreboard Visible"}
+                </Label>
+              </div>
+            )}
             {isLive && (
               <Badge className="bg-red-500 text-white font-bold animate-pulse flex items-center gap-1">
                 <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -138,31 +151,16 @@ export default function PublicGameView() {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Main Scoreboard */}
-        <Card className={`mb-8 overflow-hidden border-2 ${isLive ? 'border-red-500/50' : 'border-gray-700'} bg-gradient-to-br from-gray-800 to-gray-900`}>
+        <Card className={`mb-8 overflow-hidden border-2 ${isLive ? 'border-red-500/50' : 'border-gray-700'} bg-gradient-to-br from-gray-800 to-gray-900`} style={{ display: hideScoreboard ? 'none' : 'block' }}>
           <CardHeader className={`bg-gradient-to-r from-${sportColor}-600 to-${sportColor}-700 py-4`}>
             <div className="flex items-center justify-between">
               <Badge className="bg-white/20 text-white font-bold border-0 uppercase">
                 {game.sport}
               </Badge>
               <span className="text-white font-bold">{quarterLabel}</span>
-              <div className="flex items-center gap-3">
-                <Badge className={`font-bold border-0 ${isLive ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
-                  {game.status === 'completed' ? 'FINAL' : game.status === 'in_progress' ? 'LIVE' : 'SCHEDULED'}
-                </Badge>
-                {game.stream_url && (
-                  <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-black/30 backdrop-blur-sm">
-                    {hideScoreOverlay ? <EyeOff className="w-4 h-4 text-white/70" /> : <Eye className="w-4 h-4 text-white" />}
-                    <Switch
-                      checked={!hideScoreOverlay}
-                      onCheckedChange={(checked) => setHideScoreOverlay(!checked)}
-                      id="scoreboard-overlay-toggle"
-                    />
-                    <Label htmlFor="scoreboard-overlay-toggle" className="text-xs font-bold text-white cursor-pointer whitespace-nowrap">
-                      {hideScoreOverlay ? "Overlay Hidden" : "Overlay Visible"}
-                    </Label>
-                  </div>
-                )}
-              </div>
+              <Badge className={`font-bold border-0 ${isLive ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
+                {game.status === 'completed' ? 'FINAL' : game.status === 'in_progress' ? 'LIVE' : 'SCHEDULED'}
+              </Badge>
             </div>
           </CardHeader>
           <CardContent className="p-8">
@@ -242,7 +240,6 @@ export default function PublicGameView() {
                 gameTitle={`${homeTeam?.name} vs ${awayTeam?.name}`}
                 game={game}
                 showScoreOverlay
-                hideScoreOverlay={hideScoreOverlay}
               />
             </CardContent>
           </Card>
