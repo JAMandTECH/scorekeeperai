@@ -12,6 +12,7 @@ import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 
 export default function PublicGameView() {
   const [darkMode, setDarkMode] = useState(false);
+  const [hideScoreOverlay, setHideScoreOverlay] = useState(false);
   
   // Get game_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -224,6 +225,8 @@ export default function PublicGameView() {
                 gameTitle={`${homeTeam?.name} vs ${awayTeam?.name}`}
                 game={game}
                 showScoreOverlay
+                hideScoreOverlay={hideScoreOverlay}
+                onToggleScoreOverlay={setHideScoreOverlay}
               />
             </CardContent>
           </Card>
