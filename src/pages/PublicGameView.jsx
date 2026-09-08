@@ -7,7 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, PlayCircle, Video, RefreshCw } from "lucide-react";
+import { ArrowLeft, PlayCircle, Video, RefreshCw, Eye, EyeOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 
 export default function PublicGameView() {
@@ -143,9 +145,24 @@ export default function PublicGameView() {
                 {game.sport}
               </Badge>
               <span className="text-white font-bold">{quarterLabel}</span>
-              <Badge className={`font-bold border-0 ${isLive ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
-                {game.status === 'completed' ? 'FINAL' : game.status === 'in_progress' ? 'LIVE' : 'SCHEDULED'}
-              </Badge>
+              <div className="flex items-center gap-3">
+                <Badge className={`font-bold border-0 ${isLive ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
+                  {game.status === 'completed' ? 'FINAL' : game.status === 'in_progress' ? 'LIVE' : 'SCHEDULED'}
+                </Badge>
+                {game.stream_url && (
+                  <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-black/30 backdrop-blur-sm">
+                    {hideScoreOverlay ? <EyeOff className="w-4 h-4 text-white/70" /> : <Eye className="w-4 h-4 text-white" />}
+                    <Switch
+                      checked={!hideScoreOverlay}
+                      onCheckedChange={(checked) => setHideScoreOverlay(!checked)}
+                      id="scoreboard-overlay-toggle"
+                    />
+                    <Label htmlFor="scoreboard-overlay-toggle" className="text-xs font-bold text-white cursor-pointer whitespace-nowrap">
+                      {hideScoreOverlay ? "Overlay Hidden" : "Overlay Visible"}
+                    </Label>
+                  </div>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-8">
@@ -226,7 +243,6 @@ export default function PublicGameView() {
                 game={game}
                 showScoreOverlay
                 hideScoreOverlay={hideScoreOverlay}
-                onToggleScoreOverlay={setHideScoreOverlay}
               />
             </CardContent>
           </Card>
