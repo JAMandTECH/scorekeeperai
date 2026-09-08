@@ -1,5 +1,5 @@
 {
-  "name": "Division",
+  "name": "ArchivedPlayer",
   "type": "object",
   "properties": {
     "organization_id": {
@@ -7,26 +7,63 @@
     },
     "season_id": {
       "type": "string",
-      "description": "Active season this division belongs to"
+      "description": "Season this archived player belongs to"
     },
-    "name": {
-      "type": "string"
-    },
-    "sport": {
+    "original_id": {
       "type": "string",
-      "enum": [
-        "basketball",
-        "volleyball"
-      ]
+      "description": "Original Player record id"
     },
-    "description": {
+    "team_id": {
       "type": "string"
+    },
+    "team_name": {
+      "type": "string"
+    },
+    "jersey_number": {
+      "type": "string"
+    },
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "position": {
+      "type": "string"
+    },
+    "contact_number": {
+      "type": "string"
+    },
+    "height": {
+      "type": "string"
+    },
+    "photo_url": {
+      "type": "string"
+    },
+    "total_points": {
+      "type": "number",
+      "default": 0
+    },
+    "total_rebounds": {
+      "type": "number",
+      "default": 0
+    },
+    "total_assists": {
+      "type": "number",
+      "default": 0
+    },
+    "games_played": {
+      "type": "number",
+      "default": 0
     }
   },
   "required": [
     "organization_id",
-    "name",
-    "sport"
+    "season_id",
+    "original_id",
+    "first_name",
+    "last_name",
+    "jersey_number"
   ],
   "rls": {
     "create": {

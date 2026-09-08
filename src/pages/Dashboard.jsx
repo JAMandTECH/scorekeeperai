@@ -4,12 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, Users, Trophy, Calendar, TrendingUp, Plus, PlayCircle, Sun, Moon, LogOut } from "lucide-react";
+import { Building2, Users, Trophy, Calendar, TrendingUp, Plus, PlayCircle, Sun, Moon, LogOut, CalendarCheck } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import AIAssistant from "@/components/AIAssistant";
 import SubscriptionBadge from "@/components/subscription/SubscriptionBadge";
+import SeasonManager from "@/components/SeasonManager";
 import RecentActivity from "@/components/dashboard/RecentActivity";
 import TopScorerSpotlight from "@/components/dashboard/TopScorerSpotlight";
 import CategoryLeaders from "@/components/dashboard/CategoryLeaders";
@@ -22,6 +23,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [seasonManagerOpen, setSeasonManagerOpen] = useState(false);
   const navigate = useNavigate();
 
   const currentOrgId = user?.active_organization_id || user?.organization_id;
@@ -237,13 +239,20 @@ export default function Dashboard() {
                       : 'Loading organization...'}
                 </p>
                 {organization && isAdmin && (
-                  <div className="mt-3 flex items-center gap-3">
+                  <div className="mt-3 flex items-center gap-3 flex-wrap">
                     <SubscriptionBadge organization={organization} />
                     {isSuperAdmin && (
                       <Link to="/subscriptionmanagement">
                         <Button variant="outline" size="sm">Manage Subscriptions</Button>
                       </Link>
                     )}
+                    <Button onClick={() => setSeasonManagerOpen(true)} variant="outline" size="sm" className="border-green-500/30 text-green-600 dark:text-green-400 hover:bg-green-500/10">
+                      <CalendarCheck className="w-4 h-4 mr-1.5" />
+                      Season Manager
+                    </Button>
+                    <Link to="/PastSeasons">
+                      <Button variant="ghost" size="sm">Past Seasons</Button>
+                    </Link>
                   </div>
                 )}
               </div>
@@ -474,6 +483,14 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+      {organization && isAdmin && (
+        <SeasonManager
+          open={seasonManagerOpen}
+          onClose={() => setSeasonManagerOpen(false)}
+          organization={organization}
+          user={user}
+        />
+      )}
     </div>
   );
 }

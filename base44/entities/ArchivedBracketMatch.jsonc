@@ -1,5 +1,5 @@
 {
-  "name": "Division",
+  "name": "ArchivedBracketMatch",
   "type": "object",
   "properties": {
     "organization_id": {
@@ -7,26 +7,78 @@
     },
     "season_id": {
       "type": "string",
-      "description": "Active season this division belongs to"
+      "description": "Season this archived match belongs to"
     },
-    "name": {
+    "original_id": {
+      "type": "string",
+      "description": "Original BracketMatch record id"
+    },
+    "tournament_id": {
       "type": "string"
     },
-    "sport": {
+    "archived_tournament_id": {
+      "type": "string",
+      "description": "Corresponding ArchivedTournament id"
+    },
+    "round_name": {
+      "type": "string"
+    },
+    "match_number": {
+      "type": "number"
+    },
+    "home_team_id": {
+      "type": "string"
+    },
+    "away_team_id": {
+      "type": "string"
+    },
+    "winner_team_id": {
+      "type": "string"
+    },
+    "game_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "home_team_wins": {
+      "type": "number",
+      "default": 0
+    },
+    "away_team_wins": {
+      "type": "number",
+      "default": 0
+    },
+    "required_wins": {
+      "type": "number",
+      "default": 1
+    },
+    "status": {
       "type": "string",
       "enum": [
-        "basketball",
-        "volleyball"
-      ]
+        "pending",
+        "ready",
+        "in_progress",
+        "completed"
+      ],
+      "default": "completed"
     },
-    "description": {
+    "next_match_id": {
       "type": "string"
+    },
+    "is_home_slot": {
+      "type": "boolean"
     }
   },
   "required": [
     "organization_id",
-    "name",
-    "sport"
+    "season_id",
+    "original_id",
+    "tournament_id",
+    "round_name",
+    "match_number",
+    "required_wins"
   ],
   "rls": {
     "create": {

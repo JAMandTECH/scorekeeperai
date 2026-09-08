@@ -1,5 +1,5 @@
 {
-  "name": "Division",
+  "name": "ArchivedDivision",
   "type": "object",
   "properties": {
     "organization_id": {
@@ -7,7 +7,11 @@
     },
     "season_id": {
       "type": "string",
-      "description": "Active season this division belongs to"
+      "description": "Season this archived division belongs to"
+    },
+    "original_id": {
+      "type": "string",
+      "description": "Original Division record id"
     },
     "name": {
       "type": "string"
@@ -25,6 +29,8 @@
   },
   "required": [
     "organization_id",
+    "season_id",
+    "original_id",
     "name",
     "sport"
   ],

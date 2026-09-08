@@ -5,6 +5,10 @@
     "game_id": {
       "type": "string"
     },
+    "season_id": {
+      "type": "string",
+      "description": "Active season these stats belong to"
+    },
     "player_id": {
       "type": "string"
     },

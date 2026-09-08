@@ -1,5 +1,5 @@
 {
-  "name": "Division",
+  "name": "ArchivedTournament",
   "type": "object",
   "properties": {
     "organization_id": {
@@ -7,7 +7,11 @@
     },
     "season_id": {
       "type": "string",
-      "description": "Active season this division belongs to"
+      "description": "Season this archived tournament belongs to"
+    },
+    "original_id": {
+      "type": "string",
+      "description": "Original Tournament record id"
     },
     "name": {
       "type": "string"
@@ -19,12 +23,74 @@
         "volleyball"
       ]
     },
-    "description": {
+    "division": {
       "type": "string"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "num_teams": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "setup",
+        "seeding",
+        "in_progress",
+        "completed"
+      ],
+      "default": "completed"
+    },
+    "current_round": {
+      "type": "string"
+    },
+    "best_of_settings": {
+      "type": "object",
+      "default": {}
+    },
+    "initial_teams": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "is_manual_bracket": {
+      "type": "boolean",
+      "default": false
+    },
+    "manual_matches": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    },
+    "manual_connectors": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    },
+    "manual_sections": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": []
     }
   },
   "required": [
     "organization_id",
+    "season_id",
+    "original_id",
     "name",
     "sport"
   ],

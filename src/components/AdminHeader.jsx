@@ -1,6 +1,8 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, LogOut, Sun, Moon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Menu, X, LogOut, Sun, Moon, CalendarCheck } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NotificationBell from "@/components/NotificationBell";
@@ -18,8 +20,19 @@ export default function AdminHeader({
   const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
   const isAdmin = user?.role === 'admin' && !user?.is_super_admin;
   const isScorekeeper = user?.is_scorekeeper === true && user?.role !== 'admin';
-  
+
   const userRoleLabel = isSuperAdmin ? 'Super Administrator' : (isAdmin ? 'Administrator' : (isScorekeeper ? 'Scorekeeper' : 'User'));
+
+  const orgId = organization?.id || user?.active_organization_id || user?.organization_id;
+  const { data: activeSeason } = useQuery({
+    queryKey: ['active-season', orgId],
+    queryFn: async () => {
+      const res = await base44.functions.invoke('getActiveSeason', { organization_id: orgId });
+      return res.data?.season || null;
+    },
+    enabled: !!orgId,
+    staleTime: 30000,
+  });
 
   // Apply organization theme colors on mount and when organization changes
   useEffect(() => {
@@ -89,6 +102,13 @@ export default function AdminHeader({
             >
               SUPER ADMIN
             </span>
+          )}
+          {activeSeason && (
+            <Link to="/PastSeasons" className="hidden md:inline-flex items-center gap-1.5 ml-2 text-xs font-bold px-3 py-1.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 hover:bg-green-500/20 transition-colors" title="Active season — click to view past seasons">
+              <CalendarCheck className="w-3.5 h-3.5" />
+              <span className="max-w-[140px] truncate">{activeSeason.name}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            </Link>
           )}
         </div>
       </div>

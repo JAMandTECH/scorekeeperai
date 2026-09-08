@@ -1,5 +1,5 @@
 {
-  "name": "Division",
+  "name": "ArchivedGame",
   "type": "object",
   "properties": {
     "organization_id": {
@@ -7,9 +7,22 @@
     },
     "season_id": {
       "type": "string",
-      "description": "Active season this division belongs to"
+      "description": "Season this archived game belongs to"
     },
-    "name": {
+    "original_id": {
+      "type": "string",
+      "description": "Original Game record id"
+    },
+    "home_team_id": {
+      "type": "string"
+    },
+    "away_team_id": {
+      "type": "string"
+    },
+    "home_team_name": {
+      "type": "string"
+    },
+    "away_team_name": {
       "type": "string"
     },
     "sport": {
@@ -19,13 +32,101 @@
         "volleyball"
       ]
     },
-    "description": {
+    "game_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "court_number": {
+      "type": "string"
+    },
+    "duration_hours": {
+      "type": "number",
+      "default": 1.5
+    },
+    "location": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "in_progress",
+        "completed"
+      ],
+      "default": "completed"
+    },
+    "game_type": {
+      "type": "string",
+      "enum": [
+        "regular_season",
+        "play_in",
+        "playoffs",
+        "quarter_finals",
+        "semi_finals",
+        "finals",
+        "pre_season"
+      ],
+      "default": "regular_season"
+    },
+    "week_number": {
+      "type": "number"
+    },
+    "division": {
+      "type": "string"
+    },
+    "home_score": {
+      "type": "number",
+      "default": 0
+    },
+    "away_score": {
+      "type": "number",
+      "default": 0
+    },
+    "quarter_scores": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    },
+    "current_quarter": {
+      "type": "number",
+      "default": 1
+    },
+    "overtime_count": {
+      "type": "number",
+      "default": 0
+    },
+    "home_timeouts": {
+      "type": "number",
+      "default": 5
+    },
+    "away_timeouts": {
+      "type": "number",
+      "default": 5
+    },
+    "home_team_fouls": {
+      "type": "number",
+      "default": 0
+    },
+    "away_team_fouls": {
+      "type": "number",
+      "default": 0
+    },
+    "winning_team_id": {
+      "type": "string"
+    },
+    "stream_url": {
+      "type": "string"
+    },
+    "notes": {
       "type": "string"
     }
   },
   "required": [
     "organization_id",
-    "name",
+    "season_id",
+    "original_id",
     "sport"
   ],
   "rls": {

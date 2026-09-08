@@ -6,6 +6,10 @@
       "type": "string",
       "description": "Tournament this match belongs to"
     },
+    "season_id": {
+      "type": "string",
+      "description": "Active season this match belongs to"
+    },
     "round_name": {
       "type": "string",
       "description": "Round name (quarter_finals, semi_finals, finals)"

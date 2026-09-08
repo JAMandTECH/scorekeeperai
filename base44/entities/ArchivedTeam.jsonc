@@ -1,5 +1,5 @@
 {
-  "name": "Division",
+  "name": "ArchivedTeam",
   "type": "object",
   "properties": {
     "organization_id": {
@@ -7,7 +7,11 @@
     },
     "season_id": {
       "type": "string",
-      "description": "Active season this division belongs to"
+      "description": "Season this archived team belongs to"
+    },
+    "original_id": {
+      "type": "string",
+      "description": "Original Team record id"
     },
     "name": {
       "type": "string"
@@ -19,12 +23,44 @@
         "volleyball"
       ]
     },
-    "description": {
+    "division": {
       "type": "string"
+    },
+    "coach_name": {
+      "type": "string"
+    },
+    "coach_contact": {
+      "type": "string"
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "wins": {
+      "type": "number",
+      "default": 0
+    },
+    "losses": {
+      "type": "number",
+      "default": 0
+    },
+    "draws": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "approved"
     }
   },
   "required": [
     "organization_id",
+    "season_id",
+    "original_id",
     "name",
     "sport"
   ],

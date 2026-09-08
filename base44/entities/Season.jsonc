@@ -1,32 +1,90 @@
 {
-  "name": "Division",
+  "name": "Season",
   "type": "object",
   "properties": {
     "organization_id": {
-      "type": "string"
-    },
-    "season_id": {
       "type": "string",
-      "description": "Active season this division belongs to"
+      "description": "Organization this season belongs to"
     },
     "name": {
-      "type": "string"
+      "type": "string",
+      "description": "Season name (e.g. '2025 Winter League')"
     },
     "sport": {
       "type": "string",
       "enum": [
         "basketball",
         "volleyball"
-      ]
+      ],
+      "description": "Sport for this season"
     },
-    "description": {
-      "type": "string"
+    "division": {
+      "type": "string",
+      "description": "Division label if season is division-scoped"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Season start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Season end date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived"
+      ],
+      "default": "active",
+      "description": "Season status"
+    },
+    "champion_team_id": {
+      "type": "string",
+      "description": "Champion team ID (set on archive)"
+    },
+    "champion_team_name": {
+      "type": "string",
+      "description": "Champion team name (set on archive)"
+    },
+    "final_standings": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": [],
+      "description": "Snapshot of final division standings at archive time"
+    },
+    "top_leaders": {
+      "type": "object",
+      "description": "Snapshot of top statistical leaders at archive time",
+      "default": {}
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional season notes"
+    },
+    "archived_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the season was archived"
+    },
+    "archived_by": {
+      "type": "string",
+      "description": "Email of admin who archived the season"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Email of admin who created the season"
     }
   },
   "required": [
     "organization_id",
     "name",
-    "sport"
+    "sport",
+    "status"
   ],
   "rls": {
     "create": {
