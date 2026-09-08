@@ -1,10 +1,12 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Video, ExternalLink } from "lucide-react";
+import { Video, ExternalLink, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import ScoreOverlay from "@/components/ScoreOverlay";
 
-export default function LiveStreamEmbed({ streamUrl, gameTitle, game, showScoreOverlay = false, hideScoreOverlay = false, overlayPosition = "bottom" }) {
+export default function LiveStreamEmbed({ streamUrl, gameTitle, game, showScoreOverlay = false, hideScoreOverlay = false, onToggleScoreOverlay, overlayPosition = "bottom" }) {
   if (!streamUrl) return null;
 
   // Convert various stream URLs to embeddable format
@@ -63,10 +65,25 @@ export default function LiveStreamEmbed({ streamUrl, gameTitle, game, showScoreO
   return (
     <Card className="bg-gray-900 border-2 border-red-500/50 shadow-2xl overflow-hidden">
       <CardHeader className="bg-gradient-to-r from-red-600 to-pink-600 py-3 px-4">
-        <CardTitle className="text-white text-lg font-bold flex items-center gap-2">
-          <Video className="w-5 h-5 animate-pulse" />
-          Live Stream {gameTitle && `- ${gameTitle}`}
-        </CardTitle>
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-white text-lg font-bold flex items-center gap-2">
+            <Video className="w-5 h-5 animate-pulse" />
+            Live Stream {gameTitle && `- ${gameTitle}`}
+          </CardTitle>
+          {showScoreOverlay && onToggleScoreOverlay && (
+            <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-black/30 backdrop-blur-sm">
+              {hideScoreOverlay ? <EyeOff className="w-4 h-4 text-white/80" /> : <Eye className="w-4 h-4 text-white" />}
+              <Switch
+                checked={!hideScoreOverlay}
+                onCheckedChange={(checked) => onToggleScoreOverlay(!checked)}
+                id="score-overlay-toggle"
+              />
+              <Label htmlFor="score-overlay-toggle" className="text-xs font-bold text-white cursor-pointer whitespace-nowrap">
+                {hideScoreOverlay ? "Overlay Hidden" : "Overlay Visible"}
+              </Label>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         {isEmbeddable ? (

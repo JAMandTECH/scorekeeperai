@@ -1292,18 +1292,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                 </Label>
               </div>
             )}
-            {game?.stream_url && !hideLiveStream && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                <Switch
-                  checked={!hideScoreOverlay}
-                  onCheckedChange={(checked) => setHideScoreOverlay(!checked)}
-                  id="hide-overlay-toggle"
-                />
-                <Label htmlFor="hide-overlay-toggle" className="text-xs font-bold text-gray-700 dark:text-gray-300 cursor-pointer">
-                  {hideScoreOverlay ? "Score Overlay Hidden" : "Score Overlay Visible"}
-                </Label>
-              </div>
-            )}
+
             <Button
               onClick={toggleDarkMode}
               variant="outline"
@@ -1385,6 +1374,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
             }}
             showScoreOverlay
             hideScoreOverlay={hideScoreOverlay}
+            onToggleScoreOverlay={setHideScoreOverlay}
           />
         </div>
       )}
