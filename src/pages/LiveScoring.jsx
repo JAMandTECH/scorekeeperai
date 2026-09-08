@@ -24,6 +24,8 @@ import { enqueueStatWrite, enqueueGameWrite, startStatSync } from "@/lib/statSyn
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 import BroadcastOverlayDialog from "@/components/BroadcastOverlayDialog";
 import { Radio } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export default function LiveScoring() {
   const [game, setGame] = useState(null);
@@ -1277,6 +1279,18 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                 Broadcast Overlay
               </Button>
             )}
+            {game?.stream_url && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <Switch
+                  checked={!hideLiveStream}
+                  onCheckedChange={(checked) => setHideLiveStream(!checked)}
+                  id="hide-stream-toggle"
+                />
+                <Label htmlFor="hide-stream-toggle" className="text-xs font-bold text-gray-700 dark:text-gray-300 cursor-pointer">
+                  {hideLiveStream ? "Stream Hidden" : "Stream Visible"}
+                </Label>
+              </div>
+            )}
             <Button
               onClick={toggleDarkMode}
               variant="outline"
@@ -1339,8 +1353,8 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
         </div>
       )}
 
-      {/* Live Stream Embed (YouTube) — hidden automatically when stream_url is empty */}
-      {game.stream_url && game.stream_url.trim().length > 0 && (
+      {/* Live Stream Embed (YouTube) — hidden automatically when stream_url is empty or toggled off */}
+      {game.stream_url && game.stream_url.trim().length > 0 && !hideLiveStream && (
         <div className="max-w-7xl mx-auto px-4 mt-4">
           <LiveStreamEmbed streamUrl={game.stream_url} gameTitle={`${homeTeam.name} vs ${awayTeam.name}`} game={game} showScoreOverlay />
         </div>
