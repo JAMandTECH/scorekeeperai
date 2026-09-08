@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/alert";
 import VoiceAssistant from "@/components/VoiceAssistant";
 import SyncStatusBadge from "@/components/SyncStatusBadge";
+import BroadcastOverlayDialog from "@/components/BroadcastOverlayDialog";
+import { Radio } from "lucide-react";
 import { enqueueStatWrite, enqueueGameWrite, startStatSync } from "@/lib/statSyncQueue";
 
 
@@ -40,6 +42,7 @@ export default function LiveScoringVolleyball() {
   const [actionHistory, setActionHistory] = useState([]);
   const [showSetStats, setShowSetStats] = useState(true);
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
+  const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
   const navigate = useNavigate();
 const urlParams = new URLSearchParams(window.location.search);
 const editMode = urlParams.get('edit') === '1' || urlParams.get('mode') === 'edit';
@@ -833,6 +836,17 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
           </div>
           <div className="flex items-center gap-2">
             <SyncStatusBadge />
+            {game?.stream_url && (
+              <Button
+                onClick={() => setShowBroadcastDialog(true)}
+                variant="outline"
+                size="sm"
+                className="border-2 border-purple-500 text-purple-300 hover:bg-purple-900/30 font-bold"
+              >
+                <Radio className="w-4 h-4 mr-1" />
+                Broadcast Overlay
+              </Button>
+            )}
             <Button
               onClick={() => navigate(createPageUrl("Dashboard"))}
               variant="outline"
@@ -1310,6 +1324,8 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
           </div>
         </DialogContent>
       </Dialog>
+
+      <BroadcastOverlayDialog open={showBroadcastDialog} onOpenChange={setShowBroadcastDialog} game={game} />
     </div>
   );
 }

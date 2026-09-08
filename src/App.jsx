@@ -13,6 +13,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import PosterGenerator from './pages/PosterGenerator';
 import PosterChat from './pages/PosterChat';
 import WidgetStandings from './pages/WidgetStandings';
+import StreamOverlay from './pages/StreamOverlay';
 import { StatsRefreshProvider } from '@/lib/StatsRefreshContext';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -59,6 +60,7 @@ const AuthenticatedApp = () => {
         <Route path="/PosterGenerator" element={<PosterGenerator />} />
         <Route path="/PosterChat" element={<PosterChat />} />
         <Route path="/widget/standings" element={<WidgetStandings />} />
+        <Route path="/overlay/:gameId" element={<StreamOverlay />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </LayoutWrapper>

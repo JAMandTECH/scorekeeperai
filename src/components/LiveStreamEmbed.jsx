@@ -2,8 +2,9 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ScoreOverlay from "@/components/ScoreOverlay";
 
-export default function LiveStreamEmbed({ streamUrl, gameTitle }) {
+export default function LiveStreamEmbed({ streamUrl, gameTitle, game, showScoreOverlay = false, overlayPosition = "bottom" }) {
   if (!streamUrl) return null;
 
   // Convert various stream URLs to embeddable format
@@ -78,6 +79,9 @@ export default function LiveStreamEmbed({ streamUrl, gameTitle }) {
               allowFullScreen
               title={`Live Stream - ${gameTitle || 'Game'}`}
             />
+            {showScoreOverlay && game && (
+              <ScoreOverlay game={game} variant="in-app" position={overlayPosition} />
+            )}
           </div>
         ) : (
           <div className="p-6 text-center">

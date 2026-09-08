@@ -222,6 +222,8 @@ export default function PublicGameView() {
               <LiveStreamEmbed 
                 streamUrl={game.stream_url} 
                 gameTitle={`${homeTeam?.name} vs ${awayTeam?.name}`}
+                game={game}
+                showScoreOverlay
               />
             </CardContent>
           </Card>

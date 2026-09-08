@@ -22,6 +22,8 @@ import { loadAllStatsPaginated } from "@/lib/liveScoringHelpers";
 import SyncStatusBadge from "@/components/SyncStatusBadge";
 import { enqueueStatWrite, enqueueGameWrite, startStatSync } from "@/lib/statSyncQueue";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
+import BroadcastOverlayDialog from "@/components/BroadcastOverlayDialog";
+import { Radio } from "lucide-react";
 
 export default function LiveScoring() {
   const [game, setGame] = useState(null);
@@ -66,6 +68,7 @@ const [showMoveStat, setShowMoveStat] = useState(false);
 const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, statType: 'points', amount: 1, destPlayer: '', destQuarter: 1 });
 const [showDeleteGame, setShowDeleteGame] = useState(false);
 const [deletingGame, setDeletingGame] = useState(false);
+const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
 
   const handleDeleteGame = async () => {
     if (!game?.id) return;
@@ -1262,6 +1265,17 @@ const [deletingGame, setDeletingGame] = useState(false);
           </div>
           <div className="flex items-center gap-2">
             <SyncStatusBadge />
+            {game?.stream_url && (
+              <Button
+                onClick={() => setShowBroadcastDialog(true)}
+                variant="outline"
+                size="sm"
+                className="border-2 border-purple-500 text-purple-600 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 font-bold"
+              >
+                <Radio className="w-4 h-4 mr-1" />
+                Broadcast Overlay
+              </Button>
+            )}
             <Button
               onClick={toggleDarkMode}
               variant="outline"
@@ -1327,7 +1341,7 @@ const [deletingGame, setDeletingGame] = useState(false);
       {/* Live Stream Embed (YouTube) — hidden automatically when stream_url is empty */}
       {game.stream_url && game.stream_url.trim().length > 0 && (
         <div className="max-w-7xl mx-auto px-4 mt-4">
-          <LiveStreamEmbed streamUrl={game.stream_url} gameTitle={`${homeTeam.name} vs ${awayTeam.name}`} />
+          <LiveStreamEmbed streamUrl={game.stream_url} gameTitle={`${homeTeam.name} vs ${awayTeam.name}`} game={game} showScoreOverlay />
         </div>
       )}
 
@@ -2108,6 +2122,8 @@ const [deletingGame, setDeletingGame] = useState(false);
           </div>
         </div>
       )}
+
+      <BroadcastOverlayDialog open={showBroadcastDialog} onOpenChange={setShowBroadcastDialog} game={game} />
     </div>
   );
 }
