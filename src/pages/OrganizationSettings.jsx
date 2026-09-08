@@ -47,17 +47,6 @@ export default function OrganizationSettings() {
 
   const loadUser = async () => {
     const currentUser = await base44.auth.me();
-    // Fetch fresh user data from DB (auth.me() may return stale token data)
-    try {
-      const allUsers = await base44.entities.User.list();
-      const freshUser = allUsers.find(u => u.id === currentUser.id);
-      if (freshUser) {
-        setUser({ ...currentUser, ...freshUser });
-        return;
-      }
-    } catch (e) {
-      console.error('Failed to fetch fresh user data:', e);
-    }
     setUser(currentUser);
   };
 
@@ -65,26 +54,22 @@ export default function OrganizationSettings() {
     base44.auth.logout(createPageUrl("PublicLanding"));
   };
 
-  const currentOrgId = user?.active_organization_id || user?.organization_id;
-
   const { data: organization, refetch: refetchOrganization } = useQuery({
-    queryKey: ['user-organization', currentOrgId],
+    queryKey: ['organization', user?.organization_id],
     queryFn: async () => {
-      // RLS {{user.data.organization_id}} may not resolve from the JWT token,
-      // so Organization.list() returns nothing. Use service-role backend function.
-      const res = await base44.functions.invoke('getUserOrganization', {});
-      return res.data?.organization || null;
+      const orgs = await base44.entities.Organization.list();
+      return orgs.find(o => o.id === user?.organization_id);
     },
-    enabled: !!currentOrgId,
+    enabled: !!user?.organization_id,
   });
 
   const { data: orgMembers = [] } = useQuery({
-    queryKey: ['org-members', currentOrgId],
+    queryKey: ['org-members', user?.organization_id],
     queryFn: async () => {
       const allUsers = await base44.entities.User.list();
-      return allUsers.filter(u => u.organization_id === currentOrgId || u.active_organization_id === currentOrgId);
+      return allUsers.filter(u => u.organization_id === user?.organization_id || u.active_organization_id === user?.organization_id);
     },
-    enabled: !!currentOrgId,
+    enabled: !!user?.organization_id,
   });
 
   const updateMutation = useMutation({
@@ -152,27 +137,10 @@ export default function OrganizationSettings() {
     }
   };
 
-  if (!user) {
+  if (!organization || !user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
-      </div>
-    );
-  }
-
-  if (!currentOrgId || !organization) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6">
-        <Card className="max-w-md text-center p-8">
-          <CardContent className="pt-6">
-            <AlertCircle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">No Organization Linked</h2>
-            <p className="text-gray-500 mb-4">Your account isn't linked to an organization. Please contact a super admin to assign you to one.</p>
-            <Link to={createPageUrl("Dashboard")}>
-              <Button>Back to Dashboard</Button>
-            </Link>
-          </CardContent>
-        </Card>
       </div>
     );
   }

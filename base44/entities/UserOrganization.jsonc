@@ -3,14 +3,17 @@
   "type": "object",
   "properties": {
     "user_id": {
-      "type": "string"
+      "type": "string",
+      "description": "ID of the user"
     },
     "user_email": {
       "type": "string",
-      "format": "email"
+      "format": "email",
+      "description": "Email of the user for easy querying"
     },
     "organization_id": {
-      "type": "string"
+      "type": "string",
+      "description": "ID of the organization"
     },
     "role_in_org": {
       "type": "string",
@@ -19,7 +22,8 @@
         "member",
         "player"
       ],
-      "default": "fan"
+      "default": "fan",
+      "description": "User's role within this organization"
     },
     "status": {
       "type": "string",
@@ -27,7 +31,8 @@
         "active",
         "inactive"
       ],
-      "default": "active"
+      "default": "active",
+      "description": "Association status"
     }
   },
   "required": [
@@ -47,16 +52,10 @@
           }
         },
         {
-          "$and": [
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            },
-            {
-              "data.organization_id": "{{user.data.organization_id}}"
-            }
-          ]
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
         }
       ]
     },
@@ -69,16 +68,10 @@
           }
         },
         {
-          "$and": [
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            },
-            {
-              "data.organization_id": "{{user.data.organization_id}}"
-            }
-          ]
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
         }
       ]
     }

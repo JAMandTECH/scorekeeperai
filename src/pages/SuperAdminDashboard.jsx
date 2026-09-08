@@ -51,20 +51,35 @@ export default function SuperAdminDashboard() {
     base44.auth.logout(createPageUrl("PublicLanding"));
   };
 
-  const { data: superAdminData } = useQuery({
-    queryKey: ['super-admin-data'],
-    queryFn: async () => {
-      const response = await base44.functions.invoke('getSuperAdminData', {});
-      return response.data;
-    },
+  const { data: allOrganizations = [] } = useQuery({
+    queryKey: ['all-organizations'],
+    queryFn: () => base44.entities.Organization.list(),
     enabled: !!user,
   });
 
-  const allOrganizations = superAdminData?.organizations || [];
-  const allTeams = superAdminData?.teams || [];
-  const allPlayers = superAdminData?.players || [];
-  const allGames = superAdminData?.games || [];
-  const allUsers = superAdminData?.users || [];
+  const { data: allTeams = [] } = useQuery({
+    queryKey: ['all-teams'],
+    queryFn: () => base44.entities.Team.list(),
+    enabled: !!user,
+  });
+
+  const { data: allPlayers = [] } = useQuery({
+    queryKey: ['all-players'],
+    queryFn: () => base44.entities.Player.list(),
+    enabled: !!user,
+  });
+
+  const { data: allGames = [] } = useQuery({
+    queryKey: ['all-games'],
+    queryFn: () => base44.entities.Game.list('-game_date'),
+    enabled: !!user,
+  });
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['all-users'],
+    queryFn: () => base44.entities.User.list(),
+    enabled: !!user,
+  });
 
   const activeOrganizations = allOrganizations.filter(org => org.status === 'active');
   

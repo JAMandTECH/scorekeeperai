@@ -3,20 +3,25 @@
   "type": "object",
   "properties": {
     "user_id": {
-      "type": "string"
+      "type": "string",
+      "description": "ID of the user requesting to join"
     },
     "user_email": {
       "type": "string",
-      "format": "email"
+      "format": "email",
+      "description": "Email of the user requesting to join"
     },
     "user_name": {
-      "type": "string"
+      "type": "string",
+      "description": "Full name of the user requesting to join"
     },
     "organization_id": {
-      "type": "string"
+      "type": "string",
+      "description": "ID of the organization the user wants to join"
     },
     "organization_name": {
-      "type": "string"
+      "type": "string",
+      "description": "Name of the organization the user wants to join"
     },
     "status": {
       "type": "string",
@@ -25,7 +30,8 @@
         "approved",
         "rejected"
       ],
-      "default": "pending"
+      "default": "pending",
+      "description": "Status of the join request"
     },
     "requested_role_in_org": {
       "type": "string",
@@ -34,10 +40,12 @@
         "member",
         "player"
       ],
-      "default": "fan"
+      "default": "fan",
+      "description": "The role the user is requesting within the organization"
     },
     "message": {
-      "type": "string"
+      "type": "string",
+      "description": "Optional message from the user"
     }
   },
   "required": [
@@ -51,7 +59,7 @@
     "read": {
       "$or": [
         {
-          "data.user_id": "{{user.id}}"
+          "user_id": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -60,16 +68,10 @@
           }
         },
         {
-          "$and": [
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            },
-            {
-              "data.organization_id": "{{user.data.organization_id}}"
-            }
-          ]
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
         }
       ]
     },
@@ -82,23 +84,17 @@
           }
         },
         {
-          "$and": [
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            },
-            {
-              "data.organization_id": "{{user.data.organization_id}}"
-            }
-          ]
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
         }
       ]
     },
     "delete": {
       "$or": [
         {
-          "data.user_id": "{{user.id}}"
+          "user_id": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -107,16 +103,10 @@
           }
         },
         {
-          "$and": [
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            },
-            {
-              "data.organization_id": "{{user.data.organization_id}}"
-            }
-          ]
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
         }
       ]
     }

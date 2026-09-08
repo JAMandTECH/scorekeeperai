@@ -23,11 +23,13 @@
       "format": "date-time"
     },
     "court_number": {
-      "type": "string"
+      "type": "string",
+      "description": "Court number where the game will be played"
     },
     "duration_hours": {
       "type": "number",
-      "default": 1.5
+      "default": 1.5,
+      "description": "Game duration in hours (default 1.5)"
     },
     "location": {
       "type": "string"
@@ -43,7 +45,8 @@
     },
     "archived": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "description": "Whether the game has been archived"
     },
     "game_type": {
       "type": "string",
@@ -63,25 +66,32 @@
       "items": {
         "type": "string"
       },
-      "default": []
+      "default": [],
+      "description": "Array of scorekeeper emails assigned to this game"
     },
     "overall_scorekeeper_email": {
-      "type": "string"
+      "type": "string",
+      "description": "Email of the scorekeeper responsible for overall game control and all stats (basketball only)"
     },
     "home_statistician_email": {
-      "type": "string"
+      "type": "string",
+      "description": "Email of the statistician responsible for home team non-point stats (basketball only)"
     },
     "away_statistician_email": {
-      "type": "string"
+      "type": "string",
+      "description": "Email of the statistician responsible for away team non-point stats (basketball only)"
     },
     "recurring_series_id": {
-      "type": "string"
+      "type": "string",
+      "description": "ID linking games in a recurring series"
     },
     "week_number": {
-      "type": "number"
+      "type": "number",
+      "description": "Week number for grouping games in a season"
     },
     "division": {
-      "type": "string"
+      "type": "string",
+      "description": "Division this game belongs to"
     },
     "home_score": {
       "type": "number",
@@ -93,6 +103,7 @@
     },
     "quarter_scores": {
       "type": "array",
+      "description": "Scores per quarter",
       "items": {
         "type": "object",
         "properties": {
@@ -135,11 +146,13 @@
     },
     "penalty_limit_per_quarter": {
       "type": "number",
-      "default": 5
+      "default": 5,
+      "description": "Team fouls before penalty"
     },
     "player_foul_limit": {
       "type": "number",
-      "default": 5
+      "default": 5,
+      "description": "Personal fouls before disqualification"
     },
     "stream_url": {
       "type": "string"
@@ -149,13 +162,16 @@
     },
     "is_default": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "description": "Whether the game ended by default"
     },
     "defaulted_team_id": {
-      "type": "string"
+      "type": "string",
+      "description": "ID of the team that defaulted"
     },
     "winning_team_id": {
-      "type": "string"
+      "type": "string",
+      "description": "ID of the team that won by default"
     }
   },
   "required": [
@@ -178,10 +194,10 @@
           }
         },
         {
-          "data.organization_id": "{{user.data.organization_id}}"
+          "organization_id": "{{user.organization_id}}"
         },
         {
-          "data.organization_id": "{{user.data.active_organization_id}}"
+          "organization_id": "{{user.active_organization_id}}"
         },
         {
           "user_condition": {
@@ -199,16 +215,10 @@
           }
         },
         {
-          "$and": [
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            },
-            {
-              "data.organization_id": "{{user.data.organization_id}}"
-            }
-          ]
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
         },
         {
           "user_condition": {
@@ -226,16 +236,10 @@
           }
         },
         {
-          "$and": [
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            },
-            {
-              "data.organization_id": "{{user.data.organization_id}}"
-            }
-          ]
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
         }
       ]
     }

@@ -3,41 +3,50 @@
   "type": "object",
   "properties": {
     "organization_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Organization this post belongs to"
     },
     "user_id": {
-      "type": "string"
+      "type": "string",
+      "description": "User who created the post"
     },
     "user_name": {
-      "type": "string"
+      "type": "string",
+      "description": "Name of user who posted"
     },
     "user_email": {
-      "type": "string"
+      "type": "string",
+      "description": "Email of user who posted"
     },
     "content": {
-      "type": "string"
+      "type": "string",
+      "description": "Text content of the post"
     },
     "media_urls": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "default": []
+      "default": [],
+      "description": "URLs of photos/videos attached to post"
     },
     "media_types": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "default": []
+      "default": [],
+      "description": "Types of media (image/video)"
     },
     "likes_count": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "Number of likes"
     },
     "comments_count": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "Number of comments"
     }
   },
   "required": [
@@ -51,20 +60,20 @@
     "read": {
       "$or": [
         {
-          "data.organization_id": "{{user.data.organization_id}}"
+          "organization_id": "{{user.organization_id}}"
         },
         {
-          "data.organization_id": "{{user.data.active_organization_id}}"
+          "organization_id": "{{user.active_organization_id}}"
         }
       ]
     },
     "update": {
-      "data.user_id": "{{user.id}}"
+      "user_id": "{{user.id}}"
     },
     "delete": {
       "$or": [
         {
-          "data.user_id": "{{user.id}}"
+          "user_id": "{{user.id}}"
         },
         {
           "user_condition": {

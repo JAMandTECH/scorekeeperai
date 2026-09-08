@@ -49,23 +49,7 @@ export default function Dashboard() {
   const loadUser = async () => {
     try {
       const currentUser = await base44.auth.me();
-
-      // Fetch fresh user data from DB (auth.me() may return stale token data)
-      let user = currentUser;
-      try {
-        const allUsers = await base44.entities.User.list();
-        const freshUser = allUsers.find(u => u.id === currentUser.id);
-        if (freshUser) user = { ...currentUser, ...freshUser };
-      } catch (e) {
-        console.error('Failed to fetch fresh user data:', e);
-      }
-
-      // Super admins manage the whole platform — send them to the platform dashboard
-      if (user.role === 'admin' && user.is_super_admin === true) {
-        navigate("/SuperAdminHome");
-        return;
-      }
-
+      
       // Redirect scorekeepers to their dashboard
       if (currentUser.is_scorekeeper && currentUser.role !== 'admin') {
         navigate("/scorekeeperdashboard");
@@ -74,13 +58,13 @@ export default function Dashboard() {
       
       // Admins and registered organization members can view the dashboard.
       // Users with no organization association are sent home.
-      const belongsToOrg = user.active_organization_id || user.organization_id;
-      if (user.role !== 'admin' && !belongsToOrg) {
+      const belongsToOrg = currentUser.active_organization_id || currentUser.organization_id;
+      if (currentUser.role !== 'admin' && !belongsToOrg) {
         navigate("/");
         return;
       }
       
-      setUser(user);
+      setUser(currentUser);
     } catch (error) {
       console.error("Error loading user:", error);
       base44.auth.redirectToLogin("/dashboard");
@@ -94,14 +78,14 @@ export default function Dashboard() {
   };
 
   const { data: organization } = useQuery({
-    queryKey: ['user-organization', currentOrgId],
+    queryKey: ['organization', currentOrgId],
     queryFn: async () => {
-      const res = await base44.functions.invoke('getUserOrganization', {});
-      return res.data?.organization || null;
+      const orgs = await base44.entities.Organization.list();
+      return orgs.find(o => o.id === currentOrgId);
     },
     enabled: !!currentOrgId,
     refetchOnWindowFocus: true,
-    refetchInterval: 30000,
+    refetchInterval: 10000,
   });
 
   const { data: allOrganizations = [] } = useQuery({

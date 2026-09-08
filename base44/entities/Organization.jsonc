@@ -38,7 +38,8 @@
         "basic",
         "premium"
       ],
-      "default": "free"
+      "default": "free",
+      "description": "Subscription tier for the organization"
     },
     "subscription_status": {
       "type": "string",
@@ -48,24 +49,29 @@
         "expired",
         "cancelled"
       ],
-      "default": "trial"
+      "default": "trial",
+      "description": "Current subscription status"
     },
     "trial_end_date": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "End date of the trial period"
     },
     "selected_sport": {
       "type": "string",
       "enum": [
         "basketball",
         "volleyball"
-      ]
+      ],
+      "description": "Selected sport for Basic subscription (single sport only)"
     },
     "paypal_subscription_id": {
-      "type": "string"
+      "type": "string",
+      "description": "PayPal subscription ID for recurring payments"
     },
     "theme": {
       "type": "object",
+      "description": "Organization theme customization",
       "properties": {
         "primary_color": {
           "type": "string",
@@ -88,10 +94,12 @@
     },
     "settings": {
       "type": "object",
+      "description": "Organization settings flags",
       "properties": {
         "include_archived_in_leaders": {
           "type": "boolean",
-          "default": false
+          "default": false,
+          "description": "If true, archived completed games contribute to leaderboards"
         }
       },
       "default": {}
@@ -103,10 +111,14 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "admin",
-        "is_super_admin": true
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        }
+      ]
     },
     "read": {
       "$or": [
@@ -117,10 +129,10 @@
           }
         },
         {
-          "id": "{{user.data.organization_id}}"
+          "id": "{{user.organization_id}}"
         },
         {
-          "id": "{{user.data.active_organization_id}}"
+          "id": "{{user.active_organization_id}}"
         }
       ]
     },
@@ -133,24 +145,22 @@
           }
         },
         {
-          "$and": [
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            },
-            {
-              "id": "{{user.data.organization_id}}"
-            }
-          ]
+          "user_condition": {
+            "role": "admin"
+          },
+          "id": "{{user.organization_id}}"
         }
       ]
     },
     "delete": {
-      "user_condition": {
-        "role": "admin",
-        "is_super_admin": true
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        }
+      ]
     }
   }
 }

@@ -3,28 +3,34 @@
   "type": "object",
   "properties": {
     "organization_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Organization this tournament belongs to"
     },
     "name": {
-      "type": "string"
+      "type": "string",
+      "description": "Tournament name"
     },
     "sport": {
       "type": "string",
       "enum": [
         "basketball",
         "volleyball"
-      ]
+      ],
+      "description": "Sport for this tournament"
     },
     "division": {
-      "type": "string"
+      "type": "string",
+      "description": "Division for this tournament"
     },
     "start_date": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "Tournament start date"
     },
     "end_date": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "Tournament end date"
     },
     "num_teams": {
       "type": "number",
@@ -32,7 +38,8 @@
         4,
         8,
         16
-      ]
+      ],
+      "description": "Number of teams in the tournament"
     },
     "status": {
       "type": "string",
@@ -42,13 +49,16 @@
         "in_progress",
         "completed"
       ],
-      "default": "setup"
+      "default": "setup",
+      "description": "Current status of the tournament"
     },
     "current_round": {
-      "type": "string"
+      "type": "string",
+      "description": "Current round name"
     },
     "best_of_settings": {
       "type": "object",
+      "description": "Best of settings for each round",
       "default": {}
     },
     "initial_teams": {
@@ -56,32 +66,37 @@
       "items": {
         "type": "string"
       },
-      "default": []
+      "default": [],
+      "description": "Seeded team IDs in order"
     },
     "is_manual_bracket": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "description": "Whether this is a manually built bracket"
     },
     "manual_matches": {
       "type": "array",
       "items": {
         "type": "object"
       },
-      "default": []
+      "default": [],
+      "description": "Manual bracket match cards with positions"
     },
     "manual_connectors": {
       "type": "array",
       "items": {
         "type": "object"
       },
-      "default": []
+      "default": [],
+      "description": "Manual bracket connector lines"
     },
     "manual_sections": {
       "type": "array",
       "items": {
         "type": "object"
       },
-      "default": []
+      "default": [],
+      "description": "Manual bracket section labels (Quarter Finals, Semi Finals, Finals) with positions"
     }
   },
   "required": [
@@ -100,16 +115,10 @@
           }
         },
         {
-          "$and": [
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            },
-            {
-              "data.organization_id": "{{user.data.organization_id}}"
-            }
-          ]
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
         }
       ]
     },
@@ -122,10 +131,10 @@
           }
         },
         {
-          "data.organization_id": "{{user.data.organization_id}}"
+          "organization_id": "{{user.organization_id}}"
         },
         {
-          "data.organization_id": "{{user.data.active_organization_id}}"
+          "organization_id": "{{user.active_organization_id}}"
         }
       ]
     },
@@ -138,16 +147,10 @@
           }
         },
         {
-          "$and": [
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            },
-            {
-              "data.organization_id": "{{user.data.organization_id}}"
-            }
-          ]
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
         }
       ]
     },
@@ -160,16 +163,10 @@
           }
         },
         {
-          "$and": [
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            },
-            {
-              "data.organization_id": "{{user.data.organization_id}}"
-            }
-          ]
+          "user_condition": {
+            "role": "admin"
+          },
+          "organization_id": "{{user.organization_id}}"
         }
       ]
     }
