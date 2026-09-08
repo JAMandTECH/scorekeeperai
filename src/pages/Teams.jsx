@@ -86,11 +86,8 @@ export default function Teams() {
   const { data: organization, isLoading: orgLoading, error: orgError } = useQuery({
     queryKey: ['organization', user?.organization_id],
     queryFn: async () => {
-      console.log("Teams: Fetching organization for", user?.organization_id);
-      const orgs = await base44.entities.Organization.list();
-      const org = orgs.find(o => o.id === user?.organization_id);
-      console.log("Teams: Organization found", org);
-      return org;
+      const res = await base44.functions.invoke('getUserOrganization', {});
+      return res?.data?.organization || null;
     },
     enabled: !!user?.organization_id,
   });

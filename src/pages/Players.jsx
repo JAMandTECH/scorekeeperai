@@ -87,8 +87,8 @@ export default function Players() {
   const { data: organization } = useQuery({
     queryKey: ['organization', user?.organization_id],
     queryFn: async () => {
-      const orgs = await base44.entities.Organization.list();
-      return orgs.find(o => o.id === user?.organization_id);
+      const res = await base44.functions.invoke('getUserOrganization', {});
+      return res?.data?.organization || null;
     },
     enabled: !!user?.organization_id,
   });

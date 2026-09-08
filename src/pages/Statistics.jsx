@@ -57,10 +57,11 @@ export default function Statistics() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      if (currentUser?.organization_id) {
-        const orgs = await base44.entities.Organization.list();
-        const userOrg = orgs.find(o => o.id === currentUser.organization_id);
-        setOrganization(userOrg);
+      try {
+        const res = await base44.functions.invoke('getUserOrganization', {});
+        setOrganization(res?.data?.organization || null);
+      } catch {
+        setOrganization(null);
       }
     } catch (error) {
       // Require authentication for access

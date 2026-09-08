@@ -64,9 +64,8 @@ export default function ScorekeeperDashboard() {
   const { data: organization } = useQuery({
     queryKey: ['organization', user?.organization_id, user?.active_organization_id],
     queryFn: async () => {
-      const orgs = await base44.entities.Organization.list();
-      const orgId = user?.organization_id || user?.active_organization_id;
-      return orgs.find(o => o.id === orgId);
+      const res = await base44.functions.invoke('getUserOrganization', {});
+      return res?.data?.organization || null;
     },
     enabled: !!user?.organization_id || !!user?.active_organization_id,
   });

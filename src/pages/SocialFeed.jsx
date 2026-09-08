@@ -56,12 +56,8 @@ export default function SocialFeed() {
   const { data: organization, isLoading: orgLoading } = useQuery({
     queryKey: ['organization', user?.organization_id || user?.active_organization_id],
     queryFn: async () => {
-      const orgId = user?.organization_id || user?.active_organization_id;
-      if (!orgId) return null;
-      
-      const orgs = await base44.entities.Organization.list();
-      const org = orgs.find(o => o.id === orgId);
-      return org || null;
+      const res = await base44.functions.invoke('getUserOrganization', {});
+      return res?.data?.organization || null;
     },
     enabled: !!(user?.organization_id || user?.active_organization_id),
   });

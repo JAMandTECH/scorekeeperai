@@ -41,11 +41,11 @@ export default function SubscriptionCheckout() {
       }
       setUser(currentUser);
 
-      const orgId = currentUser.organization_id;
-      if (orgId) {
-        const orgs = await base44.entities.Organization.list();
-        const userOrg = orgs.find(o => o.id === orgId);
-        setOrganization(userOrg);
+      try {
+        const res = await base44.functions.invoke('getUserOrganization', {});
+        setOrganization(res?.data?.organization || null);
+      } catch {
+        setOrganization(null);
       }
     } catch (error) {
       base44.auth.redirectToLogin(createPageUrl("SubscriptionCheckout"));
