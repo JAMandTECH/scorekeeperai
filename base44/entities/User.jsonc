@@ -2,6 +2,24 @@
   "name": "User",
   "type": "object",
   "properties": {
+    "is_super_admin": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this user has platform-wide super admin access across all organizations"
+    },
+    "is_scorekeeper": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this user has scorekeeper privileges for live scoring"
+    },
+    "organization_id": {
+      "type": "string",
+      "description": "Primary organization this user belongs to"
+    },
+    "active_organization_id": {
+      "type": "string",
+      "description": "Currently active organization for multi-org users"
+    },
     "subscription_tier": {
       "type": "string",
       "enum": [

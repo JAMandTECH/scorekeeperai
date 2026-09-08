@@ -49,7 +49,13 @@ export default function Dashboard() {
   const loadUser = async () => {
     try {
       const currentUser = await base44.auth.me();
-      
+
+      // Super admins manage the whole platform — send them to the platform dashboard
+      if (currentUser.role === 'admin' && currentUser.is_super_admin === true) {
+        navigate("/SuperAdminHome");
+        return;
+      }
+
       // Redirect scorekeepers to their dashboard
       if (currentUser.is_scorekeeper && currentUser.role !== 'admin') {
         navigate("/scorekeeperdashboard");
