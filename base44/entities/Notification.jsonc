@@ -3,8 +3,7 @@
   "type": "object",
   "properties": {
     "organization_id": {
-      "type": "string",
-      "description": "Organization this notification belongs to"
+      "type": "string"
     },
     "type": {
       "type": "string",
@@ -13,28 +12,23 @@
         "game_completed",
         "team_approved",
         "team_rejected"
-      ],
-      "description": "Type of notification"
+      ]
     },
     "title": {
-      "type": "string",
-      "description": "Notification title"
+      "type": "string"
     },
     "message": {
-      "type": "string",
-      "description": "Notification message"
+      "type": "string"
     },
     "data": {
-      "type": "object",
-      "description": "Additional data (post_id, game_id, scores, etc.)"
+      "type": "object"
     },
     "read_by": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "default": [],
-      "description": "Array of user IDs who have read this notification"
+      "default": []
     }
   },
   "required": [
@@ -42,5 +36,47 @@
     "type",
     "title",
     "message"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.organization_id": "{{user.data.organization_id}}"
+        },
+        {
+          "data.organization_id": "{{user.data.active_organization_id}}"
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.organization_id": "{{user.data.organization_id}}"
+        },
+        {
+          "data.organization_id": "{{user.data.active_organization_id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.organization_id": "{{user.data.organization_id}}"
+        },
+        {
+          "data.organization_id": "{{user.data.active_organization_id}}"
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.organization_id": "{{user.data.organization_id}}"
+        },
+        {
+          "data.organization_id": "{{user.data.active_organization_id}}"
+        }
+      ]
+    }
+  }
 }
