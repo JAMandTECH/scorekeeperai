@@ -69,6 +69,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
 const [showDeleteGame, setShowDeleteGame] = useState(false);
 const [deletingGame, setDeletingGame] = useState(false);
 const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
+  const [hideLiveStream, setHideLiveStream] = useState(false);
 
   const handleDeleteGame = async () => {
     if (!game?.id) return;
