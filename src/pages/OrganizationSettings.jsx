@@ -54,22 +54,24 @@ export default function OrganizationSettings() {
     base44.auth.logout(createPageUrl("PublicLanding"));
   };
 
+  const currentOrgId = user?.active_organization_id || user?.organization_id;
+
   const { data: organization, refetch: refetchOrganization } = useQuery({
-    queryKey: ['organization', user?.organization_id],
+    queryKey: ['organization', currentOrgId],
     queryFn: async () => {
       const orgs = await base44.entities.Organization.list();
-      return orgs.find(o => o.id === user?.organization_id);
+      return orgs.find(o => o.id === currentOrgId);
     },
-    enabled: !!user?.organization_id,
+    enabled: !!currentOrgId,
   });
 
   const { data: orgMembers = [] } = useQuery({
-    queryKey: ['org-members', user?.organization_id],
+    queryKey: ['org-members', currentOrgId],
     queryFn: async () => {
       const allUsers = await base44.entities.User.list();
-      return allUsers.filter(u => u.organization_id === user?.organization_id || u.active_organization_id === user?.organization_id);
+      return allUsers.filter(u => u.organization_id === currentOrgId || u.active_organization_id === currentOrgId);
     },
-    enabled: !!user?.organization_id,
+    enabled: !!currentOrgId,
   });
 
   const updateMutation = useMutation({
