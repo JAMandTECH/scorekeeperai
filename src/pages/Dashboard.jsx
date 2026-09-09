@@ -10,7 +10,6 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import AIAssistant from "@/components/AIAssistant";
 import SubscriptionBadge from "@/components/subscription/SubscriptionBadge";
-import SeasonManager from "@/components/SeasonManager";
 import RecentActivity from "@/components/dashboard/RecentActivity";
 import TopScorerSpotlight from "@/components/dashboard/TopScorerSpotlight";
 import CategoryLeaders from "@/components/dashboard/CategoryLeaders";
@@ -23,7 +22,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
-  const [seasonManagerOpen, setSeasonManagerOpen] = useState(false);
   const navigate = useNavigate();
 
   const currentOrgId = user?.active_organization_id || user?.organization_id;
@@ -246,13 +244,6 @@ export default function Dashboard() {
                         <Button variant="outline" size="sm">Manage Subscriptions</Button>
                       </Link>
                     )}
-                    <Button onClick={() => setSeasonManagerOpen(true)} variant="outline" size="sm" className="border-green-500/30 text-green-600 dark:text-green-400 hover:bg-green-500/10">
-                      <CalendarCheck className="w-4 h-4 mr-1.5" />
-                      Season Manager
-                    </Button>
-                    <Link to="/PastSeasons">
-                      <Button variant="ghost" size="sm">Past Seasons</Button>
-                    </Link>
                   </div>
                 )}
               </div>
@@ -483,14 +474,6 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
-      {organization && isAdmin && (
-        <SeasonManager
-          open={seasonManagerOpen}
-          onClose={() => setSeasonManagerOpen(false)}
-          organization={organization}
-          user={user}
-        />
-      )}
     </div>
   );
 }

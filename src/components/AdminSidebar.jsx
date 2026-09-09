@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles, Clock, UserPlus, UserCog, FileEdit, UserCheck, CreditCard, ChevronDown, ChevronRight, Layers, Gamepad2, UsersRound, FileText, Archive } from "lucide-react";
+import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles, Clock, UserPlus, UserCog, FileEdit, UserCheck, CreditCard, ChevronDown, ChevronRight, Layers, Gamepad2, UsersRound, FileText, Archive, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePermissions } from "@/components/hooks/usePermissions";
@@ -86,6 +86,7 @@ export default function AdminSidebar({
           { title: "Join Requests", url: createPageUrl("OrganizationJoinRequests"), icon: UserCheck, permission: "manage_members" },
           { title: "Tournament Brackets", url: createPageUrl("TournamentBracket"), icon: Award, permission: "manage_tournaments" },
           { title: "Data Backup", url: createPageUrl("DataBackup"), icon: Database, permission: "data_backup" },
+          { title: "Season Manager", url: "/SeasonManager", icon: CalendarCheck },
           { title: "Past Seasons", url: "/PastSeasons", icon: Archive },
         ]
       },
