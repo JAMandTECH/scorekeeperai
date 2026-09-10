@@ -171,9 +171,9 @@ export default function PublicLanding() {
             <div className="lg:col-span-5 relative">
               <div className="aspect-[4/5] overflow-hidden border border-border">
                 <img
-                  src="https://images.unsplash.com/photo-1546519638-03e2b4e6c8d1?w=800&q=80"
-                  alt="Basketball player"
-                  className="w-full h-full object-cover grayscale"
+                  src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/942178cf5_KobeBryantArt.jpg"
+                  alt="Basketball player dunk art"
+                  className="w-full h-full object-cover"
                 />
               </div>
               <div className="absolute -bottom-4 -left-4 bg-primary text-primary-foreground px-4 py-2">
