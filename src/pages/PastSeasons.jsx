@@ -79,7 +79,7 @@ export default function PastSeasons() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 text-gray-900 dark:from-[#0a0e1a] dark:via-[#0e1428] dark:to-[#0a0e1a] dark:text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader
         user={user}
         organization={organization}

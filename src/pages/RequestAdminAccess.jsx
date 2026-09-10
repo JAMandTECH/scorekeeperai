@@ -118,7 +118,7 @@ export default function RequestAdminAccess() {
 
   if (user?.role === 'admin') {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full border-2 border-green-200 dark:border-green-800">
           <CardHeader>
             <div className="flex items-center gap-3 mb-2">
@@ -141,7 +141,7 @@ export default function RequestAdminAccess() {
 
   if (existingRequest) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full border-2 border-gray-200 dark:border-gray-700 shadow-xl">
           <CardHeader>
             <div className="flex items-center gap-3 mb-2">

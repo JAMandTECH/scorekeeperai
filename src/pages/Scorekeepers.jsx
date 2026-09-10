@@ -165,7 +165,7 @@ export default function Scorekeepers() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -190,7 +190,7 @@ export default function Scorekeepers() {
             <div className="max-w-7xl mx-auto space-y-8">
               <div className="flex justify-between items-center">
                 <div>
-                  <h1 className="text-4xl font-black text-gray-900 dark:text-white">Scorekeepers</h1>
+                  <h1 className="font-heading text-3xl font-bold tracking-tight">Scorekeepers</h1>
                   <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Manage users who can score games</p>
                 </div>
                 <Button 

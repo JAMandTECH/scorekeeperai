@@ -148,14 +148,14 @@ Keep the response concise and actionable for a super administrator.`;
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={null}
@@ -185,7 +185,7 @@ Keep the response concise and actionable for a super administrator.`;
                     <BarChart3 className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-4xl font-black text-gray-900 dark:text-white">Super Admin Dashboard</h1>
+                    <h1 className="font-heading text-3xl font-bold tracking-tight">Super Admin Dashboard</h1>
                     <p className="text-gray-600 dark:text-gray-400 font-medium">Platform-wide analytics and insights</p>
                   </div>
                 </div>
