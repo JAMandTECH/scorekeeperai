@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building2, Upload, Image, Save, AlertCircle, Users, Shield, UserCheck, UserCog, Palette } from "lucide-react";
+import { Building2, Upload, Image, Save, AlertCircle, Users, Shield, UserCheck, UserCog, Palette, Lock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { createPageUrl } from "@/utils";
@@ -129,7 +129,8 @@ export default function OrganizationSettings() {
         settings: {
           ...(organization.settings || {}),
           include_archived_in_leaders: formData.get('include_archived_in_leaders') === 'on'
-        }
+        },
+        season_pin: formData.get('season_pin') || null
       };
 
       console.log('Form data before upload:', data);
@@ -377,6 +378,25 @@ export default function OrganizationSettings() {
                       </div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         When enabled, archived completed games will count toward player leaders.
+                      </p>
+                    </div>
+
+                    {/* Season Security PIN */}
+                    <div className="border border-border bg-muted/30 p-6">
+                      <Label htmlFor="season_pin" className="font-heading font-bold text-foreground flex items-center gap-2 mb-2">
+                        <Lock className="w-4 h-4 text-primary" />
+                        Season Security PIN
+                      </Label>
+                      <Input
+                        id="season_pin"
+                        name="season_pin"
+                        type="text"
+                        defaultValue={organization.season_pin || ""}
+                        placeholder="e.g. 1234 or season-open"
+                        className="mt-1"
+                      />
+                      <p className="text-sm text-muted-foreground mt-2 font-medium">
+                        Required to open a new season in the Season Manager — prevents accidental season creation. Leave blank to remove.
                       </p>
                     </div>
 

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CalendarPlus, Archive, AlertTriangle, Loader2, Trophy, ArrowLeft, Sun, Moon, LogOut } from "lucide-react";
+import { CalendarPlus, Archive, AlertTriangle, Loader2, Trophy, ArrowLeft, Sun, Moon, LogOut, Shield } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
@@ -21,6 +21,7 @@ export default function SeasonManager() {
   const [darkMode, setDarkMode] = useState(false);
   const [view, setView] = useState("main");
   const [form, setForm] = useState({ name: "", sport: "basketball", start_date: "", notes: "" });
+  const [pinInput, setPinInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -82,11 +83,20 @@ export default function SeasonManager() {
   const reset = () => {
     setView("main");
     setForm({ name: "", sport: "basketball", start_date: "", notes: "" });
+    setPinInput("");
   };
 
   const handleCreate = async () => {
     if (!form.name.trim()) {
       toast({ title: "Season name is required", variant: "destructive" });
+      return;
+    }
+    if (!organization?.season_pin) {
+      toast({ title: "No security PIN set", description: "Ask an admin to set a season PIN in Organization Settings first.", variant: "destructive" });
+      return;
+    }
+    if (pinInput.trim() !== organization.season_pin) {
+      toast({ title: "Incorrect PIN", description: "The security PIN you entered does not match.", variant: "destructive" });
       return;
     }
     setSubmitting(true);
@@ -251,9 +261,23 @@ export default function SeasonManager() {
                       <Label htmlFor="season-notes">Notes (optional)</Label>
                       <Textarea id="season-notes" placeholder="Any notes about this season..." value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} />
                     </div>
+                    <div className="space-y-2 border border-border bg-muted/30 p-4">
+                      <Label htmlFor="season-pin" className="flex items-center gap-2"><Shield className="w-4 h-4 text-primary" /> Security PIN Required</Label>
+                      <Input
+                        id="season-pin"
+                        type="password"
+                        placeholder="Enter your organization's season PIN"
+                        value={pinInput}
+                        onChange={(e) => setPinInput(e.target.value)}
+                        autoComplete="off"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        This PIN is set in Organization Settings and prevents accidental season creation.
+                      </p>
+                    </div>
                     <div className="flex justify-end gap-2 pt-2">
                       <Button variant="ghost" onClick={() => setView("main")} disabled={submitting}>Back</Button>
-                      <Button onClick={handleCreate} disabled={submitting || !form.name.trim()}>
+                      <Button onClick={handleCreate} disabled={submitting || !form.name.trim() || !pinInput.trim()}>
                         {submitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CalendarPlus className="w-4 h-4 mr-2" />}
                         Open Season
                       </Button>
