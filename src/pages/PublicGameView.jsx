@@ -66,17 +66,17 @@ export default function PublicGameView() {
 
   if (gameLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
 
   if (!game) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <Card className="p-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Game Not Found</h2>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="p-8 text-center border border-border">
+          <h2 className="font-heading text-2xl font-bold mb-4">Game Not Found</h2>
           <Link to={createPageUrl("Home")}>
             <Button>Back to Home</Button>
           </Link>
@@ -112,37 +112,37 @@ export default function PublicGameView() {
   const sportColor = game.sport === 'basketball' ? 'orange' : 'blue';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <div className="bg-black/50 backdrop-blur-xl border-b border-white/10 px-4 py-3">
+      <div className="border-b border-border px-4 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link to={createPageUrl("Home")}>
-            <Button variant="ghost" className="text-white hover:bg-white/10">
-              <ArrowLeft className="w-5 h-5 mr-2" />
+            <Button variant="ghost">
+              <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
           </Link>
           <div className="flex items-center gap-3">
             {game.stream_url && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/10 backdrop-blur-sm border border-white/20">
-                {hideScoreboard ? <EyeOff className="w-4 h-4 text-white/70" /> : <Eye className="w-4 h-4 text-white" />}
+              <div className="flex items-center gap-2 px-3 py-1.5 border border-border">
+                {hideScoreboard ? <EyeOff className="w-4 h-4 text-muted-foreground" /> : <Eye className="w-4 h-4" />}
                 <Switch
                   checked={!hideScoreboard}
                   onCheckedChange={(checked) => setHideScoreboard(!checked)}
                   id="scoreboard-toggle"
                 />
-                <Label htmlFor="scoreboard-toggle" className="text-xs font-bold text-white cursor-pointer whitespace-nowrap">
+                <Label htmlFor="scoreboard-toggle" className="text-xs font-medium cursor-pointer whitespace-nowrap">
                   {hideScoreboard ? "Scoreboard Hidden" : "Scoreboard Visible"}
                 </Label>
               </div>
             )}
             {isLive && (
-              <Badge className="bg-red-500 text-white font-bold animate-pulse flex items-center gap-1">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
+              <Badge variant="destructive" className="flex items-center gap-1">
+                <span className="live-dot" />
                 LIVE
               </Badge>
             )}
-            <Button variant="ghost" size="sm" onClick={() => refetch()} className="text-white hover:bg-white/10">
+            <Button variant="ghost" size="sm" onClick={() => refetch()}>
               <RefreshCw className="w-4 h-4" />
             </Button>
           </div>

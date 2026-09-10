@@ -95,26 +95,25 @@ export default function SocialFeed() {
 
   if (!user || orgLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
 
   if (!organization) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <div className="max-w-md text-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-red-200 to-orange-300 dark:from-red-800 dark:to-orange-900 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Users className="w-10 h-10 text-red-600 dark:text-red-400" />
+          <div className="w-16 h-16 border border-border flex items-center justify-center mx-auto mb-6">
+            <Users className="w-8 h-8 text-muted-foreground" />
           </div>
-          <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-3">No Organization Found</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <h2 className="font-heading text-2xl font-bold mb-3">No Organization Found</h2>
+          <p className="text-muted-foreground mb-6 text-sm">
             You need to be associated with an organization to access the social feed.
           </p>
           <Button
             onClick={() => navigate(createPageUrl("Home"))}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
           >
             <HomeIcon className="w-4 h-4 mr-2" />
             Go to Home
@@ -125,7 +124,7 @@ export default function SocialFeed() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900 mesh-gradient">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -151,15 +150,14 @@ export default function SocialFeed() {
             <div className="max-w-3xl mx-auto space-y-6">
               <div className="flex justify-between items-center">
                 <div>
-                  <h1 className="text-4xl font-black text-gradient-primary">Social Feed</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">
+                  <h1 className="font-heading text-3xl font-bold tracking-tight">Social Feed</h1>
+                  <p className="text-muted-foreground mt-1 text-sm">
                     Share updates, photos, and videos with {organization.name}
                   </p>
                 </div>
                 <Button
                   onClick={() => navigate(createPageUrl("Home"))}
                   variant="outline"
-                  className="font-bold rounded-xl hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-purple-500/10 transition-all duration-300"
                 >
                   <HomeIcon className="w-4 h-4 mr-2" />
                   Home
@@ -175,11 +173,11 @@ export default function SocialFeed() {
               <div className="space-y-4">
                 {posts.length === 0 && (
                   <div className="text-center py-20">
-                    <div className="w-28 h-28 bg-gradient-to-br from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6 pulse-glow">
-                      <Users className="w-14 h-14 text-cyan-600 dark:text-cyan-400" />
+                    <div className="w-16 h-16 border border-border flex items-center justify-center mx-auto mb-6">
+                      <Users className="w-8 h-8 text-muted-foreground" />
                     </div>
-                    <h3 className="text-2xl font-black text-gradient-primary mb-2">No posts yet</h3>
-                    <p className="text-gray-600 dark:text-gray-400 font-medium">
+                    <h3 className="font-heading text-xl font-bold mb-2">No posts yet</h3>
+                    <p className="text-muted-foreground text-sm">
                       Be the first to share something with your organization!
                     </p>
                   </div>

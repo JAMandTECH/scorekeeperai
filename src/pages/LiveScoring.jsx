@@ -1139,8 +1139,8 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
 
   if (!game || !homeTeam || !awayTeam) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
@@ -1256,9 +1256,9 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50 dark:from-gray-900 dark:via-orange-900/20 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       {/* TOP NAVIGATION BAR */}
-      <div className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-xl">
+      <div className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {organization?.logo_url && (

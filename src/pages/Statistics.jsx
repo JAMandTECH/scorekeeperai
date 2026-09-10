@@ -629,7 +629,7 @@ Please provide:
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/30 to-gray-50 dark:from-gray-900 dark:via-indigo-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -652,13 +652,13 @@ Please provide:
         <main className="flex-1 min-w-0">
           {user && !isAdmin ? (
             <div className="p-6 lg:p-8 w-full">
-              <div className="max-w-3xl mx-auto text-center bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl p-10 shadow-lg">
-                <h1 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Admins only</h1>
-                <p className="text-gray-600 dark:text-gray-400 mb-6 font-medium">
+              <div className="max-w-3xl mx-auto text-center border border-border p-10">
+                <h1 className="font-heading text-2xl font-bold mb-2">Admins only</h1>
+                <p className="text-muted-foreground mb-6 text-sm">
                   Statistics &amp; Analytics are only available to organization administrators.
                 </p>
                 <div className="flex gap-3 justify-center">
-                  <Button onClick={() => (window.location.href = createPageUrl("Home"))} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold">
+                  <Button onClick={() => (window.location.href = createPageUrl("Home"))}>
                     Go to Home
                   </Button>
                 </div>
@@ -666,16 +666,16 @@ Please provide:
             </div>
           ) : !orgId ? (
             <div className="p-6 lg:p-8 w-full">
-              <div className="max-w-3xl mx-auto text-center bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl p-10 shadow-lg">
-                <h1 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Members only</h1>
-                <p className="text-gray-600 dark:text-gray-400 mb-6 font-medium">
+              <div className="max-w-3xl mx-auto text-center border border-border p-10">
+                <h1 className="font-heading text-2xl font-bold mb-2">Members only</h1>
+                <p className="text-muted-foreground mb-6 text-sm">
                   Statistics are only available to registered members of an organization. Join an organization to view its statistics.
                 </p>
                 <div className="flex gap-3 justify-center">
-                  <Button onClick={() => (window.location.href = createPageUrl("JoinOrganization"))} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold">
+                  <Button onClick={() => (window.location.href = createPageUrl("JoinOrganization"))}>
                     Join an Organization
                   </Button>
-                  <Button onClick={() => (window.location.href = createPageUrl("Home"))} variant="outline" className="font-bold">
+                  <Button onClick={() => (window.location.href = createPageUrl("Home"))} variant="outline">
                     Go to Home
                   </Button>
                 </div>
@@ -687,7 +687,7 @@ Please provide:
               {/* Header with Print Button */}
               <div className="flex justify-between items-start mb-8 print:mb-4">
                 <div>
-                  <h1 className="text-4xl font-black text-gray-900 dark:text-white print:text-3xl">Statistics & Analytics</h1>
+                  <h1 className="font-heading text-3xl font-bold tracking-tight print:text-3xl">Statistics & Analytics</h1>
                   <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium print:text-sm">
                     {organization?.name || 'Organization'} Performance Report
                   </p>

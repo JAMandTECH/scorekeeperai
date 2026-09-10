@@ -243,9 +243,9 @@ export default function Teams() {
   
   if (loading || !user || teamsLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
-        <p className="mt-4 text-gray-600 dark:text-gray-400">Loading teams...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+        <p className="mt-4 text-muted-foreground text-sm">Loading teams...</p>
       </div>
     );
   }
@@ -402,7 +402,7 @@ export default function Teams() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/30 to-gray-50 dark:from-gray-900 dark:via-orange-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -427,16 +427,16 @@ export default function Teams() {
             <div className="max-w-7xl mx-auto space-y-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                  <h1 className="text-4xl font-black text-gray-900 dark:text-white">Teams</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Manage your organization's teams</p>
+                  <h1 className="font-heading text-3xl font-bold tracking-tight">Teams</h1>
+                  <p className="text-muted-foreground mt-1 text-sm">Manage your organization's teams</p>
                 </div>
                 <div className="flex gap-3 w-full md:w-auto">
-                  <div className="flex bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-1 shadow-sm">
+                  <div className="flex border border-border rounded-sm p-1">
                     <Button
                       variant={viewMode === 'card' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => setViewMode('card')}
-                      className={`font-bold ${viewMode === 'card' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                      className={`font-medium ${viewMode === 'card' ? '' : 'text-muted-foreground'}`}
                     >
                       <LayoutGrid className="w-4 h-4 mr-2" />
                       Cards
@@ -445,7 +445,7 @@ export default function Teams() {
                       variant={viewMode === 'table' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => setViewMode('table')}
-                      className={`font-bold ${viewMode === 'table' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                      className={`font-medium ${viewMode === 'table' ? '' : 'text-muted-foreground'}`}
                     >
                       <Table className="w-4 h-4 mr-2" />
                       Table
@@ -458,9 +458,8 @@ export default function Teams() {
                         setLogoFile(null);
                         setShowForm(true);
                       }}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
                     >
-                      <Plus className="w-5 h-5 mr-2" />
+                      <Plus className="w-4 h-4 mr-2" />
                       Add Team
                     </Button>
                   )}
@@ -468,18 +467,9 @@ export default function Teams() {
               </div>
 
               <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                      <circle cx="12" cy="12" r="10"/>
-                      <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-                      <path d="M2 12h20"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-gray-900 dark:text-white">Basketball Teams</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{basketballTeams.length} teams</p>
-                  </div>
+                <div className="mb-6">
+                  <h2 className="font-heading text-xl font-bold tracking-tight">Basketball Teams</h2>
+                  <p className="text-sm text-muted-foreground mt-1">{basketballTeams.length} teams</p>
                 </div>
                 
                 {viewMode === 'card' ? (
@@ -494,14 +484,9 @@ export default function Teams() {
               </div>
 
               <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <Trophy className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-gray-900 dark:text-white">Volleyball Teams</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{volleyballTeams.length} teams</p>
-                  </div>
+                <div className="mb-6">
+                  <h2 className="font-heading text-xl font-bold tracking-tight">Volleyball Teams</h2>
+                  <p className="text-sm text-muted-foreground mt-1">{volleyballTeams.length} teams</p>
                 </div>
                 
                 {viewMode === 'card' ? (

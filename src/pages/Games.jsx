@@ -804,14 +804,14 @@ export default function Games() {
 
   if (!user || permissionsLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-green-50/30 to-gray-50 dark:from-gray-900 dark:via-green-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -836,33 +836,30 @@ export default function Games() {
             <div className="max-w-7xl mx-auto space-y-8">
               <div className="flex justify-between items-center">
                 <div>
-                  <h1 className="text-4xl font-black text-gray-900 dark:text-white">Games</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Schedule and manage games</p>
+                  <h1 className="font-heading text-3xl font-bold tracking-tight">Games</h1>
+                  <p className="text-muted-foreground mt-1 text-sm">Schedule and manage games</p>
                 </div>
                 <div className="flex gap-3">
                   {hasPermission('manage_games') && (
                     <Link to={createPageUrl("ManualGameEntry")}>
-                      <Button 
-                        className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold shadow-xl"
-                      >
-                        <FileEdit className="w-5 h-5 mr-2" />
+                      <Button variant="outline">
+                        <FileEdit className="w-4 h-4 mr-2" />
                         Manual Entry
                       </Button>
                     </Link>
                   )}
                   <Button 
                     onClick={() => setShowAIScheduleDialog(true)}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-xl"
+                    variant="outline"
                   >
-                    <Zap className="w-5 h-5 mr-2" />
+                    <Zap className="w-4 h-4 mr-2" />
                     AI Generate Schedule
                   </Button>
                   {hasPermission('manage_games') && (
                     <Button 
                       onClick={() => setShowForm(true)}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
                     >
-                      <Plus className="w-5 h-5 mr-2" />
+                      <Plus className="w-4 h-4 mr-2" />
                       Schedule Game
                     </Button>
                   )}
