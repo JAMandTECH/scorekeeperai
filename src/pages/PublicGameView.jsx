@@ -109,7 +109,6 @@ export default function PublicGameView() {
     : `Set ${game.current_quarter}`;
 
   const isLive = game.status === 'in_progress';
-  const sportColor = game.sport === 'basketball' ? 'orange' : 'blue';
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -151,14 +150,14 @@ export default function PublicGameView() {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Main Scoreboard */}
-        <Card className={`mb-8 overflow-hidden border-2 ${isLive ? 'border-red-500/50' : 'border-gray-700'} bg-gradient-to-br from-gray-800 to-gray-900`} style={{ display: hideScoreboard ? 'none' : 'block' }}>
-          <CardHeader className={`bg-gradient-to-r from-${sportColor}-600 to-${sportColor}-700 py-4`}>
+        <Card className={`mb-8 overflow-hidden ${isLive ? 'border-primary' : ''}`} style={{ display: hideScoreboard ? 'none' : 'block' }}>
+          <CardHeader className="bg-muted border-b border-border py-4">
             <div className="flex items-center justify-between">
-              <Badge className="bg-white/20 text-white font-bold border-0 uppercase">
+              <Badge variant="outline" className="font-medium uppercase border-border text-muted-foreground">
                 {game.sport}
               </Badge>
-              <span className="text-white font-bold">{quarterLabel}</span>
-              <Badge className={`font-bold border-0 ${isLive ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
+              <span className="font-heading font-bold text-foreground">{quarterLabel}</span>
+              <Badge variant="outline" className={`font-medium ${isLive ? 'border-primary text-primary' : 'border-border text-muted-foreground'}`}>
                 {game.status === 'completed' ? 'FINAL' : game.status === 'in_progress' ? 'LIVE' : 'SCHEDULED'}
               </Badge>
             </div>
@@ -167,25 +166,25 @@ export default function PublicGameView() {
             <div className="flex items-center justify-between">
               {/* Home Team */}
               <div className="flex-1 text-center">
-                <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-white/20 shadow-2xl">
+                <Avatar className="w-24 h-24 mx-auto mb-4 border border-border">
                   <AvatarImage src={homeTeam?.logo_url} />
-                  <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white text-2xl font-black`}>
+                  <AvatarFallback className="bg-secondary text-foreground text-2xl font-heading font-bold">
                     {homeTeam?.name?.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <h3 className="text-xl font-black text-white mb-1">{homeTeam?.name || 'Home Team'}</h3>
-                <p className="text-gray-400 text-sm font-medium">HOME</p>
+                <h3 className="text-xl font-heading font-bold text-foreground mb-1">{homeTeam?.name || 'Home Team'}</h3>
+                <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide">HOME</p>
               </div>
 
               {/* Score */}
               <div className="flex flex-col items-center mx-8">
-                <div className="text-7xl font-black text-white tracking-tight">
+                <div className="text-7xl font-heading font-bold text-foreground tracking-tight tabular-nums">
                   {game.sport === 'volleyball'
                     ? ((game.quarter_scores && game.quarter_scores.length > 0)
                         ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0)
                         : (game.home_score ?? 0))
                     : (game.home_score ?? 0)}
-                  <span className="text-gray-500">-</span>
+                  <span className="text-muted-foreground">-</span>
                   {game.sport === 'volleyball'
                     ? ((game.quarter_scores && game.quarter_scores.length > 0)
                         ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0)
@@ -195,7 +194,7 @@ export default function PublicGameView() {
                 {game.quarter_scores && game.quarter_scores.length > 0 && (
                   <div className="flex gap-2 mt-4">
                     {game.quarter_scores.map((q, idx) => (
-                      <Badge key={idx} variant="outline" className="text-white border-white/30 text-xs">
+                      <Badge key={idx} variant="outline" className="border-border text-muted-foreground text-xs font-medium">
                         {game.sport === 'basketball' ? `Q${idx + 1}` : `Set ${idx + 1}`}: {q.home}-{q.away}
                       </Badge>
                     ))}
@@ -205,32 +204,32 @@ export default function PublicGameView() {
 
               {/* Away Team */}
               <div className="flex-1 text-center">
-                <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-white/20 shadow-2xl">
+                <Avatar className="w-24 h-24 mx-auto mb-4 border border-border">
                   <AvatarImage src={awayTeam?.logo_url} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-2xl font-black">
+                  <AvatarFallback className="bg-secondary text-foreground text-2xl font-heading font-bold">
                     {awayTeam?.name?.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <h3 className="text-xl font-black text-white mb-1">{awayTeam?.name || 'Away Team'}</h3>
-                <p className="text-gray-400 text-sm font-medium">AWAY</p>
+                <h3 className="text-xl font-heading font-bold text-foreground mb-1">{awayTeam?.name || 'Away Team'}</h3>
+                <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide">AWAY</p>
               </div>
             </div>
 
             {/* Game Info */}
-            <div className="flex justify-center gap-8 mt-6 text-sm text-gray-400">
-              {game.location && <span>📍 {game.location}</span>}
-              {game.court_number && <span>🏀 Court {game.court_number}</span>}
-              <span>📅 {new Date(game.game_date).toLocaleDateString()}</span>
+            <div className="flex justify-center gap-8 mt-6 text-sm text-muted-foreground">
+              {game.location && <span>{game.location}</span>}
+              {game.court_number && <span>Court {game.court_number}</span>}
+              <span>{new Date(game.game_date).toLocaleDateString()}</span>
             </div>
           </CardContent>
         </Card>
 
         {/* Live Stream */}
         {game.stream_url && (
-          <Card className="mb-8 bg-gray-800/50 border-gray-700">
+          <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Video className="w-5 h-5 text-red-500" />
+              <CardTitle className="flex items-center gap-2">
+                <Video className="w-5 h-5 text-primary" />
                 Live Stream
               </CardTitle>
             </CardHeader>
@@ -248,12 +247,12 @@ export default function PublicGameView() {
         {/* Player Stats */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Home Team Stats */}
-          <Card className="bg-gray-800/50 border-gray-700">
-            <CardHeader className={`bg-gradient-to-r from-${sportColor}-600/20 to-transparent border-b border-gray-700`}>
-              <CardTitle className="text-white flex items-center gap-3">
-                <Avatar className="w-8 h-8 border-2 border-white/20">
+          <Card>
+            <CardHeader className="bg-muted border-b border-border">
+              <CardTitle className="flex items-center gap-3">
+                <Avatar className="w-8 h-8 border border-border">
                   <AvatarImage src={homeTeam?.logo_url} />
-                  <AvatarFallback className={`bg-${sportColor}-600 text-white text-xs font-bold`}>
+                  <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                     {homeTeam?.name?.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -264,28 +263,28 @@ export default function PublicGameView() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-700 text-gray-400">
-                      <th className="text-left py-3 px-4">#</th>
-                      <th className="text-left py-3 px-4">Player</th>
-                      <th className="text-center py-3 px-2">PTS</th>
-                      <th className="text-center py-3 px-2">REB</th>
-                      <th className="text-center py-3 px-2">AST</th>
-                      <th className="text-center py-3 px-2">STL</th>
-                      <th className="text-center py-3 px-2">BLK</th>
+                    <tr className="border-b border-border text-muted-foreground">
+                      <th className="text-left py-3 px-4 font-heading font-bold">#</th>
+                      <th className="text-left py-3 px-4 font-heading font-bold">Player</th>
+                      <th className="text-center py-3 px-2 font-heading font-bold">PTS</th>
+                      <th className="text-center py-3 px-2 font-heading font-bold">REB</th>
+                      <th className="text-center py-3 px-2 font-heading font-bold">AST</th>
+                      <th className="text-center py-3 px-2 font-heading font-bold">STL</th>
+                      <th className="text-center py-3 px-2 font-heading font-bold">BLK</th>
                     </tr>
                   </thead>
                   <tbody>
                     {homePlayers.map(player => {
                       const totals = getPlayerTotals(player.id);
                       return (
-                        <tr key={player.id} className="border-b border-gray-700/50 hover:bg-white/5">
-                          <td className="py-3 px-4 text-gray-400 font-bold">{player.jersey_number}</td>
-                          <td className="py-3 px-4 text-white font-medium">{player.first_name} {player.last_name}</td>
-                          <td className="text-center py-3 px-2 text-white font-bold">{totals.points}</td>
-                          <td className="text-center py-3 px-2 text-gray-300">{totals.rebounds}</td>
-                          <td className="text-center py-3 px-2 text-gray-300">{totals.assists}</td>
-                          <td className="text-center py-3 px-2 text-gray-300">{totals.steals}</td>
-                          <td className="text-center py-3 px-2 text-gray-300">{totals.blocks}</td>
+                        <tr key={player.id} className="border-b border-border hover:bg-muted/50">
+                          <td className="py-3 px-4 text-muted-foreground font-heading font-bold">{player.jersey_number}</td>
+                          <td className="py-3 px-4 text-foreground font-medium">{player.first_name} {player.last_name}</td>
+                          <td className="text-center py-3 px-2 text-foreground font-heading font-bold tabular-nums">{totals.points}</td>
+                          <td className="text-center py-3 px-2 text-foreground tabular-nums">{totals.rebounds}</td>
+                          <td className="text-center py-3 px-2 text-foreground tabular-nums">{totals.assists}</td>
+                          <td className="text-center py-3 px-2 text-foreground tabular-nums">{totals.steals}</td>
+                          <td className="text-center py-3 px-2 text-foreground tabular-nums">{totals.blocks}</td>
                         </tr>
                       );
                     })}
@@ -296,12 +295,12 @@ export default function PublicGameView() {
           </Card>
 
           {/* Away Team Stats */}
-          <Card className="bg-gray-800/50 border-gray-700">
-            <CardHeader className="bg-gradient-to-r from-blue-600/20 to-transparent border-b border-gray-700">
-              <CardTitle className="text-white flex items-center gap-3">
-                <Avatar className="w-8 h-8 border-2 border-white/20">
+          <Card>
+            <CardHeader className="bg-muted border-b border-border">
+              <CardTitle className="flex items-center gap-3">
+                <Avatar className="w-8 h-8 border border-border">
                   <AvatarImage src={awayTeam?.logo_url} />
-                  <AvatarFallback className="bg-blue-600 text-white text-xs font-bold">
+                  <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                     {awayTeam?.name?.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -312,28 +311,28 @@ export default function PublicGameView() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-700 text-gray-400">
-                      <th className="text-left py-3 px-4">#</th>
-                      <th className="text-left py-3 px-4">Player</th>
-                      <th className="text-center py-3 px-2">PTS</th>
-                      <th className="text-center py-3 px-2">REB</th>
-                      <th className="text-center py-3 px-2">AST</th>
-                      <th className="text-center py-3 px-2">STL</th>
-                      <th className="text-center py-3 px-2">BLK</th>
+                    <tr className="border-b border-border text-muted-foreground">
+                      <th className="text-left py-3 px-4 font-heading font-bold">#</th>
+                      <th className="text-left py-3 px-4 font-heading font-bold">Player</th>
+                      <th className="text-center py-3 px-2 font-heading font-bold">PTS</th>
+                      <th className="text-center py-3 px-2 font-heading font-bold">REB</th>
+                      <th className="text-center py-3 px-2 font-heading font-bold">AST</th>
+                      <th className="text-center py-3 px-2 font-heading font-bold">STL</th>
+                      <th className="text-center py-3 px-2 font-heading font-bold">BLK</th>
                     </tr>
                   </thead>
                   <tbody>
                     {awayPlayers.map(player => {
                       const totals = getPlayerTotals(player.id);
                       return (
-                        <tr key={player.id} className="border-b border-gray-700/50 hover:bg-white/5">
-                          <td className="py-3 px-4 text-gray-400 font-bold">{player.jersey_number}</td>
-                          <td className="py-3 px-4 text-white font-medium">{player.first_name} {player.last_name}</td>
-                          <td className="text-center py-3 px-2 text-white font-bold">{totals.points}</td>
-                          <td className="text-center py-3 px-2 text-gray-300">{totals.rebounds}</td>
-                          <td className="text-center py-3 px-2 text-gray-300">{totals.assists}</td>
-                          <td className="text-center py-3 px-2 text-gray-300">{totals.steals}</td>
-                          <td className="text-center py-3 px-2 text-gray-300">{totals.blocks}</td>
+                        <tr key={player.id} className="border-b border-border hover:bg-muted/50">
+                          <td className="py-3 px-4 text-muted-foreground font-heading font-bold">{player.jersey_number}</td>
+                          <td className="py-3 px-4 text-foreground font-medium">{player.first_name} {player.last_name}</td>
+                          <td className="text-center py-3 px-2 text-foreground font-heading font-bold tabular-nums">{totals.points}</td>
+                          <td className="text-center py-3 px-2 text-foreground tabular-nums">{totals.rebounds}</td>
+                          <td className="text-center py-3 px-2 text-foreground tabular-nums">{totals.assists}</td>
+                          <td className="text-center py-3 px-2 text-foreground tabular-nums">{totals.steals}</td>
+                          <td className="text-center py-3 px-2 text-foreground tabular-nums">{totals.blocks}</td>
                         </tr>
                       );
                     })}

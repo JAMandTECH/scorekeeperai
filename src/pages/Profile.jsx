@@ -52,8 +52,8 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-screen">
-        <p>Loading...</p>
+      <div className="p-8 flex items-center justify-center min-h-screen bg-background">
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
@@ -61,16 +61,16 @@ export default function Profile() {
   const isSuperAdmin = user?.user_type === "super_admin";
 
   return (
-    <div className="p-8 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <div className="p-8 bg-background min-h-screen">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Profile Settings</h1>
-          <p className="text-slate-600 mt-1">Manage your account information</p>
+          <h1 className="text-3xl font-heading font-bold text-foreground">Profile Settings</h1>
+          <p className="text-muted-foreground mt-1">Manage your account information</p>
         </div>
 
         {success && (
-          <Alert className="mb-6 bg-green-50 border-green-200">
-            <AlertDescription className="text-green-800">
+          <Alert className="mb-6 bg-primary/10 border-primary/30">
+            <AlertDescription className="text-foreground">
               Profile updated successfully!
             </AlertDescription>
           </Alert>
@@ -80,30 +80,31 @@ export default function Profile() {
           {/* Profile Card */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 font-heading">
                 <UserCircle className="w-5 h-5" />
                 Personal Information
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="flex items-center gap-4 pb-6 border-b">
-                  <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-full flex items-center justify-center">
+                <div className="flex items-center gap-4 pb-6 border-b border-border">
+                  <div className="w-20 h-20 border border-border bg-muted flex items-center justify-center">
                     {isSuperAdmin ? (
-                      <Shield className="w-10 h-10 text-white" />
+                      <Shield className="w-10 h-10 text-primary" />
                     ) : (
-                      <UserCircle className="w-10 h-10 text-white" />
+                      <UserCircle className="w-10 h-10 text-foreground" />
                     )}
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-slate-900">
+                    <p className="text-2xl font-heading font-bold text-foreground">
                       {user?.full_name || "User"}
                     </p>
                     <Badge
-                      className={`mt-2 ${
+                      variant="outline"
+                      className={`mt-2 font-medium ${
                         isSuperAdmin
-                          ? "bg-purple-100 text-purple-700"
-                          : "bg-blue-100 text-blue-700"
+                          ? "border-primary text-primary"
+                          : "border-border text-muted-foreground"
                       }`}
                     >
                       {user?.user_type?.replace("_", " ").toUpperCase()}
@@ -125,16 +126,16 @@ export default function Profile() {
                   <div>
                     <Label htmlFor="email">Email Address</Label>
                     <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-slate-400" />
+                      <Mail className="w-4 h-4 text-muted-foreground" />
                       <Input
                         id="email"
                         name="email"
                         value={user?.email}
                         disabled
-                        className="bg-slate-50"
+                        className="bg-muted"
                       />
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Email cannot be changed
                     </p>
                   </div>
@@ -142,7 +143,7 @@ export default function Profile() {
                   <div>
                     <Label htmlFor="phone">Phone Number</Label>
                     <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-slate-400" />
+                      <Phone className="w-4 h-4 text-muted-foreground" />
                       <Input
                         id="phone"
                         name="phone"
@@ -156,7 +157,6 @@ export default function Profile() {
                 <div className="flex justify-end pt-4">
                   <Button
                     type="submit"
-                    className="bg-orange-500 hover:bg-orange-600"
                     disabled={updateProfileMutation.isLoading}
                   >
                     <Save className="w-4 h-4 mr-2" />
@@ -170,21 +170,21 @@ export default function Profile() {
           {/* Account Details Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Account Details</CardTitle>
+              <CardTitle className="font-heading">Account Details</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex justify-between items-center py-3 border-b">
+                <div className="flex justify-between items-center py-3 border-b border-border">
                   <div>
-                    <p className="font-medium text-slate-900">User Type</p>
-                    <p className="text-sm text-slate-600">Your access level</p>
+                    <p className="font-heading font-bold text-foreground">User Type</p>
+                    <p className="text-sm text-muted-foreground">Your access level</p>
                   </div>
                   <Badge
                     variant="outline"
                     className={
                       isSuperAdmin
-                        ? "border-purple-300 text-purple-700"
-                        : "border-blue-300 text-blue-700"
+                        ? "border-primary text-primary font-medium"
+                        : "border-border text-muted-foreground font-medium"
                     }
                   >
                     {user?.user_type?.replace("_", " ")}
@@ -192,23 +192,23 @@ export default function Profile() {
                 </div>
 
                 {user?.organization_id && (
-                  <div className="flex justify-between items-center py-3 border-b">
+                  <div className="flex justify-between items-center py-3 border-b border-border">
                     <div>
-                      <p className="font-medium text-slate-900">Organization</p>
-                      <p className="text-sm text-slate-600">Your organization ID</p>
+                      <p className="font-heading font-bold text-foreground">Organization</p>
+                      <p className="text-sm text-muted-foreground">Your organization ID</p>
                     </div>
-                    <p className="text-sm font-mono text-slate-600">
+                    <p className="text-sm font-mono text-muted-foreground">
                       {user.organization_id}
                     </p>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center py-3 border-b">
+                <div className="flex justify-between items-center py-3 border-b border-border">
                   <div>
-                    <p className="font-medium text-slate-900">Account Created</p>
-                    <p className="text-sm text-slate-600">Member since</p>
+                    <p className="font-heading font-bold text-foreground">Account Created</p>
+                    <p className="text-sm text-muted-foreground">Member since</p>
                   </div>
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-muted-foreground">
                     {user?.created_date
                       ? new Date(user.created_date).toLocaleDateString()
                       : "N/A"}
@@ -217,10 +217,10 @@ export default function Profile() {
 
                 <div className="flex justify-between items-center py-3">
                   <div>
-                    <p className="font-medium text-slate-900">User Role</p>
-                    <p className="text-sm text-slate-600">System role</p>
+                    <p className="font-heading font-bold text-foreground">User Role</p>
+                    <p className="text-sm text-muted-foreground">System role</p>
                   </div>
-                  <Badge>{user?.role || "user"}</Badge>
+                  <Badge variant="outline" className="font-medium">{user?.role || "user"}</Badge>
                 </div>
               </div>
             </CardContent>
