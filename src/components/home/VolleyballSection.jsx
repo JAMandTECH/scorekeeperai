@@ -1,58 +1,56 @@
 import React from "react";
-import { Calendar, Target, Zap, Shield } from "lucide-react";
+import { Target, Zap, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import GameCompactStats from "@/components/stats/GameCompactStats";
-import AIGameSummary from "@/components/AIGameSummary";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StandingsTable from "@/components/home/StandingsTable";
+import VolleyballSchedule from "@/components/home/VolleyballSchedule";
 
-const leaderColorStyles = {
-  blue: {
-    icon: "from-blue-500 to-blue-600",
-    avatar: "from-blue-600 to-blue-700",
-    value: "text-blue-600 dark:text-blue-400",
-  },
-  orange: {
-    icon: "from-orange-500 to-orange-600",
-    avatar: "from-orange-600 to-orange-700",
-    value: "text-orange-600 dark:text-orange-400",
-  },
-  red: {
-    icon: "from-red-500 to-red-600",
-    avatar: "from-red-600 to-red-700",
-    value: "text-red-600 dark:text-red-400",
-  },
-  yellow: {
-    icon: "from-yellow-500 to-yellow-600",
-    avatar: "from-yellow-600 to-yellow-700",
-    value: "text-yellow-600 dark:text-yellow-400",
-  },
-};
-
-export default function VolleyballSection({ organization, volleyballStandings, topVolleyballScorers, topVolleyballAttackers, topVolleyballBlockers, topVolleyballAces, upcomingVolleyballGames, completedVolleyballGames, allPlayerStats, allPlayers, allTeams, isAdmin, getTeamName }) {
+export default function VolleyballSection({
+  organization,
+  volleyballStandings,
+  topVolleyballScorers,
+  topVolleyballAttackers,
+  topVolleyballBlockers,
+  topVolleyballAces,
+  upcomingVolleyballGames,
+  completedVolleyballGames,
+  allPlayerStats,
+  allPlayers,
+  allTeams,
+  isAdmin,
+  getTeamName,
+}) {
   const leaderCards = [
-    { title: 'Top 10 Scorers', icon: Target, color: 'blue', data: topVolleyballScorers },
-    { title: 'Top 10 Attackers', icon: Zap, color: 'orange', data: topVolleyballAttackers },
-    { title: 'Top 10 Blockers', icon: Shield, color: 'red', data: topVolleyballBlockers },
-    { title: 'Top 10 Ace Leaders', icon: Zap, color: 'yellow', data: topVolleyballAces },
+    { title: 'Top 10 Scorers', icon: Target, data: topVolleyballScorers },
+    { title: 'Top 10 Attackers', icon: Zap, data: topVolleyballAttackers },
+    { title: 'Top 10 Blockers', icon: Shield, data: topVolleyballBlockers },
+    { title: 'Top 10 Ace Leaders', icon: Zap, data: topVolleyballAces },
   ];
 
   return (
     <section className="mb-20">
-      <div className="flex items-center gap-4 mb-10">
-        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 0 0 20"/><path d="M12 2a10 10 0 0 1 0 20"/><path d="M2 12h20"/><path d="M12 2v20"/></svg>
+      <div className="flex items-center gap-3 mb-8">
+        <div className="w-10 h-10 border border-border bg-secondary flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-foreground">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 2a10 10 0 0 0 0 20"/>
+            <path d="M12 2a10 10 0 0 1 0 20"/>
+            <path d="M2 12h20"/>
+            <path d="M12 2v20"/>
+          </svg>
         </div>
-        <div><h2 className="text-4xl font-black text-gray-900 dark:text-white">Volleyball</h2><p className="text-gray-500 dark:text-gray-400 font-medium">League Standings & Player Stats</p></div>
+        <div>
+          <h2 className="font-heading text-2xl font-bold tracking-tight">Volleyball</h2>
+          <p className="text-sm text-muted-foreground">League Standings & Player Stats</p>
+        </div>
       </div>
 
-      <Tabs defaultValue="standings" className="space-y-8">
-        <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl shadow-sm">
-          <TabsTrigger value="standings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">Standings</TabsTrigger>
-          <TabsTrigger value="leaders" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">Player Leaders</TabsTrigger>
-          <TabsTrigger value="schedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white dark:text-gray-300 font-semibold rounded-lg px-6">Schedule & Results</TabsTrigger>
+      <Tabs defaultValue="standings" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="standings">Standings</TabsTrigger>
+          <TabsTrigger value="leaders">Player Leaders</TabsTrigger>
+          <TabsTrigger value="schedule">Schedule & Results</TabsTrigger>
         </TabsList>
 
         <TabsContent value="standings">
@@ -61,9 +59,80 @@ export default function VolleyballSection({ organization, volleyballStandings, t
           ))}
         </TabsContent>
 
-        <TabsContent value="leaders"><div className="grid md:grid-cols-2 gap-6">{leaderCards.map(({ title, icon: Icon, color, data }) => { const colorStyles = leaderColorStyles[color]; return <Card key={title} className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow"><CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900"><div className="flex items-center justify-between gap-3"><div className="flex items-center gap-3 min-w-0"><div className={`w-10 h-10 flex-shrink-0 bg-gradient-to-br ${colorStyles.icon} rounded-lg flex items-center justify-center`}><Icon className="w-6 h-6 text-white" /></div><CardTitle className="text-xl font-black text-gray-900 dark:text-white truncate">{title}</CardTitle></div><div className="flex items-center gap-2 flex-shrink-0">{organization?.name && <span className="text-sm font-bold text-gray-700 dark:text-gray-300 hidden sm:inline">{organization.name}</span>}{organization?.logo_url && <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md"><AvatarImage src={organization.logo_url} /><AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-xs">{(organization.name || '').substring(0,2).toUpperCase()}</AvatarFallback></Avatar>}</div></div></CardHeader><CardContent className="p-4"><div className="space-y-2">{data.length === 0 && <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>}{data.map((player, i) => <div key={player.id} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all"><div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900' : i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' : i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-700 text-white' : 'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'}`}>{i + 1}</div><Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md"><AvatarImage src={player.photo_url} /><AvatarFallback className={`bg-gradient-to-br ${colorStyles.avatar} text-white text-xs font-bold`}>{player.jersey_number}</AvatarFallback></Avatar><div className="flex-1 min-w-0"><p className="text-sm font-bold text-gray-900 dark:text-white truncate">{player.first_name} {player.last_name}</p><div className="flex items-center gap-2"><Avatar className="w-5 h-5 border border-gray-200 dark:border-gray-700"><AvatarImage src={player.teamLogoUrl} /><AvatarFallback className="bg-gray-200 text-[10px] font-bold">{player.teamName?.substring(0,2)?.toUpperCase()}</AvatarFallback></Avatar><p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{player.teamName}</p></div></div><div className="text-right"><p className={`text-2xl font-black ${colorStyles.value}`}>{player.total}</p><p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{player.average} {player.averageLabel}</p></div></div>)}</div></CardContent></Card>})}</div></TabsContent>
+        <TabsContent value="leaders">
+          <div className="grid md:grid-cols-2 gap-6">
+            {leaderCards.map(({ title, icon: Icon, data }) => (
+              <Card key={title} className="overflow-hidden">
+                <CardHeader className="border-b border-border py-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 shrink-0 border border-border bg-secondary flex items-center justify-center">
+                        <Icon className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <CardTitle className="text-base font-heading font-bold truncate">{title}</CardTitle>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {organization?.name && (
+                        <span className="text-sm text-muted-foreground hidden sm:inline truncate max-w-[180px]">{organization.name}</span>
+                      )}
+                      {organization?.logo_url && (
+                        <Avatar className="w-9 h-9 border border-border">
+                          <AvatarImage src={organization.logo_url} className="grayscale" />
+                          <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-xs">
+                            {(organization.name || '').substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-3">
+                  <div className="space-y-1">
+                    {data.length === 0 && (
+                      <div className="text-sm text-muted-foreground px-2 py-6 text-center">No data available.</div>
+                    )}
+                    {data.map((player, i) => (
+                      <div key={player.id} className="flex items-center gap-3 px-2 py-2.5 hover:bg-muted transition-colors border-b border-border last:border-0">
+                        <div className={`w-7 text-center font-heading text-sm font-bold tabular-nums shrink-0 ${i < 3 ? 'text-primary' : 'text-muted-foreground'}`}>
+                          {i + 1}
+                        </div>
+                        <Avatar className="w-9 h-10 shrink-0 border border-border bg-secondary">
+                          <AvatarImage src={player.photo_url} className="object-cover" />
+                          <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">{player.jersey_number}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{player.first_name} {player.last_name}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            {player.teamLogoUrl && (
+                              <img src={player.teamLogoUrl} alt="" className="w-4 h-4 object-cover grayscale" />
+                            )}
+                            <p className="text-xs text-muted-foreground truncate">{player.teamName}</p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0 pl-1">
+                          <p className="font-heading text-xl font-bold text-primary tabular-nums leading-none">{player.total}</p>
+                          <p className="text-[11px] text-muted-foreground mt-1 tabular-nums">{player.average} {player.averageLabel}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
 
-        <TabsContent value="schedule"><div className="grid lg:grid-cols-2 gap-6"><Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg"><CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-white dark:from-gray-800 dark:to-gray-900"><CardTitle className="text-xl font-black text-gray-900 dark:text-white">Upcoming Games</CardTitle></CardHeader><CardContent className="p-4"><div className="space-y-3">{upcomingVolleyballGames.map(game => <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800"><div className="flex justify-between items-center mb-3"><span className="text-xs text-gray-500 dark:text-gray-400 font-semibold flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(game.game_date).toLocaleDateString()}</span><Badge className="bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-bold">{game.game_type?.replace('_', ' ').toUpperCase() || 'REGULAR'}</Badge></div><div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.home_team_id)} vs {getTeamName(game.away_team_id)}</div>{game.location && <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">📍 {game.location}</p>}</div>)}</div></CardContent></Card><Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg"><CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-green-50 to-white dark:from-gray-800 dark:to-gray-900"><CardTitle className="text-xl font-black text-gray-900 dark:text-white">Recent Results</CardTitle></CardHeader><CardContent className="p-4"><div className="space-y-3">{completedVolleyballGames.map(game => { const hasSets = Array.isArray(game.quarter_scores) && game.quarter_scores.length > 0; const homeTotalPoints = hasSets ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0) : Number(game.home_score ?? 0); const awayTotalPoints = hasSets ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0) : Number(game.away_score ?? 0); const homeSetsWon = hasSets ? (game.quarter_scores || []).filter(s => s.home > s.away).length : 0; const awaySetsWon = hasSets ? (game.quarter_scores || []).filter(s => s.away > s.home).length : 0; const winningTeamId = hasSets ? (homeSetsWon > awaySetsWon ? game.home_team_id : game.away_team_id) : (homeTotalPoints >= awayTotalPoints ? game.home_team_id : game.away_team_id); const statsForGame = allPlayerStats.filter(s => s.game_id === game.id); const totalsMap = new Map(); statsForGame.filter(s => s.team_id === winningTeamId).forEach(s => { const id = s.player_id; if (!totalsMap.has(id)) totalsMap.set(id, { points: 0, attacks: 0, aces: 0, blocks: 0 }); const agg = totalsMap.get(id); const vbAttacks = s.attacks ?? s.field_goals_made ?? 0; const vbAces = s.aces ?? s.three_pointers ?? 0; agg.attacks += vbAttacks; agg.aces += vbAces; agg.blocks += s.blocks || 0; agg.points += vbAttacks + vbAces + (s.blocks || 0); }); const bestEntry = Array.from(totalsMap.entries()).reduce((best, [pid, vals]) => !best || vals.points > best.vals.points ? { pid, vals } : best, null); const bestPlayer = bestEntry ? allPlayers.find(p => p.id === bestEntry.pid) : null; const bestTotals = bestEntry?.vals || null; const homeTeamData = allTeams.find(t => t.id === game.home_team_id); const awayTeamData = allTeams.find(t => t.id === game.away_team_id); const topPlayersForAI = []; if (bestPlayer && bestTotals) topPlayersForAI.push({ name: `${bestPlayer.first_name} ${bestPlayer.last_name}`, team: getTeamName(winningTeamId), stats: `${bestTotals.attacks || 0} ATK • ${bestTotals.blocks || 0} BLK • ${bestTotals.aces || 0} ACE` }); return <div key={game.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800"><div className="flex justify-between items-center mb-3"><span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{new Date(game.game_date).toLocaleDateString()}</span><Badge className="bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 text-xs font-bold">FINAL</Badge></div><div className="space-y-2 mb-3"><div className="flex items-center gap-2"><Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700"><AvatarImage src={homeTeamData?.logo_url} /><AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold">{homeTeamData?.name?.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar><div className="flex-1 min-w-0"><div className="text-sm font-bold text-gray-900 dark:text-white truncate">{getTeamName(game.home_team_id)}</div></div><div className="text-right"><div className="text-3xl font-black text-gray-900 dark:text-white">{homeTotalPoints}</div><div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">({homeSetsWon} sets)</div></div></div><div className="flex items-center gap-2"><Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700"><AvatarImage src={awayTeamData?.logo_url} /><AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white text-xs font-bold">{awayTeamData?.name?.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar><div className="flex-1 min-w-0"><div className="text-sm font-bold text-gray-900 dark:text-white truncate">{getTeamName(game.away_team_id)}</div></div><div className="text-right"><div className="text-3xl font-black text-gray-900 dark:text-white">{awayTotalPoints}</div><div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">({awaySetsWon} sets)</div></div></div></div>{bestPlayer && bestTotals && <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"><p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">⭐ Best Player (Winner):</p><div className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 rounded-lg p-2 border border-yellow-200 dark:border-yellow-800"><Avatar className="w-8 h-8 border-2 border-white dark:border-gray-700"><AvatarImage src={bestPlayer.photo_url} /><AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold">{bestPlayer.jersey_number}</AvatarFallback></Avatar><div className="flex-1 min-w-0"><p className="text-xs font-bold text-gray-900 dark:text-white truncate">#{bestPlayer.jersey_number} {bestPlayer.first_name} {bestPlayer.last_name}</p><p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">{bestTotals?.attacks || 0} ATK • {bestTotals?.blocks || 0} BLK • {bestTotals?.aces || 0} ACE</p></div></div></div>}{game.quarter_scores && game.quarter_scores.length > 0 && <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"><p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-1">Set Scores:</p><div className="flex flex-wrap gap-2">{game.quarter_scores.map((set, idx) => <Badge key={idx} variant="outline" className={`text-xs font-bold ${set.home > set.away ? 'border-blue-400 dark:border-blue-600 text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'}`}>{set.home}-{set.away}</Badge>)}</div></div>}<details className="mt-3"><summary className="cursor-pointer text-sm font-bold text-blue-600 dark:text-blue-400">Player Stats</summary><div className="mt-2"><GameCompactStats game={game} allPlayerStats={allPlayerStats} allPlayers={allPlayers} sport="volleyball" /></div></details>{isAdmin && homeTeamData && awayTeamData && topPlayersForAI.length > 0 && <div className="mt-3"><AIGameSummary game={game} homeTeam={homeTeamData} awayTeam={awayTeamData} topPlayers={topPlayersForAI} /></div>}</div>; })}</div></CardContent></Card></div></TabsContent>
+        <TabsContent value="schedule">
+          <VolleyballSchedule
+            upcomingGames={upcomingVolleyballGames}
+            completedGames={completedVolleyballGames}
+            allPlayerStats={allPlayerStats}
+            allPlayers={allPlayers}
+            allTeams={allTeams}
+            isAdmin={isAdmin}
+            getTeamName={getTeamName}
+          />
+        </TabsContent>
       </Tabs>
     </section>
   );
