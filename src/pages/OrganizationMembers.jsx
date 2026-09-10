@@ -345,14 +345,14 @@ export default function OrganizationMembers() {
 
   if (!user || !organization) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -381,7 +381,7 @@ export default function OrganizationMembers() {
                     <Users className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-4xl font-black text-gray-900 dark:text-white">Members Management</h1>
+                    <h1 className="font-heading text-3xl font-bold tracking-tight">Members Management</h1>
                     <p className="text-gray-600 dark:text-gray-400 mt-1 font-medium">
                       Manage organization members and their access
                     </p>

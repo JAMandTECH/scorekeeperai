@@ -171,7 +171,7 @@ export default function Divisions() {
   // DivisionCard component was removed, its logic is now inlined directly into the JSX below.
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -207,7 +207,7 @@ export default function Divisions() {
               {/* Header */}
               <div className="flex justify-between items-center">
                 <div>
-                  <h1 className="text-4xl font-black text-gray-900 dark:text-white">Divisions</h1>
+                  <h1 className="font-heading text-3xl font-bold tracking-tight">Divisions</h1>
                   <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Organize teams into divisions</p> {/* Updated description */}
                 </div>
                 <Button 

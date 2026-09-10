@@ -85,7 +85,7 @@ export default function CoachScoring() {
 
   if (!gameId) {
     return (
-      <div className="min-h-screen p-6 md:p-8 bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen p-6 md:p-8 bg-background text-foreground">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-2xl md:text-3xl font-bold mb-2">Coach Scoring</h1>
           <p className="text-slate-600">Missing gameId. Open this page with ?gameId=YOUR_GAME_ID</p>
@@ -95,7 +95,7 @@ export default function CoachScoring() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6 bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen p-4 md:p-6 bg-background text-foreground">
       <div className="max-w-5xl mx-auto flex flex-col gap-4">
         <div className="rounded-2xl border bg-white p-4 md:p-5 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
