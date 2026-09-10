@@ -246,17 +246,17 @@ export default function AdminApprovals() {
   const rejectedRequests = requests.filter(r => r.status === 'rejected');
 
   const RequestCard = ({ request }) => (
-    <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+    <Card className="hover:border-foreground/20 transition-colors">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-lg text-gray-900 dark:text-white">{request.user_name}</CardTitle>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{request.organization_name}</p>
+            <CardTitle className="text-lg font-heading font-bold">{request.user_name}</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">{request.organization_name}</p>
           </div>
-          <Badge className={
-            request.status === 'approved' ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300 border-green-200 dark:border-green-800' :
-            request.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 border-red-200 dark:border-red-800' :
-            'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800'
+          <Badge variant="outline" className={
+            request.status === 'approved' ? 'border-primary text-primary' :
+            request.status === 'rejected' ? 'border-destructive text-destructive' :
+            'border-foreground/60 text-foreground'
           }>
             {request.status === 'approved' && <CheckCircle className="w-3 h-3 mr-1" />}
             {request.status === 'rejected' && <XCircle className="w-3 h-3 mr-1" />}
@@ -266,19 +266,19 @@ export default function AdminApprovals() {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Mail className="w-4 h-4" />
           {request.user_email}
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Phone className="w-4 h-4" />
           {request.phone_number}
         </div>
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Reason:</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{request.reason}</p>
+        <div className="bg-muted p-3 border border-border">
+          <p className="text-sm font-heading font-bold text-foreground mb-1">Reason:</p>
+          <p className="text-sm text-muted-foreground">{request.reason}</p>
         </div>
-        <div className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="text-xs text-muted-foreground">
           Submitted: {new Date(request.created_date).toLocaleString()}
         </div>
 
@@ -286,7 +286,7 @@ export default function AdminApprovals() {
           <div className="flex gap-2 pt-2">
             <Button
               onClick={() => setSelectedRequest(request)}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold"
+              className="flex-1 font-medium"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
               Approve
@@ -294,7 +294,7 @@ export default function AdminApprovals() {
             <Button
               onClick={() => rejectMutation.mutate(request.id)}
               variant="outline"
-              className="flex-1 border-2 border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 font-bold"
+              className="flex-1 border-destructive/30 text-destructive hover:bg-destructive/10 font-medium"
             >
               <XCircle className="w-4 h-4 mr-2" />
               Reject
@@ -303,10 +303,10 @@ export default function AdminApprovals() {
         )}
 
         {request.status === 'approved' && (
-          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3 text-sm">
-            <p className="font-medium text-green-900 dark:text-green-300">Code: {request.access_code}</p>
-            <p className="text-green-700 dark:text-green-400 text-xs mt-1">
-              {request.code_used ? '✓ Code has been used' : '○ Code not yet used'}
+          <div className="bg-primary/10 border border-primary/30 p-3 text-sm">
+            <p className="font-heading font-bold text-primary">Code: {request.access_code}</p>
+            <p className="text-primary text-xs mt-1">
+              {request.code_used ? 'Code has been used' : 'Code not yet used'}
             </p>
           </div>
         )}
@@ -315,38 +315,38 @@ export default function AdminApprovals() {
   );
 
   const RequestTable = ({ requests: tableRequests, title }) => (
-    <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
-      <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-        <CardTitle className="text-xl font-black text-gray-900 dark:text-white">{title}</CardTitle>
+    <Card>
+      <CardHeader className="border-b border-border">
+        <CardTitle className="text-xl font-heading font-bold">{title}</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
-                <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">NAME</th>
-                <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ORGANIZATION</th>
-                <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">CONTACT</th>
-                <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">DATE</th>
-                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">STATUS</th>
-                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ACTIONS</th>
+              <tr className="bg-muted border-b border-border">
+                <th className="text-left py-4 px-4 text-muted-foreground font-heading font-bold text-sm">NAME</th>
+                <th className="text-left py-4 px-4 text-muted-foreground font-heading font-bold text-sm">ORGANIZATION</th>
+                <th className="text-left py-4 px-4 text-muted-foreground font-heading font-bold text-sm">CONTACT</th>
+                <th className="text-left py-4 px-4 text-muted-foreground font-heading font-bold text-sm">DATE</th>
+                <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm">STATUS</th>
+                <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {tableRequests.map((request) => (
-                <tr key={request.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <tr key={request.id} className="border-b border-border hover:bg-muted/50 transition-colors">
                   <td className="py-4 px-4">
-                    <p className="font-bold text-gray-900 dark:text-white">{request.user_name}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{request.user_email}</p>
+                    <p className="font-heading font-bold text-foreground">{request.user_name}</p>
+                    <p className="text-xs text-muted-foreground">{request.user_email}</p>
                   </td>
-                  <td className="py-4 px-4 text-gray-900 dark:text-white font-semibold">{request.organization_name}</td>
-                  <td className="py-4 px-4 text-gray-600 dark:text-gray-400 text-sm">{request.phone_number}</td>
-                  <td className="py-4 px-4 text-gray-600 dark:text-gray-400 text-sm">{new Date(request.created_date).toLocaleDateString()}</td>
+                  <td className="py-4 px-4 text-foreground font-medium">{request.organization_name}</td>
+                  <td className="py-4 px-4 text-muted-foreground text-sm">{request.phone_number}</td>
+                  <td className="py-4 px-4 text-muted-foreground text-sm">{new Date(request.created_date).toLocaleDateString()}</td>
                   <td className="py-4 px-4 text-center">
-                    <Badge className={
-                      request.status === 'approved' ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300 border-green-200 dark:border-green-800 font-bold' :
-                      request.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 border-red-200 dark:border-red-800 font-bold' :
-                      'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800 font-bold'
+                    <Badge variant="outline" className={
+                      request.status === 'approved' ? 'border-primary text-primary font-medium' :
+                      request.status === 'rejected' ? 'border-destructive text-destructive font-medium' :
+                      'border-foreground/60 text-foreground font-medium'
                     }>
                       {request.status.toUpperCase()}
                     </Badge>
@@ -358,7 +358,7 @@ export default function AdminApprovals() {
                           <Button
                             onClick={() => setSelectedRequest(request)}
                             size="sm"
-                            className="bg-green-600 hover:bg-green-700 text-white font-bold"
+                            className="font-medium"
                           >
                             Approve
                           </Button>
@@ -366,14 +366,14 @@ export default function AdminApprovals() {
                             onClick={() => rejectMutation.mutate(request.id)}
                             size="sm"
                             variant="outline"
-                            className="border-2 border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 font-bold"
+                            className="border-destructive/30 text-destructive hover:bg-destructive/10 font-medium"
                           >
                             Reject
                           </Button>
                         </>
                       )}
                       {request.status === 'approved' && (
-                        <span className="text-xs text-green-600 dark:text-green-400 font-bold">Code: {request.access_code}</span>
+                        <span className="text-xs text-primary font-heading font-bold">Code: {request.access_code}</span>
                       )}
                     </div>
                   </td>
@@ -412,22 +412,22 @@ export default function AdminApprovals() {
             <div className="max-w-7xl mx-auto space-y-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <div className="w-10 h-10 border border-border flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Approvals</h1>
-                    <p className="text-gray-600 dark:text-gray-400">Review and approve admin access requests</p>
+                    <h1 className="text-3xl font-heading font-bold">Admin Approvals</h1>
+                    <p className="text-muted-foreground">Review and approve admin access requests</p>
                   </div>
                 </div>
 
                 {/* View Toggle */}
-                <div className="flex bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-1 shadow-sm">
+                <div className="flex border border-border p-1">
                   <Button
                     variant={viewMode === 'card' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setViewMode('card')}
-                    className={`font-bold ${viewMode === 'card' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                    className="font-medium"
                   >
                     <LayoutGrid className="w-4 h-4 mr-2" />
                     Cards
@@ -436,7 +436,7 @@ export default function AdminApprovals() {
                     variant={viewMode === 'table' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setViewMode('table')}
-                    className={`font-bold ${viewMode === 'table' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                    className="font-medium"
                   >
                     <Table className="w-4 h-4 mr-2" />
                     Table
@@ -446,38 +446,38 @@ export default function AdminApprovals() {
 
               {/* Summary Cards */}
               <div className="grid md:grid-cols-3 gap-4">
-                <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/30 shadow-lg">
+                <Card>
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-yellow-700 dark:text-yellow-400 font-medium">Pending</p>
-                        <p className="text-3xl font-bold text-yellow-900 dark:text-yellow-300">{pendingRequests.length}</p>
+                        <p className="text-sm text-muted-foreground font-medium">Pending</p>
+                        <p className="text-3xl font-heading font-bold tabular-nums">{pendingRequests.length}</p>
                       </div>
-                      <Clock className="w-8 h-8 text-yellow-600 dark:text-yellow-500" />
+                      <Clock className="w-8 h-8 text-muted-foreground" />
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 shadow-lg">
+                <Card>
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-green-700 dark:text-green-400 font-medium">Approved</p>
-                        <p className="text-3xl font-bold text-green-900 dark:text-green-300">{approvedRequests.length}</p>
+                        <p className="text-sm text-muted-foreground font-medium">Approved</p>
+                        <p className="text-3xl font-heading font-bold tabular-nums">{approvedRequests.length}</p>
                       </div>
-                      <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-500" />
+                      <CheckCircle className="w-8 h-8 text-primary" />
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 shadow-lg">
+                <Card>
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-red-700 dark:text-red-400 font-medium">Rejected</p>
-                        <p className="text-3xl font-bold text-red-900 dark:text-red-300">{rejectedRequests.length}</p>
+                        <p className="text-sm text-muted-foreground font-medium">Rejected</p>
+                        <p className="text-3xl font-heading font-bold tabular-nums">{rejectedRequests.length}</p>
                       </div>
-                      <XCircle className="w-8 h-8 text-red-600 dark:text-red-500" />
+                      <XCircle className="w-8 h-8 text-destructive" />
                     </div>
                   </CardContent>
                 </Card>
@@ -487,7 +487,7 @@ export default function AdminApprovals() {
                 <>
                   {pendingRequests.length > 0 && (
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Pending Requests</h2>
+                      <h2 className="text-xl font-heading font-bold mb-4">Pending Requests</h2>
                       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {pendingRequests.map(request => (
                           <RequestCard key={request.id} request={request} />
@@ -498,7 +498,7 @@ export default function AdminApprovals() {
 
                   {approvedRequests.length > 0 && (
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Approved Requests</h2>
+                      <h2 className="text-xl font-heading font-bold mb-4">Approved Requests</h2>
                       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {approvedRequests.map(request => (
                           <RequestCard key={request.id} request={request} />
@@ -509,7 +509,7 @@ export default function AdminApprovals() {
 
                   {rejectedRequests.length > 0 && (
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Rejected Requests</h2>
+                      <h2 className="text-xl font-heading font-bold mb-4">Rejected Requests</h2>
                       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {rejectedRequests.map(request => (
                           <RequestCard key={request.id} request={request} />
@@ -534,39 +534,39 @@ export default function AdminApprovals() {
 
               {requests.length === 0 && (
                 <div className="text-center py-16">
-                  <Shield className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400 text-lg">No admin requests yet</p>
+                  <Shield className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground text-lg">No admin requests yet</p>
                 </div>
               )}
 
               {/* Approval Confirmation Dialog */}
               <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
-                <DialogContent className="max-w-md bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle className="text-gray-900 dark:text-white">Approve Admin Access</DialogTitle>
-                    <DialogDescription className="text-gray-600 dark:text-gray-400">
+                    <DialogTitle>Approve Admin Access</DialogTitle>
+                    <DialogDescription className="text-muted-foreground">
                       Review the details and confirm approval. The organization will be created automatically.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
-                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 space-y-2 border border-gray-200 dark:border-gray-700">
+                    <div className="bg-muted p-4 space-y-2 border border-border">
                       <div className="flex items-start gap-2">
-                        <Building2 className="w-4 h-4 text-gray-600 dark:text-gray-400 mt-0.5" />
+                        <Building2 className="w-4 h-4 text-muted-foreground mt-0.5" />
                         <div>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">Organization to be created:</p>
-                          <p className="text-sm font-bold text-gray-900 dark:text-white">{selectedRequest?.organization_name}</p>
+                          <p className="text-xs text-muted-foreground">Organization to be created:</p>
+                          <p className="text-sm font-heading font-bold text-foreground">{selectedRequest?.organization_name}</p>
                         </div>
                       </div>
-                      <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-                        <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Admin:</strong> {selectedRequest?.user_name}</p>
-                        <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Email:</strong> {selectedRequest?.user_email}</p>
-                        <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Phone:</strong> {selectedRequest?.phone_number}</p>
+                      <div className="border-t border-border pt-2 mt-2">
+                        <p className="text-sm text-foreground"><strong>Admin:</strong> {selectedRequest?.user_name}</p>
+                        <p className="text-sm text-foreground"><strong>Email:</strong> {selectedRequest?.user_email}</p>
+                        <p className="text-sm text-foreground"><strong>Phone:</strong> {selectedRequest?.phone_number}</p>
                       </div>
                     </div>
 
-                    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm text-gray-700 dark:text-gray-300">
+                    <div className="bg-primary/10 border border-primary/30 p-3 text-sm text-foreground">
                       <strong>What will happen:</strong>
-                      <ul className="mt-2 space-y-1 list-disc list-inside text-xs">
+                      <ul className="mt-2 space-y-1 list-disc list-inside text-xs text-muted-foreground">
                         <li>A new organization will be created automatically</li>
                         <li>A unique access code will be generated</li>
                         <li>The requester's user role will be updated to 'admin' for this organization</li>
@@ -578,7 +578,7 @@ export default function AdminApprovals() {
                     <div className="flex gap-3">
                       <Button
                         onClick={() => approveMutation.mutate(selectedRequest.id)}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold"
+                        className="flex-1 font-medium"
                         disabled={approveMutation.isLoading}
                       >
                         {approveMutation.isLoading ? 'Processing...' : 'Approve & Create Organization'}
@@ -586,7 +586,7 @@ export default function AdminApprovals() {
                       <Button
                         onClick={() => setSelectedRequest(null)}
                         variant="outline"
-                        className="flex-1 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
+                        className="flex-1 font-medium"
                         disabled={approveMutation.isLoading}
                       >
                         Cancel
