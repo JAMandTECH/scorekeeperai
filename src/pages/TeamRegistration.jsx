@@ -322,36 +322,36 @@ export default function TeamRegistration() {
             <div className="max-w-4xl mx-auto space-y-8">
               <div>
                 <h1 className="font-heading text-3xl font-bold tracking-tight">Team Registration</h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">
-                  Register your team for {organization?.name || 'the organization'}
-                </p>
-              </div>
+                <p className="text-muted-foreground mt-2 font-medium">
+                   Register your team for {organization?.name || 'the organization'}
+                 </p>
+                </div>
 
-              {submitSuccess && (
-                <Alert className="bg-green-50 dark:bg-green-950/30 border-2 border-green-300 dark:border-green-800">
-                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  <AlertDescription className="text-green-800 dark:text-green-300 font-bold">
-                    ✅ Team submitted successfully! Your team is pending admin approval.
+                {submitSuccess && (
+                <Alert className="bg-primary/10 border-primary/30">
+                  <CheckCircle className="w-5 h-5 text-primary" />
+                  <AlertDescription className="text-foreground font-medium">
+                    Team submitted successfully! Your team is pending admin approval.
                   </AlertDescription>
                 </Alert>
-              )}
+                )}
 
-              {draftSaved && (
-                <Alert className="bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-300 dark:border-blue-800">
-                  <Save className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  <AlertDescription className="text-blue-800 dark:text-blue-300 font-bold">
-                    ✅ Draft saved! Your progress has been saved locally.
+                {draftSaved && (
+                <Alert className="bg-muted border-border">
+                  <Save className="w-5 h-5 text-foreground" />
+                  <AlertDescription className="text-foreground font-medium">
+                    Draft saved! Your progress has been saved locally.
                   </AlertDescription>
                 </Alert>
-              )}
+                )}
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Team Details */}
-                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
-                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
-                    <CardTitle className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-                        <Users className="w-6 h-6 text-white" />
+                <Card>
+                  <CardHeader className="border-b border-border">
+                    <CardTitle className="text-2xl font-heading font-bold flex items-center gap-3">
+                      <div className="w-10 h-10 border border-border flex items-center justify-center">
+                        <Users className="w-6 h-6 text-foreground" />
                       </div>
                       Team Details
                     </CardTitle>
@@ -359,22 +359,22 @@ export default function TeamRegistration() {
                   <CardContent className="p-6 space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label className="font-bold text-gray-700 dark:text-gray-300">Team Name *</Label>
+                        <Label className="font-heading font-bold text-foreground">Team Name *</Label>
                         <Input
                           value={teamData.name}
                           onChange={(e) => setTeamData({ ...teamData, name: e.target.value })}
                           required
-                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 font-medium"
+                          className="font-medium"
                           placeholder="Enter team name"
                         />
                       </div>
                       <div>
-                        <Label className="font-bold text-gray-700 dark:text-gray-300">Sport *</Label>
+                        <Label className="font-heading font-bold text-foreground">Sport *</Label>
                         <select
                           value={teamData.sport}
                           onChange={(e) => setTeamData({ ...teamData, sport: e.target.value, division: "" })}
                           required
-                          className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                          className="w-full bg-background border border-border text-foreground px-3 py-2 font-medium"
                         >
                           <option value="basketball">Basketball</option>
                           <option value="volleyball">Volleyball</option>
@@ -383,12 +383,12 @@ export default function TeamRegistration() {
                     </div>
 
                     <div>
-                      <Label className="font-bold text-gray-700 dark:text-gray-300">Division *</Label>
+                      <Label className="font-heading font-bold text-foreground">Division *</Label>
                       <select
                         value={teamData.division}
                         onChange={(e) => setTeamData({ ...teamData, division: e.target.value })}
                         required
-                        className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                        className="w-full bg-background border border-border text-foreground px-3 py-2 font-medium"
                       >
                         <option value="">Select division</option>
                         {sportDivisions.map(div => (
@@ -396,7 +396,7 @@ export default function TeamRegistration() {
                         ))}
                       </select>
                       {sportDivisions.length === 0 && (
-                        <p className="text-sm text-amber-600 dark:text-amber-400 mt-1 font-medium">
+                        <p className="text-sm text-muted-foreground mt-1 font-medium">
                           No divisions available for {teamData.sport}. Please contact an administrator.
                         </p>
                       )}
@@ -404,40 +404,40 @@ export default function TeamRegistration() {
 
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label className="font-bold text-gray-700 dark:text-gray-300">Coach/Coordinator</Label>
+                        <Label className="font-heading font-bold text-foreground">Coach/Coordinator</Label>
                         <Input
                           value={teamData.coach_name}
                           onChange={(e) => setTeamData({ ...teamData, coach_name: e.target.value })}
-                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 font-medium"
+                          className="font-medium"
                           placeholder="Coach full name"
                         />
                       </div>
                       <div>
-                        <Label className="font-bold text-gray-700 dark:text-gray-300">Coach/Coordinator Contact</Label>
+                        <Label className="font-heading font-bold text-foreground">Coach/Coordinator Contact</Label>
                         <Input
                           value={teamData.coach_contact}
                           onChange={(e) => setTeamData({ ...teamData, coach_contact: e.target.value })}
-                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 font-medium"
+                          className="font-medium"
                           placeholder="Phone or email"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <Label className="font-bold text-gray-700 dark:text-gray-300">Team Logo</Label>
+                      <Label className="font-heading font-bold text-foreground">Team Logo</Label>
                       <div className="flex gap-4 items-center">
                         <Input
                           type="file"
                           accept="image/*"
                           onChange={handleLogoUpload}
                           disabled={uploadingLogo}
-                          className="flex-1 bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600"
+                          className="flex-1"
                         />
                         {uploadingLogo && (
                           <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent"></div>
                         )}
                         {teamData.logo_url && (
-                          <img src={teamData.logo_url} alt="Team logo" className="w-16 h-16 object-cover rounded-lg border-2 border-blue-400 shadow-md" />
+                          <img src={teamData.logo_url} alt="Team logo" className="w-16 h-16 object-cover border border-border" />
                         )}
                       </div>
                     </div>
@@ -461,15 +461,15 @@ export default function TeamRegistration() {
                 />
 
                 {/* Player Lineup */}
-                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
-                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-orange-50 to-white dark:from-gray-800 dark:to-gray-900">
+                <Card>
+                  <CardHeader className="border-b border-border">
                     <div className="flex justify-between items-center">
-                      <CardTitle className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-orange-600 to-red-600 rounded-xl flex items-center justify-center">
-                          <Users className="w-6 h-6 text-white" />
+                      <CardTitle className="text-2xl font-heading font-bold flex items-center gap-3">
+                        <div className="w-10 h-10 border border-border flex items-center justify-center">
+                          <Users className="w-6 h-6 text-foreground" />
                         </div>
                         Player Lineup
-                        <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold text-sm">
+                        <Badge variant="outline" className="font-medium text-sm">
                           {players.length}/25
                         </Badge>
                       </CardTitle>
@@ -488,22 +488,22 @@ export default function TeamRegistration() {
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
-                            <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">#</th>
-                            <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Photo</th>
-                            <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Jersey *</th>
-                            <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">First Name *</th>
-                            <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Last Name *</th>
-                            <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Position</th>
-                            <th className="text-left py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Contact</th>
-                            <th className="text-center py-3 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Action</th>
+                          <tr className="bg-muted border-b border-border">
+                            <th className="text-left py-3 px-3 text-xs font-heading font-bold text-muted-foreground uppercase">#</th>
+                            <th className="text-left py-3 px-3 text-xs font-heading font-bold text-muted-foreground uppercase">Photo</th>
+                            <th className="text-left py-3 px-3 text-xs font-heading font-bold text-muted-foreground uppercase">Jersey *</th>
+                            <th className="text-left py-3 px-3 text-xs font-heading font-bold text-muted-foreground uppercase">First Name *</th>
+                            <th className="text-left py-3 px-3 text-xs font-heading font-bold text-muted-foreground uppercase">Last Name *</th>
+                            <th className="text-left py-3 px-3 text-xs font-heading font-bold text-muted-foreground uppercase">Position</th>
+                            <th className="text-left py-3 px-3 text-xs font-heading font-bold text-muted-foreground uppercase">Contact</th>
+                            <th className="text-center py-3 px-3 text-xs font-heading font-bold text-muted-foreground uppercase">Action</th>
                           </tr>
                         </thead>
                         <tbody>
                           {players.map((player, index) => (
-                            <tr key={index} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/50">
+                            <tr key={index} className="border-b border-border hover:bg-muted/50">
                               <td className="py-2 px-3">
-                                <span className="text-sm font-bold text-gray-500 dark:text-gray-400">{index + 1}</span>
+                                <span className="text-sm font-heading font-bold text-muted-foreground">{index + 1}</span>
                               </td>
                               <td className="py-2 px-3">
                                 <div className="flex items-center gap-2">
@@ -512,7 +512,7 @@ export default function TeamRegistration() {
                                       <img 
                                         src={player.photo_url} 
                                         alt="Player" 
-                                        className="w-10 h-10 rounded-full object-cover border-2 border-blue-400"
+                                        className="w-10 h-10 rounded-full object-cover border border-border"
                                       />
                                       <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
                                         <Upload className="w-4 h-4 text-white" />
@@ -525,11 +525,11 @@ export default function TeamRegistration() {
                                       </label>
                                     </div>
                                   ) : (
-                                    <label className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                                    <label className="w-10 h-10 rounded-full bg-muted border border-dashed border-border flex items-center justify-center cursor-pointer hover:bg-muted/60 transition-colors">
                                       {uploadingPlayerPhoto === index ? (
-                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
                                       ) : (
-                                        <Upload className="w-4 h-4 text-gray-400" />
+                                        <Upload className="w-4 h-4 text-muted-foreground" />
                                       )}
                                       <input
                                         type="file"
@@ -545,7 +545,7 @@ export default function TeamRegistration() {
                                 <Input
                                   value={player.jersey_number}
                                   onChange={(e) => updatePlayer(index, 'jersey_number', e.target.value)}
-                                  className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 font-medium h-9 w-16"
+                                  className="font-medium h-9 w-16"
                                   placeholder="#"
                                 />
                               </td>
@@ -553,7 +553,7 @@ export default function TeamRegistration() {
                                 <Input
                                   value={player.first_name}
                                   onChange={(e) => updatePlayer(index, 'first_name', e.target.value)}
-                                  className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 font-medium h-9"
+                                  className="font-medium h-9"
                                   placeholder="First name"
                                 />
                               </td>
@@ -561,7 +561,7 @@ export default function TeamRegistration() {
                                 <Input
                                   value={player.last_name}
                                   onChange={(e) => updatePlayer(index, 'last_name', e.target.value)}
-                                  className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 font-medium h-9"
+                                  className="font-medium h-9"
                                   placeholder="Last name"
                                 />
                               </td>
@@ -569,7 +569,7 @@ export default function TeamRegistration() {
                                 <Input
                                   value={player.position}
                                   onChange={(e) => updatePlayer(index, 'position', e.target.value)}
-                                  className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 font-medium h-9"
+                                  className="font-medium h-9"
                                   placeholder="Position"
                                 />
                               </td>
@@ -577,7 +577,7 @@ export default function TeamRegistration() {
                                 <Input
                                   value={player.contact_number}
                                   onChange={(e) => updatePlayer(index, 'contact_number', e.target.value)}
-                                  className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 font-medium h-9"
+                                  className="font-medium h-9"
                                   placeholder="Phone"
                                 />
                               </td>
@@ -588,7 +588,7 @@ export default function TeamRegistration() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => removePlayer(index)}
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 h-8 w-8 p-0"
+                                    className="text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
@@ -608,7 +608,7 @@ export default function TeamRegistration() {
                     type="button"
                     variant="outline"
                     onClick={handleClearDraft}
-                    className="border-2 border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-bold"
+                    className="border-destructive/30 text-destructive hover:bg-destructive/10 font-medium"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Clear Form
@@ -618,14 +618,15 @@ export default function TeamRegistration() {
                       type="button"
                       variant="outline"
                       onClick={() => navigate(createPageUrl("Home"))}
-                      className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
+                      className="font-medium"
                     >
                       Cancel
                     </Button>
                     <Button
                       type="button"
                       onClick={handleSaveDraft}
-                      className="font-medium shadow-lg"
+                      variant="secondary"
+                      className="font-medium"
                     >
                       <Save className="w-4 h-4 mr-2" />
                       Save Draft
@@ -633,11 +634,11 @@ export default function TeamRegistration() {
                     <Button
                       type="submit"
                       disabled={submitTeamMutation.isLoading}
-                      className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-xl"
+                      className="font-medium"
                     >
                       {submitTeamMutation.isLoading ? (
                         <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent mr-2"></div>
                           Submitting...
                         </>
                       ) : (

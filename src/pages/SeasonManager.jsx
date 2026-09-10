@@ -173,9 +173,9 @@ export default function SeasonManager() {
                   <CalendarPlus className="w-8 h-8 text-primary" />
                   Season Manager
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">
-                  Open a new season for fresh data, or archive the current season to preserve its results.
-                </p>
+                <p className="text-muted-foreground mt-2 font-medium">
+                   Open a new season for fresh data, or archive the current season to preserve its results.
+                 </p>
               </div>
 
               {view === "main" && (
@@ -187,11 +187,11 @@ export default function SeasonManager() {
                       <div className="rounded-lg border bg-muted/40 p-4 space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Active Season</span>
-                          <span className="flex items-center gap-1.5 text-xs font-bold text-green-600">
-                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> OPEN
+                          <span className="flex items-center gap-1.5 text-xs font-heading font-bold text-primary">
+                            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" /> OPEN
                           </span>
                         </div>
-                        <p className="text-lg font-black">{activeSeason.name}</p>
+                        <p className="text-lg font-heading font-bold">{activeSeason.name}</p>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground">
                           <span className="capitalize">{activeSeason.sport}</span>
                           {activeSeason.start_date && <span>· {new Date(activeSeason.start_date).toLocaleDateString()}</span>}
@@ -276,7 +276,7 @@ export default function SeasonManager() {
                     </Alert>
                     <div className="rounded-lg border p-4 space-y-2 bg-muted/40">
                       <p className="text-sm text-muted-foreground">You are about to archive:</p>
-                      <p className="text-lg font-black flex items-center gap-2"><Trophy className="w-5 h-5 text-amber-500" />{activeSeason.name}</p>
+                      <p className="text-lg font-heading font-bold flex items-center gap-2"><Trophy className="w-5 h-5 text-primary" />{activeSeason.name}</p>
                       <p className="text-xs text-muted-foreground">
                         The season's final standings, champion, and top leaders will be saved to the Past Seasons page. This action cannot be undone from the live set — full data recovery is only possible via the backup system.
                       </p>

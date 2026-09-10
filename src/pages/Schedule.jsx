@@ -48,22 +48,22 @@ export default function Schedule() {
   const getStatusColor = (status) => {
     switch (status) {
       case "scheduled":
-        return "bg-blue-500";
+        return "bg-muted-foreground";
       case "in_progress":
-        return "bg-red-500";
+        return "bg-primary";
       case "completed":
-        return "bg-green-500";
+        return "bg-primary/40";
       default:
-        return "bg-slate-500";
+        return "bg-muted-foreground";
     }
   };
 
   return (
-    <div className="p-8 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <div className="p-8 bg-background min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Schedule</h1>
-          <p className="text-slate-600 mt-1">View all scheduled games</p>
+          <h1 className="text-3xl font-heading font-bold text-foreground">Schedule</h1>
+          <p className="text-muted-foreground mt-1">View all scheduled games</p>
         </div>
 
         {/* Calendar Grid */}
@@ -72,7 +72,7 @@ export default function Schedule() {
           <Card className="lg:col-span-2">
             <CardContent className="p-6">
               <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-2xl font-bold">
+                <h2 className="text-2xl font-heading font-bold">
                   {format(selectedDate, "MMMM yyyy")}
                 </h2>
                 <div className="flex gap-2">
@@ -118,7 +118,7 @@ export default function Schedule() {
                 {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                   <div
                     key={day}
-                    className="text-center text-sm font-semibold text-slate-600 py-2"
+                    className="text-center text-sm font-heading font-bold text-muted-foreground py-2"
                   >
                     {day}
                   </div>
@@ -139,13 +139,13 @@ export default function Schedule() {
                     <div
                       key={day.toString()}
                       onClick={() => setSelectedDate(day)}
-                      className={`aspect-square border rounded-lg p-2 cursor-pointer transition-all ${
+                      className={`aspect-square border p-2 cursor-pointer transition-colors ${
                         isToday
-                          ? "border-orange-500 bg-orange-50"
-                          : "border-slate-200 hover:border-orange-300"
-                      } ${isSelected ? "ring-2 ring-orange-500" : ""}`}
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:border-foreground/20"
+                      } ${isSelected ? "ring-1 ring-primary" : ""}`}
                     >
-                      <div className="text-sm font-semibold text-slate-900">
+                      <div className="text-sm font-heading font-bold text-foreground">
                         {format(day, "d")}
                       </div>
                       {dayGames.length > 0 && (
@@ -153,13 +153,13 @@ export default function Schedule() {
                           {dayGames.slice(0, 2).map((game) => (
                             <div
                               key={game.id}
-                              className={`h-1.5 rounded-full ${getStatusColor(
+                              className={`h-1.5 ${getStatusColor(
                                 game.status
                               )}`}
                             />
                           ))}
                           {dayGames.length > 2 && (
-                            <div className="text-xs text-slate-600">
+                            <div className="text-xs text-muted-foreground">
                               +{dayGames.length - 2}
                             </div>
                           )}
@@ -175,7 +175,7 @@ export default function Schedule() {
           {/* Games for selected date */}
           <Card>
             <CardContent className="p-6">
-              <h3 className="text-lg font-bold mb-4">
+              <h3 className="text-lg font-heading font-bold mb-4">
                 {format(selectedDate, "MMMM d, yyyy")}
               </h3>
 
@@ -183,7 +183,7 @@ export default function Schedule() {
                 {getGamesForDate(selectedDate).map((game) => (
                   <div
                     key={game.id}
-                    className="border border-slate-200 rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer"
+                    className="border border-border p-3 hover:border-foreground/20 transition-colors cursor-pointer"
                     onClick={() =>
                       navigate(
                         game.status === "in_progress"
@@ -194,24 +194,24 @@ export default function Schedule() {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <Badge
-                        className={getStatusColor(game.status)}
+                        className={game.status === "in_progress" ? "" : "border-border"}
                         variant={game.status === "in_progress" ? "default" : "outline"}
                       >
                         {game.status === "in_progress" ? "LIVE" : game.status}
                       </Badge>
-                      <Badge variant="outline" className="capitalize">
+                      <Badge variant="outline" className="capitalize border-border text-muted-foreground">
                         {game.sport}
                       </Badge>
                     </div>
-                    <p className="font-semibold text-sm mb-1">
+                    <p className="font-heading font-bold text-sm mb-1 text-foreground">
                       {game.home_team_name} vs {game.away_team_name}
                     </p>
-                    <div className="flex items-center gap-2 text-xs text-slate-600">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="w-3 h-3" />
                       {format(new Date(game.game_date || game.scheduled_date), "h:mm a")}
                     </div>
                     {game.status === 'completed' && (
-                      <div className="mt-1 text-sm font-bold text-slate-700">
+                      <div className="mt-1 text-sm font-heading font-bold text-foreground tabular-nums">
                         {(() => {
                           const isVB = game.sport === 'volleyball';
                           const hasSets = Array.isArray(game.quarter_scores) && game.quarter_scores.length > 0;
@@ -222,7 +222,7 @@ export default function Schedule() {
                       </div>
                     )}
                     {game.venue && (
-                      <div className="flex items-center gap-2 text-xs text-slate-600 mt-1">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                         <MapPin className="w-3 h-3" />
                         {game.venue}
                       </div>
@@ -231,8 +231,8 @@ export default function Schedule() {
                 ))}
 
                 {getGamesForDate(selectedDate).length === 0 && (
-                  <div className="text-center py-8 text-slate-500">
-                    <Calendar className="w-12 h-12 mx-auto mb-2 text-slate-300" />
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Calendar className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
                     <p className="text-sm">No games scheduled for this date</p>
                   </div>
                 )}
@@ -244,7 +244,7 @@ export default function Schedule() {
         {/* Upcoming Games List */}
         <Card className="mt-6">
           <CardContent className="p-6">
-            <h3 className="text-lg font-bold mb-4">All Upcoming Games</h3>
+            <h3 className="text-lg font-heading font-bold mb-4">All Upcoming Games</h3>
             <div className="space-y-3">
               {games
                 .filter((g) => g.status === "scheduled")
@@ -252,7 +252,7 @@ export default function Schedule() {
                 .map((game) => (
                   <div
                     key={game.id}
-                    className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                    className="border border-border p-4 hover:border-foreground/20 transition-colors cursor-pointer"
                     onClick={() =>
                       navigate(createPageUrl("Games") + `?gameId=${game.id}`)
                     }
@@ -260,18 +260,18 @@ export default function Schedule() {
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <Badge variant="outline" className="capitalize">
+                          <Badge variant="outline" className="capitalize border-border text-muted-foreground">
                             {game.sport}
                           </Badge>
-                          <span className="text-sm text-slate-600">
+                          <span className="text-sm text-muted-foreground">
                             {format(new Date(game.scheduled_date), "MMM d, yyyy h:mm a")}
                           </span>
                         </div>
-                        <p className="font-semibold text-lg">
+                        <p className="font-heading font-bold text-lg text-foreground">
                           {game.home_team_name} vs {game.away_team_name}
                         </p>
                         {game.venue && (
-                          <div className="flex items-center gap-2 text-sm text-slate-600 mt-1">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                             <MapPin className="w-4 h-4" />
                             {game.venue}
                           </div>
@@ -281,7 +281,7 @@ export default function Schedule() {
                   </div>
                 ))}
               {games.filter((g) => g.status === "scheduled").length === 0 && (
-                <div className="text-center py-12 text-slate-500">
+                <div className="text-center py-12 text-muted-foreground">
                   No upcoming games scheduled
                 </div>
               )}
