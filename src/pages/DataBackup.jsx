@@ -439,7 +439,7 @@ export default function DataBackup() {
                 <h1 className="font-heading text-3xl font-bold tracking-tight">
                   {isSuperAdmin ? 'Automatic Backup System' : 'Data Backup & Restore'}
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">
+                <p className="text-muted-foreground mt-2 font-medium">
                   {isSuperAdmin 
                     ? 'Manage automated backups for Basic and Premium organizations' 
                     : 'Manually export and import your organization\'s data'}
@@ -448,21 +448,16 @@ export default function DataBackup() {
 
               {statusMessage && (
                 <Alert className={`${
-                  statusMessage.type === 'success' ? 'bg-green-50 dark:bg-green-950/30 border-green-500' :
-                  statusMessage.type === 'error' ? 'bg-red-50 dark:bg-red-950/30 border-red-500' :
-                  statusMessage.type === 'warning' ? 'bg-yellow-50 dark:bg-yellow-950/30 border-yellow-500' :
-                  'bg-blue-50 dark:bg-blue-950/30 border-blue-500'
-                } border-2`}>
-                  {statusMessage.type === 'success' && <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />}
-                  {statusMessage.type === 'error' && <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />}
-                  {statusMessage.type === 'warning' && <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />}
-                  {statusMessage.type === 'loading' && <Database className="h-5 w-5 text-blue-600 dark:text-blue-400 animate-pulse" />}
-                  <AlertDescription className={`${
-                    statusMessage.type === 'success' ? 'text-green-800 dark:text-green-300' :
-                    statusMessage.type === 'error' ? 'text-red-800 dark:text-red-300' :
-                    statusMessage.type === 'warning' ? 'text-yellow-800 dark:text-yellow-300' :
-                    'text-blue-800 dark:text-blue-300'
-                  } font-bold`}>
+                  statusMessage.type === 'success' ? 'bg-primary/10 border-primary/30' :
+                  statusMessage.type === 'error' ? 'bg-destructive/10 border-destructive/30' :
+                  statusMessage.type === 'warning' ? 'bg-muted border-border' :
+                  'bg-muted border-border'
+                } border`}>
+                  {statusMessage.type === 'success' && <CheckCircle className="h-5 w-5 text-primary" />}
+                  {statusMessage.type === 'error' && <AlertTriangle className="h-5 w-5 text-destructive" />}
+                  {statusMessage.type === 'warning' && <AlertTriangle className="h-5 w-5 text-foreground" />}
+                  {statusMessage.type === 'loading' && <Database className="h-5 w-5 text-primary animate-pulse" />}
+                  <AlertDescription className="text-foreground font-medium">
                     {statusMessage.text}
                   </AlertDescription>
                 </Alert>
@@ -471,36 +466,28 @@ export default function DataBackup() {
               {/* SUPER ADMIN VIEW */}
               {isSuperAdmin ? (
                 <Tabs defaultValue="backups" className="space-y-6">
-                  <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl grid grid-cols-4">
-                    <TabsTrigger value="backups" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white font-bold rounded-lg px-4">
-                      History
-                    </TabsTrigger>
-                    <TabsTrigger value="create" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white font-bold rounded-lg px-4">
-                      Create
-                    </TabsTrigger>
-                    <TabsTrigger value="restore" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white font-bold rounded-lg px-4">
-                      Restore
-                    </TabsTrigger>
-                    <TabsTrigger value="schedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white font-bold rounded-lg px-4">
-                      Schedule
-                    </TabsTrigger>
+                  <TabsList className="grid grid-cols-4">
+                    <TabsTrigger value="backups">History</TabsTrigger>
+                    <TabsTrigger value="create">Create</TabsTrigger>
+                    <TabsTrigger value="restore">Restore</TabsTrigger>
+                    <TabsTrigger value="schedule">Schedule</TabsTrigger>
                   </TabsList>
 
                   {/* Backup History Tab */}
                   <TabsContent value="backups">
-                    <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+                    <Card className="">
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                              <Archive className="w-6 h-6 text-white" />
+                            <div className="w-12 h-12 border border-border flex items-center justify-center">
+                              <Archive className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                              <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">Backup History</CardTitle>
+                              <CardTitle className="text-2xl font-heading font-bold">Backup History</CardTitle>
                               <CardDescription className="font-medium">All automated and manual backups</CardDescription>
                             </div>
                           </div>
-                          <Badge className="bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 text-lg px-4 py-2">
+                          <Badge variant="outline" className="border-border text-muted-foreground text-lg px-4 py-2 font-medium">
                             {backupHistory.length} Total Backups
                           </Badge>
                         </div>
@@ -508,49 +495,49 @@ export default function DataBackup() {
                       <CardContent>
                         {backupHistory.length === 0 ? (
                           <div className="text-center py-12">
-                            <Database className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                            <p className="text-xl font-bold text-gray-500 dark:text-gray-400">No backups created yet</p>
-                            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">Create your first backup in the "Create Backup" tab</p>
+                            <Database className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                            <p className="text-xl font-heading font-bold text-muted-foreground">No backups created yet</p>
+                            <p className="text-sm text-muted-foreground mt-2">Create your first backup in the "Create Backup" tab</p>
                           </div>
                         ) : (
                           <div className="space-y-3">
                             {backupHistory.map(backup => (
-                              <div key={backup.id} className="p-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:shadow-lg transition-all">
+                              <div key={backup.id} className="p-4 bg-muted border border-border hover:border-foreground/20 transition-colors">
                                 <div className="flex items-start justify-between gap-4">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-2">
-                                      <h3 className="font-black text-gray-900 dark:text-white text-lg">{backup.organization_name}</h3>
-                                      <Badge className={`${
+                                      <h3 className="font-heading font-bold text-foreground text-lg">{backup.organization_name}</h3>
+                                      <Badge variant="outline" className={`${
                                         backup.subscription_tier === 'premium' 
-                                          ? 'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-950 dark:text-purple-300' 
-                                          : 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-950 dark:text-blue-300'
-                                      } font-bold`}>
+                                          ? 'border-primary text-primary' 
+                                          : 'border-border text-muted-foreground'
+                                      } font-medium`}>
                                         {backup.subscription_tier.toUpperCase()}
                                       </Badge>
-                                      <Badge className={`${
-                                        backup.status === 'success' ? 'bg-green-100 text-green-700 border-green-300' :
-                                        backup.status === 'failed' ? 'bg-red-100 text-red-700 border-red-300' :
-                                        'bg-yellow-100 text-yellow-700 border-yellow-300'
-                                      } font-bold`}>
+                                      <Badge variant="outline" className={`${
+                                        backup.status === 'success' ? 'border-primary text-primary' :
+                                        backup.status === 'failed' ? 'border-destructive text-destructive' :
+                                        'border-border text-muted-foreground'
+                                      } font-medium`}>
                                         {backup.status === 'success' ? '✓ Success' : backup.status === 'failed' ? '✗ Failed' : '⌛ In Progress'}
                                       </Badge>
                                     </div>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-3">
                                       <div>
-                                        <span className="text-gray-500 dark:text-gray-400 font-semibold">Date:</span>
-                                        <p className="font-bold text-gray-900 dark:text-white">{new Date(backup.backup_date).toLocaleDateString()}</p>
+                                        <span className="text-muted-foreground font-medium">Date:</span>
+                                        <p className="font-heading font-bold text-foreground">{new Date(backup.backup_date).toLocaleDateString()}</p>
                                       </div>
                                       <div>
-                                        <span className="text-gray-500 dark:text-gray-400 font-semibold">By:</span>
-                                        <p className="font-bold text-gray-900 dark:text-white">{backup.backed_up_by}</p>
+                                        <span className="text-muted-foreground font-medium">By:</span>
+                                        <p className="font-heading font-bold text-foreground">{backup.backed_up_by}</p>
                                       </div>
                                       <div>
-                                        <span className="text-gray-500 dark:text-gray-400 font-semibold">Size:</span>
-                                        <p className="font-bold text-gray-900 dark:text-white">{formatFileSize(backup.file_size_bytes)}</p>
+                                        <span className="text-muted-foreground font-medium">Size:</span>
+                                        <p className="font-heading font-bold text-foreground">{formatFileSize(backup.file_size_bytes)}</p>
                                       </div>
                                       <div>
-                                        <span className="text-gray-500 dark:text-gray-400 font-semibold">Records:</span>
-                                        <p className="font-bold text-gray-900 dark:text-white">
+                                        <span className="text-muted-foreground font-medium">Records:</span>
+                                        <p className="font-heading font-bold text-foreground">
                                           {(backup.data_summary?.teams_count || 0) + (backup.data_summary?.players_count || 0) + (backup.data_summary?.games_count || 0)}
                                         </p>
                                       </div>
@@ -591,30 +578,30 @@ export default function DataBackup() {
 
                   {/* Create Backup Tab */}
                   <TabsContent value="create">
-                    <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+                    <Card className="">
                       <CardHeader>
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <Database className="w-6 h-6 text-white" />
+                          <div className="w-12 h-12 border border-border flex items-center justify-center">
+                            <Database className="w-6 h-6 text-primary" />
                           </div>
                           <div>
-                            <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">Create Manual Backup</CardTitle>
+                            <CardTitle className="text-2xl font-heading font-bold">Create Manual Backup</CardTitle>
                             <CardDescription className="font-medium">Backup data for a specific organization</CardDescription>
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <Alert className="bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-500">
-                          <Database className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                          <AlertDescription className="text-blue-800 dark:text-blue-300 font-medium">
+                        <Alert className="bg-muted border border-border">
+                          <Database className="h-5 w-5 text-primary" />
+                          <AlertDescription className="text-foreground font-medium">
                             Manual backups are created instantly and stored securely. Only Basic and Premium organizations can be backed up.
                           </AlertDescription>
                         </Alert>
 
                         <div>
-                          <Label className="font-bold text-gray-900 dark:text-white mb-2 block">Select Organization</Label>
+                          <Label className="font-heading font-bold text-foreground mb-2 block">Select Organization</Label>
                           <Select value={selectedOrgForBackup || ''} onValueChange={setSelectedOrgForBackup}>
-                            <SelectTrigger className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 font-medium">
+                            <SelectTrigger className="font-medium">
                               <SelectValue placeholder="Choose an organization..." />
                             </SelectTrigger>
                             <SelectContent>
@@ -630,7 +617,7 @@ export default function DataBackup() {
                         <Button
                           onClick={() => createBackupMutation.mutate(selectedOrgForBackup)}
                           disabled={!selectedOrgForBackup || createBackupMutation.isPending}
-                          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-6 text-lg shadow-lg"
+                          className="w-full font-heading font-bold py-6 text-lg"
                         >
                           {createBackupMutation.isPending ? (
                             <>
@@ -650,22 +637,22 @@ export default function DataBackup() {
 
                   {/* Restore Backup Tab */}
                   <TabsContent value="restore">
-                    <Card className="bg-white dark:bg-gray-800 border-2 border-red-200 dark:border-red-800 shadow-lg">
+                    <Card className="border-destructive/30">
                       <CardHeader>
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <Upload className="w-6 h-6 text-white" />
+                          <div className="w-12 h-12 border border-border flex items-center justify-center">
+                            <Upload className="w-6 h-6 text-primary" />
                           </div>
                           <div>
-                            <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">Restore from Backup</CardTitle>
-                            <CardDescription className="font-medium text-red-600 dark:text-red-400">⚠️ Use with extreme caution</CardDescription>
+                            <CardTitle className="text-2xl font-heading font-bold">Restore from Backup</CardTitle>
+                            <CardDescription className="font-medium text-destructive">⚠️ Use with extreme caution</CardDescription>
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <Alert className="bg-red-50 dark:bg-red-950/30 border-2 border-red-500">
-                          <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                          <AlertDescription className="text-red-800 dark:text-red-300 font-bold">
+                        <Alert className="bg-destructive/10 border border-destructive/30">
+                          <AlertTriangle className="h-5 w-5 text-destructive" />
+                          <AlertDescription className="text-foreground font-medium">
                             <p className="mb-2">WARNING: Restoring a backup will modify production data!</p>
                             <ul className="text-sm space-y-1">
                               <li>• <strong>Merge Mode:</strong> Adds backup data to existing records (may create duplicates)</li>
@@ -675,9 +662,9 @@ export default function DataBackup() {
                         </Alert>
 
                         <div>
-                          <Label className="font-bold text-gray-900 dark:text-white mb-2 block">Select Backup to Restore</Label>
+                          <Label className="font-heading font-bold text-foreground mb-2 block">Select Backup to Restore</Label>
                           <Select value={selectedBackupToRestore || ''} onValueChange={setSelectedBackupToRestore}>
-                            <SelectTrigger className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 font-medium">
+                            <SelectTrigger className="font-medium">
                               <SelectValue placeholder="Choose a backup..." />
                             </SelectTrigger>
                             <SelectContent>
@@ -691,9 +678,9 @@ export default function DataBackup() {
                         </div>
 
                         <div>
-                          <Label className="font-bold text-gray-900 dark:text-white mb-2 block">Restore Mode</Label>
+                          <Label className="font-heading font-bold text-foreground mb-2 block">Restore Mode</Label>
                           <Select value={restoreMode} onValueChange={setRestoreMode}>
-                            <SelectTrigger className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 font-medium">
+                            <SelectTrigger className="font-medium">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -706,7 +693,8 @@ export default function DataBackup() {
                         <Button
                           onClick={() => restoreBackupMutation.mutate({ backup_id: selectedBackupToRestore, restore_mode: restoreMode })}
                           disabled={!selectedBackupToRestore || restoreBackupMutation.isPending}
-                          className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold py-6 text-lg shadow-lg"
+                          variant="destructive"
+                          className="w-full font-heading font-bold py-6 text-lg"
                         >
                           {restoreBackupMutation.isPending ? (
                             <>
@@ -726,31 +714,31 @@ export default function DataBackup() {
 
                   {/* Schedule Tab */}
                   <TabsContent value="schedule">
-                    <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+                    <Card className="">
                       <CardHeader>
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <Clock className="w-6 h-6 text-white" />
+                          <div className="w-12 h-12 border border-border flex items-center justify-center">
+                            <Clock className="w-6 h-6 text-primary" />
                           </div>
                           <div>
-                            <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">Automatic Backup Schedule</CardTitle>
+                            <CardTitle className="text-2xl font-heading font-bold">Automatic Backup Schedule</CardTitle>
                             <CardDescription className="font-medium">Configure scheduled backups for all eligible organizations</CardDescription>
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-6">
-                        <Alert className="bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-500">
-                          <Database className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                          <AlertDescription className="text-blue-800 dark:text-blue-300 font-medium">
+                        <Alert className="bg-muted border border-border">
+                          <Database className="h-5 w-5 text-primary" />
+                          <AlertDescription className="text-foreground font-medium">
                             Configure automatic backups to run on a schedule. The system will automatically backup all Basic and Premium organizations.
                           </AlertDescription>
                         </Alert>
 
                         <div className="space-y-4">
-                          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border-2 border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center justify-between p-4 bg-muted border border-border">
                             <div>
-                              <Label className="text-lg font-bold text-gray-900 dark:text-white">Enable Automatic Backups</Label>
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              <Label className="text-lg font-heading font-bold text-foreground">Enable Automatic Backups</Label>
+                              <p className="text-sm text-muted-foreground mt-1">
                                 {backupSchedule?.enabled ? 'Automatic backups are currently enabled' : 'Automatic backups are currently disabled'}
                               </p>
                             </div>
@@ -760,7 +748,7 @@ export default function DataBackup() {
                                 frequency: backupSchedule?.frequency || 'daily',
                                 time_of_day: backupSchedule?.time_of_day || '02:00'
                               })}
-                              className={`font-bold ${backupSchedule?.enabled ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} text-white`}
+                              variant={backupSchedule?.enabled ? "destructive" : "default"}
                               disabled={updateScheduleMutation.isPending}
                             >
                               {updateScheduleMutation.isPending ? (
@@ -773,7 +761,7 @@ export default function DataBackup() {
 
                           <div className="grid md:grid-cols-2 gap-4">
                             <div>
-                              <Label className="font-bold text-gray-700 dark:text-gray-300 mb-2 block">Frequency</Label>
+                              <Label className="font-heading font-bold text-foreground mb-2 block">Frequency</Label>
                               <Select 
                                 value={backupSchedule?.frequency || 'daily'}
                                 onValueChange={(value) => updateScheduleMutation.mutate({
@@ -783,7 +771,7 @@ export default function DataBackup() {
                                 })}
                                 disabled={updateScheduleMutation.isPending}
                               >
-                                <SelectTrigger className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600">
+                                <SelectTrigger>
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -794,7 +782,7 @@ export default function DataBackup() {
                             </div>
 
                             <div>
-                              <Label className="font-bold text-gray-700 dark:text-gray-300 mb-2 block">Time of Day (24h)</Label>
+                              <Label className="font-heading font-bold text-foreground mb-2 block">Time of Day (24h)</Label>
                               <Input
                                 type="time"
                                 value={backupSchedule?.time_of_day || '02:00'}
@@ -803,33 +791,32 @@ export default function DataBackup() {
                                   frequency: backupSchedule?.frequency || 'daily',
                                   time_of_day: e.target.value
                                 })}
-                                className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600"
                                 disabled={updateScheduleMutation.isPending}
                               />
                             </div>
                           </div>
 
                           {backupSchedule?.last_run && (
-                            <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-xl border-2 border-green-200 dark:border-green-800">
-                              <p className="text-sm font-bold text-green-800 dark:text-green-300">
+                            <div className="p-4 bg-primary/10 border border-primary/30">
+                              <p className="text-sm font-heading font-bold text-primary">
                                 Last Run: {new Date(backupSchedule.last_run).toLocaleString()}
                               </p>
                             </div>
                           )}
 
                           {backupSchedule?.next_run && (
-                            <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-xl border-2 border-blue-200 dark:border-blue-800">
-                              <p className="text-sm font-bold text-blue-800 dark:text-blue-300">
+                            <div className="p-4 bg-muted border border-border">
+                              <p className="text-sm font-heading font-bold text-foreground">
                                 Next Scheduled Run: {new Date(backupSchedule.next_run).toLocaleString()}
                               </p>
                             </div>
                           )}
                         </div>
 
-                        <Alert className="bg-yellow-50 dark:bg-yellow-950/30 border-2 border-yellow-500">
-                          <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                          <AlertDescription className="text-yellow-800 dark:text-yellow-300 font-medium">
-                            <strong>Important:</strong> You need to set up an external cron service (like cron-job.org) to call the <code className="bg-yellow-200 dark:bg-yellow-900 px-1 rounded">scheduledBackup</code> function URL at your configured schedule. Go to Dashboard → Code → Functions → scheduledBackup to get the URL.
+                        <Alert className="bg-muted border border-border">
+                          <AlertCircle className="h-5 w-5 text-foreground" />
+                          <AlertDescription className="text-foreground font-medium">
+                            <strong>Important:</strong> You need to set up an external cron service (like cron-job.org) to call the <code className="bg-muted-foreground/20 px-1">scheduledBackup</code> function URL at your configured schedule. Go to Dashboard → Code → Functions → scheduledBackup to get the URL.
                           </AlertDescription>
                         </Alert>
                       </CardContent>
@@ -839,10 +826,10 @@ export default function DataBackup() {
               ) : (
                 /* REGULAR ADMIN VIEW - Original Manual Backup */
                 <>
-                  <Alert className="bg-yellow-50 dark:bg-yellow-950/30 border-2 border-yellow-500">
-                <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                <AlertDescription className="text-yellow-800 dark:text-yellow-300 font-medium">
-                  <p className="font-black mb-2">⚠️ IMPORTANT INFORMATION</p>
+                  <Alert className="bg-muted border border-border">
+                <AlertTriangle className="h-5 w-5 text-foreground" />
+                <AlertDescription className="text-foreground font-medium">
+                  <p className="font-heading font-bold mb-2">⚠️ IMPORTANT INFORMATION</p>
                   <ul className="space-y-1 text-sm">
                     <li>• <strong>Manual Process:</strong> You are responsible for storing and managing backup files on your computer.</li>
                     <li>• <strong>Export Each Type:</strong> You must export each data type individually (Teams, Players, etc.).</li>
@@ -854,34 +841,34 @@ export default function DataBackup() {
               </Alert>
 
               <div className="grid md:grid-cols-2 gap-6">
-                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+                <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <Download className="w-6 h-6 text-white" />
+                      <div className="w-12 h-12 border border-border flex items-center justify-center">
+                        <Download className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">Export Data</CardTitle>
+                        <CardTitle className="text-2xl font-heading font-bold">Export Data</CardTitle>
                         <CardDescription className="font-medium">Download backup files to your computer</CardDescription>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {entities.map((entity) => (
-                      <div key={entity.key} className={`p-4 bg-gradient-to-br from-${entity.color}-50 to-white dark:from-${entity.color}-950/20 dark:to-gray-800 border-2 border-${entity.color}-200 dark:border-${entity.color}-800 rounded-xl`}>
+                      <div key={entity.key} className="p-4 bg-muted border border-border">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-3">
                             <span className="text-3xl">{entity.icon}</span>
                             <div>
-                              <h3 className="font-black text-gray-900 dark:text-white">{entity.name}</h3>
-                              <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">{entity.description}</p>
+                              <h3 className="font-heading font-bold text-foreground">{entity.name}</h3>
+                              <p className="text-xs text-muted-foreground font-medium">{entity.description}</p>
                             </div>
                           </div>
                         </div>
                         <Button
                           onClick={() => handleExport(entity)}
                           disabled={exportingEntity === entity.key}
-                          className={`w-full bg-gradient-to-r from-${entity.color}-600 to-${entity.color}-700 hover:from-${entity.color}-700 hover:to-${entity.color}-800 text-white font-bold shadow-lg mt-3`}
+                          className="w-full font-medium mt-3"
                         >
                           <FileDown className="w-4 h-4 mr-2" />
                           {exportingEntity === entity.key ? 'Exporting...' : `Export ${entity.name}`}
@@ -891,35 +878,35 @@ export default function DataBackup() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+                <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <Upload className="w-6 h-6 text-white" />
+                      <div className="w-12 h-12 border border-border flex items-center justify-center">
+                        <Upload className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">Import Data</CardTitle>
+                        <CardTitle className="text-2xl font-heading font-bold">Import Data</CardTitle>
                         <CardDescription className="font-medium">Restore data from backup files</CardDescription>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                      <Label className="font-bold text-gray-900 dark:text-white mb-2 block">Select Backup File</Label>
+                    <div className="bg-muted border border-border p-4">
+                      <Label className="font-heading font-bold text-foreground mb-2 block">Select Backup File</Label>
                       <Input
                         type="file"
                         accept=".json"
                         onChange={(e) => setImportFile(e.target.files[0])}
-                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 font-medium"
+                        className="font-medium"
                       />
                       {importFile && (
-                        <Badge className="mt-2 bg-green-100 text-green-700 border border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800 font-bold">
+                        <Badge variant="outline" className="mt-2 border-primary text-primary font-medium">
                           ✓ File selected: {importFile.name}
                         </Badge>
                       )}
                     </div>
 
-                    <div className="bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-800 rounded-xl p-4">
+                    <div className="bg-destructive/10 border border-destructive/30 p-4">
                       <div className="flex items-start gap-3">
                         <input
                           type="checkbox"
@@ -929,10 +916,10 @@ export default function DataBackup() {
                           className="mt-1"
                         />
                         <div className="flex-1">
-                          <Label htmlFor="deleteBeforeImport" className="font-bold text-gray-900 dark:text-white cursor-pointer">
+                          <Label htmlFor="deleteBeforeImport" className="font-heading font-bold text-foreground cursor-pointer">
                             Delete all existing records before import
                           </Label>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 font-medium">
+                          <p className="text-xs text-muted-foreground mt-1 font-medium">
                             ⚠️ This will permanently delete all current records of the selected type before importing the backup data.
                           </p>
                         </div>
@@ -946,7 +933,7 @@ export default function DataBackup() {
                           onClick={() => handleImport(entity)}
                           disabled={!importFile || importingEntity === entity.key}
                           variant="outline"
-                          className={`w-full border-2 border-${entity.color}-300 dark:border-${entity.color}-700 hover:bg-${entity.color}-50 dark:hover:bg-${entity.color}-950/30 font-bold`}
+                          className="w-full font-medium"
                         >
                           <span className="mr-2">{entity.icon}</span>
                           {importingEntity === entity.key ? 'Importing...' : `Import ${entity.name}`}
@@ -957,22 +944,22 @@ export default function DataBackup() {
                 </Card>
               </div>
 
-                  <Card className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 border-2 border-red-200 dark:border-red-800 shadow-lg">
+                  <Card className="border-destructive/30">
                 <CardHeader>
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                      <Trash2 className="w-6 h-6 text-white" />
+                    <div className="w-12 h-12 border border-destructive/30 flex items-center justify-center">
+                      <Trash2 className="w-6 h-6 text-destructive" />
                     </div>
                     <div>
-                      <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">Danger Zone</CardTitle>
+                      <CardTitle className="text-2xl font-heading font-bold">Danger Zone</CardTitle>
                       <CardDescription className="font-medium">Manually delete all records (use with caution)</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <Alert className="bg-red-100 dark:bg-red-950/50 border-2 border-red-400 dark:border-red-700 mb-4">
-                    <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                    <AlertDescription className="text-red-800 dark:text-red-300 font-bold">
+                  <Alert className="bg-destructive/10 border border-destructive/30 mb-4">
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                    <AlertDescription className="text-foreground font-medium">
                       These actions will permanently delete data and cannot be undone. Use only if you need to clear all data before importing a backup.
                     </AlertDescription>
                   </Alert>
@@ -985,7 +972,7 @@ export default function DataBackup() {
                           setShowDeleteConfirm(true);
                         }}
                         variant="outline"
-                        className="border-2 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/50 font-bold"
+                        className="border-destructive/30 text-destructive hover:bg-destructive/10 font-medium"
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete All {entity.name}
@@ -1002,32 +989,32 @@ export default function DataBackup() {
       </div>
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 bg-red-100 dark:bg-red-950/30 rounded-xl flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+              <div className="w-12 h-12 bg-destructive/10 border border-destructive/30 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-destructive" />
               </div>
-              <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+              <AlertDialogTitle className="text-xl font-heading font-bold">
                 Confirm Deletion
               </AlertDialogTitle>
             </div>
-            <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
+            <AlertDialogDescription className="text-muted-foreground font-medium">
               {deleteBeforeImport ? (
                 <>
-                  <p className="mb-3">You are about to delete all existing <span className="font-bold text-gray-900 dark:text-white">{entityToDelete}</span> records before importing new data.</p>
-                  <p className="text-sm font-semibold text-red-600 dark:text-red-400">This action cannot be undone. Are you sure you want to continue?</p>
+                  <p className="mb-3">You are about to delete all existing <span className="font-heading font-bold text-foreground">{entityToDelete}</span> records before importing new data.</p>
+                  <p className="text-sm font-medium text-destructive">This action cannot be undone. Are you sure you want to continue?</p>
                 </>
               ) : (
                 <>
-                  <p className="mb-3">You are about to permanently delete all <span className="font-bold text-gray-900 dark:text-white">{entityToDelete}</span> records for your organization.</p>
-                  <p className="text-sm font-semibold text-red-600 dark:text-red-400">⚠️ WARNING: This will permanently delete all data and cannot be undone!</p>
+                  <p className="mb-3">You are about to permanently delete all <span className="font-heading font-bold text-foreground">{entityToDelete}</span> records for your organization.</p>
+                  <p className="text-sm font-medium text-destructive">⚠️ WARNING: This will permanently delete all data and cannot be undone!</p>
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+            <AlertDialogCancel>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -1040,7 +1027,7 @@ export default function DataBackup() {
                   setEntityToDelete(null);
                 }
               }}
-              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold"
+              className="bg-destructive text-destructive-foreground font-medium"
             >
               Yes, Delete All Records
             </AlertDialogAction>
