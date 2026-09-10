@@ -186,17 +186,17 @@ export default function PendingTeams() {
             <div className="max-w-7xl mx-auto space-y-8">
               <div>
                 <h1 className="font-heading text-3xl font-bold tracking-tight">Pending Team Approvals</h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">
-                  Review and approve team registrations ({pendingTeams.length} pending)
-                </p>
-              </div>
+                <p className="text-muted-foreground mt-2 font-medium">
+                   Review and approve team registrations ({pendingTeams.length} pending)
+                 </p>
+                </div>
 
-              {pendingTeams.length === 0 ? (
-                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
-                  <CardContent className="p-12 text-center">
-                    <Clock className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                    <p className="text-xl font-bold text-gray-500 dark:text-gray-400">No pending team approvals</p>
-                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">All team registrations have been processed</p>
+                {pendingTeams.length === 0 ? (
+                <Card>
+                   <CardContent className="p-12 text-center">
+                    <Clock className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-xl font-heading font-bold text-muted-foreground">No pending team approvals</p>
+                    <p className="text-sm text-muted-foreground mt-2">All team registrations have been processed</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -206,30 +206,30 @@ export default function PendingTeams() {
                     const sportColor = team.sport === 'basketball' ? 'orange' : 'blue';
                     
                     return (
-                      <Card key={team.id} className={`bg-white dark:bg-gray-800 border-2 border-${sportColor}-200 dark:border-${sportColor}-800 shadow-lg`}>
-                        <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
+                      <Card key={team.id}>
+                        <CardHeader className="border-b border-border">
                           <div className="flex justify-between items-start">
                             <div className="flex items-center gap-4">
-                              <Avatar className="w-16 h-16 border-2 border-gray-200 dark:border-gray-700 shadow-md">
+                              <Avatar className="w-16 h-16 border border-border">
                                 <AvatarImage src={team.logo_url} />
-                                <AvatarFallback className={`bg-gradient-to-br from-${sportColor}-500 to-${sportColor}-600 text-white font-black`}>
+                                <AvatarFallback className="bg-secondary text-foreground font-heading font-bold">
                                   {team.name?.substring(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                                <CardTitle className="text-2xl font-heading font-bold">
                                   {team.name}
                                 </CardTitle>
                                 <div className="flex gap-2 mt-2">
-                                  <Badge className={`bg-${sportColor}-100 text-${sportColor}-700 dark:bg-${sportColor}-950 dark:text-${sportColor}-300 font-bold`}>
+                                  <Badge variant="outline" className="border-border text-muted-foreground font-medium uppercase">
                                     {team.sport}
                                   </Badge>
                                   {team.division && (
-                                    <Badge variant="outline" className="font-semibold">
+                                    <Badge variant="outline" className="font-medium">
                                       {team.division}
                                     </Badge>
                                   )}
-                                  <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300 font-bold">
+                                  <Badge variant="outline" className="border-foreground/60 text-foreground font-medium">
                                     <Clock className="w-3 h-3 mr-1" />
                                     PENDING
                                   </Badge>
@@ -240,7 +240,7 @@ export default function PendingTeams() {
                               <Button
                                 onClick={() => approveTeamMutation.mutate(team.id)}
                                 disabled={approveTeamMutation.isLoading}
-                                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold"
+                                className="font-medium"
                               >
                                 <CheckCircle className="w-4 h-4 mr-2" />
                                 Approve
@@ -249,7 +249,7 @@ export default function PendingTeams() {
                                 onClick={() => rejectTeamMutation.mutate(team.id)}
                                 disabled={rejectTeamMutation.isLoading}
                                 variant="outline"
-                                className="border-2 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-bold"
+                                className="border-destructive/30 text-destructive hover:bg-destructive/10 font-medium"
                               >
                                 <XCircle className="w-4 h-4 mr-2" />
                                 Reject
@@ -261,53 +261,53 @@ export default function PendingTeams() {
                           <div className="grid md:grid-cols-2 gap-6">
                             {/* Team Info */}
                             <div>
-                              <h3 className="text-lg font-black text-gray-900 dark:text-white mb-3">Team Information</h3>
+                              <h3 className="text-lg font-heading font-bold text-foreground mb-3">Team Information</h3>
                               <div className="space-y-2 text-sm">
                                 {team.coach_name && (
-                                  <p className="text-gray-700 dark:text-gray-300">
-                                    <span className="font-bold">Coach:</span> {team.coach_name}
+                                  <p className="text-foreground">
+                                    <span className="font-heading font-bold">Coach:</span> {team.coach_name}
                                   </p>
                                 )}
                                 {team.coach_contact && (
-                                  <p className="text-gray-700 dark:text-gray-300">
-                                    <span className="font-bold">Contact:</span> {team.coach_contact}
+                                  <p className="text-foreground">
+                                    <span className="font-heading font-bold">Contact:</span> {team.coach_contact}
                                   </p>
                                 )}
-                                <p className="text-gray-700 dark:text-gray-300">
-                                  <span className="font-bold">Submitted by:</span> {team.submitted_by}
+                                <p className="text-foreground">
+                                  <span className="font-heading font-bold">Submitted by:</span> {team.submitted_by}
                                 </p>
-                                <p className="text-gray-700 dark:text-gray-300">
-                                  <span className="font-bold">Created:</span> {new Date(team.created_date).toLocaleDateString()}
+                                <p className="text-foreground">
+                                  <span className="font-heading font-bold">Created:</span> {new Date(team.created_date).toLocaleDateString()}
                                 </p>
                               </div>
                             </div>
 
                             {/* Player Roster */}
                             <div>
-                              <h3 className="text-lg font-black text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                              <h3 className="text-lg font-heading font-bold text-foreground mb-3 flex items-center gap-2">
                                 <Users className="w-5 h-5" />
                                 Player Roster ({teamPlayers.length})
                               </h3>
                               <div className="space-y-2 max-h-64 overflow-y-auto">
                                 {teamPlayers.map(player => (
-                                  <div key={player.id} className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                                  <div key={player.id} className="bg-muted p-3 border border-border">
                                     <div className="flex items-center justify-between">
                                       <div>
-                                        <p className="font-bold text-gray-900 dark:text-white text-sm">
+                                        <p className="font-heading font-bold text-foreground text-sm">
                                           #{player.jersey_number} {player.first_name} {player.last_name}
                                         </p>
                                         {player.position && (
-                                          <p className="text-xs text-gray-600 dark:text-gray-400">{player.position}</p>
+                                          <p className="text-xs text-muted-foreground">{player.position}</p>
                                         )}
                                       </div>
                                       {player.contact_number && (
-                                        <p className="text-xs text-gray-500 dark:text-gray-500">{player.contact_number}</p>
+                                        <p className="text-xs text-muted-foreground">{player.contact_number}</p>
                                       )}
                                     </div>
                                   </div>
                                 ))}
                                 {teamPlayers.length === 0 && (
-                                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">No players registered</p>
+                                  <p className="text-sm text-muted-foreground italic">No players registered</p>
                                 )}
                               </div>
                             </div>

@@ -375,7 +375,7 @@ export default function PosterGenerator() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Poster Generator</h1>
+          <h1 className="text-2xl font-heading font-bold">Poster Generator</h1>
           <div className="flex gap-2">
             <Button variant="ghost" className="gap-2" onClick={() => navigate(-1)}>
               <ArrowLeft className="h-4 w-4" /> Back
