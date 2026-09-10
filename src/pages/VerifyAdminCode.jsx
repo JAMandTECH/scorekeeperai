@@ -127,7 +127,7 @@ export default function VerifyAdminCode() {
 
   if (!approvedRequest) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader>
             <div className="flex items-center gap-3 mb-2">
