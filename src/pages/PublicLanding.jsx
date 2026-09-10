@@ -169,13 +169,11 @@ export default function PublicLanding() {
               </div>
             </div>
             <div className="lg:col-span-5 relative">
-              <div className="aspect-[4/5] overflow-hidden border border-border">
-                <img
-                  src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/942178cf5_KobeBryantArt.jpg"
-                  alt="Basketball player dunk art"
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              <img
+                src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/7a585ce84_70StunningBasketWallpapersFreeDownloadNow.jpg"
+                alt="Basketball player dribbling"
+                className="w-full h-full object-cover"
+              />
               <div className="absolute -bottom-4 -left-4 bg-primary text-primary-foreground px-4 py-2">
                 <span className="font-heading text-sm font-bold">LIVE SCORING</span>
               </div>
