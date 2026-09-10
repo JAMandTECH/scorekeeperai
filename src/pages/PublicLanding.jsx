@@ -170,8 +170,8 @@ export default function PublicLanding() {
             </div>
             <div className="lg:col-span-5 relative">
               <img
-                src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/7a585ce84_70StunningBasketWallpapersFreeDownloadNow.jpg"
-                alt="Basketball player dribbling"
+                src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/796729f02_generated_image.png"
+                alt="Basketball player dunking"
                 className="w-full h-full object-cover"
               />
               <div className="absolute -bottom-4 -left-4 bg-primary text-primary-foreground px-4 py-2">
