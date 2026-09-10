@@ -195,7 +195,7 @@ export default function Divisions() {
         {/* Overlay for mobile sidebar */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-gray-900/50 dark:bg-black/70 z-30 backdrop-blur-sm mt-16 lg:hidden" // `mt-16` to offset header height, `lg:hidden` to hide on desktop
+            className="fixed inset-0 bg-black/40 z-30 mt-16 lg:hidden" // `mt-16` to offset header height, `lg:hidden` to hide on desktop
             onClick={() => setSidebarOpen(false)}
           ></div>
         )}
@@ -208,14 +208,14 @@ export default function Divisions() {
               <div className="flex justify-between items-center">
                 <div>
                   <h1 className="font-heading text-3xl font-bold tracking-tight">Divisions</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Organize teams into divisions</p> {/* Updated description */}
+                  <p className="text-muted-foreground mt-2 font-medium">Organize teams into divisions</p> {/* Updated description */}
                 </div>
                 <Button 
                   onClick={() => {
                     setEditingDivision(null);
                     setShowForm(true);
                   }}
-                  className="font-medium shadow-xl"
+                  className="font-medium"
                 >
                   <Plus className="w-5 h-5 mr-2" />
                   Add Division
@@ -225,16 +225,16 @@ export default function Divisions() {
               {/* Basketball Divisions */}
               <div>
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                  <div className="w-12 h-12 border border-border bg-card flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-foreground">
                       <circle cx="12" cy="12" r="10"/>
                       <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
                       <path d="M2 12h20"/>
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black text-gray-900 dark:text-white">Basketball Divisions</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{basketballDivisions.length} divisions</p>
+                    <h2 className="text-2xl font-heading font-bold">Basketball Divisions</h2>
+                    <p className="text-sm text-muted-foreground font-medium">{basketballDivisions.length} divisions</p>
                   </div>
                 </div>
                 
@@ -243,17 +243,16 @@ export default function Divisions() {
                     {basketballDivisions.map((division) => {
                       const divisionTeams = getTeamsInDivision(division.name, 'basketball');
                       return (
-                        <Card key={division.id} className="relative overflow-hidden border-2 border-orange-100 dark:border-orange-900 bg-gradient-to-br from-white to-orange-50 dark:from-gray-800 dark:to-orange-950/30 shadow-lg hover:shadow-2xl transition-all">
-                          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full blur-3xl"></div>
-                          <CardHeader className="relative z-10">
+                        <Card key={division.id} className="relative border border-border bg-card hover:border-foreground/20 transition-colors">
+                          <CardHeader>
                             <div className="flex justify-between items-start">
                               <div className="flex items-center gap-3 flex-1">
-                                <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-xl">
-                                  <FolderOpen className="w-7 h-7 text-white" />
+                                <div className="w-14 h-14 border border-border bg-muted flex items-center justify-center">
+                                  <FolderOpen className="w-7 h-7 text-foreground" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{division.name}</CardTitle>
-                                  <Badge className="mt-2 bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 font-bold">
+                                  <CardTitle className="text-lg font-heading font-bold truncate">{division.name}</CardTitle>
+                                  <Badge variant="outline" className="mt-2 border-border text-muted-foreground font-medium uppercase text-xs">
                                     Basketball
                                   </Badge>
                                 </div>
@@ -263,7 +262,7 @@ export default function Divisions() {
                                   variant="ghost" 
                                   size="icon"
                                   onClick={() => handleEdit(division)}
-                                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                  className="text-muted-foreground hover:text-foreground"
                                 >
                                   <Edit className="w-4 h-4" />
                                 </Button>
@@ -271,22 +270,22 @@ export default function Divisions() {
                                   variant="ghost" 
                                   size="icon"
                                   onClick={() => handleDeleteClick(division)}
-                                  className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                  className="text-muted-foreground hover:text-destructive"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
                               </div>
                             </div>
                           </CardHeader>
-                          <CardContent className="space-y-3 relative z-10">
+                          <CardContent className="space-y-3">
                             {division.description && (
-                              <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{division.description}</p>
+                              <div className="border border-border bg-background p-3">
+                                <p className="text-sm text-muted-foreground font-medium">{division.description}</p>
                               </div>
                             )}
-                            <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                              <span className="text-gray-600 dark:text-gray-400 font-bold">Teams in Division</span>
-                              <span className="font-black text-orange-600 dark:text-orange-400">{divisionTeams.length}</span>
+                            <div className="flex justify-between text-sm border border-border bg-background p-3">
+                              <span className="text-muted-foreground font-medium">Teams in Division</span>
+                              <span className="font-heading font-bold text-primary tabular-nums">{divisionTeams.length}</span>
                             </div>
                           </CardContent>
                         </Card>
@@ -294,9 +293,9 @@ export default function Divisions() {
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700">
-                    <FolderOpen className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                    <p className="text-gray-500 dark:text-gray-400 font-medium">No basketball divisions yet</p>
+                  <div className="text-center py-12 border border-border bg-card">
+                    <FolderOpen className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground font-medium">No basketball divisions yet</p>
                   </div>
                 )}
               </div>
@@ -304,16 +303,16 @@ export default function Divisions() {
               {/* Volleyball Divisions */}
               <div>
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                  <div className="w-12 h-12 border border-border bg-card flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-foreground">
                       <circle cx="12" cy="12" r="10"/>
                       <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
                       <path d="M2 12h20"/>
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black text-gray-900 dark:text-white">Volleyball Divisions</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{volleyballDivisions.length} divisions</p>
+                    <h2 className="text-2xl font-heading font-bold">Volleyball Divisions</h2>
+                    <p className="text-sm text-muted-foreground font-medium">{volleyballDivisions.length} divisions</p>
                   </div>
                 </div>
                 
@@ -322,17 +321,16 @@ export default function Divisions() {
                     {volleyballDivisions.map((division) => {
                       const divisionTeams = getTeamsInDivision(division.name, 'volleyball');
                       return (
-                        <Card key={division.id} className="relative overflow-hidden border-2 border-blue-100 dark:border-blue-900 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-950/30 shadow-lg hover:shadow-2xl transition-all">
-                          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
-                          <CardHeader className="relative z-10">
+                        <Card key={division.id} className="relative border border-border bg-card hover:border-foreground/20 transition-colors">
+                          <CardHeader>
                             <div className="flex justify-between items-start">
                               <div className="flex items-center gap-3 flex-1">
-                                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-xl">
-                                  <FolderOpen className="w-7 h-7 text-white" /> {/* Using FolderOpen for consistency */}
+                                <div className="w-14 h-14 border border-border bg-muted flex items-center justify-center">
+                                  <FolderOpen className="w-7 h-7 text-foreground" /> {/* Using FolderOpen for consistency */}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">{division.name}</CardTitle>
-                                  <Badge className="mt-2 bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold">
+                                  <CardTitle className="text-lg font-heading font-bold truncate">{division.name}</CardTitle>
+                                  <Badge variant="outline" className="mt-2 border-border text-muted-foreground font-medium uppercase text-xs">
                                     Volleyball
                                   </Badge>
                                 </div>
@@ -342,7 +340,7 @@ export default function Divisions() {
                                   variant="ghost" 
                                   size="icon"
                                   onClick={() => handleEdit(division)}
-                                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                  className="text-muted-foreground hover:text-foreground"
                                 >
                                   <Edit className="w-4 h-4" />
                                 </Button>
@@ -350,22 +348,22 @@ export default function Divisions() {
                                   variant="ghost" 
                                   size="icon"
                                   onClick={() => handleDeleteClick(division)}
-                                  className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                  className="text-muted-foreground hover:text-destructive"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
                               </div>
                             </div>
                           </CardHeader>
-                          <CardContent className="space-y-3 relative z-10">
+                          <CardContent className="space-y-3">
                             {division.description && (
-                              <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{division.description}</p>
+                              <div className="border border-border bg-background p-3">
+                                <p className="text-sm text-muted-foreground font-medium">{division.description}</p>
                               </div>
                             )}
-                            <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                              <span className="text-gray-600 dark:text-gray-400 font-bold">Teams in Division</span>
-                              <span className="font-black text-blue-600 dark:text-blue-400">{divisionTeams.length}</span>
+                            <div className="flex justify-between text-sm border border-border bg-background p-3">
+                              <span className="text-muted-foreground font-medium">Teams in Division</span>
+                              <span className="font-heading font-bold text-primary tabular-nums">{divisionTeams.length}</span>
                             </div>
                           </CardContent>
                         </Card>
@@ -373,42 +371,42 @@ export default function Divisions() {
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700">
-                    <FolderOpen className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                    <p className="text-gray-500 dark:text-gray-400 font-medium">No volleyball divisions yet</p>
+                  <div className="text-center py-12 border border-border bg-card">
+                    <FolderOpen className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground font-medium">No volleyball divisions yet</p>
                   </div>
                 )}
               </div>
 
               {/* Add/Edit Dialog */}
               <Dialog open={showForm} onOpenChange={setShowForm}>
-                <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-md">
+                <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                    <DialogTitle className="text-2xl font-heading font-bold">
                       {editingDivision ? 'Edit Division' : 'Add New Division'}
                     </DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                      <Label htmlFor="name" className="font-bold text-gray-700 dark:text-gray-300">Division Name</Label>
+                      <Label htmlFor="name" className="font-heading font-bold text-foreground">Division Name</Label>
                       <Input
                         id="name"
                         name="name"
                         defaultValue={editingDivision?.name}
                         placeholder="e.g., Division A, Youth League"
                         required
-                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                        className="bg-background border border-border text-foreground font-medium"
                       />
                     </div>
                     
                     <div>
-                      <Label htmlFor="sport" className="font-bold text-gray-700 dark:text-gray-300">Sport</Label>
+                      <Label htmlFor="sport" className="font-heading font-bold text-foreground">Sport</Label>
                       <select
                         id="sport"
                         name="sport"
                         defaultValue={editingDivision?.sport || 'basketball'}
                         required
-                        className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                        className="w-full bg-background border border-border text-foreground px-3 py-2 font-medium"
                       >
                         <option value="basketball">Basketball</option>
                         <option value="volleyball">Volleyball</option>
@@ -416,13 +414,13 @@ export default function Divisions() {
                     </div>
 
                     <div>
-                      <Label htmlFor="description" className="font-bold text-gray-700 dark:text-gray-300">Description (Optional)</Label>
+                      <Label htmlFor="description" className="font-heading font-bold text-foreground">Description (Optional)</Label>
                       <Input // Changed to Input as per outline
                         id="description"
                         name="description"
                         defaultValue={editingDivision?.description}
                         placeholder="Add division details or rules..."
-                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                        className="bg-background border border-border text-foreground font-medium"
                       />
                     </div>
 
@@ -431,7 +429,7 @@ export default function Divisions() {
                         type="button" 
                         variant="outline" 
                         onClick={() => setShowForm(false)}
-                        className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
+                        className="font-medium"
                       >
                         Cancel
                       </Button>
@@ -448,21 +446,21 @@ export default function Divisions() {
 
               {/* Delete Confirmation Dialog */}
               <AlertDialog open={!!deletingDivision} onOpenChange={() => setDeletingDivision(null)}>
-                <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                <AlertDialogContent>
                   <AlertDialogHeader>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 bg-red-100 dark:bg-red-950/30 rounded-xl flex items-center justify-center">
-                        <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                      <div className="w-12 h-12 bg-destructive/10 flex items-center justify-center">
+                        <AlertTriangle className="w-6 h-6 text-destructive" />
                       </div>
-                      <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+                      <AlertDialogTitle className="text-xl font-heading font-bold">
                         Delete Division?
                       </AlertDialogTitle>
                     </div>
-                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
-                      Are you sure you want to delete <span className="font-bold text-gray-900 dark:text-white">"{deletingDivision?.name}"</span>?
+                    <AlertDialogDescription className="text-muted-foreground font-medium">
+                      Are you sure you want to delete <span className="font-heading font-bold text-foreground">"{deletingDivision?.name}"</span>?
                       {deletingDivision?.teamsCount > 0 && (
-                        <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                          <p className="text-sm text-yellow-800 dark:text-yellow-300 font-semibold">
+                        <div className="mt-3 p-3 bg-muted border border-border">
+                          <p className="text-sm text-foreground font-medium">
                             ⚠️ Warning: {deletingDivision.teamsCount} team(s) are currently in this division.
                           </p>
                         </div>
@@ -471,12 +469,12 @@ export default function Divisions() {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+                    <AlertDialogCancel className="font-medium">
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => deleteMutation.mutate(deletingDivision.id)}
-                      className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold"
+                      className="font-medium"
                     >
                       Delete Division
                     </AlertDialogAction>
