@@ -154,15 +154,15 @@ export default function OrganizationSettings() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
 
   if (!currentOrgId || !organization) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <Card className="max-w-md text-center p-8">
           <CardContent className="pt-6">
             <AlertCircle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
@@ -178,7 +178,7 @@ export default function OrganizationSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-50 dark:from-gray-900 dark:via-purple-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -207,7 +207,7 @@ export default function OrganizationSettings() {
                     <Building2 className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-4xl font-black text-gray-900 dark:text-white">Organization Settings</h1>
+                    <h1 className="font-heading text-3xl font-bold tracking-tight">Organization Settings</h1>
                     <p className="text-gray-600 dark:text-gray-400 mt-1 font-medium">Update your organization details</p>
                   </div>
                 </div>

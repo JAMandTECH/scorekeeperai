@@ -233,7 +233,7 @@ export default function JoinOrganization() {
             <div className="max-w-6xl mx-auto space-y-8">
               {/* Header */}
               <div>
-                <h1 className="text-4xl font-black text-gray-900 dark:text-white">
+                <h1 className="font-heading text-3xl font-bold tracking-tight">
                   Join an Organization
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">
