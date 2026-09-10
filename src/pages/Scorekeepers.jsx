@@ -191,11 +191,11 @@ export default function Scorekeepers() {
               <div className="flex justify-between items-center">
                 <div>
                   <h1 className="font-heading text-3xl font-bold tracking-tight">Scorekeepers</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Manage users who can score games</p>
+                  <p className="text-muted-foreground mt-2 font-medium">Manage users who can score games</p>
                 </div>
                 <Button 
                   onClick={() => setShowForm(true)}
-                  className="font-medium shadow-xl"
+                  className="font-medium"
                 >
                   <Plus className="w-5 h-5 mr-2" />
                   Add Scorekeeper
@@ -205,90 +205,86 @@ export default function Scorekeepers() {
               {scorekeepers.length > 0 ? (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {scorekeepers.map((scorekeeper) => (
-                    <Card key={scorekeeper.id} className="relative overflow-hidden border-2 border-blue-100 dark:border-blue-900 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-950/30 shadow-lg hover:shadow-2xl transition-all">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
-                      <CardHeader className="relative z-10">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-3 flex-1">
-                            <Avatar className="w-14 h-14 border-4 border-white dark:border-gray-700 shadow-xl">
-                              <AvatarImage src={scorekeeper.photo_url} />
-                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
-                                {scorekeeper.full_name?.substring(0, 2).toUpperCase() || 'SK'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">
-                                {scorekeeper.full_name}
-                              </CardTitle>
-                              <Badge className="mt-2 bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold">
-                                Scorekeeper
-                              </Badge>
-                            </div>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => handleRemoveClick(scorekeeper)}
-                            className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3 relative z-10">
-                        <div className="flex items-center gap-2 bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                          <Mail className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400 font-medium truncate">
-                            {scorekeeper.email}
-                          </span>
-                        </div>
-                        
-                        {scorekeeper.scorekeeper_sports && scorekeeper.scorekeeper_sports.length > 0 && (
-                          <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-bold mb-2">Can Score:</p>
-                            <div className="flex gap-2 flex-wrap">
-                              {scorekeeper.scorekeeper_sports.map(sport => (
-                                <Badge 
-                                  key={sport}
-                                  className={`${
-                                    sport === 'basketball'
-                                      ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800'
-                                      : 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
-                                  } font-bold`}
-                                >
-                                  {sport === 'basketball' ? '🏀' : '🏐'} {sport.charAt(0).toUpperCase() + sport.slice(1)}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                    <Card key={scorekeeper.id} className="relative border border-border bg-card hover:border-foreground/20 transition-colors">
+                       <CardHeader>
+                         <div className="flex justify-between items-start">
+                           <div className="flex items-center gap-3 flex-1">
+                             <Avatar className="w-14 h-14 border border-border">
+                               <AvatarImage src={scorekeeper.photo_url} />
+                               <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-lg">
+                                 {scorekeeper.full_name?.substring(0, 2).toUpperCase() || 'SK'}
+                               </AvatarFallback>
+                             </Avatar>
+                             <div className="flex-1 min-w-0">
+                               <CardTitle className="text-lg font-heading font-bold truncate">
+                                 {scorekeeper.full_name}
+                               </CardTitle>
+                               <Badge variant="outline" className="mt-2 border-border text-muted-foreground font-medium uppercase text-xs">
+                                 Scorekeeper
+                               </Badge>
+                             </div>
+                           </div>
+                           <Button 
+                             variant="ghost" 
+                             size="icon"
+                             onClick={() => handleRemoveClick(scorekeeper)}
+                             className="text-muted-foreground hover:text-destructive"
+                           >
+                             <Trash2 className="w-4 h-4" />
+                           </Button>
+                         </div>
+                       </CardHeader>
+                       <CardContent className="space-y-3">
+                         <div className="flex items-center gap-2 border border-border bg-background p-3">
+                           <Mail className="w-4 h-4 text-muted-foreground" />
+                           <span className="text-sm text-muted-foreground font-medium truncate">
+                             {scorekeeper.email}
+                           </span>
+                         </div>
+
+                         {scorekeeper.scorekeeper_sports && scorekeeper.scorekeeper_sports.length > 0 && (
+                           <div className="border border-border bg-background p-3">
+                             <p className="text-xs text-muted-foreground font-heading font-bold mb-2 uppercase tracking-wide">Can Score:</p>
+                             <div className="flex gap-2 flex-wrap">
+                               {scorekeeper.scorekeeper_sports.map(sport => (
+                                 <Badge 
+                                   key={sport}
+                                   variant="outline"
+                                   className="border-border text-muted-foreground font-medium uppercase text-xs"
+                                 >
+                                   {sport === 'basketball' ? '🏀' : '🏐'} {sport.charAt(0).toUpperCase() + sport.slice(1)}
+                                 </Badge>
+                               ))}
+                             </div>
+                           </div>
+                         )}
+                       </CardContent>
+                     </Card>
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-20">
-                  <div className="w-24 h-24 bg-gradient-to-br from-blue-200 to-blue-300 dark:from-blue-800 dark:to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <UserCheck className="w-12 h-12 text-blue-600 dark:text-blue-300" />
+                  <div className="w-24 h-24 border border-border bg-card flex items-center justify-center mx-auto mb-6">
+                    <UserCheck className="w-12 h-12 text-muted-foreground" />
                   </div>
-                  <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No scorekeepers yet</p>
-                  <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Add users who can score games for your organization</p>
+                  <p className="text-muted-foreground text-xl font-heading font-bold">No scorekeepers yet</p>
+                  <p className="text-muted-foreground text-sm mt-2">Add users who can score games for your organization</p>
                 </div>
               )}
 
               <Dialog open={showForm} onOpenChange={setShowForm}>
-                <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-md">
+                <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                    <DialogTitle className="text-2xl font-heading font-bold">
                       Add Scorekeeper
                     </DialogTitle>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    <p className="text-sm text-muted-foreground mt-2">
                       Enter the email of a registered user to assign as scorekeeper
                     </p>
                   </DialogHeader>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                      <Label htmlFor="email" className="font-bold text-gray-700 dark:text-gray-300">User Email</Label>
+                      <Label htmlFor="email" className="font-heading font-bold text-foreground">User Email</Label>
                       <Input
                         id="email"
                         type="email"
@@ -299,10 +295,10 @@ export default function Scorekeepers() {
                         }}
                         placeholder="user@example.com"
                         required
-                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                        className="bg-background border border-border text-foreground font-medium"
                       />
                       {searchError && (
-                        <p className="text-sm text-red-600 dark:text-red-400 mt-2 font-semibold flex items-center gap-1">
+                        <p className="text-sm text-destructive mt-2 font-medium flex items-center gap-1">
                           <AlertTriangle className="w-4 h-4" />
                           {searchError}
                         </p>
@@ -310,20 +306,20 @@ export default function Scorekeepers() {
                     </div>
 
                     <div>
-                      <Label className="font-bold text-gray-700 dark:text-gray-300 mb-3 block">Sports Access</Label>
+                      <Label className="font-heading font-bold text-foreground mb-3 block">Sports Access</Label>
                       <div className="space-y-2">
                         <div 
                           onClick={() => handleSportToggle('basketball')}
-                          className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                          className={`flex items-center gap-3 p-4 border border-border cursor-pointer transition-colors ${
                             selectedSports.includes('basketball')
-                              ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/30'
-                              : 'border-gray-300 dark:border-gray-600 hover:border-orange-300 dark:hover:border-orange-700'
+                              ? 'border-primary bg-primary/5'
+                              : 'hover:border-foreground/30'
                           }`}
                         >
-                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                          <div className={`w-5 h-5 rounded border flex items-center justify-center ${
                             selectedSports.includes('basketball')
-                              ? 'border-orange-500 bg-orange-500'
-                              : 'border-gray-300 dark:border-gray-600'
+                              ? 'border-primary bg-primary'
+                              : 'border-border'
                           }`}>
                             {selectedSports.includes('basketball') && (
                               <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -332,23 +328,23 @@ export default function Scorekeepers() {
                             )}
                           </div>
                           <div className="flex-1">
-                            <p className="font-bold text-gray-900 dark:text-white">🏀 Basketball</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Can score basketball games</p>
+                            <p className="font-heading font-bold text-foreground">🏀 Basketball</p>
+                            <p className="text-xs text-muted-foreground">Can score basketball games</p>
                           </div>
                         </div>
 
                         <div 
                           onClick={() => handleSportToggle('volleyball')}
-                          className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                          className={`flex items-center gap-3 p-4 border border-border cursor-pointer transition-colors ${
                             selectedSports.includes('volleyball')
-                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
-                              : 'border-gray-300 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-700'
+                              ? 'border-primary bg-primary/5'
+                              : 'hover:border-foreground/30'
                           }`}
                         >
-                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                          <div className={`w-5 h-5 rounded border flex items-center justify-center ${
                             selectedSports.includes('volleyball')
-                              ? 'border-blue-500 bg-blue-500'
-                              : 'border-gray-300 dark:border-gray-600'
+                              ? 'border-primary bg-primary'
+                              : 'border-border'
                           }`}>
                             {selectedSports.includes('volleyball') && (
                               <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -357,15 +353,15 @@ export default function Scorekeepers() {
                             )}
                           </div>
                           <div className="flex-1">
-                            <p className="font-bold text-gray-900 dark:text-white">🏐 Volleyball</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Can score volleyball games</p>
+                            <p className="font-heading font-bold text-foreground">🏐 Volleyball</p>
+                            <p className="text-xs text-muted-foreground">Can score volleyball games</p>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 text-sm">
-                      <p className="text-blue-800 dark:text-blue-300 font-semibold">
+                    <div className="bg-muted border border-border p-4 text-sm">
+                      <p className="text-foreground font-medium">
                         💡 The user must already be registered in the system
                       </p>
                     </div>
@@ -380,7 +376,7 @@ export default function Scorekeepers() {
                           setSelectedSports([]);
                           setSearchError("");
                         }}
-                        className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
+                        className="font-medium"
                       >
                         Cancel
                       </Button>
@@ -397,29 +393,29 @@ export default function Scorekeepers() {
               </Dialog>
 
               <AlertDialog open={!!removingScorekeeper} onOpenChange={() => setRemovingScorekeeper(null)}>
-                <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                <AlertDialogContent>
                   <AlertDialogHeader>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 bg-red-100 dark:bg-red-950/30 rounded-xl flex items-center justify-center">
-                        <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                      <div className="w-12 h-12 bg-destructive/10 flex items-center justify-center">
+                        <AlertTriangle className="w-6 h-6 text-destructive" />
                       </div>
-                      <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+                      <AlertDialogTitle className="text-xl font-heading font-bold">
                         Remove Scorekeeper?
                       </AlertDialogTitle>
                     </div>
-                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
-                      Are you sure you want to remove <span className="font-bold text-gray-900 dark:text-white">{removingScorekeeper?.full_name}</span> as a scorekeeper?
+                    <AlertDialogDescription className="text-muted-foreground font-medium">
+                      Are you sure you want to remove <span className="font-heading font-bold text-foreground">{removingScorekeeper?.full_name}</span> as a scorekeeper?
                       <br /><br />
                       They will no longer be able to score games for your organization.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+                    <AlertDialogCancel className="font-medium">
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleRemoveConfirm}
-                      className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold"
+                      className="font-medium"
                     >
                       Remove Scorekeeper
                     </AlertDialogAction>

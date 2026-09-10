@@ -688,7 +688,7 @@ Please provide:
               <div className="flex justify-between items-start mb-8 print:mb-4">
                 <div>
                   <h1 className="font-heading text-3xl font-bold tracking-tight print:text-3xl">Statistics & Analytics</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium print:text-sm">
+                  <p className="text-muted-foreground mt-2 font-medium print:text-sm">
                     {organization?.name || 'Organization'} Performance Report
                   </p>
                 </div>
@@ -696,7 +696,7 @@ Please provide:
                   <Button
                     onClick={handleDownloadCSV}
                     disabled={downloadingCSV}
-                    className="font-medium shadow-xl"
+                    className="font-medium"
                   >
                     {downloadingCSV ? (
                       <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Preparing...</>
@@ -706,7 +706,7 @@ Please provide:
                   </Button>
                   <Button
                     onClick={handlePrint}
-                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold shadow-xl"
+                    className="font-medium"
                   >
                     <Printer className="w-5 h-5 mr-2" />
                     Print Report
@@ -715,12 +715,12 @@ Please provide:
               </div>
 
               {/* Filters */}
-              <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg print:hidden">
+              <Card className="border border-border bg-card print:hidden">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4 flex-wrap">
                     <div className="flex items-center gap-2">
-                      <Filter className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Filter by:</span>
+                      <Filter className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-sm font-heading font-bold text-muted-foreground uppercase tracking-wide">Filter by:</span>
                     </div>
 
                     <select
@@ -729,7 +729,7 @@ Please provide:
                         setSelectedSport(e.target.value);
                         setSelectedTeam(null);
                       }}
-                      className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-4 py-2 font-bold shadow-sm"
+                      className="bg-background border border-border text-foreground px-4 py-2 font-medium"
                     >
                       {sports.map(sport => (
                         <option key={sport} value={sport}>
@@ -744,7 +744,7 @@ Please provide:
                         setSelectedDivision(e.target.value);
                         setSelectedTeam(null);
                       }}
-                      className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-4 py-2 font-bold shadow-sm"
+                      className="bg-background border border-border text-foreground px-4 py-2 font-medium"
                     >
                       {divisions.map(div => (
                         <option key={div} value={div}>
@@ -754,7 +754,7 @@ Please provide:
                     </select>
 
                     {(selectedDivision !== 'all' || selectedSport !== 'all') && (
-                      <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold">
+                      <Badge variant="outline" className="border-border text-muted-foreground font-medium">
                         {selectedSport !== 'all' && (selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1))}
                         {selectedSport !== 'all' && selectedDivision !== 'all' && ' • '}
                         {selectedDivision !== 'all' && selectedDivision}
@@ -767,21 +767,21 @@ Please provide:
               <StatsRefreshControl />
 
               <Tabs defaultValue="overview" className="space-y-6">
-                <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl shadow-lg print:hidden">
-                  <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                <TabsList className="border border-border bg-card p-1 print:hidden">
+                  <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                     Overview
                   </TabsTrigger>
-                  <TabsTrigger value="players" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                  <TabsTrigger value="players" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                     Player Leaders
                   </TabsTrigger>
-                  <TabsTrigger value="team-players" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                  <TabsTrigger value="team-players" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                     Team Players
                   </TabsTrigger>
-                  <TabsTrigger value="teams" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                  <TabsTrigger value="teams" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                     Team Stats
                   </TabsTrigger>
                   {isAdmin && (
-                    <TabsTrigger value="ai" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                    <TabsTrigger value="ai" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                       AI Insights
                     </TabsTrigger>
                   )}
@@ -791,83 +791,83 @@ Please provide:
                 <TabsContent value="overview" className="space-y-6">
                   {/* Organization Summary Cards */}
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 print:grid-cols-4 print:gap-4">
-                    <Card className="relative overflow-hidden border-2 border-blue-100 dark:border-blue-900 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-950/30 shadow-lg print:shadow-none">
+                    <Card className="border border-border bg-card print:shadow-none">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400 print:text-xs">Teams</CardTitle>
+                        <CardTitle className="text-sm font-heading font-bold text-muted-foreground uppercase tracking-wide print:text-xs">Teams</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-3xl font-black text-gray-900 dark:text-white print:text-2xl">{orgStats.totalTeams}</div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold">
+                        <div className="text-3xl font-heading font-bold text-foreground tabular-nums print:text-2xl">{orgStats.totalTeams}</div>
+                        <p className="text-xs text-muted-foreground mt-1 font-medium">
                           🏀 {orgStats.basketballTeams} • 🏐 {orgStats.volleyballTeams}
                         </p>
                       </CardContent>
                     </Card>
 
-                    <Card className="relative overflow-hidden border-2 border-green-100 dark:border-green-900 bg-gradient-to-br from-white to-green-50 dark:from-gray-800 dark:to-green-950/30 shadow-lg print:shadow-none">
+                    <Card className="border border-border bg-card print:shadow-none">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400 print:text-xs">Players</CardTitle>
+                        <CardTitle className="text-sm font-heading font-bold text-muted-foreground uppercase tracking-wide print:text-xs">Players</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-3xl font-black text-gray-900 dark:text-white print:text-2xl">{orgStats.totalPlayers}</div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold">Active athletes</p>
+                        <div className="text-3xl font-heading font-bold text-foreground tabular-nums print:text-2xl">{orgStats.totalPlayers}</div>
+                        <p className="text-xs text-muted-foreground mt-1 font-medium">Active athletes</p>
                       </CardContent>
                     </Card>
 
-                    <Card className="relative overflow-hidden border-2 border-orange-100 dark:border-orange-900 bg-gradient-to-br from-white to-orange-50 dark:from-gray-800 dark:to-orange-950/30 shadow-lg print:shadow-none">
+                    <Card className="border border-border bg-card print:shadow-none">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400 print:text-xs">Games Played</CardTitle>
+                        <CardTitle className="text-sm font-heading font-bold text-muted-foreground uppercase tracking-wide print:text-xs">Games Played</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-3xl font-black text-gray-900 dark:text-white print:text-2xl">{orgStats.totalGames}</div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold">
+                        <div className="text-3xl font-heading font-bold text-foreground tabular-nums print:text-2xl">{orgStats.totalGames}</div>
+                        <p className="text-xs text-muted-foreground mt-1 font-medium">
                           🏀 {orgStats.basketballGames} • 🏐 {orgStats.volleyballGames}
                         </p>
                       </CardContent>
                     </Card>
 
-                    <Card className="relative overflow-hidden border-2 border-purple-100 dark:border-purple-900 bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-purple-950/30 shadow-lg print:shadow-none">
+                    <Card className="border border-border bg-card print:shadow-none">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-bold text-gray-600 dark:text-gray-400 print:text-xs">Avg Game Score</CardTitle>
+                        <CardTitle className="text-sm font-heading font-bold text-muted-foreground uppercase tracking-wide print:text-xs">Avg Game Score</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-3xl font-black text-gray-900 dark:text-white print:text-2xl">{orgStats.avgGameScore}</div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold">Points per game</p>
+                        <div className="text-3xl font-heading font-bold text-foreground tabular-nums print:text-2xl">{orgStats.avgGameScore}</div>
+                        <p className="text-xs text-muted-foreground mt-1 font-medium">Points per game</p>
                       </CardContent>
                     </Card>
                   </div>
 
                   {/* Organization-Wide Statistics Grid */}
-                  <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
-                    <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                      <CardTitle className="text-2xl font-black text-gray-900 dark:text-white print:text-xl">
+                  <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">
+                    <CardHeader className="border-b border-border">
+                      <CardTitle className="text-2xl font-heading font-bold print:text-xl">
                         Organization Statistics Summary
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6 print:p-4">
                       <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4 print:grid-cols-6 print:gap-3">
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-xl p-4 print:p-3 border-2 border-blue-200 dark:border-blue-800">
-                          <div className="text-3xl font-black text-blue-600 dark:text-blue-400 print:text-2xl">{orgStats.totalPoints}</div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400 font-bold mt-1">Total Points</div>
+                        <div className="border border-border bg-background p-4 print:p-3">
+                          <div className="text-3xl font-heading font-bold text-foreground tabular-nums print:text-2xl">{orgStats.totalPoints}</div>
+                          <div className="text-xs text-muted-foreground font-heading font-bold mt-1 uppercase tracking-wide">Total Points</div>
                         </div>
-                        <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 rounded-xl p-4 print:p-3 border-2 border-green-200 dark:border-green-800">
-                          <div className="text-3xl font-black text-green-600 dark:text-green-400 print:text-2xl">{orgStats.totalRebounds}</div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400 font-bold mt-1">Total Rebounds</div>
+                        <div className="border border-border bg-background p-4 print:p-3">
+                          <div className="text-3xl font-heading font-bold text-foreground tabular-nums print:text-2xl">{orgStats.totalRebounds}</div>
+                          <div className="text-xs text-muted-foreground font-heading font-bold mt-1 uppercase tracking-wide">Total Rebounds</div>
                         </div>
-                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 rounded-xl p-4 print:p-3 border-2 border-purple-200 dark:border-purple-800">
-                          <div className="text-3xl font-black text-purple-600 dark:text-purple-400 print:text-2xl">{orgStats.totalAssists}</div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400 font-bold mt-1">Total Assists</div>
+                        <div className="border border-border bg-background p-4 print:p-3">
+                          <div className="text-3xl font-heading font-bold text-foreground tabular-nums print:text-2xl">{orgStats.totalAssists}</div>
+                          <div className="text-xs text-muted-foreground font-heading font-bold mt-1 uppercase tracking-wide">Total Assists</div>
                         </div>
-                        <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 rounded-xl p-4 print:p-3 border-2 border-orange-200 dark:border-orange-800">
-                          <div className="text-3xl font-black text-orange-600 dark:text-orange-400 print:text-2xl">{orgStats.totalBlocks}</div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400 font-bold mt-1">Total Blocks</div>
+                        <div className="border border-border bg-background p-4 print:p-3">
+                          <div className="text-3xl font-heading font-bold text-foreground tabular-nums print:text-2xl">{orgStats.totalBlocks}</div>
+                          <div className="text-xs text-muted-foreground font-heading font-bold mt-1 uppercase tracking-wide">Total Blocks</div>
                         </div>
-                        <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 rounded-xl p-4 print:p-3 border-2 border-red-200 dark:border-red-800">
-                          <div className="text-3xl font-black text-red-600 dark:text-red-400 print:text-2xl">{orgStats.totalSteals}</div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400 font-bold mt-1">Total Steals</div>
+                        <div className="border border-border bg-background p-4 print:p-3">
+                          <div className="text-3xl font-heading font-bold text-foreground tabular-nums print:text-2xl">{orgStats.totalSteals}</div>
+                          <div className="text-xs text-muted-foreground font-heading font-bold mt-1 uppercase tracking-wide">Total Steals</div>
                         </div>
-                        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950/30 dark:to-yellow-900/30 rounded-xl p-4 print:p-3 border-2 border-yellow-200 dark:border-yellow-800">
-                          <div className="text-3xl font-black text-yellow-600 dark:text-yellow-400 print:text-2xl">{orgStats.totalFouls}</div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400 font-bold mt-1">Total Fouls</div>
+                        <div className="border border-border bg-background p-4 print:p-3">
+                          <div className="text-3xl font-heading font-bold text-foreground tabular-nums print:text-2xl">{orgStats.totalFouls}</div>
+                          <div className="text-xs text-muted-foreground font-heading font-bold mt-1 uppercase tracking-wide">Total Fouls</div>
                         </div>
                       </div>
                     </CardContent>
@@ -875,9 +875,9 @@ Please provide:
 
                   {/* Sport Distribution Chart */}
                   <div className="grid lg:grid-cols-2 gap-6 print:grid-cols-2 print:gap-4">
-                    <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
-                      <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">Teams by Sport</CardTitle>
+                    <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">
+                      <CardHeader className="border-b border-border">
+                        <CardTitle className="text-xl font-heading font-bold print:text-lg">Teams by Sport</CardTitle>
                       </CardHeader>
                       <CardContent className="p-6 print:p-4">
                         <ResponsiveContainer width="100%" height={250}>
@@ -905,9 +905,9 @@ Please provide:
                       </CardContent>
                     </Card>
 
-                    <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
-                      <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">Games by Sport</CardTitle>
+                    <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">
+                      <CardHeader className="border-b border-border">
+                        <CardTitle className="text-xl font-heading font-bold print:text-lg">Games by Sport</CardTitle>
                       </CardHeader>
                       <CardContent className="p-6 print:p-4">
                         <ResponsiveContainer width="100%" height={250}>
@@ -934,32 +934,32 @@ Please provide:
                   <StatsFetchingIndicator fetching={isStatsFetching} label="Refreshing leaderboards…">
                   <div className="grid lg:grid-cols-2 gap-6 print:grid-cols-2 print:gap-4">
                     {/* Top Scorers */}
-                    <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
-                      <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">🏆 Top Scorers</CardTitle>
+                    <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">
+                      <CardHeader className="border-b border-border">
+                        <CardTitle className="text-xl font-heading font-bold print:text-lg">🏆 Top Scorers</CardTitle>
                       </CardHeader>
                       <CardContent className="p-6 print:p-4">
                         <div className="space-y-2">
                           {topScorers.length === 0 && (
-                             <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                             <div className="text-sm text-muted-foreground">No data available.</div>
                            )}
                            {topScorers.map((player, index) => (
-                            <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
-                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black ${
-                                index === 0 ? 'bg-yellow-400 text-gray-900' :
-                                index === 1 ? 'bg-gray-300 text-white' :
-                                index === 2 ? 'bg-orange-600 text-white' :
-                                'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            <div key={index} className="flex items-center gap-3 border border-border bg-background p-3 print:p-2">
+                              <div className={`w-8 h-8 flex items-center justify-center text-sm font-heading font-bold border border-border ${
+                                index === 0 ? 'bg-primary text-primary-foreground' :
+                                index === 1 ? 'bg-muted text-foreground' :
+                                index === 2 ? 'bg-muted text-foreground' :
+                                'bg-background text-muted-foreground'
                               }`}>
                                 {index + 1}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
+                                <p className="text-sm font-heading font-bold text-foreground truncate print:text-xs">{player.name}</p>
+                                <p className="text-xs text-muted-foreground truncate">{player.team}</p>
                               </div>
                               <div className="text-right">
-                                <div className="text-xl font-black text-blue-600 dark:text-blue-400 print:text-lg leading-none">{player.avg}</div>
-                                <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">PPG · {player.value} total</div>
+                                <div className="text-xl font-heading font-bold text-foreground tabular-nums print:text-lg leading-none">{player.avg}</div>
+                                <div className="text-[10px] text-muted-foreground font-medium mt-0.5">PPG · {player.value} total</div>
                               </div>
                             </div>
                           ))}
@@ -969,27 +969,27 @@ Please provide:
 
                     {/* Top Rebounders */}
                     {selectedSport !== 'volleyball' && (
-                      <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
-                        <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">💪 Top Rebounders</CardTitle>
+                      <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">
+                        <CardHeader className="border-b border-border">
+                          <CardTitle className="text-xl font-heading font-bold print:text-lg">💪 Top Rebounders</CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 print:p-4">
                           <div className="space-y-2">
                             {topRebounders.length === 0 && (
-                               <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                               <div className="text-sm text-muted-foreground">No data available.</div>
                              )}
                              {topRebounders.slice(0, 10).map((player, index) => (
-                              <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-green-500 text-white">
+                              <div key={index} className="flex items-center gap-3 border border-border bg-background p-3 print:p-2">
+                                <div className="w-8 h-8 flex items-center justify-center text-sm font-heading font-bold border border-border bg-muted text-foreground">
                                   {index + 1}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
+                                  <p className="text-sm font-heading font-bold text-foreground truncate print:text-xs">{player.name}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{player.team}</p>
                                 </div>
                                 <div className="text-right">
-                                  <div className="text-xl font-black text-green-600 dark:text-green-400 print:text-lg leading-none">{player.avg}</div>
-                                  <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">RPG · {player.value} total</div>
+                                  <div className="text-xl font-heading font-bold text-foreground tabular-nums print:text-lg leading-none">{player.avg}</div>
+                                  <div className="text-[10px] text-muted-foreground font-medium mt-0.5">RPG · {player.value} total</div>
                                 </div>
                               </div>
                             ))}
@@ -1010,27 +1010,27 @@ Please provide:
                     )}
 
                     {/* Top Blocks */}
-                    <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
-                      <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                        <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">🛡️ Top Blocks</CardTitle>
+                    <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">
+                      <CardHeader className="border-b border-border">
+                        <CardTitle className="text-xl font-heading font-bold print:text-lg">🛡️ Top Blocks</CardTitle>
                       </CardHeader>
                       <CardContent className="p-6 print:p-4">
                         <div className="space-y-2">
                           {topBlocks.length === 0 && (
-                             <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                             <div className="text-sm text-muted-foreground">No data available.</div>
                            )}
                            {topBlocks.slice(0, 10).map((player, index) => (
-                            <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
-                              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-orange-500 text-white">
+                            <div key={index} className="flex items-center gap-3 border border-border bg-background p-3 print:p-2">
+                              <div className="w-8 h-8 flex items-center justify-center text-sm font-heading font-bold border border-border bg-muted text-foreground">
                                 {index + 1}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
+                                <p className="text-sm font-heading font-bold text-foreground truncate print:text-xs">{player.name}</p>
+                                <p className="text-xs text-muted-foreground truncate">{player.team}</p>
                               </div>
                               <div className="text-right">
-                                <div className="text-xl font-black text-orange-600 dark:text-orange-400 print:text-lg leading-none">{player.avg}</div>
-                                <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">BPG · {player.value} total</div>
+                                <div className="text-xl font-heading font-bold text-foreground tabular-nums print:text-lg leading-none">{player.avg}</div>
+                                <div className="text-[10px] text-muted-foreground font-medium mt-0.5">BPG · {player.value} total</div>
                               </div>
                             </div>
                           ))}
@@ -1040,27 +1040,27 @@ Please provide:
 
                     {/* Top 3-Point Shooters (Basketball) */}
                     {selectedSport !== 'volleyball' && (
-                      <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
-                        <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">🎯 Top 3-Point Shooters</CardTitle>
+                      <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">
+                        <CardHeader className="border-b border-border">
+                          <CardTitle className="text-xl font-heading font-bold print:text-lg">🎯 Top 3-Point Shooters</CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 print:p-4">
                           <div className="space-y-2">
                             {topThreePointers.length === 0 && (
-                              <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                              <div className="text-sm text-muted-foreground">No data available.</div>
                             )}
                             {topThreePointers.slice(0, 10).map((player, index) => (
-                              <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-purple-500 text-white">
+                              <div key={index} className="flex items-center gap-3 border border-border bg-background p-3 print:p-2">
+                                <div className="w-8 h-8 flex items-center justify-center text-sm font-heading font-bold border border-border bg-muted text-foreground">
                                   {index + 1}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
+                                  <p className="text-sm font-heading font-bold text-foreground truncate print:text-xs">{player.name}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{player.team}</p>
                                 </div>
                                 <div className="text-right">
-                                  <div className="text-xl font-black text-purple-600 dark:text-purple-400 print:text-lg leading-none">{player.avg}</div>
-                                  <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">3PG · {player.value} total</div>
+                                  <div className="text-xl font-heading font-bold text-foreground tabular-nums print:text-lg leading-none">{player.avg}</div>
+                                  <div className="text-[10px] text-muted-foreground font-medium mt-0.5">3PG · {player.value} total</div>
                                 </div>
                               </div>
                             ))}
@@ -1073,27 +1073,27 @@ Please provide:
                   {selectedSport === 'volleyball' && (
                     <div className="grid lg:grid-cols-2 gap-6 print:grid-cols-2 print:gap-4 mt-6">
                       {/* Top Aces */}
-                      <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
-                        <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">🎯 Top Aces</CardTitle>
+                      <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">
+                        <CardHeader className="border-b border-border">
+                          <CardTitle className="text-xl font-heading font-bold print:text-lg">🎯 Top Aces</CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 print:p-4">
                           <div className="space-y-2">
                             {topAces.length === 0 && (
-                              <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                              <div className="text-sm text-muted-foreground">No data available.</div>
                             )}
                             {topAces.slice(0, 10).map((player, index) => (
-                              <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-blue-500 text-white">
+                              <div key={index} className="flex items-center gap-3 border border-border bg-background p-3 print:p-2">
+                                <div className="w-8 h-8 flex items-center justify-center text-sm font-heading font-bold border border-border bg-muted text-foreground">
                                   {index + 1}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
+                                  <p className="text-sm font-heading font-bold text-foreground truncate print:text-xs">{player.name}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{player.team}</p>
                                 </div>
                                 <div className="text-right">
-                                  <div className="text-xl font-black text-blue-600 dark:text-blue-400 print:text-lg leading-none">{player.avg}</div>
-                                  <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">per game · {player.value} total</div>
+                                  <div className="text-xl font-heading font-bold text-foreground tabular-nums print:text-lg leading-none">{player.avg}</div>
+                                  <div className="text-[10px] text-muted-foreground font-medium mt-0.5">per game · {player.value} total</div>
                                 </div>
                               </div>
                             ))}
@@ -1102,27 +1102,27 @@ Please provide:
                       </Card>
 
                       {/* Top Attacks */}
-                      <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
-                        <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                          <CardTitle className="text-xl font-black text-gray-900 dark:text-white print:text-lg">⚡ Top Attacks</CardTitle>
+                      <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">
+                        <CardHeader className="border-b border-border">
+                          <CardTitle className="text-xl font-heading font-bold print:text-lg">⚡ Top Attacks</CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 print:p-4">
                           <div className="space-y-2">
                             {topAttacks.length === 0 && (
-                              <div className="text-sm text-gray-500 dark:text-gray-400">No data available.</div>
+                              <div className="text-sm text-muted-foreground">No data available.</div>
                             )}
                             {topAttacks.slice(0, 10).map((player, index) => (
-                              <div key={index} className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-lg p-3 print:p-2 border border-gray-200 dark:border-gray-700">
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black bg-green-500 text-white">
+                              <div key={index} className="flex items-center gap-3 border border-border bg-background p-3 print:p-2">
+                                <div className="w-8 h-8 flex items-center justify-center text-sm font-heading font-bold border border-border bg-muted text-foreground">
                                   {index + 1}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate print:text-xs">{player.name}</p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{player.team}</p>
+                                  <p className="text-sm font-heading font-bold text-foreground truncate print:text-xs">{player.name}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{player.team}</p>
                                 </div>
                                 <div className="text-right">
-                                  <div className="text-xl font-black text-green-600 dark:text-green-400 print:text-lg leading-none">{player.avg}</div>
-                                  <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-0.5">per game · {player.value} total</div>
+                                  <div className="text-xl font-heading font-bold text-foreground tabular-nums print:text-lg leading-none">{player.avg}</div>
+                                  <div className="text-[10px] text-muted-foreground font-medium mt-0.5">per game · {player.value} total</div>
                                 </div>
                               </div>
                             ))}
@@ -1137,18 +1137,18 @@ Please provide:
                       {/* TEAM PLAYERS TAB */}
                 <TabsContent value="team-players" className="space-y-6">
                   {/* Team Filter */}
-                  <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">
+                  <Card className="border border-border bg-card">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4 flex-wrap">
                         <div className="flex items-center gap-2">
-                          <Users className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Select Team:</span>
+                          <Users className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm font-heading font-bold text-muted-foreground uppercase tracking-wide">Select Team:</span>
                         </div>
 
                         <select
                           value={selectedTeamForPlayers}
                           onChange={(e) => setSelectedTeamForPlayers(e.target.value)}
-                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-4 py-2 font-bold shadow-sm"
+                          className="bg-background border border-border text-foreground px-4 py-2 font-medium"
                         >
                           <option value="all">All Teams</option>
                           {filteredTeams.map(team => (
@@ -1159,7 +1159,7 @@ Please provide:
                         </select>
 
                         {selectedTeamData && (
-                          <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800 font-bold">
+                          <Badge variant="outline" className="border-border text-muted-foreground font-medium">
                             {teamPlayersWithStats.length} Players
                           </Badge>
                         )}
@@ -1169,24 +1169,18 @@ Please provide:
 
                   {/* Selected Team Info */}
                   {selectedTeamData && (
-                    <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 border-2 border-green-200 dark:border-green-800 shadow-lg">
+                    <Card className="border border-border bg-card">
                       <CardContent className="p-6">
                         <div className="flex items-center gap-4">
-                          <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
+                          <Avatar className="w-16 h-16 border border-border">
                             <AvatarImage src={selectedTeamData.logo_url} />
-                            <AvatarFallback className={`bg-gradient-to-br ${
-                              selectedTeamData.sport === 'basketball' ? 'from-orange-500 to-orange-600' : 'from-blue-500 to-blue-600'
-                            } text-white font-black text-lg`}>
+                            <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-lg">
                               {selectedTeamData.name?.substring(0, 2).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <h2 className="text-2xl font-black text-gray-900 dark:text-white">{selectedTeamData.name}</h2>
-                            <Badge className={`mt-2 ${
-                              selectedTeamData.sport === 'basketball'
-                                ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800'
-                                : 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
-                            } font-bold`}>
+                            <h2 className="text-2xl font-heading font-bold">{selectedTeamData.name}</h2>
+                            <Badge variant="outline" className="mt-2 border-border text-muted-foreground font-medium uppercase text-xs">
                               {selectedTeamData.sport}
                             </Badge>
                           </div>
@@ -1196,9 +1190,9 @@ Please provide:
                   )}
 
                   {/* Players Table */}
-                  <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">
-                    <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                      <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                  <Card className="border border-border bg-card">
+                    <CardHeader className="border-b border-border">
+                      <CardTitle className="text-2xl font-heading font-bold">
                         Individual Player Statistics
                       </CardTitle>
                     </CardHeader>
@@ -1207,92 +1201,92 @@ Please provide:
                         <table className="w-full">
                           <thead>
                             <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
-                              <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PLAYER</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">GP</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PTS</th>
+                              <th className="text-left py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">PLAYER</th>
+                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">GP</th>
+                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">PTS</th>
                               {!(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
-                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PPG</th>
+                                <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">PPG</th>
                               )}
                               {!(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
                                 <>
-                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">REB</th>
-                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">RPG</th>
-                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">AST</th>
-                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">APG</th>
+                                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">REB</th>
+                                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">RPG</th>
+                                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">AST</th>
+                                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">APG</th>
                                 </>
                               )}
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">BLK</th>
+                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">BLK</th>
                               {!(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
                                 <>
-                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">STL</th>
-                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">FLS</th>
+                                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">STL</th>
+                                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">FLS</th>
                                 </>
                               )}
                               {(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
                                 <>
-                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ACES</th>
-                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ATT</th>
-                                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ERR</th>
+                                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">ACES</th>
+                                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">ATT</th>
+                                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">ERR</th>
                                 </>
                               )}
                               {!(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
-                                <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">FG%</th>
+                                <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">FG%</th>
                               )}
                             </tr>
                           </thead>
                           <tbody>
                             {teamPlayersWithStats.length > 0 ? teamPlayersWithStats.map((player) => (
-                              <tr key={player.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                              <tr key={player.id} className="border-b border-border hover:bg-muted/50 transition-colors">
                                 <td className="py-4 px-4">
                                   <div className="flex items-center gap-3">
-                                    <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+                                    <Avatar className="w-10 h-10 border border-border">
                                       <AvatarImage src={player.photo_url} />
-                                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold">
+                                      <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                                         {player.jersey_number}
                                       </AvatarFallback>
                                     </Avatar>
                                     <div>
-                                      <p className="font-bold text-gray-900 dark:text-white">
+                                      <p className="font-heading font-bold text-foreground">
                                         {player.first_name} {player.last_name}
                                       </p>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400">#{player.jersey_number}</p>
+                                      <p className="text-xs text-muted-foreground">#{player.jersey_number}</p>
                                     </div>
                                   </div>
                                 </td>
-                                <td className="py-4 px-4 text-center font-semibold text-gray-900 dark:text-white">{player.stats.gamesPlayed}</td>
-                                <td className="py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-bold text-lg">{player.stats.points}</td>
-                                <td className="py-4 px-4 text-center font-semibold text-gray-700 dark:text-gray-300">{player.stats.ppg}</td>
+                                <td className="py-4 px-4 text-center font-medium text-foreground tabular-nums">{player.stats.gamesPlayed}</td>
+                                <td className="py-4 px-4 text-center text-foreground font-heading font-bold text-lg tabular-nums">{player.stats.points}</td>
+                                <td className="py-4 px-4 text-center font-medium text-muted-foreground tabular-nums">{player.stats.ppg}</td>
                                 {!(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
                                   <>
-                                    <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-bold">{player.stats.rebounds}</td>
-                                    <td className="py-4 px-4 text-center font-semibold text-gray-700 dark:text-gray-300">{player.stats.rpg}</td>
-                                    <td className="py-4 px-4 text-center text-purple-600 dark:text-purple-400 font-bold">{player.stats.assists}</td>
-                                    <td className="py-4 px-4 text-center font-semibold text-gray-700 dark:text-gray-300">{player.stats.apg}</td>
+                                    <td className="py-4 px-4 text-center text-foreground font-heading font-bold tabular-nums">{player.stats.rebounds}</td>
+                                    <td className="py-4 px-4 text-center font-medium text-muted-foreground tabular-nums">{player.stats.rpg}</td>
+                                    <td className="py-4 px-4 text-center text-foreground font-heading font-bold tabular-nums">{player.stats.assists}</td>
+                                    <td className="py-4 px-4 text-center font-medium text-muted-foreground tabular-nums">{player.stats.apg}</td>
                                   </>
                                 )}
-                                <td className="py-4 px-4 text-center text-orange-600 dark:text-orange-400 font-semibold">{player.stats.blocks}</td>
+                                <td className="py-4 px-4 text-center font-medium text-foreground tabular-nums">{player.stats.blocks}</td>
                                 {!(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
                                   <>
-                                    <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-semibold">{player.stats.steals}</td>
-                                    <td className="py-4 px-4 text-center text-yellow-600 dark:text-yellow-400 font-semibold">{player.stats.fouls}</td>
+                                    <td className="py-4 px-4 text-center font-medium text-foreground tabular-nums">{player.stats.steals}</td>
+                                    <td className="py-4 px-4 text-center font-medium text-muted-foreground tabular-nums">{player.stats.fouls}</td>
                                   </>
                                 )}
                                 {(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
                                   <>
-                                    <td className="py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-semibold">{player.stats.aces}</td>
-                                    <td className="py-4 px-4 text-center text-green-600 dark:text-green-400 font-semibold">{player.stats.attacks}</td>
-                                    <td className="py-4 px-4 text-center text-rose-600 dark:text-rose-400 font-semibold">{player.stats.rallyErrors}</td>
+                                    <td className="py-4 px-4 text-center font-medium text-foreground tabular-nums">{player.stats.aces}</td>
+                                    <td className="py-4 px-4 text-center font-medium text-foreground tabular-nums">{player.stats.attacks}</td>
+                                    <td className="py-4 px-4 text-center font-medium text-muted-foreground tabular-nums">{player.stats.rallyErrors}</td>
                                   </>
                                 )}
                                 {!(selectedSport === 'volleyball' || selectedTeamData?.sport === 'volleyball') && (
-                                  <td className="py-4 px-4 text-center text-indigo-600 dark:text-indigo-400 font-semibold">{player.stats.fgPct}%</td>
+                                  <td className="py-4 px-4 text-center font-medium text-muted-foreground tabular-nums">{player.stats.fgPct}%</td>
                                 )}
                               </tr>
                             )) : (
                               <tr>
                                 <td colSpan="12" className="py-20 text-center">
-                                  <Users className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                                  <p className="text-gray-500 dark:text-gray-400 font-medium">
+                                  <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                                  <p className="text-muted-foreground font-medium">
                                     {selectedTeamForPlayers === 'all' ? 'Select a team to view player statistics' : 'No players found for this team'}
                                   </p>
                                 </td>
@@ -1307,9 +1301,9 @@ Please provide:
 
                 {/* TEAM STATS TAB */}
                 <TabsContent value="teams" className="space-y-6">
-                  <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg print:shadow-none print:break-inside-avoid">
-                    <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
-                      <CardTitle className="text-2xl font-black text-gray-900 dark:text-white print:text-xl">
+                  <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">
+                    <CardHeader className="border-b border-border">
+                      <CardTitle className="text-2xl font-heading font-bold print:text-xl">
                         Team Performance Statistics
                       </CardTitle>
                     </CardHeader>
@@ -1317,58 +1311,52 @@ Please provide:
                       <div className="overflow-x-auto">
                         <table className="w-full">
                           <thead>
-                            <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
-                              <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">TEAM</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">SPORT</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">W-D-L</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">WIN%</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">PPG</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">PAPG</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">FOULS</th>
-                              <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm print:text-xs">TO/G</th>
+                            <tr className="bg-muted/50 border-b border-border">
+                              <th className="text-left py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">TEAM</th>
+                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">SPORT</th>
+                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">W-D-L</th>
+                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">WIN%</th>
+                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">PPG</th>
+                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">PAPG</th>
+                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">FOULS</th>
+                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">TO/G</th>
                             </tr>
                           </thead>
                           <tbody>
                             {teamStats.map((team) => (
-                              <tr key={team.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                              <tr key={team.id} className="border-b border-border hover:bg-muted/50 transition-colors">
                                 <td className="py-4 px-4 print:py-2 print:px-2">
                                   <div className="flex items-center gap-3">
-                                    <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md print:w-8 print:h-8">
+                                    <Avatar className="w-10 h-10 border border-border print:w-8 print:h-8">
                                       <AvatarImage src={team.logo_url} />
-                                      <AvatarFallback className={`bg-gradient-to-br ${
-                                        team.sport === 'basketball' ? 'from-orange-500 to-orange-600' : 'from-blue-500 to-blue-600'
-                                      } text-white text-xs font-bold`}>
+                                      <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                                         {team.name?.substring(0, 2).toUpperCase()}
                                       </AvatarFallback>
                                     </Avatar>
-                                    <span className="font-bold text-gray-900 dark:text-white print:text-xs">{team.name}</span>
+                                    <span className="font-heading font-bold text-foreground print:text-xs">{team.name}</span>
                                   </div>
                                 </td>
                                 <td className="py-4 px-4 text-center print:py-2 print:px-2">
-                                  <Badge className={`${
-                                    team.sport === 'basketball'
-                                      ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800'
-                                      : 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
-                                  } font-bold print:text-xs`}>
+                                  <Badge variant="outline" className="border-border text-muted-foreground font-medium print:text-xs">
                                     {team.sport === 'basketball' ? '🏀' : '🏐'}
                                   </Badge>
                                 </td>
-                                <td className="py-4 px-4 text-center font-bold text-gray-900 dark:text-white print:py-2 print:px-2 print:text-xs">
+                                <td className="py-4 px-4 text-center font-heading font-bold text-foreground tabular-nums print:py-2 print:px-2 print:text-xs">
                                   {team.wins}-{team.draws || 0}-{team.losses}
                                 </td>
-                                <td className="py-4 px-4 text-center font-bold text-gray-900 dark:text-white print:py-2 print:px-2 print:text-xs">
+                                <td className="py-4 px-4 text-center font-heading font-bold text-foreground tabular-nums print:py-2 print:px-2 print:text-xs">
                                   {team.gamesPlayed > 0 ? (((team.wins + (team.draws || 0) * 0.5) / team.gamesPlayed) * 100).toFixed(0) : 0}%
                                 </td>
-                                <td className="py-4 px-4 text-center text-blue-600 dark:text-blue-400 font-semibold print:py-2 print:px-2 print:text-xs">
+                                <td className="py-4 px-4 text-center font-medium text-foreground tabular-nums print:py-2 print:px-2 print:text-xs">
                                   {team.avgPointsFor}
                                 </td>
-                                <td className="py-4 px-4 text-center text-red-600 dark:text-red-400 font-semibold print:py-2 print:px-2 print:text-xs">
+                                <td className="py-4 px-4 text-center font-medium text-muted-foreground tabular-nums print:py-2 print:px-2 print:text-xs">
                                   {team.avgPointsAgainst}
                                 </td>
-                                <td className="py-4 px-4 text-center text-yellow-600 dark:text-yellow-400 font-semibold print:py-2 print:px-2 print:text-xs">
+                                <td className="py-4 px-4 text-center font-medium text-muted-foreground tabular-nums print:py-2 print:px-2 print:text-xs">
                                   {team.avgFouls}
                                 </td>
-                                <td className="py-4 px-4 text-center text-purple-600 dark:text-purple-400 font-semibold print:py-2 print:px-2 print:text-xs">
+                                <td className="py-4 px-4 text-center font-medium text-muted-foreground tabular-nums print:py-2 print:px-2 print:text-xs">
                                   {team.avgTimeouts}
                                 </td>
                               </tr>
@@ -1383,18 +1371,18 @@ Please provide:
                 {/* AI INSIGHTS TAB - Admins only */}
                 {isAdmin && (
                 <TabsContent value="ai" className="space-y-6">
-                  <Card className="border-2 border-gray-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl print:shadow-none print:break-inside-avoid">
-                    <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700">
+                  <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">
+                    <CardHeader className="border-b border-border">
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
-                          <Sparkles className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                        <CardTitle className="text-2xl font-heading font-bold flex items-center gap-2">
+                          <Sparkles className="w-6 h-6 text-primary" />
                           AI Performance Analysis
                         </CardTitle>
                         {!aiAnalysis && (
                           <Button
                             onClick={generateAIAnalysis}
                             disabled={loadingAI}
-                            className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold"
+                            className="font-medium"
                           >
                             {loadingAI ? (
                               <>
@@ -1414,7 +1402,7 @@ Please provide:
                     <CardContent className="p-6 print:p-4">
                       {aiAnalysis ? (
                         <div className="prose prose-sm max-w-none dark:prose-invert">
-                          <div className="whitespace-pre-wrap text-gray-700 dark:text-gray-300 leading-relaxed">
+                          <div className="whitespace-pre-wrap text-foreground leading-relaxed">
                             {aiAnalysis}
                           </div>
                           <Button
@@ -1427,8 +1415,8 @@ Please provide:
                         </div>
                       ) : (
                         <div className="text-center py-20">
-                          <Sparkles className="w-16 h-16 text-purple-300 dark:text-purple-600 mx-auto mb-4" />
-                          <p className="text-gray-500 dark:text-gray-400 font-medium mb-4">
+                          <Sparkles className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                          <p className="text-muted-foreground font-medium mb-4">
                             Click "Generate Analysis" to get AI-powered insights about your organization's performance
                           </p>
                         </div>
