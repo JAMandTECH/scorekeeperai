@@ -51,7 +51,7 @@ export default function AdminHeader({
         <div className="flex items-center gap-3">
           {organization?.logo_url ? (
             <Avatar className="w-9 h-9 border border-border">
-              <AvatarImage src={organization.logo_url} className="grayscale" />
+              <AvatarImage src={organization.logo_url} />
               <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-sm">
                 {organization.name?.substring(0, 2).toUpperCase()}
               </AvatarFallback>

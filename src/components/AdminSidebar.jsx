@@ -149,7 +149,7 @@ export default function AdminSidebar({
             <div className="px-4 mb-6">
               <div className="flex items-center gap-3 p-3 border border-border">
                 <Avatar className="w-10 h-10 border border-border">
-                  <AvatarImage src={organization.logo_url} className="grayscale" />
+                  <AvatarImage src={organization.logo_url} />
                   <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-sm">
                     {organization.name?.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
