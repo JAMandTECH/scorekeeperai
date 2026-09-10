@@ -741,38 +741,42 @@ export default function Games() {
             </Link>
           )}
           {showActions && game.status === 'completed' && !game.archived && (
-            <div className="grid grid-cols-4 gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button 
                 onClick={() => handleEditGame(game)}
                 variant="outline"
-                className="border-2 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-bold"
+                size="sm"
+                className="border border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-medium"
               >
-                <Edit className="w-4 h-4 mr-2" />
+                <Edit className="w-3.5 h-3.5 mr-1.5" />
                 Edit
               </Button>
               <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}&edit=1`}>
                 <Button
                   variant="outline"
-                  className="border-2 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-bold"
+                  size="sm"
+                  className="border border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-medium"
                 >
-                  <FileEdit className="w-4 h-4 mr-2" />
+                  <FileEdit className="w-3.5 h-3.5 mr-1.5" />
                   Edit Stats
                 </Button>
               </Link>
               <Button
                 onClick={() => setArchivingGame(game)}
                 variant="outline"
-                className="border-2 border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 font-bold"
+                size="sm"
+                className="border border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 font-medium"
               >
-                <Archive className="w-4 h-4 mr-2" />
+                <Archive className="w-3.5 h-3.5 mr-1.5" />
                 Archive
               </Button>
               <Button
                 onClick={() => handleDeleteClick(game)}
                 variant="outline"
-                className="border-2 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-bold"
+                size="sm"
+                className="border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-medium"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" />
                 Delete
               </Button>
             </div>
