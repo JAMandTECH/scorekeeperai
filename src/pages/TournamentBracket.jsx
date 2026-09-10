@@ -448,12 +448,12 @@ export default function TournamentBracket() {
                   {tournaments.map(tournament => (
                     <Card 
                       key={tournament.id}
-                      className="border-2 border-purple-100 dark:border-purple-900 hover:shadow-xl transition-all cursor-pointer"
+                      className="border border-border bg-card hover:border-foreground/20 transition-colors cursor-pointer"
                       onClick={() => setSelectedTournament(tournament)}
                     >
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between mb-4">
-                          <Trophy className="w-8 h-8 text-yellow-500" />
+                          <Trophy className="w-8 h-8 text-primary" />
                           <div className="flex gap-1">
                             <Button
                               variant="ghost"
@@ -463,7 +463,7 @@ export default function TournamentBracket() {
                                 setEditingTournament(tournament);
                                 setShowForm(true);
                               }}
-                              className="text-gray-400 hover:text-blue-600"
+                              className="text-muted-foreground hover:text-foreground"
                             >
                               <Pencil className="w-4 h-4" />
                             </Button>
@@ -474,29 +474,29 @@ export default function TournamentBracket() {
                                 e.stopPropagation();
                                 setDeletingTournament(tournament);
                               }}
-                              className="text-gray-400 hover:text-red-600"
+                              className="text-muted-foreground hover:text-destructive"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </div>
-                        <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">
+                        <h3 className="text-xl font-heading font-bold mb-2">
                           {tournament.name}
                         </h3>
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            <Badge className="bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                            <Badge variant="outline" className="border-border text-muted-foreground font-medium uppercase text-xs">
                               {tournament.sport.toUpperCase()}
                             </Badge>
-                            <Badge variant="outline">
+                            <Badge variant="outline" className="border-border text-muted-foreground font-medium">
                               {tournament.num_teams} Teams
                             </Badge>
                           </div>
-                          <Badge className={
-                            tournament.status === 'completed' ? 'bg-green-600' :
-                            tournament.status === 'in_progress' ? 'bg-yellow-600' :
-                            tournament.status === 'seeding' ? 'bg-orange-600' :
-                            'bg-gray-600'
+                          <Badge variant="outline" className={
+                            tournament.status === 'completed' ? 'border-primary text-primary' :
+                            tournament.status === 'in_progress' ? 'border-foreground text-foreground' :
+                            tournament.status === 'seeding' ? 'border-foreground/60 text-muted-foreground' :
+                            'border-border text-muted-foreground'
                           }>
                             {tournament.status.replace('_', ' ').toUpperCase()}
                           </Badge>
@@ -506,9 +506,9 @@ export default function TournamentBracket() {
                   ))}
                   {tournaments.length === 0 && (
                     <div className="col-span-full text-center py-20">
-                      <Trophy className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                      <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No tournaments yet</p>
-                      <p className="text-gray-400 dark:text-gray-500 text-sm">Create your first tournament to get started</p>
+                      <Trophy className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground text-xl font-heading font-bold">No tournaments yet</p>
+                      <p className="text-muted-foreground text-sm">Create your first tournament to get started</p>
                     </div>
                   )}
                 </div>
@@ -520,7 +520,7 @@ export default function TournamentBracket() {
                     <Button
                       variant="outline"
                       onClick={() => setSelectedTournament(null)}
-                      className="font-bold"
+                      className="font-medium"
                     >
                       ← Back to Tournaments
                     </Button>
@@ -564,7 +564,7 @@ export default function TournamentBracket() {
               }}>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle className="text-2xl font-black">
+                    <DialogTitle className="text-2xl font-heading font-bold">
                       {editingTournament ? 'Edit Tournament' : 'Create New Tournament'}
                     </DialogTitle>
                   </DialogHeader>
@@ -595,7 +595,7 @@ export default function TournamentBracket() {
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => deleteTournamentMutation.mutate(deletingTournament.id)}
-                      className="bg-red-600 hover:bg-red-700"
+                      className="font-medium"
                     >
                       Delete
                     </AlertDialogAction>

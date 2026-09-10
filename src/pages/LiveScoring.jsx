@@ -1181,58 +1181,58 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
           if (isFouledOut || isDisabledByRole) return;
           onSelect(player, team);
         }}
-        className={`w-full text-left border-2 rounded-lg p-3 mb-2 transition-all ${
+        className={`w-full text-left border rounded-sm p-3 mb-2 transition-colors ${
           isFouledOut || isDisabledByRole
-            ? 'bg-gray-100 dark:bg-gray-900/50 opacity-50 cursor-not-allowed border-gray-300 dark:border-gray-700' 
+            ? 'bg-muted opacity-50 cursor-not-allowed border-border' 
             : isSelected
-              ? 'bg-gradient-to-r from-orange-500 to-orange-600 border-orange-400 ring-2 ring-orange-300 shadow-lg scale-105'
-              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600 hover:shadow-md'
+              ? 'bg-primary border-primary text-primary-foreground'
+              : 'bg-card border-border hover:border-foreground/30'
         }`}
         disabled={isFouledOut || isDisabledByRole}
       >
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+            <Avatar className="w-10 h-10 border border-border">
               <AvatarImage src={player.photo_url} />
-              <AvatarFallback className={`text-sm font-black ${isSelected ? 'bg-white text-orange-600' : 'bg-gradient-to-br from-orange-600 to-orange-700 text-white'}`}>
+              <AvatarFallback className={`text-sm font-heading font-bold ${isSelected ? 'bg-background text-foreground' : 'bg-secondary text-foreground'}`}>
                 {player.jersey_number}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className={`text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+              <p className={`text-sm font-heading font-bold truncate ${isSelected ? 'text-primary-foreground' : 'text-foreground'}`}>
                 {player.first_name} {player.last_name}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
-            <div className={`flex gap-3 ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+            <div className={`flex gap-3 ${isSelected ? 'text-primary-foreground' : 'text-foreground'}`}>
               <div className="text-center">
-                <div className="text-xl font-black">{points}</div>
-                <div className={`text-[9px] font-semibold ${isSelected ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'}`}>PTS</div>
+                <div className="text-xl font-heading font-bold tabular-nums">{points}</div>
+                <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>PTS</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-black">{rebounds}</div>
-                <div className={`text-[9px] font-semibold ${isSelected ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'}`}>REB</div>
+                <div className="text-xl font-heading font-bold tabular-nums">{rebounds}</div>
+                <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>REB</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-black">{assists}</div>
-                <div className={`text-[9px] font-semibold ${isSelected ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'}`}>AST</div>
+                <div className="text-xl font-heading font-bold tabular-nums">{assists}</div>
+                <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>AST</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-black">{steals}</div>
-                <div className={`text-[9px] font-semibold ${isSelected ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'}`}>STL</div>
+                <div className="text-xl font-heading font-bold tabular-nums">{steals}</div>
+                <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>STL</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-black">{blocks}</div>
-                <div className={`text-[9px] font-semibold ${isSelected ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'}`}>BLK</div>
+                <div className="text-xl font-heading font-bold tabular-nums">{blocks}</div>
+                <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>BLK</div>
               </div>
               <div className="text-center">
-                <div className={`text-xl font-black ${totalFouls >= game.player_foul_limit - 1 ? 'text-red-600 dark:text-red-400' : ''}`}>{totalFouls}</div>
-                <div className={`text-[9px] font-semibold ${isSelected ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'}`}>FL</div>
+                <div className={`text-xl font-heading font-bold tabular-nums ${totalFouls >= game.player_foul_limit - 1 ? 'text-destructive' : ''}`}>{totalFouls}</div>
+                <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>FL</div>
               </div>
             </div>
             {isFouledOut && (
-              <Badge className="bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5">FOULED OUT</Badge>
+              <Badge className="bg-destructive text-destructive-foreground text-[10px] font-heading font-bold px-1.5 py-0.5">FOULED OUT</Badge>
             )}
           </div>
         </div>
@@ -1258,20 +1258,20 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* TOP NAVIGATION BAR */}
-      <div className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border">
+      <div className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {organization?.logo_url && (
-              <Avatar className="w-10 h-10 border-2 border-orange-500 shadow-lg">
+              <Avatar className="w-10 h-10 border border-border">
                 <AvatarImage src={organization.logo_url} />
-                <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-sm">
+                <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-sm">
                   {organization.name?.substring(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             )}
             <div>
-              <h1 className="text-lg font-black text-gray-900 dark:text-white">{organization?.name || 'Live Scoring'}</h1>
-              <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Basketball Game Management</p>
+              <h1 className="text-lg font-heading font-bold">{organization?.name || 'Live Scoring'}</h1>
+              <p className="text-xs text-muted-foreground font-medium">Basketball Game Management</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -1281,20 +1281,20 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                 onClick={() => setShowBroadcastDialog(true)}
                 variant="outline"
                 size="sm"
-                className="border-2 border-purple-500 text-purple-600 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 font-bold"
+                className="font-medium"
               >
                 <Radio className="w-4 h-4 mr-1" />
                 Broadcast Overlay
               </Button>
             )}
             {game?.stream_url && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <div className="flex items-center gap-2 px-3 py-1.5 border border-border bg-card">
                 <Switch
                   checked={!hideLiveStream}
                   onCheckedChange={(checked) => setHideLiveStream(!checked)}
                   id="hide-stream-toggle"
                 />
-                <Label htmlFor="hide-stream-toggle" className="text-xs font-bold text-gray-700 dark:text-gray-300 cursor-pointer">
+                <Label htmlFor="hide-stream-toggle" className="text-xs font-heading font-bold text-foreground cursor-pointer">
                   {hideLiveStream ? "Stream Hidden" : "Stream Visible"}
                 </Label>
               </div>
@@ -1304,7 +1304,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
               onClick={toggleDarkMode}
               variant="outline"
               size="sm"
-              className="border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 font-bold p-2"
+              className="border border-border text-foreground hover:bg-muted font-medium p-2"
             >
               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -1312,7 +1312,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
               onClick={() => navigate(createPageUrl("Dashboard"))}
               variant="outline"
               size="sm"
-              className="border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 font-bold"
+              className="border border-border text-foreground hover:bg-muted font-medium"
             >
               <ChevronRight className="w-4 h-4 mr-1 rotate-180" />
               Back to Dashboard
@@ -1323,16 +1323,16 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
 
       {/* DEFAULT GAME ALERT */}
       {game.is_default && (
-        <div className="sticky z-40 bg-red-100 dark:bg-red-900/95 border-b-4 border-red-500" style={{ top: '64px' }}>
+        <div className="sticky z-40 bg-destructive/10 border-b-2 border-destructive" style={{ top: '64px' }}>
           <div className="max-w-7xl mx-auto p-4">
-            <Alert className="bg-red-200 dark:bg-red-800/50 border-2 border-red-400">
-              <Flag className="h-5 w-5 text-red-600 dark:text-red-300" />
-              <AlertDescription className="text-red-900 dark:text-red-100 font-bold flex items-center justify-between">
+            <Alert className="bg-destructive/10 border border-destructive/30">
+              <Flag className="h-5 w-5 text-destructive" />
+              <AlertDescription className="text-foreground font-medium flex items-center justify-between">
                 <span>⚠️ This game ended by DEFAULT. {game.defaulted_team_id === homeTeam.id ? homeTeam.name : awayTeam.name} defaulted. Final Score: {game.home_score}-{game.away_score}</span>
                 <Button
                   onClick={handleUndoDefault}
                   size="sm"
-                  className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold ml-4"
+                  className="font-medium ml-4"
                 >
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Undo Default
@@ -1344,9 +1344,9 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
       )}
 
       {editMode && (
-        <div className="sticky z-40 bg-yellow-100 dark:bg-yellow-900/60 border-b-4 border-yellow-500" style={{ top: game?.is_default ? '164px' : '64px' }}>
+        <div className="sticky z-40 bg-muted border-b-2 border-border" style={{ top: game?.is_default ? '164px' : '64px' }}>
           <div className="max-w-7xl mx-auto p-3 flex items-center justify-between">
-            <div className="text-yellow-900 dark:text-yellow-100 font-bold">Edit Mode: Adjust stats and team totals for a completed game</div>
+            <div className="text-foreground font-medium">Edit Mode: Adjust stats and team totals for a completed game</div>
             <div className="flex gap-2">
               <Button onClick={() => { setEditTotals({
                 home_score: game?.home_score ?? 0,
@@ -1355,8 +1355,8 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                 away_timeouts: game?.away_timeouts ?? 0,
                 home_team_fouls: game?.home_team_fouls ?? 0,
                 away_team_fouls: game?.away_team_fouls ?? 0,
-              }); setShowEditTotals(true); }} className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold">Edit Team Totals</Button>
-              <Button onClick={() => setShowMoveStat(true)} variant="outline" className="border-2 border-yellow-600 text-yellow-700 dark:text-yellow-200">Move Stats</Button>
+              }); setShowEditTotals(true); }} className="font-medium">Edit Team Totals</Button>
+              <Button onClick={() => setShowMoveStat(true)} variant="outline" className="font-medium">Move Stats</Button>
             </div>
           </div>
         </div>
@@ -1387,25 +1387,25 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
       )}
 
       {/* Main Scoreboard */}
-      <div className="sticky z-40 bg-gradient-to-r from-orange-100 via-orange-200 to-orange-100 dark:from-gray-900 dark:via-orange-900 dark:to-gray-900 border-b-4 border-orange-500 shadow-2xl" style={{ top: game.is_default ? '164px' : '64px' }}>
+      <div className="sticky z-40 bg-card border-b-2 border-border" style={{ top: game.is_default ? '164px' : '64px' }}>
         <div className="max-w-7xl mx-auto p-4">
           <div className="flex items-center justify-center gap-3 mb-4 flex-wrap">
-            <Badge className="bg-red-600 text-white border-2 border-red-400 px-6 py-2 text-base font-black shadow-lg">
+            <Badge className="bg-destructive text-destructive-foreground px-6 py-2 text-base font-heading font-bold">
               <PlayCircle className="w-5 h-5 mr-2 animate-pulse" />
               LIVE - {quarterLabel}
             </Badge>
-            <Badge className="bg-orange-600 text-white border-2 border-orange-400 px-4 py-2 text-sm font-black">
+            <Badge variant="outline" className="border-border text-muted-foreground px-4 py-2 text-sm font-heading font-bold uppercase">
               BASKETBALL
             </Badge>
-            <Badge className="bg-purple-600 text-white border-2 border-purple-400 px-4 py-2 text-sm font-black">
+            <Badge variant="outline" className="border-border text-muted-foreground px-4 py-2 text-sm font-heading font-bold uppercase">
               {game.game_type?.replace('_', ' ').toUpperCase() || 'REGULAR SEASON'}
             </Badge>
             {game.sport === 'basketball' && (
-              <Badge className={`px-4 py-2 text-sm font-black border-2 ${
-                userRole === 'overall' ? 'bg-green-600 text-white border-green-400' :
-                userRole === 'home_stat' ? 'bg-orange-600 text-white border-orange-400' :
-                userRole === 'away_stat' ? 'bg-blue-600 text-white border-blue-400' :
-                'bg-gray-600 text-white border-gray-400'
+              <Badge variant="outline" className={`px-4 py-2 text-sm font-heading font-bold uppercase ${
+                userRole === 'overall' ? 'border-primary text-primary' :
+                userRole === 'home_stat' ? 'border-foreground text-foreground' :
+                userRole === 'away_stat' ? 'border-foreground text-foreground' :
+                'border-border text-muted-foreground'
               }`}>
                 {userRole === 'overall' ? '🎮 OVERALL SCOREKEEPER' :
                  userRole === 'home_stat' ? '📊 HOME STATISTICIAN' :
@@ -1418,22 +1418,22 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
           <div className="grid grid-cols-3 gap-4 items-center mb-4">
             {/* HOME TEAM */}
             <div className="text-center">
-              <div className="text-orange-600 dark:text-orange-400 text-sm font-black mb-2">HOME</div>
+              <div className="text-muted-foreground text-sm font-heading font-bold mb-2 uppercase tracking-wide">HOME</div>
               <div className="flex items-center justify-center gap-3 mb-2">
-                <Avatar className="w-16 h-16 border-4 border-orange-400 shadow-2xl">
+                <Avatar className="w-16 h-16 border border-border">
                   <AvatarImage src={homeTeam.logo_url} />
-                  <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-black text-lg">
+                  <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-lg">
                     {homeTeam.name?.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="text-gray-900 dark:text-white text-2xl font-black text-left">{homeTeam.name}</div>
+                <div className="text-foreground text-2xl font-heading font-bold text-left">{homeTeam.name}</div>
               </div>
-              <div className="text-orange-600 dark:text-orange-500 text-5xl font-black mb-2">{homeScore}</div>
-              <div className="flex justify-center gap-4 text-xs font-bold items-center">
-                <span className={`${inPenalty('home') ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
+              <div className="text-foreground text-5xl font-heading font-bold tabular-nums mb-2">{homeScore}</div>
+              <div className="flex justify-center gap-4 text-xs font-medium items-center">
+                <span className={`${inPenalty('home') ? 'text-destructive' : 'text-foreground'}`}>
                   FOULS: {homeTeamFouls}/{game.penalty_limit_per_quarter}
                 </span>
-                <span className="text-gray-900 dark:text-white">TO: {homeTimeouts}</span>
+                <span className="text-muted-foreground">TO: {homeTimeouts}</span>
                 {activeTimeout === 'home' && (
                   <span className="ml-2 px-2 py-1 rounded bg-red-600 text-white text-[10px] font-black animate-pulse">TIMEOUT</span>
                 )}
@@ -1442,8 +1442,8 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
 
             {/* QUARTER SCORES */}
             <div className="text-center">
-              <div className="text-gray-900 dark:text-white text-lg font-black mb-1">{quarterLabel}</div>
-              <div className="text-sm text-gray-700 dark:text-gray-300 font-semibold">
+              <div className="text-foreground text-lg font-heading font-bold mb-1">{quarterLabel}</div>
+              <div className="text-sm text-muted-foreground font-medium">
                 {[1, 2, 3, 4].map((q, idx) => {
                   const qScore = quarterScores.find(qs => qs.quarter === q);
                   return (
@@ -1460,7 +1460,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   <Button
                     onClick={() => setShowDefaultDialog(true)}
                     size="sm"
-                    className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-xs px-4 py-2"
+                    className="font-medium text-xs px-4 py-2"
                     disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     <Flag className="w-4 h-4 mr-1" />
@@ -1471,7 +1471,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   <Button
                     onClick={() => setShowQuarterEnd(true)}
                     size="sm"
-                    className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-black text-xs px-4 py-2"
+                    className="font-medium text-xs px-4 py-2"
                     disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     END {quarterLabel}
@@ -1482,7 +1482,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   <Button
                     onClick={() => setShowQuarterEnd(true)}
                     size="sm"
-                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-black text-xs px-4 py-2"
+                    className="font-medium text-xs px-4 py-2"
                     disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     END {quarterLabel}
@@ -1493,7 +1493,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   <Button
                     onClick={endGame}
                     size="sm"
-                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-black text-xs px-4 py-2"
+                    className="font-medium text-xs px-4 py-2"
                     disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     <CheckCircle className="w-4 h-4 mr-1" />
@@ -1504,7 +1504,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   <Button
                     onClick={() => setShowQuarterEnd(true)}
                     size="sm"
-                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-black text-xs px-4 py-2"
+                    className="font-medium text-xs px-4 py-2"
                     disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     START OT
@@ -1516,7 +1516,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   onClick={() => navigate(createPageUrl("Games"))}
                   variant="outline"
                   size="sm"
-                  className="border-2 border-gray-400 text-white hover:bg-gray-700 font-black text-xs px-4 py-2"
+                  className="border border-border text-foreground hover:bg-muted font-medium text-xs px-4 py-2"
                 >
                   CANCEL
                 </Button>
@@ -1524,7 +1524,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   <Button
                     onClick={() => setShowDeleteGame(true)}
                     size="sm"
-                    className="bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 text-white font-black text-xs px-4 py-2 border-2 border-red-500"
+                    className="bg-destructive text-destructive-foreground font-medium text-xs px-4 py-2"
                     disabled={deletingGame}
                     title="Delete this game (Admin only)"
                   >
@@ -1537,22 +1537,22 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
 
             {/* AWAY TEAM */}
             <div className="text-center">
-              <div className="text-blue-600 dark:text-blue-400 text-sm font-black mb-2">AWAY</div>
+              <div className="text-muted-foreground text-sm font-heading font-bold mb-2 uppercase tracking-wide">AWAY</div>
               <div className="flex items-center justify-center gap-3 mb-2">
-                <div className="text-gray-900 dark:text-white text-2xl font-black text-right">{awayTeam.name}</div>
-                <Avatar className="w-16 h-16 border-4 border-blue-400 shadow-2xl">
+                <div className="text-foreground text-2xl font-heading font-bold text-right">{awayTeam.name}</div>
+                <Avatar className="w-16 h-16 border border-border">
                   <AvatarImage src={awayTeam.logo_url} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
+                  <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-lg">
                     {awayTeam.name?.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </div>
-              <div className="text-blue-600 dark:text-blue-500 text-5xl font-black mb-2">{awayScore}</div>
-              <div className="flex justify-center gap-4 text-xs font-bold items-center">
-                <span className={`${inPenalty('away') ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
+              <div className="text-foreground text-5xl font-heading font-bold tabular-nums mb-2">{awayScore}</div>
+              <div className="flex justify-center gap-4 text-xs font-medium items-center">
+                <span className={`${inPenalty('away') ? 'text-destructive' : 'text-foreground'}`}>
                   FOULS: {awayTeamFouls}/{game.penalty_limit_per_quarter}
                 </span>
-                <span className="text-gray-900 dark:text-white">TO: {awayTimeouts}</span>
+                <span className="text-muted-foreground">TO: {awayTimeouts}</span>
                 {activeTimeout === 'away' && (
                   <span className="ml-2 px-2 py-1 rounded bg-red-600 text-white text-[10px] font-black animate-pulse">TIMEOUT</span>
                 )}
@@ -1562,18 +1562,18 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
 
           {/* ALERTS */}
           {currentQuarter >= 4 && homeScore === awayScore && (
-            <Alert className="bg-yellow-900/50 border-2 border-yellow-500 mb-4">
-              <AlertTriangle className="h-5 w-5 text-yellow-400" />
-              <AlertDescription className="text-yellow-200 font-bold text-center">
+            <Alert className="bg-muted border border-border mb-4">
+              <AlertTriangle className="h-5 w-5 text-foreground" />
+              <AlertDescription className="text-foreground font-medium text-center">
                 ⚠️ Game is TIED! Must play overtime period.
               </AlertDescription>
             </Alert>
           )}
 
           {(inPenalty('home') || inPenalty('away')) && (
-            <Alert className="bg-yellow-900/50 border-2 border-yellow-500 mb-4">
-              <AlertTriangle className="h-5 w-5 text-yellow-400" />
-              <AlertDescription className="text-yellow-200 font-bold">
+            <Alert className="bg-muted border border-border mb-4">
+              <AlertTriangle className="h-5 w-5 text-foreground" />
+              <AlertDescription className="text-foreground font-medium">
                 {inPenalty('home') && `${homeTeam.name} in penalty`}
                 {inPenalty('home') && inPenalty('away') && ' | '}
                 {inPenalty('away') && `${awayTeam.name} in penalty`}
@@ -1590,7 +1590,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
             onClick={() => setShowVoiceAssistant(!showVoiceAssistant)}
             variant="outline"
             size="sm"
-            className="border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 font-bold"
+            className="border border-border text-foreground hover:bg-muted font-medium"
           >
             {showVoiceAssistant ? (
               <>
@@ -1622,23 +1622,23 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
 
       {/* Control Panel */}
       {selectedPlayer ? (
-        <div className="fixed bottom-0 left-0 right-0 z-30 bg-gradient-to-br from-gray-900 via-orange-900/20 to-gray-900">
+        <div className="fixed bottom-0 left-0 right-0 z-30 bg-card border-t border-border">
           <div className="mx-4 my-2">
-            <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl">
+            <Card className="border border-border bg-card">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <Avatar className="w-14 h-14 border-4 border-blue-200 dark:border-blue-800 shadow-lg">
+                    <Avatar className="w-14 h-14 border border-border">
                       <AvatarImage src={selectedPlayer.photo_url} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-black text-lg">
+                      <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-lg">
                         {selectedPlayer.jersey_number}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h3 className="text-xl font-black text-gray-900 dark:text-white">
+                      <h3 className="text-xl font-heading font-bold text-foreground">
                         {selectedPlayer.first_name} {selectedPlayer.last_name}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">
+                      <p className="text-sm text-muted-foreground font-medium">
                         {selectedTeam === 'home' ? homeTeam?.name : awayTeam?.name}
                       </p>
                     </div>
@@ -1646,7 +1646,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   <Button
                     variant="ghost"
                     onClick={() => setSelectedPlayer(null)}
-                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    className="text-muted-foreground hover:text-foreground"
                   >
                     ✕
                   </Button>
@@ -1655,28 +1655,29 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                 <div className="flex flex-nowrap gap-2 overflow-x-auto whitespace-nowrap">
                   <Button
                     onClick={() => addPoints(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    className="flex-1 min-w-[80px] h-14 active:scale-95 font-heading font-bold text-sm transition-all duration-150 disabled:opacity-50"
                     disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     +1 PT
                   </Button>
                   <Button
                     onClick={() => addPoints(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 2)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    className="flex-1 min-w-[80px] h-14 active:scale-95 font-heading font-bold text-sm transition-all duration-150 disabled:opacity-50"
                     disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     +2 PTS
                   </Button>
                   <Button
                     onClick={() => addPoints(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 3)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-95 text-white font-black text-sm shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    className="flex-1 min-w-[80px] h-14 active:scale-95 font-heading font-bold text-sm transition-all duration-150 disabled:opacity-50"
                     disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     +3 PTS
                   </Button>
                   <Button
                     onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'rebounds', 1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    variant="secondary"
+                    className="flex-1 min-w-[80px] h-14 active:scale-95 font-medium text-xs transition-all duration-150 disabled:opacity-50"
                     disabled={undoInProgress || (game.sport === 'basketball' && userRole === 'viewer')}
                   >
                     <TrendingUp className="w-4 h-4 mr-1" />
@@ -1684,7 +1685,8 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   </Button>
                   <Button
                     onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'assists', 1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    variant="secondary"
+                    className="flex-1 min-w-[80px] h-14 active:scale-95 font-medium text-xs transition-all duration-150 disabled:opacity-50"
                     disabled={undoInProgress || (game.sport === 'basketball' && userRole === 'viewer')}
                   >
                     <Target className="w-4 h-4 mr-1" />
@@ -1692,7 +1694,8 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   </Button>
                   <Button
                     onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'steals', 1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    variant="secondary"
+                    className="flex-1 min-w-[80px] h-14 active:scale-95 font-medium text-xs transition-all duration-150 disabled:opacity-50"
                     disabled={undoInProgress || (game.sport === 'basketball' && userRole === 'viewer')}
                   >
                     <Zap className="w-4 h-4 mr-1" />
@@ -1700,7 +1703,8 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   </Button>
                   <Button
                     onClick={() => addPlayerStat(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id, 'blocks', 1)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    variant="secondary"
+                    className="flex-1 min-w-[80px] h-14 active:scale-95 font-medium text-xs transition-all duration-150 disabled:opacity-50"
                     disabled={undoInProgress || (game.sport === 'basketball' && userRole === 'viewer')}
                   >
                     <Shield className="w-4 h-4 mr-1" />
@@ -1708,7 +1712,8 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   </Button>
                   <Button
                     onClick={() => handleFoul(selectedPlayer.id, selectedTeam === 'home' ? game.home_team_id : game.away_team_id)}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50"
+                    variant="secondary"
+                    className="flex-1 min-w-[80px] h-14 active:scale-95 font-medium text-xs transition-all duration-150 disabled:opacity-50"
                     disabled={undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
                   >
                     <AlertTriangle className="w-4 h-4 mr-1" />
@@ -1717,7 +1722,8 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   <Button
                     onClick={handleUndo}
                     disabled={undoInProgress || actionHistory.length === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
-                    className="flex-1 min-w-[80px] h-14 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg transition-all duration-150 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    variant="outline"
+                    className="flex-1 min-w-[80px] h-14 active:scale-95 font-medium text-xs transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <RotateCcw className="w-4 h-4 mr-1" />
                     UNDO
@@ -1727,12 +1733,12 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                 {/* QUARTER STATS */}
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Quarter Stats:</p>
+                    <p className="text-sm font-heading font-bold text-muted-foreground uppercase tracking-wide">Quarter Stats:</p>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowQuarterStats(!showQuarterStats)}
-                      className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                      className="text-muted-foreground hover:text-foreground"
                     >
                       {showQuarterStats ? (
                         <>
@@ -1749,31 +1755,31 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   </div>
                   
                   {showQuarterStats && (
-                    <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div className="p-4 bg-background border border-border">
                       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
                         <div>
-                          <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'points')}</div>
-                          <div className="xs text-gray-500 dark:text-gray-400 font-semibold">PTS</div>
+                          <div className="text-2xl font-heading font-bold text-foreground tabular-nums">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'points')}</div>
+                          <div className="xs text-muted-foreground font-medium">PTS</div>
                         </div>
                         <div>
-                          <div className="text-2xl font-black text-green-600 dark:text-green-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'rebounds')}</div>
-                          <div className="xs text-gray-500 dark:text-gray-400 font-semibold">REB</div>
+                          <div className="text-2xl font-heading font-bold text-foreground tabular-nums">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'rebounds')}</div>
+                          <div className="xs text-muted-foreground font-medium">REB</div>
                         </div>
                         <div>
-                          <div className="text-2xl font-black text-purple-600 dark:text-purple-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'assists')}</div>
-                          <div className="xs text-gray-500 dark:text-gray-400 font-semibold">AST</div>
+                          <div className="text-2xl font-heading font-bold text-foreground tabular-nums">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'assists')}</div>
+                          <div className="xs text-muted-foreground font-medium">AST</div>
                         </div>
                         <div>
-                          <div className="text-2xl font-black text-cyan-600 dark:text-cyan-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'steals')}</div>
-                          <div className="xs text-gray-500 dark:text-gray-400 font-semibold">STL</div>
+                          <div className="text-2xl font-heading font-bold text-foreground tabular-nums">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'steals')}</div>
+                          <div className="xs text-muted-foreground font-medium">STL</div>
                         </div>
                         <div>
-                          <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'blocks')}</div>
-                          <div className="xs text-gray-500 dark:text-gray-400 font-semibold">BLK</div>
+                          <div className="text-2xl font-heading font-bold text-foreground tabular-nums">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'blocks')}</div>
+                          <div className="xs text-muted-foreground font-medium">BLK</div>
                         </div>
                         <div>
-                          <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'fouls')}</div>
-                          <div className="xs text-gray-500 dark:text-gray-400 font-semibold">FOULS</div>
+                          <div className="text-2xl font-heading font-bold text-foreground tabular-nums">{getCurrentQuarterPlayerStat(selectedPlayer.id, 'fouls')}</div>
+                          <div className="xs text-muted-foreground font-medium">FOULS</div>
                         </div>
                       </div>
                     </div>
@@ -1784,10 +1790,10 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
           </div>
         </div>
       ) : (
-        <div className="mx-4 mt-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-300 dark:border-gray-700 rounded-xl p-8 text-center shadow-lg">
-          <User className="w-16 h-16 text-blue-500 dark:text-blue-400 mx-auto mb-4" />
-          <p className="text-xl font-black text-gray-900 dark:text-white mb-2">Select a Player</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+        <div className="mx-4 mt-4 border border-border bg-card p-8 text-center">
+          <User className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <p className="text-xl font-heading font-bold text-foreground mb-2">Select a Player</p>
+          <p className="text-sm text-muted-foreground font-medium">
             Click on a player below to start tracking statistics
           </p>
         </div>
@@ -1797,16 +1803,16 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
       <div className="max-w-7xl mx-auto p-4 pb-40">
         <div className="grid md:grid-cols-2 gap-4"> {/* Changed lg:grid-cols-2 to md:grid-cols-2 */}
           {/* Home Team */}
-          <div className="flex flex-col h-[700px] bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/40 dark:to-orange-950/40 border-4 border-orange-500 backdrop-blur-sm rounded-xl">
-            <div className="flex-shrink-0 bg-orange-200 dark:bg-orange-900/95 backdrop-blur-sm border-b-4 border-orange-500 p-3 rounded-t-xl">
+          <div className="flex flex-col h-[700px] bg-card border border-border rounded-sm">
+            <div className="flex-shrink-0 bg-muted border-b border-border p-3">
               <div className="flex items-center justify-between gap-2">
-                <h2 className="text-xl font-black text-gray-900 dark:text-white">
+                <h2 className="text-xl font-heading font-bold text-foreground">
                   {homeTeam.name} - HOME
                 </h2>
                 <Button
                   onClick={() => handleTimeout('home')}
                   disabled={undoInProgress || homeTimeouts === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
-                  className="bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
+                  className="font-medium text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
                 >
                   <Clock className="w-3 h-3 mr-1" />
                   TO ({homeTimeouts})
@@ -1826,16 +1832,16 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
           </div>
 
           {/* Away Team */}
-          <div className="flex flex-col h-[700px] bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-950/40 border-4 border-blue-500 backdrop-blur-sm rounded-xl">
-            <div className="flex-shrink-0 bg-blue-200 dark:bg-blue-900/95 backdrop-blur-sm border-b-4 border-blue-500 p-3 rounded-t-xl">
+          <div className="flex flex-col h-[700px] bg-card border border-border rounded-sm">
+            <div className="flex-shrink-0 bg-muted border-b border-border p-3">
               <div className="flex items-center justify-between gap-2">
-                <h2 className="text-xl font-black text-gray-900 dark:text-white">
+                <h2 className="text-xl font-heading font-bold text-foreground">
                   {awayTeam.name} - AWAY
                 </h2>
                 <Button
                   onClick={() => handleTimeout('away')}
                   disabled={undoInProgress || awayTimeouts === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
+                  className="font-medium text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
                 >
                   <Clock className="w-3 h-3 mr-1" />
                   TO ({awayTimeouts})
@@ -1858,20 +1864,20 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
 
       {/* Declare Default Dialog */}
       <Dialog open={showDefaultDialog} onOpenChange={setShowDefaultDialog}>
-        <DialogContent className="bg-white dark:bg-gray-900 border-4 border-red-500 max-w-md">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-gray-900 dark:text-white text-2xl font-black flex items-center gap-2">
-              <Flag className="w-6 h-6 text-red-500 dark:text-red-400" />
+            <DialogTitle className="text-2xl font-heading font-bold flex items-center gap-2">
+              <Flag className="w-6 h-6 text-destructive" />
               Declare Game Default
             </DialogTitle>
-            <DialogDescription className="text-gray-700 dark:text-gray-300 font-bold">
+            <DialogDescription className="text-muted-foreground font-medium">
               Select which team is defaulting. The non-defaulting team will automatically win 20-0.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <Alert className="bg-red-900/50 border-2 border-red-500">
-              <AlertTriangle className="h-4 w-4 text-red-400" />
-              <AlertDescription className="text-red-200 font-bold text-sm">
+            <Alert className="bg-destructive/10 border border-destructive/30">
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              <AlertDescription className="text-foreground font-medium text-sm">
                 ⚠️ This action will end the game immediately. The defaulting team will receive a loss and the other team will receive a win.
               </AlertDescription>
             </Alert>
@@ -1879,25 +1885,26 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
             <div className="space-y-3">
               <Button
                 onClick={() => handleDeclareDefault(game.home_team_id)}
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black text-lg py-6 border-2 border-orange-400"
+                className="w-full font-heading font-bold text-lg py-6"
               >
                 {homeTeam.name} DEFAULTS
-                <span className="ml-2 text-sm">(Away team wins 20-0)</span>
+                <span className="ml-2 text-sm font-normal">(Away team wins 20-0)</span>
               </Button>
               
               <Button
                 onClick={() => handleDeclareDefault(game.away_team_id)}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-lg py-6 border-2 border-blue-400"
+                variant="secondary"
+                className="w-full font-heading font-bold text-lg py-6"
               >
                 {awayTeam.name} DEFAULTS
-                <span className="ml-2 text-sm">(Home team wins 20-0)</span>
+                <span className="ml-2 text-sm font-normal">(Home team wins 20-0)</span>
               </Button>
             </div>
 
             <Button
               onClick={() => setShowDefaultDialog(false)}
               variant="outline"
-              className="w-full border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 font-black"
+              className="w-full font-medium"
             >
               CANCEL
             </Button>
@@ -1907,32 +1914,32 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
 
       {/* End Quarter Dialog */}
       <Dialog open={showQuarterEnd} onOpenChange={setShowQuarterEnd}>
-        <DialogContent className="bg-white dark:bg-gray-900 border-4 border-orange-500 max-w-md">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-gray-900 dark:text-white text-2xl font-black">
+            <DialogTitle className="text-2xl font-heading font-bold">
               End of {quarterLabel}
             </DialogTitle>
-            <DialogDescription className="text-gray-700 dark:text-gray-300 font-bold">
+            <DialogDescription className="text-muted-foreground font-medium">
               {currentQuarter === 4 && homeScore === awayScore 
                 ? 'Game is tied! Overtime will begin.' 
                 : 'Save quarter data and proceed to next period?'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-6 border-2 border-gray-300 dark:border-gray-700">
-              <div className="flex justify-between text-lg font-bold mb-3 text-gray-900 dark:text-white">
+            <div className="bg-muted border border-border p-6">
+              <div className="flex justify-between text-lg font-heading font-bold mb-3 text-foreground">
                 <span>{homeTeam.name}</span>
-                <span className="text-orange-600 dark:text-orange-500 text-3xl">{homeScore}</span>
+                <span className="text-foreground text-3xl tabular-nums">{homeScore}</span>
               </div>
-              <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white">
+              <div className="flex justify-between text-lg font-heading font-bold text-foreground">
                 <span>{awayTeam.name}</span>
-                <span className="text-blue-600 dark:text-blue-500 text-3xl">{awayScore}</span>
+                <span className="text-foreground text-3xl tabular-nums">{awayScore}</span>
               </div>
             </div>
             {currentQuarter === 4 && homeScore === awayScore && (
-              <Alert className="bg-purple-900/50 border-2 border-purple-500">
-                <AlertTriangle className="h-4 w-4 text-purple-400" />
-                <AlertDescription className="text-purple-200 font-bold">
+              <Alert className="bg-muted border border-border">
+                <AlertTriangle className="h-4 w-4 text-foreground" />
+                <AlertDescription className="text-foreground font-medium">
                   🏀 Game is tied! Overtime period (OT) will begin.
                 </AlertDescription>
               </Alert>
@@ -1941,11 +1948,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
               <Button
                 onClick={endQuarter}
                 disabled={savingQuarter || undoInProgress || (game.sport === 'basketball' && userRole !== 'overall')}
-                className={`flex-1 font-black ${
-                  currentQuarter >= 4 && homeScore === awayScore
-                    ? 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
-                    : 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-600 hover:to-orange-800'
-                } text-white disabled:opacity-60`}
+                className="flex-1 font-heading font-bold disabled:opacity-60"
               >
                 {savingQuarter ? (
                   <span className="inline-flex items-center gap-2">
@@ -1964,7 +1967,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
               <Button
                 onClick={() => setShowQuarterEnd(false)}
                 variant="outline"
-                className="flex-1 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 font-black"
+                className="flex-1 font-medium"
               >
                 CANCEL
               </Button>
@@ -1975,51 +1978,51 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
 
       {/* Edit Team Totals Dialog */}
       <Dialog open={showEditTotals} onOpenChange={setShowEditTotals}>
-        <DialogContent className="bg-white dark:bg-gray-900 border-2 border-yellow-500 max-w-md">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-gray-900 dark:text-white text-2xl font-black">Edit Team Totals</DialogTitle>
-            <DialogDescription className="text-gray-700 dark:text-gray-300 font-bold">Update final scores, timeouts, and team fouls.</DialogDescription>
+            <DialogTitle className="text-2xl font-heading font-bold">Edit Team Totals</DialogTitle>
+            <DialogDescription className="text-muted-foreground font-medium">Update final scores, timeouts, and team fouls.</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400">Home Score</label>
+              <label className="text-xs font-medium text-muted-foreground">Home Score</label>
               <input type="number" className="w-full rounded-md border px-2 py-1"
                 value={editTotals.home_score}
                 onChange={(e) => setEditTotals({ ...editTotals, home_score: Number(e.target.value) })} />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400">Away Score</label>
+              <label className="text-xs font-medium text-muted-foreground">Away Score</label>
               <input type="number" className="w-full rounded-md border px-2 py-1"
                 value={editTotals.away_score}
                 onChange={(e) => setEditTotals({ ...editTotals, away_score: Number(e.target.value) })} />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400">Home TO</label>
+              <label className="text-xs font-medium text-muted-foreground">Home TO</label>
               <input type="number" className="w-full rounded-md border px-2 py-1"
                 value={editTotals.home_timeouts}
                 onChange={(e) => setEditTotals({ ...editTotals, home_timeouts: Number(e.target.value) })} />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400">Away TO</label>
+              <label className="text-xs font-medium text-muted-foreground">Away TO</label>
               <input type="number" className="w-full rounded-md border px-2 py-1"
                 value={editTotals.away_timeouts}
                 onChange={(e) => setEditTotals({ ...editTotals, away_timeouts: Number(e.target.value) })} />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400">Home Team Fouls</label>
+              <label className="text-xs font-medium text-muted-foreground">Home Team Fouls</label>
               <input type="number" className="w-full rounded-md border px-2 py-1"
                 value={editTotals.home_team_fouls}
                 onChange={(e) => setEditTotals({ ...editTotals, home_team_fouls: Number(e.target.value) })} />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400">Away Team Fouls</label>
+              <label className="text-xs font-medium text-muted-foreground">Away Team Fouls</label>
               <input type="number" className="w-full rounded-md border px-2 py-1"
                 value={editTotals.away_team_fouls}
                 onChange={(e) => setEditTotals({ ...editTotals, away_team_fouls: Number(e.target.value) })} />
             </div>
           </div>
           <div className="flex justify-end gap-2 mt-3">
-            <Button variant="outline" onClick={() => setShowEditTotals(false)} className="border-2">Cancel</Button>
+            <Button variant="outline" onClick={() => setShowEditTotals(false)}>Cancel</Button>
             <Button onClick={async () => { await updateGameSafe({
               home_score: editTotals.home_score,
               away_score: editTotals.away_score,
@@ -2034,15 +2037,15 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
 
       {/* Move/Reassign Stats Dialog */}
       <Dialog open={showMoveStat} onOpenChange={setShowMoveStat}>
-        <DialogContent className="bg-white dark:bg-gray-900 border-2 border-yellow-500 max-w-lg">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-gray-900 dark:text-white text-2xl font-black">Reassign Stats</DialogTitle>
-            <DialogDescription className="text-gray-700 dark:text-gray-300 font-bold">Move a stat from one player/quarter to another.</DialogDescription>
+            <DialogTitle className="text-2xl font-heading font-bold">Reassign Stats</DialogTitle>
+            <DialogDescription className="text-muted-foreground font-medium">Move a stat from one player/quarter to another.</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2 text-sm font-bold text-gray-700 dark:text-gray-300">From</div>
+            <div className="col-span-2 text-sm font-heading font-bold text-foreground">From</div>
             <div>
-              <label className="text-xs font-semibold">Player</label>
+              <label className="text-xs font-medium text-muted-foreground">Player</label>
               <select className="w-full rounded-md border px-2 py-1" value={moveForm.sourcePlayer} onChange={(e)=>setMoveForm({ ...moveForm, sourcePlayer: e.target.value })}>
                 <option value="">Select player</option>
                 {[...(homePlayers||[]), ...(awayPlayers||[])].map(p => (
@@ -2051,11 +2054,11 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold">Quarter</label>
+              <label className="text-xs font-medium text-muted-foreground">Quarter</label>
               <input type="number" min="1" className="w-full rounded-md border px-2 py-1" value={moveForm.sourceQuarter} onChange={(e)=>setMoveForm({ ...moveForm, sourceQuarter: Number(e.target.value) })} />
             </div>
             <div>
-              <label className="text-xs font-semibold">Stat Type</label>
+              <label className="text-xs font-medium text-muted-foreground">Stat Type</label>
               <select className="w-full rounded-md border px-2 py-1" value={moveForm.statType} onChange={(e)=>setMoveForm({ ...moveForm, statType: e.target.value })}>
                 <option value="points">points</option>
                 <option value="rebounds">rebounds</option>
@@ -2070,12 +2073,12 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold">Amount</label>
+              <label className="text-xs font-medium text-muted-foreground">Amount</label>
               <input type="number" min="1" className="w-full rounded-md border px-2 py-1" value={moveForm.amount} onChange={(e)=>setMoveForm({ ...moveForm, amount: Number(e.target.value) })} />
             </div>
-            <div className="col-span-2 text-sm font-bold text-gray-700 dark:text-gray-300 mt-2">To</div>
+            <div className="col-span-2 text-sm font-heading font-bold text-foreground mt-2">To</div>
             <div>
-              <label className="text-xs font-semibold">Player</label>
+              <label className="text-xs font-medium text-muted-foreground">Player</label>
               <select className="w-full rounded-md border px-2 py-1" value={moveForm.destPlayer} onChange={(e)=>setMoveForm({ ...moveForm, destPlayer: e.target.value })}>
                 <option value="">Select player</option>
                 {[...(homePlayers||[]), ...(awayPlayers||[])].map(p => (
@@ -2084,12 +2087,12 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold">Quarter</label>
+              <label className="text-xs font-medium text-muted-foreground">Quarter</label>
               <input type="number" min="1" className="w-full rounded-md border px-2 py-1" value={moveForm.destQuarter} onChange={(e)=>setMoveForm({ ...moveForm, destQuarter: Number(e.target.value) })} />
             </div>
           </div>
           <div className="flex justify-end gap-2 mt-3">
-            <Button variant="outline" onClick={() => setShowMoveStat(false)} className="border-2">Cancel</Button>
+            <Button variant="outline" onClick={() => setShowMoveStat(false)}>Cancel</Button>
             <Button onClick={async () => {
               const amt = Number(moveForm.amount) || 0;
               if (!game?.id || !moveForm.sourcePlayer || !moveForm.destPlayer || !amt) return;
@@ -2110,19 +2113,19 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
 
       {/* Delete Game Confirmation Dialog (Admin only) */}
       <Dialog open={showDeleteGame} onOpenChange={setShowDeleteGame}>
-        <DialogContent className="bg-white dark:bg-gray-900 border-4 border-red-500 max-w-md">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-gray-900 dark:text-white text-2xl font-black flex items-center gap-2">
-              <Trash2 className="w-6 h-6 text-red-500" />
+            <DialogTitle className="text-2xl font-heading font-bold flex items-center gap-2">
+              <Trash2 className="w-6 h-6 text-destructive" />
               Delete This Game?
             </DialogTitle>
-            <DialogDescription className="text-gray-700 dark:text-gray-300 font-bold">
+            <DialogDescription className="text-muted-foreground font-medium">
               This will permanently delete the game and all recorded player stats. This cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <Alert className="bg-red-100 dark:bg-red-900/40 border-2 border-red-400">
-            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-300" />
-            <AlertDescription className="text-red-900 dark:text-red-100 font-bold text-sm">
+          <Alert className="bg-destructive/10 border border-destructive/30">
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+            <AlertDescription className="text-foreground font-medium text-sm">
               {homeTeam?.name} vs {awayTeam?.name} — {homeScore}-{awayScore} ({quarterLabel})
             </AlertDescription>
           </Alert>
@@ -2130,7 +2133,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
             <Button
               onClick={handleDeleteGame}
               disabled={deletingGame}
-              className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black"
+              className="flex-1 bg-destructive text-destructive-foreground font-heading font-bold"
             >
               {deletingGame ? (
                 <span className="inline-flex items-center gap-2">
@@ -2147,7 +2150,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
               onClick={() => setShowDeleteGame(false)}
               variant="outline"
               disabled={deletingGame}
-              className="flex-1 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 font-black"
+              className="flex-1 font-medium"
             >
               CANCEL
             </Button>
@@ -2156,10 +2159,10 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
       </Dialog>
 
       {savingQuarter && (
-        <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-900 border-2 border-orange-400 rounded-xl px-6 py-4 shadow-2xl flex items-center gap-3">
-            <Loader2 className="w-6 h-6 animate-spin text-orange-600" />
-            <span className="font-bold text-gray-900 dark:text-white">Saving quarter...</span>
+        <div className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center">
+          <div className="bg-card border border-border px-6 py-4 flex items-center gap-3">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <span className="font-heading font-bold text-foreground">Saving quarter...</span>
           </div>
         </div>
       )}
