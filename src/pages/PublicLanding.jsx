@@ -168,14 +168,25 @@ export default function PublicLanding() {
                 )}
               </div>
             </div>
-            <div className="lg:col-span-5 relative h-[420px] lg:h-[560px]">
-              <img
-                src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/3d99ec372_download21.jpg"
-                alt="Basketball hoop against dark background"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute -bottom-4 -left-4 bg-primary text-primary-foreground px-4 py-2">
-                <span className="font-heading text-sm font-bold">LIVE SCORING</span>
+            <div className="lg:col-span-5 relative">
+              <div className="border border-border p-8 lg:p-12 bg-secondary/30">
+                <div className="flex items-center gap-2 mb-6">
+                  <span className="live-dot" />
+                  <span className="text-xs font-medium tracking-wide">LIVE SCORING</span>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Thunder Hawks</span>
+                    <span className="font-heading text-3xl font-bold tabular-nums">67</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Storm Eagles</span>
+                    <span className="font-heading text-3xl font-bold tabular-nums">62</span>
+                  </div>
+                  <div className="border-t border-border pt-4 text-xs text-muted-foreground tabular-nums">
+                    Q3 • 08:24 remaining
+                  </div>
+                </div>
               </div>
             </div>
           </div>
