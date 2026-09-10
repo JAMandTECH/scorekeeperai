@@ -17,7 +17,7 @@ export default function LeaderCard({ title, icon: Icon, organization, data = [],
           )}
           {organization?.logo_url && (
             <Avatar className="w-9 h-9 border border-border">
-              <AvatarImage src={organization.logo_url} className="grayscale" />
+              <AvatarImage src={organization.logo_url} />
               <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-xs">
                 {(organization.name || "").substring(0, 2).toUpperCase()}
               </AvatarFallback>
@@ -52,7 +52,7 @@ export default function LeaderCard({ title, icon: Icon, organization, data = [],
               </p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 {player.teamLogoUrl && (
-                  <img src={player.teamLogoUrl} alt="" className="w-4 h-4 object-cover grayscale" />
+                  <img src={player.teamLogoUrl} alt="" className="w-4 h-4 object-cover" />
                 )}
                 <p className="text-xs text-muted-foreground truncate">{player.teamName}</p>
               </div>

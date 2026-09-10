@@ -18,7 +18,7 @@ export default function StandingsTable({ divisionData, organization, accent = "o
           <span className="hidden sm:block text-sm text-muted-foreground">{organization?.name}</span>
           {organization?.logo_url && (
             <Avatar className="w-10 h-10 border border-border">
-              <AvatarImage src={organization.logo_url} className="grayscale" />
+              <AvatarImage src={organization.logo_url} />
               <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-sm">
                 {organization.name?.substring(0, 2).toUpperCase()}
               </AvatarFallback>
@@ -52,7 +52,7 @@ export default function StandingsTable({ divisionData, organization, accent = "o
             </div>
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 pl-1">
               <Avatar className="w-8 h-8 sm:w-9 sm:h-9 border border-border bg-secondary shrink-0">
-                <AvatarImage src={team.logo_url} className="object-contain grayscale" />
+                <AvatarImage src={team.logo_url} className="object-contain" />
                 <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                   {team.name?.substring(0, 2).toUpperCase()}
                 </AvatarFallback>

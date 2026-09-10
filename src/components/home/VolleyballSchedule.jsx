@@ -95,7 +95,7 @@ export default function VolleyballSchedule({
                   <div className="space-y-2 mb-3">
                     <div className="flex items-center gap-2">
                       <Avatar className="w-9 h-9 border border-border bg-secondary">
-                        <AvatarImage src={homeTeamData?.logo_url} className="grayscale" />
+                        <AvatarImage src={homeTeamData?.logo_url} />
                         <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">{homeTeamData?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
@@ -108,7 +108,7 @@ export default function VolleyballSchedule({
                     </div>
                     <div className="flex items-center gap-2">
                       <Avatar className="w-9 h-9 border border-border bg-secondary">
-                        <AvatarImage src={awayTeamData?.logo_url} className="grayscale" />
+                        <AvatarImage src={awayTeamData?.logo_url} />
                         <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">{awayTeamData?.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
