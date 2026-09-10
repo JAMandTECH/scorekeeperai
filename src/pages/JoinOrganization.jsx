@@ -312,7 +312,7 @@ export default function JoinOrganization() {
                   const isCurrentOrg = org.id === user?.organization_id || org.id === user?.active_organization_id;
                   
                   return (
-                    <Card key={org.id} className="relative overflow-hidden border-2 border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 card-hover">
+                    <Card key={org.id} className="relative overflow-hidden border-2 border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transition-shadow hover:shadow-md">
                       {isCurrentOrg && (
                         <div className="absolute top-3 right-3">
                           <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">

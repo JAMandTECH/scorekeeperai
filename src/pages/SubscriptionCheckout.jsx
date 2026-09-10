@@ -260,7 +260,7 @@ export default function SubscriptionCheckout() {
                          tier.popular
                            ? 'border-4 border-purple-400 dark:border-purple-600 shadow-2xl scale-105'
                            : 'border-2 border-gray-200 dark:border-gray-700'
-                       } bg-white dark:bg-gray-800 ${tier.value === 'premium' ? 'neon-glow-purple shadow-futuristic-lg' : ''} transition-all hover:shadow-xl`}
+                       } bg-white dark:bg-gray-800 ${tier.value === 'premium' ? 'border-primary' : ''} transition-all hover:shadow-xl`}
                     >
                       {tier.popular && (
                         <div className="absolute -top-4 left-1/2 -translate-x-1/2">

@@ -169,7 +169,7 @@ export default function SeasonManager() {
                 <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-2 transition-colors">
                   <ArrowLeft className="w-4 h-4" /> Back to Dashboard
                 </Link>
-                <h1 className="font-futuristic text-4xl font-black flex items-center gap-3">
+                <h1 className="font-heading text-3xl font-bold tracking-tight flex items-center gap-3">
                   <CalendarPlus className="w-8 h-8 text-primary" />
                   Season Manager
                 </h1>
