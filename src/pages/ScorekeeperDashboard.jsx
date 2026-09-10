@@ -321,7 +321,7 @@ export default function ScorekeeperDashboard() {
                     You don't have any games assigned to you at the moment.
                   </p>
                   <Link to={createPageUrl("Home")}>
-                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
+                    <Button className="font-medium">
                       <HomeIcon className="w-4 h-4 mr-2" />
                       Go to Organization Home
                     </Button>

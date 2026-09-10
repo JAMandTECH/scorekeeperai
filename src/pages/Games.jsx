@@ -1556,7 +1556,7 @@ export default function Games() {
                       <Button 
                         type="submit" 
                         disabled={createMutation.isLoading || updateMutation.isLoading}
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                        className="font-medium"
                       >
                         {editingGame ? (updateMutation.isLoading ? 'Updating...' : 'Update Game') : (createMutation.isLoading ? 'Scheduling...' : (recurringConfig.enabled ? `Schedule ${recurringConfig.occurrences} Games` : 'Schedule Game'))}
                       </Button>

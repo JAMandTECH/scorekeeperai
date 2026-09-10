@@ -477,7 +477,7 @@ export default function TeamRegistration() {
                         type="button"
                         onClick={addPlayer}
                         disabled={players.length >= 25}
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold disabled:opacity-50"
+                        className="font-medium disabled:opacity-50"
                       >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Player
@@ -625,7 +625,7 @@ export default function TeamRegistration() {
                     <Button
                       type="button"
                       onClick={handleSaveDraft}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-lg"
+                      className="font-medium shadow-lg"
                     >
                       <Save className="w-4 h-4 mr-2" />
                       Save Draft

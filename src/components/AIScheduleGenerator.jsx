@@ -65,7 +65,7 @@ export default function AIScheduleGenerator({ isOpen, onClose, onGenerate, isLoa
           <Button
             onClick={handleGenerate}
             disabled={!canGenerate || isLoading}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+            className="font-medium"
           >
             {isLoading ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>

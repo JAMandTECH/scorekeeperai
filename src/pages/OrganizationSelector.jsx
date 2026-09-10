@@ -128,7 +128,7 @@ export default function OrganizationSelector() {
               </p>
               <Button
                 onClick={handleAddMore}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                className="font-medium"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Find Organizations
@@ -185,7 +185,7 @@ export default function OrganizationSelector() {
                                 handleSelect(org.id);
                               }}
                               disabled={selectMutation.isLoading}
-                              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                              className="font-medium"
                             >
                               {selectMutation.isLoading ? (
                                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>

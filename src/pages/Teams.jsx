@@ -582,7 +582,7 @@ export default function Teams() {
                       <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold">
                         Cancel
                       </Button>
-                      <Button type="submit" disabled={uploading} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
+                      <Button type="submit" disabled={uploading} className="font-medium">
                         {uploading ? (
                           <>
                             <Upload className="w-4 h-4 mr-2 animate-spin" />

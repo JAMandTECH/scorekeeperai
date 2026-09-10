@@ -952,7 +952,7 @@ export default function Players() {
                       <Button 
                         type="submit" 
                         disabled={uploading}
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                        className="font-medium"
                       >
                         {uploading ? 'Uploading...' : editingPlayer ? 'Update' : 'Create'}
                       </Button>

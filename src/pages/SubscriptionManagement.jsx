@@ -343,7 +343,7 @@ export default function SubscriptionManagement() {
                               <Button
                                 onClick={() => handleEditSubscription(org)}
                                 size="sm"
-                                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                                className="font-medium"
                               >
                                 Manage
                               </Button>
@@ -468,7 +468,7 @@ export default function SubscriptionManagement() {
             <div className="flex gap-3">
               <Button
                 onClick={handleSaveSubscription}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                className="flex-1 font-medium"
                 disabled={updateSubscriptionMutation.isPending}
               >
                 {updateSubscriptionMutation.isPending ? 'Saving...' : 'Save Changes'}

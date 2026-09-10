@@ -806,7 +806,7 @@ export default function WeeklySummary() {
                       <Button
                         onClick={shareToInternalFeed}
                         disabled={isSharing}
-                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
+                        className="w-full font-medium shadow-xl"
                       >
                         {isSharing ? (
                           <>

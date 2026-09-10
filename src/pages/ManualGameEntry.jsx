@@ -461,7 +461,7 @@ export default function ManualGameEntry() {
                               </Avatar>
                             </div>
                           </div>
-                          <Button className="w-full mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
+                          <Button className="w-full mt-4 font-medium">
                             <FileEdit className="w-4 h-4 mr-2" />
                             Enter Result
                           </Button>
