@@ -288,7 +288,7 @@ export default function SubscriptionCheckout() {
                         <CardTitle className="text-2xl font-black text-gray-900 dark:text-white mb-2">
                           {tier.name}
                         </CardTitle>
-                        <div className="text-4xl font-black text-gray-900 dark:text-white">
+                        <div className="font-heading text-4xl font-bold tabular-nums">
                           AUD ${billingCycle === 'monthly' ? tier.monthly : tier.yearly}
                           <span className="text-lg font-normal text-gray-500 dark:text-gray-400">
                             /{billingCycle === 'monthly' ? 'month' : 'year'}

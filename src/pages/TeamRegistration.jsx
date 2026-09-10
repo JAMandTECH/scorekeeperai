@@ -434,7 +434,7 @@ export default function TeamRegistration() {
                           className="flex-1 bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600"
                         />
                         {uploadingLogo && (
-                          <div className="animate-spin rounded-full h-6 w-6 border-4 border-blue-600 border-t-transparent"></div>
+                          <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent"></div>
                         )}
                         {teamData.logo_url && (
                           <img src={teamData.logo_url} alt="Team logo" className="w-16 h-16 object-cover rounded-lg border-2 border-blue-400 shadow-md" />

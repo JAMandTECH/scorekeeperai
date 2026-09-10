@@ -178,7 +178,7 @@ export default function ScorekeeperDashboard() {
                 <>
                   <div className={`text-4xl font-black text-${sportColor}-600 dark:text-${sportColor}-400`}>{game.home_score}</div>
                   <div className="text-gray-400 dark:text-gray-600 px-4 text-2xl font-black">-</div>
-                  <div className="text-4xl font-black text-gray-900 dark:text-white">{game.away_score}</div>
+                  <div className="font-heading text-4xl font-bold tabular-nums">{game.away_score}</div>
                 </>
               ) : (
                 <div className="text-gray-400 dark:text-gray-600 text-xl font-bold">vs</div>

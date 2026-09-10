@@ -354,8 +354,8 @@ export default function WeeklySummary() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
@@ -389,7 +389,7 @@ export default function WeeklySummary() {
   }).filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-50 dark:from-gray-900 dark:via-purple-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -415,7 +415,7 @@ export default function WeeklySummary() {
               {/* Header */}
               <div className="flex justify-between items-center">
                 <div>
-                  <h1 className="text-4xl font-black text-gray-900 dark:text-white">Weekly Game Summary</h1>
+                  <h1 className="font-heading text-3xl font-bold tracking-tight">Weekly Game Summary</h1>
                   <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">AI-powered weekly recaps with highlights and best players</p>
                 </div>
                 <div className="flex items-center gap-3">
