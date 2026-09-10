@@ -168,7 +168,7 @@ export default function PublicLanding() {
                 )}
               </div>
             </div>
-            <div className="lg:col-span-5 relative">
+            <div className="lg:col-span-5 relative h-[420px] lg:h-[560px]">
               <img
                 src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/796729f02_generated_image.png"
                 alt="Basketball player dunking"
