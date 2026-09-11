@@ -147,8 +147,8 @@ export default function PublicLanding() {
                 Run your league<br />
                 with{" "}
                 <span
-                  className="text-[#6EE787]"
-                  style={{ textShadow: "0 0 30px rgba(110,231,135,0.55), 0 0 70px rgba(110,231,135,0.3)" }}
+                  className="text-primary"
+                  style={{ textShadow: "0 0 30px hsl(var(--primary) / 0.55), 0 0 70px hsl(var(--primary) / 0.3)" }}
                 >
                   precision
                 </span>
@@ -160,7 +160,7 @@ export default function PublicLanding() {
               <div className="flex flex-wrap gap-4">
                 {!isAuthenticated ? (
                   <>
-                    <Button size="lg" onClick={handleGetStarted} className="rounded-none bg-[#6EE787] text-black hover:bg-[#6EE787] hover:text-black border-0 px-8">
+                    <Button size="lg" onClick={handleGetStarted} className="rounded-none px-8">
                       Get Started Free
                       <ArrowRight className="w-4 h-4" />
                     </Button>
@@ -170,7 +170,7 @@ export default function PublicLanding() {
                   </>
                 ) : (
                   <>
-                    <Button size="lg" onClick={() => navigate(user?.role === 'admin' ? '/Dashboard' : '/Home')} className="rounded-none bg-[#6EE787] text-black hover:bg-[#6EE787] hover:text-black border-0 px-8">
+                    <Button size="lg" onClick={() => navigate(user?.role === 'admin' ? '/Dashboard' : '/Home')} className="rounded-none px-8">
                       {user?.role === 'admin' ? 'Go to Dashboard' : 'Go to Home'}
                       <ArrowRight className="w-4 h-4" />
                     </Button>
@@ -185,7 +185,7 @@ export default function PublicLanding() {
             <div className="lg:col-span-5 relative">
               <div className="rounded-none border border-white/10 bg-[#2D2D2D]/65 backdrop-blur-xl p-8 lg:p-10 shadow-2xl">
                 <div className="flex items-center gap-2.5 mb-7">
-                  <Radio className="w-4 h-4 text-[#6EE787]" style={{ filter: "drop-shadow(0 0 6px rgba(110,231,135,0.8))" }} />
+                  <Radio className="w-4 h-4 text-primary" style={{ filter: "drop-shadow(0 0 6px hsl(var(--primary) / 0.8))" }} />
                   <span className="text-xs font-semibold tracking-[0.2em] text-white">LIVE SCORING</span>
                 </div>
                 <div className="space-y-5">
