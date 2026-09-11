@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Calendar, Target, Zap, Shield, ArrowRight, Sun, Moon, 
-  PlayCircle, Users, BarChart3, Trophy, CheckCircle, Globe, LogOut, LayoutGrid, Sparkles, Mic, Brain, Menu, X
+  PlayCircle, Users, BarChart3, Trophy, CheckCircle, Globe, LogOut, LayoutGrid, Sparkles, Mic, Brain, Menu, X, Radio
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AIAssistant from "@/components/AIAssistant";
@@ -131,36 +131,50 @@ export default function PublicLanding() {
       </header>
 
       {/* ── Hero ── */}
-      <section className="border-b border-border">
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
-          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      <section className="relative overflow-hidden border-b border-border bg-[#0B0F0E]">
+        {/* Court backdrop */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=2000&q=80')", opacity: 0.18 }}
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0B0F0E] via-[#0B0F0E]/85 to-[#0B0F0E]/55" aria-hidden="true" />
+        <div className="relative max-w-[1400px] mx-auto px-6 lg:px-10 py-20 lg:py-32">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
             <div className="lg:col-span-7">
-              <p className="text-sm text-muted-foreground mb-6 tracking-wide">AI-Powered Sports League Management</p>
-              <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl font-bold leading-[0.95] tracking-tight mb-6">
+              <p className="text-xs sm:text-sm font-medium tracking-[0.2em] uppercase text-white/50 mb-6">AI-Powered Sports League Management</p>
+              <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl font-bold leading-[0.95] tracking-tight mb-6 text-white">
                 Run your league<br />
-                with <span className="text-primary">precision</span>.
+                with{" "}
+                <span
+                  className="text-[#34D399]"
+                  style={{ textShadow: "0 0 30px rgba(16,185,129,0.55), 0 0 70px rgba(52,211,153,0.3)" }}
+                >
+                  precision
+                </span>
+                .
               </h1>
-              <p className="text-lg text-muted-foreground max-w-xl mb-10 leading-relaxed">
+              <p className="text-lg text-white/70 max-w-xl mb-10 leading-relaxed">
                 The complete platform for basketball and volleyball leagues. Live scoring, AI insights, voice commands, and real-time statistics — all in one place.
               </p>
               <div className="flex flex-wrap gap-4">
                 {!isAuthenticated ? (
                   <>
-                    <Button size="lg" onClick={handleGetStarted}>
+                    <Button size="lg" onClick={handleGetStarted} className="rounded-full bg-[#10B981] text-black hover:bg-[#34D399] hover:text-black border-0 px-8">
                       Get Started Free
                       <ArrowRight className="w-4 h-4" />
                     </Button>
-                    <Button size="lg" variant="outline" onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}>
+                    <Button size="lg" variant="outline" onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })} className="rounded-full border-white/30 text-white hover:bg-white/10 hover:text-white px-8">
                       View Demo
                     </Button>
                   </>
                 ) : (
                   <>
-                    <Button size="lg" onClick={() => navigate(user?.role === 'admin' ? '/Dashboard' : '/Home')}>
+                    <Button size="lg" onClick={() => navigate(user?.role === 'admin' ? '/Dashboard' : '/Home')} className="rounded-full bg-[#10B981] text-black hover:bg-[#34D399] hover:text-black border-0 px-8">
                       {user?.role === 'admin' ? 'Go to Dashboard' : 'Go to Home'}
                       <ArrowRight className="w-4 h-4" />
                     </Button>
-                    <Button size="lg" variant="outline" onClick={handleLogout}>
+                    <Button size="lg" variant="outline" onClick={handleLogout} className="rounded-full border-white/30 text-white hover:bg-white/10 hover:text-white px-8">
                       <LogOut className="w-4 h-4" />
                       Logout
                     </Button>
@@ -169,21 +183,21 @@ export default function PublicLanding() {
               </div>
             </div>
             <div className="lg:col-span-5 relative">
-              <div className="border border-border p-8 lg:p-12 bg-secondary/30">
-                <div className="flex items-center gap-2 mb-6">
-                  <span className="live-dot" />
-                  <span className="text-xs font-medium tracking-wide">LIVE SCORING</span>
+              <div className="rounded-2xl border border-white/10 bg-[#2D2D2D]/65 backdrop-blur-xl p-8 lg:p-10 shadow-2xl">
+                <div className="flex items-center gap-2.5 mb-7">
+                  <Radio className="w-4 h-4 text-[#34D399]" style={{ filter: "drop-shadow(0 0 6px rgba(52,211,153,0.8))" }} />
+                  <span className="text-xs font-semibold tracking-[0.2em] text-white">LIVE SCORING</span>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Thunder Hawks</span>
-                    <span className="font-heading text-3xl font-bold tabular-nums">67</span>
+                    <span className="text-base font-medium text-white">Thunder Hawks</span>
+                    <span className="font-heading text-4xl font-bold tabular-nums text-white">67</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Storm Eagles</span>
-                    <span className="font-heading text-3xl font-bold tabular-nums">62</span>
+                    <span className="text-base font-medium text-white">Storm Eagles</span>
+                    <span className="font-heading text-4xl font-bold tabular-nums text-white">62</span>
                   </div>
-                  <div className="border-t border-border pt-4 text-xs text-muted-foreground tabular-nums">
+                  <div className="border-t border-white/15 pt-4 text-center text-xs text-white/60 tabular-nums tracking-wide">
                     Q3 • 08:24 remaining
                   </div>
                 </div>
