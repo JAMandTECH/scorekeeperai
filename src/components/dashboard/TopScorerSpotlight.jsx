@@ -126,14 +126,14 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
   const basketballDivisions = React.useMemo(() => [...new Set(
     teams.filter((t) => (t.sport || "").toLowerCase() === "basketball").map((t) => t.division).filter(Boolean)
   )], [teams]);
-  const openDivision = basketballDivisions.find((d) => d.toLowerCase().includes("open")) || "Open Division";
-  const veteranDivision = basketballDivisions.find((d) => d.toLowerCase().includes("veteran")) || "Veterans Division";
+  const openDivision = basketballDivisions.find((d) => d.toLowerCase().includes("open")) || null;
+  const veteranDivision = basketballDivisions.find((d) => d.toLowerCase().includes("veteran")) || null;
 
   const volleyballDivisions = React.useMemo(() => [...new Set(
     teams.filter((t) => (t.sport || "").toLowerCase() === "volleyball").map((t) => t.division).filter(Boolean)
   )], [teams]);
-  const vOpenDivision = volleyballDivisions.find((d) => d.toLowerCase().includes("open")) || "Open Division";
-  const vVeteranDivision = volleyballDivisions.find((d) => d.toLowerCase().includes("veteran")) || "Veterans Division";
+  const vOpenDivision = volleyballDivisions.find((d) => d.toLowerCase().includes("open")) || null;
+  const vVeteranDivision = volleyballDivisions.find((d) => d.toLowerCase().includes("veteran")) || null;
 
   const buildTop = React.useCallback((division, sport = "basketball") => {
     const ctx = { games, playerStats, teams, players, sport, division, limit: 1 };
@@ -184,24 +184,27 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
     };
   }, [games, playerStats, teams, players, playerMap]);
 
-  const openTop = React.useMemo(() => buildTop(openDivision, "basketball"), [buildTop, openDivision]);
-  const veteranTop = React.useMemo(() => buildTop(veteranDivision, "basketball"), [buildTop, veteranDivision]);
-  const vOpenTop = React.useMemo(() => buildTop(vOpenDivision, "volleyball"), [buildTop, vOpenDivision]);
-  const vVeteranTop = React.useMemo(() => buildTop(vVeteranDivision, "volleyball"), [buildTop, vVeteranDivision]);
+  const openTop = React.useMemo(() => openDivision ? buildTop(openDivision, "basketball") : null, [buildTop, openDivision]);
+  const veteranTop = React.useMemo(() => veteranDivision ? buildTop(veteranDivision, "basketball") : null, [buildTop, veteranDivision]);
+  const vOpenTop = React.useMemo(() => vOpenDivision ? buildTop(vOpenDivision, "volleyball") : null, [buildTop, vOpenDivision]);
+  const vVeteranTop = React.useMemo(() => vVeteranDivision ? buildTop(vVeteranDivision, "volleyball") : null, [buildTop, vVeteranDivision]);
 
-  const hasVolleyball = volleyballDivisions.length > 0;
+  const hasBasketball = openTop || veteranTop;
+  const hasVolleyball = vOpenTop || vVeteranTop;
 
   return (
     <StatsFetchingIndicator loading={isLoading} fetching={isFetching} label="Refreshing top scorers…">
       <div className="space-y-6">
-        <div className="grid md:grid-cols-2 gap-6">
-          <ScorerCard label="Open" topScorer={openTop} teamMap={teamMap} />
-          <ScorerCard label="Veterans" topScorer={veteranTop} teamMap={teamMap} />
-        </div>
+        {hasBasketball && (
+          <div className="grid md:grid-cols-2 gap-6">
+            {openTop && <ScorerCard label="Open" topScorer={openTop} teamMap={teamMap} />}
+            {veteranTop && <ScorerCard label="Veterans" topScorer={veteranTop} teamMap={teamMap} />}
+          </div>
+        )}
         {hasVolleyball && (
           <div className="grid md:grid-cols-2 gap-6">
-            <ScorerCard label="Volleyball · Open" topScorer={vOpenTop} teamMap={teamMap} />
-            <ScorerCard label="Volleyball · Veterans" topScorer={vVeteranTop} teamMap={teamMap} />
+            {vOpenTop && <ScorerCard label="Volleyball · Open" topScorer={vOpenTop} teamMap={teamMap} />}
+            {vVeteranTop && <ScorerCard label="Volleyball · Veterans" topScorer={vVeteranTop} teamMap={teamMap} />}
           </div>
         )}
       </div>
