@@ -13,7 +13,7 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "react-router-dom";
-import ThemeCustomizer from "@/components/ThemeCustomizer";
+
 
 export default function OrganizationSettings() {
   const [user, setUser] = useState(null);
@@ -520,14 +520,6 @@ export default function OrganizationSettings() {
                   )}
                 </CardContent>
               </Card>
-
-              {/* Theme Customization - Only for Org Admins */}
-              {user?.role === 'admin' && (
-                <ThemeCustomizer 
-                  organization={organization} 
-                  onUpdate={refetchOrganization}
-                />
-              )}
 
               {/* Organization Info Card */}
               <Card>
