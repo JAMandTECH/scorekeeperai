@@ -1,0 +1,216 @@
+{
+  "name": "ArchivedGame",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "season_id": {
+      "type": "string",
+      "description": "Season this archived game belongs to"
+    },
+    "original_id": {
+      "type": "string",
+      "description": "Original Game record id"
+    },
+    "home_team_id": {
+      "type": "string"
+    },
+    "away_team_id": {
+      "type": "string"
+    },
+    "home_team_name": {
+      "type": "string"
+    },
+    "away_team_name": {
+      "type": "string"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "basketball",
+        "volleyball"
+      ]
+    },
+    "game_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "court_number": {
+      "type": "string"
+    },
+    "duration_hours": {
+      "type": "number",
+      "default": 1.5
+    },
+    "location": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "in_progress",
+        "completed"
+      ],
+      "default": "completed"
+    },
+    "game_type": {
+      "type": "string",
+      "enum": [
+        "regular_season",
+        "play_in",
+        "playoffs",
+        "quarter_finals",
+        "semi_finals",
+        "finals",
+        "pre_season"
+      ],
+      "default": "regular_season"
+    },
+    "week_number": {
+      "type": "number"
+    },
+    "division": {
+      "type": "string"
+    },
+    "home_score": {
+      "type": "number",
+      "default": 0
+    },
+    "away_score": {
+      "type": "number",
+      "default": 0
+    },
+    "quarter_scores": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    },
+    "current_quarter": {
+      "type": "number",
+      "default": 1
+    },
+    "overtime_count": {
+      "type": "number",
+      "default": 0
+    },
+    "home_timeouts": {
+      "type": "number",
+      "default": 5
+    },
+    "away_timeouts": {
+      "type": "number",
+      "default": 5
+    },
+    "home_team_fouls": {
+      "type": "number",
+      "default": 0
+    },
+    "away_team_fouls": {
+      "type": "number",
+      "default": 0
+    },
+    "winning_team_id": {
+      "type": "string"
+    },
+    "stream_url": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "organization_id",
+    "season_id",
+    "original_id",
+    "sport"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "data.organization_id": "{{user.data.organization_id}}"
+        },
+        {
+          "data.organization_id": "{{user.data.active_organization_id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

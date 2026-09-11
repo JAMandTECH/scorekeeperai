@@ -146,7 +146,7 @@ export default function Organizations() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-50 dark:from-gray-900 dark:via-purple-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={null}
@@ -172,7 +172,7 @@ export default function Organizations() {
               {/* Header */}
               <div className="flex justify-between items-center">
                 <div>
-                  <h1 className="text-4xl font-black text-gray-900 dark:text-white">Organizations</h1>
+                  <h1 className="font-heading text-3xl font-bold tracking-tight">Organizations</h1>
                   <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Manage all registered organizations</p>
                 </div>
                 <Button 
@@ -181,7 +181,7 @@ export default function Organizations() {
                     setLogoFile(null);
                     setShowForm(true);
                   }}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
+                  className="font-medium shadow-xl"
                 >
                   <Plus className="w-5 h-5 mr-2" />
                   Add Organization
@@ -369,7 +369,7 @@ export default function Organizations() {
                       <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold">
                         Cancel
                       </Button>
-                      <Button type="submit" disabled={uploading} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
+                      <Button type="submit" disabled={uploading} className="font-medium">
                         {uploading ? (
                           <>
                             <Upload className="w-4 h-4 mr-2 animate-spin" />
@@ -466,7 +466,7 @@ export default function Organizations() {
                   <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
                     <Button 
                       onClick={() => setMembersDialog(null)}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                      className="font-medium"
                     >
                       Close
                     </Button>

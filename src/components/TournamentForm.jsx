@@ -169,7 +169,7 @@ export default function TournamentForm({ teams, tournament, onSubmit, onCancel }
             <Button type="button" variant="outline" onClick={onCancel} className="font-bold">
               Cancel
             </Button>
-            <Button type="submit" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
+            <Button type="submit" className="font-medium">
               {tournament ? 'Update Tournament' : 'Create Tournament'}
             </Button>
           </div>

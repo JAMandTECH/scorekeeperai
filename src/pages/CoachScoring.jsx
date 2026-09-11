@@ -85,24 +85,24 @@ export default function CoachScoring() {
 
   if (!gameId) {
     return (
-      <div className="min-h-screen p-6 md:p-8 bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen p-6 md:p-8 bg-background text-foreground">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">Coach Scoring</h1>
-          <p className="text-slate-600">Missing gameId. Open this page with ?gameId=YOUR_GAME_ID</p>
+          <h1 className="text-2xl md:text-3xl font-heading font-bold mb-2">Coach Scoring</h1>
+          <p className="text-muted-foreground">Missing gameId. Open this page with ?gameId=YOUR_GAME_ID</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6 bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen p-4 md:p-6 bg-background text-foreground">
       <div className="max-w-5xl mx-auto flex flex-col gap-4">
-        <div className="rounded-2xl border bg-white p-4 md:p-5 shadow-sm">
+        <div className="border border-border bg-card p-4 md:p-5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-xl md:text-2xl font-bold">Coach Scoring</h1>
+              <h1 className="text-xl md:text-2xl font-heading font-bold">Coach Scoring</h1>
               {!gameLoading && game && (
-                <p className="text-slate-600 text-sm md:text-base">
+                <p className="text-muted-foreground text-sm md:text-base">
                   {homeTeam?.name || "Home"} vs {awayTeam?.name || "Away"} • {sport}
                 </p>
               )}
@@ -110,7 +110,7 @@ export default function CoachScoring() {
 
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setPeriod((p) => Math.max(1, p - 1))}>-</Button>
-              <div className="px-3 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm md:text-base">
+              <div className="px-3 py-2 bg-muted text-foreground text-sm md:text-base font-medium">
                 {sport === 'volleyball' ? 'Set' : 'Period'}: {period}
               </div>
               <Button variant="outline" onClick={() => setPeriod((p) => p + 1)}>+</Button>
@@ -118,7 +118,7 @@ export default function CoachScoring() {
           </div>
         </div>
 
-        <div className="rounded-2xl border bg-white p-3 md:p-4 shadow-sm">
+        <div className="border border-border bg-card p-3 md:p-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid grid-cols-2 w-full">
               <TabsTrigger value="home">{homeTeam?.name || "Home"}</TabsTrigger>
@@ -153,7 +153,7 @@ export default function CoachScoring() {
 
 function Roster({ players, teamId, sport, game, onLog, isLoading }) {
   if (!players || players.length === 0) {
-    return <div className="text-slate-500 text-sm">No players found.</div>;
+    return <div className="text-muted-foreground text-sm">No players found.</div>;
   }
   return (
     <div className="grid grid-cols-1 gap-3 md:gap-4">

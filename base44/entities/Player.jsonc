@@ -6,6 +6,10 @@
       "type": "string",
       "description": "Team this player belongs to"
     },
+    "season_id": {
+      "type": "string",
+      "description": "Active season this player belongs to"
+    },
     "jersey_number": {
       "type": "string"
     },

@@ -354,8 +354,8 @@ export default function WeeklySummary() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
@@ -389,7 +389,7 @@ export default function WeeklySummary() {
   }).filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-50 dark:from-gray-900 dark:via-purple-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -415,30 +415,30 @@ export default function WeeklySummary() {
               {/* Header */}
               <div className="flex justify-between items-center">
                 <div>
-                  <h1 className="text-4xl font-black text-gray-900 dark:text-white">Weekly Game Summary</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">AI-powered weekly recaps with highlights and best players</p>
+                  <h1 className="font-heading text-3xl font-bold tracking-tight">Weekly Game Summary</h1>
+                  <p className="text-muted-foreground mt-2 font-medium">AI-powered weekly recaps with highlights and best players</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Label htmlFor="week-select" className="font-bold text-gray-700 dark:text-gray-300">Week:</Label>
+                  <Label htmlFor="week-select" className="font-heading font-bold text-foreground">Week:</Label>
                   <Input
                     id="week-select"
                     type="number"
                     min="1"
                     value={selectedWeek}
                     onChange={(e) => setSelectedWeek(parseInt(e.target.value) || 1)}
-                    className="w-24 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 font-bold"
+                    className="w-24 font-heading font-bold"
                   />
                 </div>
               </div>
 
               {/* Week Games Overview */}
-              <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
-                <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
+              <Card className="">
+                <CardHeader className="border-b border-border">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                      <Calendar className="w-6 h-6 text-white" />
+                    <div className="w-12 h-12 border border-border flex items-center justify-center">
+                      <Calendar className="w-6 h-6 text-primary" />
                     </div>
-                    <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                    <CardTitle className="text-2xl font-heading font-bold">
                       Week {selectedWeek} - Game Results
                     </CardTitle>
                   </div>
@@ -446,19 +446,19 @@ export default function WeeklySummary() {
                 <CardContent className="p-6">
                   {weekGames.length === 0 ? (
                     <div className="text-center py-12">
-                      <Calendar className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                      <p className="text-gray-500 dark:text-gray-400 font-bold">No completed games found for Week {selectedWeek}</p>
-                      <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">Select a different week or complete some games first.</p>
+                      <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground font-heading font-bold">No completed games found for Week {selectedWeek}</p>
+                      <p className="text-sm text-muted-foreground mt-2">Select a different week or complete some games first.</p>
                     </div>
                   ) : (
                     <div className="space-y-6">
                       {Object.values(gamesByDivision).map(({ sport, division, games: divGames }) => (
                         <div key={`${sport}_${division}`} className="space-y-3">
                           <div className="flex items-center gap-3">
-                            <Badge className={`${sport === 'basketball' ? 'bg-orange-600' : 'bg-blue-600'} text-white font-black px-4 py-1.5`}>
-                              {sport.toUpperCase()}
-                            </Badge>
-                            <h3 className="text-xl font-black text-gray-900 dark:text-white">{division}</h3>
+                            <Badge variant="outline" className="border-border text-muted-foreground font-heading font-bold px-4 py-1.5 uppercase">
+                               {sport.toUpperCase()}
+                             </Badge>
+                            <h3 className="text-xl font-heading font-bold text-foreground">{division}</h3>
                           </div>
                           <div className="space-y-2">
                             {divGames.map(game => {
@@ -467,12 +467,12 @@ export default function WeeklySummary() {
                               const awayTeamData = teams.find(t => t.id === game.away_team_id);
                               
                               return (
-                                <div key={game.id} className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-4 border-2 border-gray-200 dark:border-gray-700">
+                                <div key={game.id} className="bg-muted border border-border p-4">
                                   <div className="flex justify-between items-center mb-3">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                                    <span className="text-xs text-muted-foreground font-medium">
                                       {new Date(game.game_date).toLocaleDateString()}
                                     </span>
-                                    <Badge className="bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 font-bold">
+                                    <Badge variant="outline" className="border-primary text-primary font-medium">
                                       FINAL
                                     </Badge>
                                   </div>
@@ -480,26 +480,26 @@ export default function WeeklySummary() {
                                   {sport === 'basketball' ? (
                                     <div className="flex justify-between items-center mb-3">
                                       <div className="flex items-center gap-2 flex-1">
-                                        <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700">
+                                        <Avatar className="w-10 h-10 border border-border">
                                           <AvatarImage src={homeTeamData?.logo_url} />
-                                          <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white text-xs font-bold">
+                                          <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                                             {homeTeamData?.name?.substring(0, 2).toUpperCase()}
                                           </AvatarFallback>
                                         </Avatar>
                                         <div className="flex-1">
-                                          <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.home_team_id)}</div>
-                                          <div className="text-3xl font-black text-gray-900 dark:text-white">{game.home_score}</div>
+                                          <div className="text-sm font-heading font-bold text-foreground">{getTeamName(game.home_team_id)}</div>
+                                          <div className="text-3xl font-heading font-bold text-foreground tabular-nums">{game.home_score}</div>
                                         </div>
                                       </div>
-                                      <div className="text-gray-300 dark:text-gray-600 text-2xl font-black px-4">-</div>
+                                      <div className="text-muted-foreground text-2xl font-heading font-bold px-4">-</div>
                                       <div className="flex items-center gap-2 flex-1 justify-end">
                                         <div className="flex-1 text-right">
-                                          <div className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.away_team_id)}</div>
-                                          <div className="text-3xl font-black text-gray-900 dark:text-white">{game.away_score}</div>
+                                          <div className="text-sm font-heading font-bold text-foreground">{getTeamName(game.away_team_id)}</div>
+                                          <div className="text-3xl font-heading font-bold text-foreground tabular-nums">{game.away_score}</div>
                                         </div>
-                                        <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700">
+                                        <Avatar className="w-10 h-10 border border-border">
                                           <AvatarImage src={awayTeamData?.logo_url} />
-                                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold">
+                                          <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                                             {awayTeamData?.name?.substring(0, 2).toUpperCase()}
                                           </AvatarFallback>
                                         </Avatar>
@@ -509,29 +509,29 @@ export default function WeeklySummary() {
                                     <div className="space-y-2">
                                       <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                          <Avatar className="w-10 h-10">
+                                          <Avatar className="w-10 h-10 border border-border">
                                             <AvatarImage src={homeTeamData?.logo_url} />
-                                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold">
+                                            <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                                               {homeTeamData?.name?.substring(0, 2).toUpperCase()}
                                             </AvatarFallback>
                                           </Avatar>
-                                          <span className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.home_team_id)}</span>
+                                          <span className="text-sm font-heading font-bold text-foreground">{getTeamName(game.home_team_id)}</span>
                                         </div>
-                                        <span className="text-lg font-black text-gray-900 dark:text-white">
+                                        <span className="text-lg font-heading font-bold text-foreground tabular-nums">
                                           {(game.quarter_scores || []).filter(s => s.home > s.away).length} sets
                                         </span>
                                       </div>
                                       <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                          <Avatar className="w-10 h-10">
+                                          <Avatar className="w-10 h-10 border border-border">
                                             <AvatarImage src={awayTeamData?.logo_url} />
-                                            <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white text-xs font-bold">
+                                            <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                                               {awayTeamData?.name?.substring(0, 2).toUpperCase()}
                                             </AvatarFallback>
                                           </Avatar>
-                                          <span className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(game.away_team_id)}</span>
+                                          <span className="text-sm font-heading font-bold text-foreground">{getTeamName(game.away_team_id)}</span>
                                         </div>
-                                        <span className="text-lg font-black text-gray-900 dark:text-white">
+                                        <span className="text-lg font-heading font-bold text-foreground tabular-nums">
                                           {(game.quarter_scores || []).filter(s => s.away > s.home).length} sets
                                         </span>
                                       </div>
@@ -539,20 +539,20 @@ export default function WeeklySummary() {
                                   )}
 
                                   {bestPlayer && (
-                                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                                      <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">⭐ Best Player:</p>
-                                      <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 rounded-lg p-2 border border-yellow-200 dark:border-yellow-800">
-                                        <Avatar className="w-8 h-8 border-2 border-white dark:border-gray-700">
+                                    <div className="mt-3 pt-3 border-t border-border">
+                                      <p className="text-xs text-muted-foreground font-medium mb-2">⭐ Best Player:</p>
+                                      <div className="flex items-center gap-2 bg-muted border border-border p-2">
+                                        <Avatar className="w-8 h-8 border border-border">
                                           <AvatarImage src={bestPlayer.photo_url} />
-                                          <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white text-xs font-bold">
+                                          <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                                             {bestPlayer.jersey_number}
                                           </AvatarFallback>
                                         </Avatar>
                                         <div className="flex-1">
-                                          <p className="text-xs font-bold text-gray-900 dark:text-white">
+                                          <p className="text-xs font-heading font-bold text-foreground">
                                             #{bestPlayer.jersey_number} {bestPlayer.first_name} {bestPlayer.last_name}
                                           </p>
-                                          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-semibold">
+                                          <p className="text-[10px] text-muted-foreground font-medium">
                                             {bestPlayer.stats}
                                           </p>
                                         </div>
@@ -573,20 +573,20 @@ export default function WeeklySummary() {
               {/* AI Summary Generation */}
               {weekGames.length > 0 && (
                 <Card className="bg-white dark:bg-gray-800 border-2 border-purple-200 dark:border-purple-800 shadow-lg">
-                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-white dark:from-gray-800 dark:to-gray-900">
+                  <CardHeader className="border-b border-border">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <Sparkles className="w-6 h-6 text-white" />
+                        <div className="w-12 h-12 border border-border flex items-center justify-center">
+                          <Sparkles className="w-6 h-6 text-primary" />
                         </div>
-                        <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                        <CardTitle className="text-2xl font-heading font-bold">
                           AI-Generated Summary
                         </CardTitle>
                       </div>
                       <Button
                         onClick={generateAISummary}
                         disabled={isGeneratingSummary}
-                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-xl"
+                        className="font-medium"
                       >
                         {isGeneratingSummary ? (
                           <>
@@ -604,9 +604,9 @@ export default function WeeklySummary() {
                   </CardHeader>
                   <CardContent className="p-6">
                     {aiSummary ? (
-                      <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-xl p-6 border-2 border-purple-200 dark:border-purple-800">
+                      <div className="bg-muted border border-border p-6">
                         <div className="prose dark:prose-invert max-w-none">
-                          <p className="text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap font-medium">
+                          <p className="text-foreground leading-relaxed whitespace-pre-wrap font-medium">
                             {aiSummary}
                           </p>
                         </div>
@@ -615,16 +615,15 @@ export default function WeeklySummary() {
                             onClick={() => copyToClipboard(aiSummary)}
                             variant="outline"
                             size="sm"
-                            className="border-2 border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 font-bold"
                           >
                             Copy Text
                           </Button>
                         </div>
                       </div>
                     ) : (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <Sparkles className="w-12 h-12 mx-auto mb-3 text-purple-400" />
-                        <p className="font-semibold">Click "Generate AI Summary" to create an engaging recap of Week {selectedWeek}</p>
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Sparkles className="w-12 h-12 mx-auto mb-3 text-primary" />
+                        <p className="font-medium">Click "Generate AI Summary" to create an engaging recap of Week {selectedWeek}</p>
                       </div>
                     )}
                   </CardContent>
@@ -634,12 +633,12 @@ export default function WeeklySummary() {
               {/* Best Player Poster */}
               {weekGames.length > 0 && (
                 <Card className="bg-white dark:bg-gray-800 border-2 border-orange-200 dark:border-orange-800 shadow-lg">
-                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-orange-50 to-white dark:from-gray-800 dark:to-gray-900">
+                  <CardHeader className="border-b border-border">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-orange-600 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <Trophy className="w-6 h-6 text-white" />
+                      <div className="w-12 h-12 border border-border flex items-center justify-center">
+                        <Trophy className="w-6 h-6 text-primary" />
                       </div>
-                      <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                      <CardTitle className="text-2xl font-heading font-bold">
                         Best Player of the Week Poster
                       </CardTitle>
                     </div>
@@ -647,14 +646,14 @@ export default function WeeklySummary() {
                   <CardContent className="p-6 space-y-4">
                     {/* Select Best Player */}
                     <div>
-                      <Label className="font-bold text-gray-700 dark:text-gray-300 mb-2 block">Select Best Player:</Label>
+                      <Label className="font-heading font-bold text-foreground mb-2 block">Select Best Player:</Label>
                       <select
                         value={selectedBestPlayer?.id || ""}
                         onChange={(e) => {
                           const player = allBestPlayers.find(p => p.id === e.target.value);
                           setSelectedBestPlayer(player);
                         }}
-                        className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                        className="w-full bg-background border border-border text-foreground px-3 py-2 font-medium"
                       >
                         <option value="">Choose a player...</option>
                         {allBestPlayers.map(player => (
@@ -667,20 +666,20 @@ export default function WeeklySummary() {
 
                     {/* Upload Player Photo */}
                     <div>
-                      <Label className="font-bold text-gray-700 dark:text-gray-300 mb-2 block">Upload Player Photo:</Label>
+                      <Label className="font-heading font-bold text-foreground mb-2 block">Upload Player Photo:</Label>
                       <div className="flex gap-3">
                         <Input
                           type="file"
                           accept="image/*"
                           onChange={handlePlayerPhotoUpload}
                           disabled={uploadingPlayerPhoto}
-                          className="flex-1 bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600"
+                          className="flex-1"
                         />
-                        {uploadingPlayerPhoto && <Loader2 className="w-6 h-6 animate-spin text-blue-600" />}
+                        {uploadingPlayerPhoto && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
                       </div>
                       {bestPlayerPhotoUrl && (
                         <div className="mt-3">
-                          <img src={bestPlayerPhotoUrl} alt="Player" className="w-32 h-32 object-cover rounded-lg border-2 border-orange-400 shadow-md" />
+                          <img src={bestPlayerPhotoUrl} alt="Player" className="w-32 h-32 object-cover border border-border" />
                         </div>
                       )}
                     </div>
@@ -689,7 +688,7 @@ export default function WeeklySummary() {
                     <Button
                       onClick={generateBestPlayerPoster}
                       disabled={!selectedBestPlayer || !bestPlayerPhotoUrl || isGeneratingPoster}
-                      className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold shadow-xl"
+                      className="w-full font-medium"
                     >
                       {isGeneratingPoster ? (
                         <>
@@ -707,13 +706,13 @@ export default function WeeklySummary() {
                     {/* Display Generated Poster */}
                     {generatedPosterUrl && (
                       <div className="mt-4">
-                        <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Generated Poster:</p>
-                        <img src={generatedPosterUrl} alt="Best Player Poster" className="w-full rounded-xl border-4 border-orange-400 shadow-2xl" />
+                        <p className="text-sm font-heading font-bold text-foreground mb-2">Generated Poster:</p>
+                        <img src={generatedPosterUrl} alt="Best Player Poster" className="w-full border border-border" />
                         <Button
                           onClick={downloadPoster}
                           variant="outline"
                           size="sm"
-                          className="mt-3 border-2 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300 font-bold"
+                          className="mt-3 font-medium"
                         >
                           Download Poster
                         </Button>
@@ -726,19 +725,19 @@ export default function WeeklySummary() {
               {/* Game Highlights Upload */}
               {weekGames.length > 0 && (
                 <Card className="bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-800 shadow-lg">
-                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
+                  <CardHeader className="border-b border-border">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <ImageIcon className="w-6 h-6 text-white" />
+                      <div className="w-12 h-12 border border-border flex items-center justify-center">
+                        <ImageIcon className="w-6 h-6 text-primary" />
                       </div>
-                      <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                      <CardTitle className="text-2xl font-heading font-bold">
                         Game Highlights (Photos & Videos)
                       </CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent className="p-6 space-y-4">
                     <div>
-                      <Label className="font-bold text-gray-700 dark:text-gray-300 mb-2 block">Upload Highlights:</Label>
+                      <Label className="font-heading font-bold text-foreground mb-2 block">Upload Highlights:</Label>
                       <div className="flex gap-3">
                         <Input
                           type="file"
@@ -746,23 +745,23 @@ export default function WeeklySummary() {
                           multiple
                           onChange={handleHighlightUpload}
                           disabled={uploadingHighlight}
-                          className="flex-1 bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600"
+                          className="flex-1"
                         />
-                        {uploadingHighlight && <Loader2 className="w-6 h-6 animate-spin text-blue-600" />}
+                        {uploadingHighlight && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
                       </div>
                     </div>
 
                     {/* Display Uploaded Highlights */}
                     {highlightMedia.length > 0 && (
                       <div>
-                        <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Uploaded Media ({highlightMedia.length}):</p>
+                        <p className="text-sm font-heading font-bold text-foreground mb-3">Uploaded Media ({highlightMedia.length}):</p>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                           {highlightMedia.map((media, idx) => (
                             <div key={idx} className="relative group">
                               {media.type === 'image' ? (
-                                <img src={media.url} alt={media.name} className="w-full h-40 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-md" />
+                                <img src={media.url} alt={media.name} className="w-full h-40 object-cover border border-border" />
                               ) : (
-                                <div className="relative w-full h-40 bg-gray-900 rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
+                                <div className="relative w-full h-40 bg-muted border border-border overflow-hidden">
                                   <video src={media.url} className="w-full h-full object-cover" />
                                   <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                                     <Video className="w-12 h-12 text-white" />
@@ -789,12 +788,12 @@ export default function WeeklySummary() {
               {/* Share Section */}
               {weekGames.length > 0 && (aiSummary || generatedPosterUrl || highlightMedia.length > 0) && (
                 <Card className="bg-white dark:bg-gray-800 border-2 border-green-200 dark:border-green-800 shadow-lg">
-                  <CardHeader className="border-b-2 border-gray-100 dark:border-gray-700 bg-gradient-to-r from-green-50 to-white dark:from-gray-800 dark:to-gray-900">
+                  <CardHeader className="border-b border-border">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <Share2 className="w-6 h-6 text-white" />
+                      <div className="w-12 h-12 border border-border flex items-center justify-center">
+                        <Share2 className="w-6 h-6 text-primary" />
                       </div>
-                      <CardTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                      <CardTitle className="text-2xl font-heading font-bold">
                         Share Week {selectedWeek} Summary
                       </CardTitle>
                     </div>
@@ -802,11 +801,11 @@ export default function WeeklySummary() {
                   <CardContent className="p-6 space-y-4">
                     {/* Internal Social Feed */}
                     <div>
-                      <h3 className="text-lg font-black text-gray-900 dark:text-white mb-3">Share to Internal Social Feed</h3>
+                      <h3 className="text-lg font-heading font-bold text-foreground mb-3">Share to Internal Social Feed</h3>
                       <Button
                         onClick={shareToInternalFeed}
                         disabled={isSharing}
-                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
+                        className="w-full font-medium"
                       >
                         {isSharing ? (
                           <>
@@ -824,15 +823,15 @@ export default function WeeklySummary() {
 
                     {/* External Social Media */}
                     <div>
-                      <h3 className="text-lg font-black text-gray-900 dark:text-white mb-3">Share to External Social Media</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 font-medium">
+                      <h3 className="text-lg font-heading font-bold text-foreground mb-3">Share to External Social Media</h3>
+                      <p className="text-sm text-muted-foreground mb-3 font-medium">
                         Copy the summary and download media to share on your social platforms:
                       </p>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <Button
                           onClick={() => copyToClipboard(aiSummary)}
                           variant="outline"
-                          className="border-2 border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-bold"
+                          className="font-medium"
                         >
                           <Facebook className="w-4 h-4 mr-2" />
                           Facebook
@@ -840,7 +839,7 @@ export default function WeeklySummary() {
                         <Button
                           onClick={() => copyToClipboard(aiSummary)}
                           variant="outline"
-                          className="border-2 border-sky-500 text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/30 font-bold"
+                          className="font-medium"
                         >
                           <Twitter className="w-4 h-4 mr-2" />
                           Twitter
@@ -848,7 +847,7 @@ export default function WeeklySummary() {
                         <Button
                           onClick={() => copyToClipboard(aiSummary)}
                           variant="outline"
-                          className="border-2 border-pink-500 text-pink-600 dark:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-950/30 font-bold"
+                          className="font-medium"
                         >
                           <Instagram className="w-4 h-4 mr-2" />
                           Instagram
@@ -857,15 +856,15 @@ export default function WeeklySummary() {
                           <Button
                             onClick={downloadPoster}
                             variant="outline"
-                            className="border-2 border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 font-bold"
+                            className="font-medium"
                           >
                             <ImageIcon className="w-4 h-4 mr-2" />
                             Download
                           </Button>
                         )}
                       </div>
-                      <Alert className="mt-4 bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-200 dark:border-blue-800">
-                        <AlertDescription className="text-blue-800 dark:text-blue-300 font-semibold text-sm">
+                      <Alert className="mt-4 bg-muted border border-border">
+                        <AlertDescription className="text-foreground font-medium text-sm">
                           💡 Tip: Download the poster and upload it along with the copied text when posting to external social media for maximum engagement!
                         </AlertDescription>
                       </Alert>

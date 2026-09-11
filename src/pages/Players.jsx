@@ -283,7 +283,14 @@ export default function Players() {
   };
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Player.create(data),
+    mutationFn: async (data) => {
+      let seasonId = null;
+      try {
+        const res = await base44.functions.invoke('getActiveSeason', {});
+        seasonId = res.data?.season?.id || null;
+      } catch (_) {}
+      return base44.entities.Player.create({ ...data, season_id: seasonId });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['players']);
       setShowForm(false);
@@ -350,45 +357,29 @@ export default function Players() {
   };
 
   const PlayerCard = ({ player, sport, sportColor, teamLogo }) => {
-    const isBasketball = sport === 'basketball';
-    const cardClasses = isBasketball
-      ? "border-orange-100 dark:border-orange-900 bg-gradient-to-br from-white to-orange-50 dark:from-gray-800 dark:to-orange-950/30"
-      : "border-blue-100 dark:border-blue-900 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-950/30";
-    const glowClasses = isBasketball
-      ? "bg-gradient-to-br from-orange-500/20 to-transparent"
-      : "bg-gradient-to-br from-blue-500/20 to-transparent";
-    const avatarClasses = isBasketball
-      ? "bg-gradient-to-br from-orange-600 to-orange-700"
-      : "bg-gradient-to-br from-blue-600 to-blue-700";
-    const statClasses = isBasketball
-      ? "text-orange-600 dark:text-orange-400"
-      : "text-blue-600 dark:text-blue-400";
-
     return (
-    <Card className={`relative overflow-hidden border-2 ${cardClasses} shadow-lg hover:shadow-2xl transition-all group`}>
-      <div className={`absolute top-0 right-0 w-40 h-40 ${glowClasses} rounded-full blur-3xl`}></div>
-      
-      <CardHeader className="pb-3 relative z-10">
+    <Card className="relative border border-border bg-card hover:border-foreground/20 transition-colors">
+      <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div className="flex items-start gap-3 flex-1">
-            <Avatar className="w-16 h-16 border-4 border-white dark:border-gray-700 shadow-xl">
+            <Avatar className="w-16 h-16 border border-border">
               <AvatarImage src={player.photo_url} />
-              <AvatarFallback className={`${avatarClasses} text-white font-black text-lg`}>
+              <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-lg">
                 {player.jersey_number}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h3 className="text-gray-900 dark:text-white font-black text-lg truncate">
+              <h3 className="text-foreground font-heading font-bold text-lg truncate">
                 {player.first_name} {player.last_name}
               </h3>
               <div className="flex items-center gap-2 mt-2">
                 {teamLogo && (
-                  <Avatar className="w-7 h-7 border-2 border-gray-300 dark:border-gray-600 shadow-md">
+                  <Avatar className="w-7 h-7 border border-border">
                     <AvatarImage src={teamLogo} />
-                    <AvatarFallback className="text-[10px] bg-gray-200 dark:bg-gray-700">T</AvatarFallback>
+                    <AvatarFallback className="text-[10px] bg-muted text-muted-foreground">T</AvatarFallback>
                   </Avatar>
                 )}
-                <p className="text-gray-500 dark:text-gray-400 text-sm font-bold truncate">{getTeamName(player.team_id)}</p>
+                <p className="text-muted-foreground text-sm font-medium truncate">{getTeamName(player.team_id)}</p>
               </div>
             </div>
           </div>
@@ -397,7 +388,7 @@ export default function Players() {
               variant="ghost" 
               size="icon"
               onClick={() => setStatsPlayer(player)}
-              className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+              className="text-muted-foreground hover:text-foreground"
               title="View statistics"
             >
               <BarChart3 className="w-4 h-4" />
@@ -411,7 +402,7 @@ export default function Players() {
                     setEditingPlayer(player);
                     setShowForm(true);
                   }}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <Edit className="w-4 h-4" />
                 </Button>
@@ -419,7 +410,7 @@ export default function Players() {
                   variant="ghost" 
                   size="icon"
                   onClick={() => handleDeleteClick(player)}
-                  className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                  className="text-muted-foreground hover:text-destructive"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -429,33 +420,33 @@ export default function Players() {
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4 relative z-10">
+      <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-            <span className="text-gray-500 dark:text-gray-400 text-xs font-semibold">Position</span>
-            <p className="text-gray-900 dark:text-white font-bold">{player.position || '-'}</p>
+          <div className="border border-border bg-background p-3">
+            <span className="text-muted-foreground text-xs font-medium">Position</span>
+            <p className="text-foreground font-heading font-bold">{player.position || '-'}</p>
           </div>
-          <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-            <span className="text-gray-500 dark:text-gray-400 text-xs font-semibold">Height</span>
-            <p className="text-gray-900 dark:text-white font-bold">{player.height || '-'}</p>
+          <div className="border border-border bg-background p-3">
+            <span className="text-muted-foreground text-xs font-medium">Height</span>
+            <p className="text-foreground font-heading font-bold">{player.height || '-'}</p>
           </div>
         </div>
         
-        <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-4">
+        <div className="border-t border-border pt-4">
           <div className={`grid ${sport === 'volleyball' ? 'grid-cols-4' : 'grid-cols-5'} gap-2 text-center`}>
             {player.stats.map((stat, idx) => (
-              <div key={idx} className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-3">
-                <div className={`${statClasses} font-black text-xl`}>
+              <div key={idx} className="border border-border bg-background p-3">
+                <div className="text-primary font-heading font-bold text-xl tabular-nums">
                   {stat.value || 0}
                 </div>
-                <div className="text-gray-500 dark:text-gray-400 text-xs font-bold">{stat.label}</div>
+                <div className="text-muted-foreground text-xs font-heading font-bold">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
         
-        <div className="text-center bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-xl p-3">
-          <span className="text-sm text-gray-600 dark:text-gray-400 font-bold">
+        <div className="text-center border border-border bg-muted p-3">
+          <span className="text-sm text-muted-foreground font-medium">
             {player.games_played || 0} games played
           </span>
         </div>
@@ -470,33 +461,33 @@ export default function Players() {
     const isVolleyball = displaySport === 'volleyball';
     
     return (
-      <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-shadow">
+      <Card className="border border-border bg-card">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-100 dark:border-gray-700">
-                  <th className="text-left py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PLAYER</th>
-                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">TEAM</th>
-                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">POS</th>
-                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">HT</th>
-                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">PTS</th>
+                <tr className="bg-muted/50 border-b border-border">
+                  <th className="text-left py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">PLAYER</th>
+                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">TEAM</th>
+                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">POS</th>
+                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">HT</th>
+                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">PTS</th>
                   {isVolleyball ? (
                     <>
-                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ATK</th>
-                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">BLK</th>
-                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ACE</th>
+                      <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">ATK</th>
+                      <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">BLK</th>
+                      <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">ACE</th>
                     </>
                   ) : (
                     <>
-                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">REB</th>
-                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">AST</th>
-                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">BLK</th>
-                      <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">STL</th>
+                      <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">REB</th>
+                      <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">AST</th>
+                      <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">BLK</th>
+                      <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">STL</th>
                     </>
                   )}
-                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">GP</th>
-                  <th className="text-center py-4 px-4 text-gray-600 dark:text-gray-400 font-bold text-sm">ACTIONS</th>
+                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">GP</th>
+                  <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
@@ -505,59 +496,51 @@ export default function Players() {
                   const sportColor = sport === 'basketball' ? 'orange' : 'blue';
                   const teamLogo = getTeamLogo(player.team_id);
                   
-                  const isBasketball = sport === 'basketball';
-                  const rowHoverClass = isBasketball 
-                    ? "hover:bg-orange-50/50 dark:hover:bg-orange-950/20" 
-                    : "hover:bg-blue-50/50 dark:hover:bg-blue-950/20";
-                  const avatarBgClass = isBasketball
-                    ? "bg-gradient-to-br from-orange-500 to-orange-600"
-                    : "bg-gradient-to-br from-blue-500 to-blue-600";
-
                   return (
-                    <tr key={player.id} className={`border-b border-gray-100 dark:border-gray-700 ${rowHoverClass} transition-colors`}>
+                    <tr key={player.id} className="border-b border-border hover:bg-muted/50 transition-colors">
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
-                          <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-md">
+                          <Avatar className="w-12 h-12 border border-border">
                             <AvatarImage src={player.photo_url} />
-                            <AvatarFallback className={`${avatarBgClass} text-white text-xs font-bold`}>
+                            <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                               {player.jersey_number}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-bold text-gray-900 dark:text-white">
+                            <p className="font-heading font-bold text-foreground">
                               {player.first_name} {player.last_name}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">#{player.jersey_number}</p>
+                            <p className="text-xs text-muted-foreground font-medium">#{player.jersey_number}</p>
                           </div>
                         </div>
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center justify-center gap-3">
                           {teamLogo ? (
-                            <Avatar className="w-8 h-8 border-2 border-gray-300 dark:border-gray-600 shadow-md">
+                            <Avatar className="w-8 h-8 border border-border">
                               <AvatarImage src={teamLogo} />
-                              <AvatarFallback className="text-[10px] bg-gray-200 dark:bg-gray-700 font-bold">T</AvatarFallback>
+                              <AvatarFallback className="text-[10px] bg-muted text-muted-foreground font-bold">T</AvatarFallback>
                             </Avatar>
                           ) : (
-                            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                              <span className="text-[10px] text-gray-500 dark:text-gray-400 font-bold">T</span>
+                            <div className="w-8 h-8 bg-muted flex items-center justify-center">
+                              <span className="text-[10px] text-muted-foreground font-bold">T</span>
                             </div>
                           )}
-                          <span className="text-sm font-bold text-gray-900 dark:text-white">{getTeamName(player.team_id)}</span>
+                          <span className="text-sm font-heading font-bold text-foreground">{getTeamName(player.team_id)}</span>
                         </div>
                       </td>
-                      <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold text-sm">
+                      <td className="py-4 px-4 text-center text-muted-foreground font-medium text-sm">
                         {player.position || '-'}
                       </td>
-                      <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold text-sm">
+                      <td className="py-4 px-4 text-center text-muted-foreground font-medium text-sm">
                         {player.height || '-'}
                       </td>
                       {player.stats.map((stat, idx) => (
-                        <td key={idx} className="py-4 px-4 text-center font-bold text-lg text-blue-600 dark:text-blue-400">
+                        <td key={idx} className="py-4 px-4 text-center font-heading font-bold text-lg tabular-nums text-foreground">
                           {stat.value || 0}
                         </td>
                       ))}
-                      <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-400 font-semibold">
+                      <td className="py-4 px-4 text-center text-muted-foreground font-medium">
                         {player.games_played || 0}
                       </td>
                       <td className="py-4 px-4">
@@ -566,7 +549,7 @@ export default function Players() {
                             variant="ghost" 
                             size="icon"
                             onClick={() => setStatsPlayer(player)}
-                            className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                            className="text-muted-foreground hover:text-foreground"
                             title="View statistics"
                           >
                             <BarChart3 className="w-4 h-4" />
@@ -580,7 +563,7 @@ export default function Players() {
                                   setEditingPlayer(player);
                                   setShowForm(true);
                                 }}
-                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                className="text-muted-foreground hover:text-foreground"
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
@@ -588,7 +571,7 @@ export default function Players() {
                                 variant="ghost" 
                                 size="icon"
                                 onClick={() => handleDeleteClick(player)}
-                                className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                className="text-muted-foreground hover:text-destructive"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -608,7 +591,7 @@ export default function Players() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-50 dark:from-gray-900 dark:via-purple-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -633,8 +616,8 @@ export default function Players() {
             <div className="max-w-7xl mx-auto space-y-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                  <h1 className="text-4xl font-black text-gray-900 dark:text-white">Players</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Manage player rosters</p>
+                  <h1 className="font-heading text-3xl font-bold tracking-tight">Players</h1>
+                  <p className="text-muted-foreground mt-1 text-sm">Manage player rosters</p>
                 </div>
                 {canManagePlayers && (
                   <Button 
@@ -642,26 +625,25 @@ export default function Players() {
                       setEditingPlayer(null);
                       setShowForm(true);
                     }}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
                   >
-                    <Plus className="w-5 h-5 mr-2" />
+                    <Plus className="w-4 h-4 mr-2" />
                     Add Player
                   </Button>
                 )}
               </div>
 
-              <Card className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 shadow-lg">
+              <Card className="border border-border bg-card">
                 <CardContent className="p-6">
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <div className="w-10 h-10 border border-border bg-muted flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
                         </svg>
                       </div>
                       <div>
-                        <h3 className="text-lg font-black text-gray-900 dark:text-white">Filter Players</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        <h3 className="text-lg font-heading font-bold">Filter Players</h3>
+                        <p className="text-xs text-muted-foreground font-medium">
                           {players.length} player{players.length !== 1 ? 's' : ''} found
                         </p>
                       </div>
@@ -669,11 +651,11 @@ export default function Players() {
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div>
-                        <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">SPORT</Label>
+                        <Label className="text-xs font-heading font-bold text-muted-foreground mb-2 block uppercase tracking-wide">SPORT</Label>
                         <select
                           value={selectedSport}
                           onChange={(e) => handleSportChange(e.target.value)}
-                          className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2.5 font-bold shadow-sm hover:border-purple-400 dark:hover:border-purple-600 transition-colors"
+                          className="w-full bg-background border border-border text-foreground px-3 py-2.5 font-medium"
                         >
                           {sports.map(sport => (
                             <option key={sport} value={sport}>
@@ -684,11 +666,11 @@ export default function Players() {
                       </div>
 
                       <div>
-                        <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">DIVISION</Label>
+                        <Label className="text-xs font-heading font-bold text-muted-foreground mb-2 block uppercase tracking-wide">DIVISION</Label>
                         <select
                           value={selectedDivision}
                           onChange={(e) => handleDivisionChange(e.target.value)}
-                          className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2.5 font-bold shadow-sm hover:border-purple-400 dark:hover:border-purple-600 transition-colors"
+                          className="w-full bg-background border border-border text-foreground px-3 py-2.5 font-medium"
                         >
                           {divisions.map(div => (
                             <option key={div} value={div}>
@@ -699,11 +681,11 @@ export default function Players() {
                       </div>
 
                       <div>
-                        <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">TEAM</Label>
+                        <Label className="text-xs font-heading font-bold text-muted-foreground mb-2 block uppercase tracking-wide">TEAM</Label>
                         <select
                           value={selectedTeam}
                           onChange={(e) => setSelectedTeam(e.target.value)}
-                          className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2.5 font-bold shadow-sm hover:border-purple-400 dark:hover:border-purple-600 transition-colors"
+                          className="w-full bg-background border border-border text-foreground px-3 py-2.5 font-medium"
                         >
                           <option value="all">👥 All Teams</option>
                           {filteredTeams.map(team => (
@@ -715,13 +697,13 @@ export default function Players() {
                       </div>
 
                       <div>
-                        <Label className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 block">VIEW</Label>
-                        <div className="flex bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 rounded-xl p-1 shadow-sm">
+                        <Label className="text-xs font-heading font-bold text-muted-foreground mb-2 block uppercase tracking-wide">VIEW</Label>
+                        <div className="flex bg-background border border-border p-1">
                           <Button
                             variant={viewMode === 'card' ? 'default' : 'ghost'}
                             size="sm"
                             onClick={() => setViewMode('card')}
-                            className={`flex-1 font-bold ${viewMode === 'card' ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                            className={`flex-1 font-medium ${viewMode === 'card' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
                           >
                             <LayoutGrid className="w-4 h-4" />
                           </Button>
@@ -729,7 +711,7 @@ export default function Players() {
                             variant={viewMode === 'table' ? 'default' : 'ghost'}
                             size="sm"
                             onClick={() => setViewMode('table')}
-                            className={`flex-1 font-bold ${viewMode === 'table' ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                            className={`flex-1 font-medium ${viewMode === 'table' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
                           >
                             <Table className="w-4 h-4" />
                           </Button>
@@ -738,36 +720,36 @@ export default function Players() {
                     </div>
 
                     {(selectedSport !== 'all' || selectedDivision !== 'all' || selectedTeam !== 'all') && (
-                      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                        <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Active Filters:</span>
+                      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
+                        <span className="text-xs font-heading font-bold text-muted-foreground">Active Filters:</span>
                         {selectedSport !== 'all' && (
-                          <Badge className="bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 font-bold">
+                          <Badge variant="outline" className="border-border text-muted-foreground font-medium">
                             {selectedSport === 'basketball' ? '🏀 Basketball' : '🏐 Volleyball'}
                             <button
                               onClick={() => handleSportChange('all')}
-                              className="ml-2 hover:text-orange-900 dark:hover:text-orange-100"
+                              className="ml-2 hover:text-foreground"
                             >
                               ✕
                             </button>
                           </Badge>
                         )}
                         {selectedDivision !== 'all' && (
-                          <Badge className="bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold">
+                          <Badge variant="outline" className="border-border text-muted-foreground font-medium">
                             📁 {selectedDivision}
                             <button
                               onClick={() => handleDivisionChange('all')}
-                              className="ml-2 hover:text-blue-900 dark:hover:text-blue-100"
+                              className="ml-2 hover:text-foreground"
                             >
                               ✕
                             </button>
                           </Badge>
                         )}
                         {selectedTeam !== 'all' && (
-                          <Badge className="bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800 font-bold">
+                          <Badge variant="outline" className="border-border text-muted-foreground font-medium">
                             👥 {getTeamName(selectedTeam)}
                             <button
                               onClick={() => setSelectedTeam('all')}
-                              className="ml-2 hover:text-purple-900 dark:hover:text-purple-100"
+                              className="ml-2 hover:text-foreground"
                             >
                               ✕
                             </button>
@@ -779,7 +761,7 @@ export default function Players() {
                             setSelectedDivision('all');
                             setSelectedTeam('all');
                           }}
-                          className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-bold underline ml-2"
+                          className="text-xs text-muted-foreground hover:text-foreground font-medium underline ml-2"
                         >
                           Clear All
                         </button>
@@ -825,29 +807,29 @@ export default function Players() {
                 )
               ) : (
                 <div className="text-center py-20">
-                  <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-                    <User className="w-12 h-12 text-gray-400 dark:text-gray-500" />
+                  <div className="w-24 h-24 border border-border bg-card flex items-center justify-center mx-auto mb-6">
+                    <User className="w-12 h-12 text-muted-foreground" />
                   </div>
-                  <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No players found</p>
-                  <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Add your first player to get started</p>
+                  <p className="text-muted-foreground text-xl font-heading font-bold">No players found</p>
+                  <p className="text-muted-foreground text-sm mt-2">Add your first player to get started</p>
                 </div>
               )}
 
               <Dialog open={showForm} onOpenChange={setShowForm}>
-                <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-md">
+                <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                    <DialogTitle className="text-2xl font-heading font-bold">
                       {editingPlayer ? 'Edit Player' : 'Add New Player'}
                     </DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                      <Label className="font-bold text-gray-700 dark:text-gray-300">Player Photo</Label>
+                      <Label className="font-heading font-bold text-foreground">Player Photo</Label>
                       <div className="mt-2 flex items-center gap-4">
-                        <Avatar className="w-20 h-20 border-4 border-gray-200 dark:border-gray-600">
+                        <Avatar className="w-20 h-20 border border-border">
                           <AvatarImage src={photoFile ? URL.createObjectURL(photoFile) : editingPlayer?.photo_url} />
-                          <AvatarFallback className="bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700">
-                            <User className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+                          <AvatarFallback className="bg-muted">
+                            <User className="w-8 h-8 text-muted-foreground" />
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
@@ -855,21 +837,21 @@ export default function Players() {
                             type="file"
                             accept="image/*"
                             onChange={(e) => setPhotoFile(e.target.files[0])}
-                            className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                            className="bg-background border border-border text-foreground font-medium"
                           />
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">PNG, JPG, or GIF (Max 5MB)</p>
+                          <p className="text-xs text-muted-foreground mt-1">PNG, JPG, or GIF (Max 5MB)</p>
                         </div>
                       </div>
                     </div>
 
                     <div>
-                      <Label htmlFor="team_id" className="font-bold text-gray-700 dark:text-gray-300">Team</Label>
+                      <Label htmlFor="team_id" className="font-heading font-bold text-foreground">Team</Label>
                       <select
                         id="team_id"
                         name="team_id"
                         defaultValue={editingPlayer?.team_id}
                         required
-                        className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                        className="w-full bg-background border border-border text-foreground px-3 py-2 font-medium"
                       >
                         <option value="">Select a team</option>
                         {teams.map(team => (
@@ -879,56 +861,56 @@ export default function Players() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="first_name" className="font-bold text-gray-700 dark:text-gray-300">First Name</Label>
+                        <Label htmlFor="first_name" className="font-heading font-bold text-foreground">First Name</Label>
                         <Input
                           id="first_name"
                           name="first_name"
                           defaultValue={editingPlayer?.first_name}
                           required
-                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                          className="bg-background border border-border text-foreground font-medium"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="last_name" className="font-bold text-gray-700 dark:text-gray-300">Last Name</Label>
+                        <Label htmlFor="last_name" className="font-heading font-bold text-foreground">Last Name</Label>
                         <Input
                           id="last_name"
                           name="last_name"
                           defaultValue={editingPlayer?.last_name}
                           required
-                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                          className="bg-background border border-border text-foreground font-medium"
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="jersey_number" className="font-bold text-gray-700 dark:text-gray-300">Jersey #</Label>
+                        <Label htmlFor="jersey_number" className="font-heading font-bold text-foreground">Jersey #</Label>
                         <Input
                           id="jersey_number"
                           name="jersey_number"
                           defaultValue={editingPlayer?.jersey_number}
                           required
-                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                          className="bg-background border border-border text-foreground font-medium"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="position" className="font-bold text-gray-700 dark:text-gray-300">Position</Label>
+                        <Label htmlFor="position" className="font-heading font-bold text-foreground">Position</Label>
                         <Input
                           id="position"
                           name="position"
                           defaultValue={editingPlayer?.position}
                           placeholder="e.g., Guard, Forward"
-                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                          className="bg-background border border-border text-foreground font-medium"
                         />
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="height" className="font-bold text-gray-700 dark:text-gray-300">Height</Label>
+                      <Label htmlFor="height" className="font-heading font-bold text-foreground">Height</Label>
                       <Input
                         id="height"
                         name="height"
                         defaultValue={editingPlayer?.height}
                         placeholder="e.g., 6'2&quot;"
-                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                        className="bg-background border border-border text-foreground font-medium"
                       />
                     </div>
                     <div className="flex justify-end gap-3 pt-4">
@@ -939,14 +921,14 @@ export default function Players() {
                           setShowForm(false);
                           setPhotoFile(null);
                         }} 
-                        className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
+                        className="font-medium"
                       >
                         Cancel
                       </Button>
                       <Button 
                         type="submit" 
                         disabled={uploading}
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                        className="font-medium"
                       >
                         {uploading ? 'Uploading...' : editingPlayer ? 'Update' : 'Create'}
                       </Button>
@@ -967,35 +949,35 @@ export default function Players() {
               />
 
               <AlertDialog open={!!deletingPlayer} onOpenChange={() => setDeletingPlayer(null)}>
-                <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                <AlertDialogContent>
                   <AlertDialogHeader>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 bg-red-100 dark:bg-red-950/30 rounded-xl flex items-center justify-center">
-                        <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                      <div className="w-12 h-12 bg-destructive/10 flex items-center justify-center">
+                        <AlertTriangle className="w-6 h-6 text-destructive" />
                       </div>
-                      <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+                      <AlertDialogTitle className="text-xl font-heading font-bold">
                         Delete Player?
                       </AlertDialogTitle>
                     </div>
-                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
-                      Are you sure you want to delete <span className="font-bold text-gray-900 dark:text-white">{deletingPlayer?.first_name} {deletingPlayer?.last_name}</span>?
+                    <AlertDialogDescription className="text-muted-foreground font-medium">
+                      Are you sure you want to delete <span className="font-heading font-bold text-foreground">{deletingPlayer?.first_name} {deletingPlayer?.last_name}</span>?
                       {deletingPlayer?.statsCount > 0 && (
-                        <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                          <p className="text-sm text-yellow-800 dark:text-yellow-300 font-semibold">
+                        <div className="mt-3 p-3 bg-muted border border-border">
+                          <p className="text-sm text-foreground font-medium">
                             ⚠️ Warning: This player has {deletingPlayer.statsCount} game statistic record(s). All statistics will be permanently deleted.
                           </p>
                         </div>
                       )}
-                      <p className="mt-3 font-semibold text-red-600 dark:text-red-400">This action cannot be undone.</p>
+                      <p className="mt-3 font-medium text-destructive">This action cannot be undone.</p>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+                    <AlertDialogCancel className="font-medium">
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => deleteMutation.mutate(deletingPlayer.id)}
-                      className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold"
+                      className="font-medium"
                     >
                       Delete Player
                     </AlertDialogAction>

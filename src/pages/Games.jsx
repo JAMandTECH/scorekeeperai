@@ -234,8 +234,14 @@ export default function Games() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
+      let seasonId = null;
+      try {
+        const res = await base44.functions.invoke('getActiveSeason', {});
+        seasonId = res.data?.season?.id || null;
+      } catch (_) {}
+      const withSeason = (g) => ({ ...g, season_id: seasonId });
       if (Array.isArray(data)) {
-        return base44.entities.Game.bulkCreate(data);
+        return base44.entities.Game.bulkCreate(data.map(withSeason));
       } else if (recurringConfig.enabled) {
         const seriesId = Date.now().toString();
         const gamesToCreate = [];
@@ -249,16 +255,16 @@ export default function Games() {
             gameDate.setDate(gameDate.getDate() + (i * recurringConfig.interval));
           }
           
-          gamesToCreate.push({
+          gamesToCreate.push(withSeason({
             ...data,
             game_date: gameDate.toISOString(),
             recurring_series_id: seriesId,
-          });
+          }));
         }
         
         return Promise.all(gamesToCreate.map(game => base44.entities.Game.create(game)));
       } else {
-        return base44.entities.Game.create(data);
+        return base44.entities.Game.create(withSeason(data));
       }
     },
     onSuccess: () => {
@@ -621,41 +627,34 @@ export default function Games() {
   }, [teams, formDivision, formSport]);
 
   const GameCard = ({ game, showActions = true }) => {
-    const sportColor = game.sport === 'basketball' ? 'orange' : 'blue';
-    const statusColor = 
-      game.status === 'scheduled' ? 'blue' :
-      game.status === 'in_progress' ? 'yellow' : 'green';
-
     const assignedScorekeepersList = (game.assigned_scorekeeper_emails || []).map(email => 
       scorekeepers.find(s => s.email === email)
     ).filter(Boolean);
     
     return (
-      <Card className={`relative overflow-hidden border-2 border-${sportColor}-100 dark:border-${sportColor}-900 bg-gradient-to-br from-white to-${sportColor}-50 dark:from-gray-800 dark:to-${sportColor}-950/30 shadow-lg hover:shadow-2xl transition-all group`}>
-        <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-${sportColor}-500/20 to-transparent rounded-full blur-3xl`}></div>
-        
-        <CardHeader className="relative z-10">
+      <Card className="relative border border-border bg-card hover:border-foreground/20 transition-colors">
+        <CardHeader>
           <div className="flex justify-between items-start">
             <div className="flex-1">
-              <Badge className={`bg-${statusColor}-100 text-${statusColor}-700 border-${statusColor}-200 dark:bg-${statusColor}-950 dark:text-${statusColor}-300 dark:border-${statusColor}-800 font-bold mb-2`}>
+              <Badge variant="outline" className="border-border text-muted-foreground font-medium mb-2 uppercase tracking-wide text-xs">
                 {game.status === 'scheduled' && <Clock className="w-3 h-3 mr-1" />}
                 {game.status === 'in_progress' && <PlayCircle className="w-3 h-3 mr-1" />}
                 {game.status === 'completed' && <CheckCircle className="w-3 h-3 mr-1" />}
                 {game.status ? game.status.replace('_', ' ').toUpperCase() : 'SCHEDULED'}
               </Badge>
-              <p className="text-gray-500 dark:text-gray-400 text-sm font-semibold flex items-center gap-1">
+              <p className="text-muted-foreground text-sm font-medium flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
                 {new Date(game.game_date).toLocaleDateString()} at {new Date(game.game_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
               </p>
               {game.court_number && (
-                <p className="text-gray-600 dark:text-gray-400 text-xs font-bold mt-1">
+                <p className="text-muted-foreground text-xs font-medium mt-1">
                   Court {game.court_number}
                 </p>
               )}
               {(isAdmin || hasPermission('manage_scorekeepers') || hasPermission('manage_games')) && assignedScorekeepersList.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {assignedScorekeepersList.map((sk, idx) => (
-                    <Badge key={idx} variant="outline" className="text-xs font-bold border-green-300 dark:border-green-700 text-green-700 dark:text-green-300">
+                    <Badge key={idx} variant="outline" className="text-xs font-medium border-border text-muted-foreground">
                       👤 {sk?.full_name || sk?.email}
                     </Badge>
                   ))}
@@ -663,7 +662,7 @@ export default function Games() {
               )}
             </div>
             <div className="flex flex-col items-end gap-2">
-              <Badge variant="outline" className={`text-${sportColor}-600 dark:text-${sportColor}-400 border-${sportColor}-600 dark:border-${sportColor}-400 font-black`}>
+              <Badge variant="outline" className="border-border text-foreground font-heading font-bold uppercase tracking-wide text-xs">
                 {game.sport}
               </Badge>
               {showActions && game.status === 'scheduled' && !game.archived && (
@@ -672,7 +671,7 @@ export default function Games() {
                     variant="ghost" 
                     size="icon"
                     onClick={() => handleEditGame(game)}
-                    className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                    className="text-muted-foreground hover:text-foreground"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -680,7 +679,7 @@ export default function Games() {
                     variant="ghost" 
                     size="icon"
                     onClick={() => handleDeleteClick(game)}
-                    className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                    className="text-muted-foreground hover:text-destructive"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -691,37 +690,37 @@ export default function Games() {
         </CardHeader>
         
         <CardContent className="space-y-4 relative z-10">
-          <div className="bg-white/60 dark:bg-gray-900/60 rounded-xl p-4">
+          <div className="border border-border bg-background p-4">
             <div className="flex justify-between items-center">
               <div className="flex-1">
-                <p className="text-gray-900 dark:text-white font-black">{getTeamName(game.home_team_id)}</p>
-                <p className="text-gray-500 dark:text-gray-400 text-xs font-semibold">HOME</p>
+                <p className="text-foreground font-heading font-bold">{getTeamName(game.home_team_id)}</p>
+                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">HOME</p>
               </div>
               {game.status === 'completed' ? (
                 <>
-                  <div className={`text-4xl font-black text-${sportColor}-600 dark:text-${sportColor}-400`}>{game.home_score}</div>
-                  <div className="text-gray-400 dark:text-gray-600 px-4 text-2xl font-black">-</div>
-                  <div className="text-4xl font-black text-gray-900 dark:text-white">{game.away_score}</div>
+                  <div className="text-4xl font-heading font-bold tabular-nums text-primary">{game.home_score}</div>
+                  <div className="text-muted-foreground px-4 text-2xl font-heading font-bold">-</div>
+                  <div className="text-4xl font-heading font-bold tabular-nums">{game.away_score}</div>
                 </>
               ) : (
-                <div className="text-gray-400 dark:text-gray-600 text-xl font-bold">vs</div>
+                <div className="text-muted-foreground text-xl font-heading font-bold">vs</div>
               )}
               <div className="flex-1 text-right">
-                <p className="text-gray-900 dark:text-white font-black">{getTeamName(game.away_team_id)}</p>
-                <p className="text-gray-500 dark:text-gray-400 text-xs font-semibold">AWAY</p>
+                <p className="text-foreground font-heading font-bold">{getTeamName(game.away_team_id)}</p>
+                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">AWAY</p>
               </div>
             </div>
           </div>
           
           {game.location && (
-            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium flex items-center gap-1">
+            <p className="text-muted-foreground text-sm font-medium flex items-center gap-1">
               <MapPin className="w-3 h-3" /> {game.location}
             </p>
           )}
           
           {game.status === 'scheduled' && !game.archived && hasPermission('live_scoring') && (
             <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}`}>
-              <Button className={`w-full bg-gradient-to-r from-${sportColor}-600 to-${sportColor}-700 hover:from-${sportColor}-700 hover:to-${sportColor}-800 text-white font-bold shadow-lg`}>
+              <Button className="w-full font-medium">
                 <PlayCircle className="w-4 h-4 mr-2" />
                 Start Game
               </Button>
@@ -729,64 +728,70 @@ export default function Games() {
           )}
           {game.status === 'in_progress' && !game.archived && hasPermission('live_scoring') && (
             <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}`}>
-              <Button className={`w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white font-bold shadow-lg`}>
+              <Button variant="outline" className="w-full font-medium">
                 Continue Scoring
               </Button>
             </Link>
           )}
           {showActions && game.status === 'completed' && !game.archived && (
-            <div className="grid grid-cols-4 gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button 
                 onClick={() => handleEditGame(game)}
                 variant="outline"
-                className="border-2 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-bold"
+                size="sm"
+                className="border border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-medium"
               >
-                <Edit className="w-4 h-4 mr-2" />
+                <Edit className="w-3.5 h-3.5 mr-1.5" />
                 Edit
               </Button>
               <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}&edit=1`}>
                 <Button
                   variant="outline"
-                  className="border-2 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-bold"
+                  size="sm"
+                  className="border border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-medium"
                 >
-                  <FileEdit className="w-4 h-4 mr-2" />
+                  <FileEdit className="w-3.5 h-3.5 mr-1.5" />
                   Edit Stats
                 </Button>
               </Link>
               <Button
                 onClick={() => setArchivingGame(game)}
                 variant="outline"
-                className="border-2 border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 font-bold"
+                size="sm"
+                className="border border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 font-medium"
               >
-                <Archive className="w-4 h-4 mr-2" />
+                <Archive className="w-3.5 h-3.5 mr-1.5" />
                 Archive
               </Button>
               <Button
                 onClick={() => handleDeleteClick(game)}
                 variant="outline"
-                className="border-2 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-bold"
+                size="sm"
+                className="border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-medium"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" />
                 Delete
               </Button>
             </div>
           )}
           {game.archived && showActions && (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 onClick={() => setRestoringGame(game)}
                 variant="outline"
-                className="border-2 border-green-300 dark:border-green-700 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 font-bold"
+                size="sm"
+                className="border-border text-primary hover:bg-primary/10 font-medium"
               >
-                <ArchiveRestore className="w-4 h-4 mr-2" />
+                <ArchiveRestore className="w-3.5 h-3.5 mr-1.5" />
                 Restore
               </Button>
               <Button
                 onClick={() => handleDeleteClick(game)}
                 variant="outline"
-                className="border-2 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-bold"
+                size="sm"
+                className="border-border text-destructive hover:bg-destructive/10 font-medium"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" />
                 Delete
               </Button>
             </div>
@@ -798,14 +803,14 @@ export default function Games() {
 
   if (!user || permissionsLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-green-50/30 to-gray-50 dark:from-gray-900 dark:via-green-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -830,33 +835,30 @@ export default function Games() {
             <div className="max-w-7xl mx-auto space-y-8">
               <div className="flex justify-between items-center">
                 <div>
-                  <h1 className="text-4xl font-black text-gray-900 dark:text-white">Games</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">Schedule and manage games</p>
+                  <h1 className="font-heading text-3xl font-bold tracking-tight">Games</h1>
+                  <p className="text-muted-foreground mt-1 text-sm">Schedule and manage games</p>
                 </div>
                 <div className="flex gap-3">
                   {hasPermission('manage_games') && (
                     <Link to={createPageUrl("ManualGameEntry")}>
-                      <Button 
-                        className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold shadow-xl"
-                      >
-                        <FileEdit className="w-5 h-5 mr-2" />
+                      <Button variant="outline">
+                        <FileEdit className="w-4 h-4 mr-2" />
                         Manual Entry
                       </Button>
                     </Link>
                   )}
                   <Button 
                     onClick={() => setShowAIScheduleDialog(true)}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-xl"
+                    variant="outline"
                   >
-                    <Zap className="w-5 h-5 mr-2" />
+                    <Zap className="w-4 h-4 mr-2" />
                     AI Generate Schedule
                   </Button>
                   {hasPermission('manage_games') && (
                     <Button 
                       onClick={() => setShowForm(true)}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl"
                     >
-                      <Plus className="w-5 h-5 mr-2" />
+                      <Plus className="w-4 h-4 mr-2" />
                       Schedule Game
                     </Button>
                   )}
@@ -864,20 +866,20 @@ export default function Games() {
               </div>
 
               <Tabs defaultValue="scheduled" className="space-y-6">
-                <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl shadow-lg">
-                  <TabsTrigger value="scheduled" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                <TabsList className="bg-card border border-border p-1">
+                  <TabsTrigger value="scheduled" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                     Scheduled ({scheduledGames.length})
                   </TabsTrigger>
-                  <TabsTrigger value="in_progress" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-600 data-[state=active]:to-yellow-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                  <TabsTrigger value="in_progress" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                     In Progress ({inProgressGames.length})
                   </TabsTrigger>
-                  <TabsTrigger value="completed" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                  <TabsTrigger value="completed" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                     Completed ({completedGames.length})
                   </TabsTrigger>
-                  <TabsTrigger value="archived" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                  <TabsTrigger value="archived" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                     Archived ({archivedGames.length})
                   </TabsTrigger>
-                  <TabsTrigger value="history" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-indigo-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                  <TabsTrigger value="history" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium">
                     Game History
                   </TabsTrigger>
                 </TabsList>
@@ -885,12 +887,12 @@ export default function Games() {
                 <TabsContent value="scheduled" className="space-y-4">
                   {scheduledGames.length > 0 && (
                     <div className="flex justify-between items-center mb-4">
-                      <div className="flex gap-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl">
+                      <div className="flex gap-1 bg-card border border-border p-1">
                         <Button
                           onClick={() => setAiScheduleView('card')}
                           variant={aiScheduleView === 'card' ? 'default' : 'ghost'}
                           size="sm"
-                          className={aiScheduleView === 'card' ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold' : 'font-semibold text-gray-600 dark:text-gray-400'}
+                          className={aiScheduleView === 'card' ? 'bg-primary text-primary-foreground font-medium' : 'font-medium text-muted-foreground'}
                         >
                           Card View
                         </Button>
@@ -898,7 +900,7 @@ export default function Games() {
                           onClick={() => setAiScheduleView('table')}
                           variant={aiScheduleView === 'table' ? 'default' : 'ghost'}
                           size="sm"
-                          className={aiScheduleView === 'table' ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold' : 'font-semibold text-gray-600 dark:text-gray-400'}
+                          className={aiScheduleView === 'table' ? 'bg-primary text-primary-foreground font-medium' : 'font-medium text-muted-foreground'}
                         >
                           Table View
                         </Button>
@@ -906,7 +908,7 @@ export default function Games() {
                       <Button
                         onClick={() => setShowClearAllDialog(true)}
                         variant="outline"
-                        className="border-2 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-bold"
+                        className="border-border text-destructive hover:bg-destructive/10 font-medium"
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Clear All Scheduled Games
@@ -943,13 +945,13 @@ export default function Games() {
                           <div key={week} className="space-y-6">
                             <button
                               onClick={() => toggleWeekExpanded(week)}
-                              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl px-6 py-3 shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-between"
+                              className="w-full bg-card border border-border rounded-sm px-6 py-3 hover:bg-muted transition-colors flex items-center justify-between"
                             >
                               <div className="text-left">
-                                <h3 className="text-xl font-black text-white">
+                                <h3 className="text-xl font-heading font-bold text-foreground">
                                   {week === 'Unassigned' ? 'Unassigned Games' : `WEEK ${week}`}
                                 </h3>
-                                <p className="text-sm text-blue-100 font-semibold">
+                                <p className="text-sm text-muted-foreground font-medium">
                                   {gamesByWeek[week].length} {gamesByWeek[week].length === 1 ? 'game' : 'games'}
                                 </p>
                               </div>
@@ -963,9 +965,9 @@ export default function Games() {
                             <div className="space-y-6">
                             {Object.entries(gamesByDivision).map(([division, divisionGames]) => (
                               <div key={division} className="space-y-3">
-                                <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg px-4 py-2 shadow-md">
-                                  <h4 className="text-lg font-black text-white">{division}</h4>
-                                  <p className="text-xs text-purple-100 font-semibold">
+                                <div className="border-l-2 border-primary pl-4">
+                                  <h4 className="text-lg font-heading font-bold text-foreground">{division}</h4>
+                                  <p className="text-xs text-muted-foreground font-medium">
                                     {divisionGames.length} {divisionGames.length === 1 ? 'game' : 'games'}
                                   </p>
                                 </div>
@@ -994,13 +996,13 @@ export default function Games() {
                           <div key={week} className="space-y-6">
                             <button
                               onClick={() => toggleWeekExpanded(week)}
-                              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl px-6 py-3 shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-between"
+                              className="w-full bg-card border border-border rounded-sm px-6 py-3 hover:bg-muted transition-colors flex items-center justify-between"
                             >
                               <div className="text-left">
-                                <h3 className="text-xl font-black text-white">
+                                <h3 className="text-xl font-heading font-bold text-foreground">
                                   {week === 'Unassigned' ? 'Unassigned Games' : `WEEK ${week}`}
                                 </h3>
-                                <p className="text-sm text-blue-100 font-semibold">
+                                <p className="text-sm text-muted-foreground font-medium">
                                   {gamesByWeek[week].length} {gamesByWeek[week].length === 1 ? 'game' : 'games'}
                                 </p>
                               </div>
@@ -1014,44 +1016,44 @@ export default function Games() {
                             <div className="space-y-6">
                             {Object.entries(gamesByDivision).map(([division, divisionGames]) => (
                               <div key={division} className="space-y-3">
-                                <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg px-4 py-2 shadow-md">
-                                  <h4 className="text-lg font-black text-white">{division}</h4>
-                                  <p className="text-xs text-purple-100 font-semibold">
+                                <div className="border-l-2 border-primary pl-4">
+                                  <h4 className="text-lg font-heading font-bold text-foreground">{division}</h4>
+                                  <p className="text-xs text-muted-foreground font-medium">
                                     {divisionGames.length} {divisionGames.length === 1 ? 'game' : 'games'}
                                   </p>
                                 </div>
-                                <div className="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg">
+                                <div className="bg-card border border-border overflow-hidden">
                                   <table className="w-full">
-                                    <thead className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
+                                    <thead className="bg-muted/50 border-b border-border">
                                       <tr>
-                                        <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Date & Time</th>
-                                        <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Matchup</th>
-                                        <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Sport</th>
-                                        <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Court</th>
-                                        <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Status</th>
-                                        <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Actions</th>
+                                        <th className="text-left py-3 px-4 text-foreground font-heading font-bold text-sm">Date & Time</th>
+                                        <th className="text-left py-3 px-4 text-foreground font-heading font-bold text-sm">Matchup</th>
+                                        <th className="text-left py-3 px-4 text-foreground font-heading font-bold text-sm">Sport</th>
+                                        <th className="text-left py-3 px-4 text-foreground font-heading font-bold text-sm">Court</th>
+                                        <th className="text-left py-3 px-4 text-foreground font-heading font-bold text-sm">Status</th>
+                                        <th className="text-left py-3 px-4 text-foreground font-heading font-bold text-sm">Actions</th>
                                       </tr>
                                     </thead>
                                     <tbody>
                                       {divisionGames.map(game => (
-                                        <tr key={game.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
-                                          <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">
+                                        <tr key={game.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                                          <td className="py-3 px-4 text-sm font-medium text-foreground">
                                             {new Date(game.game_date).toLocaleDateString()}<br />
                                             <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(game.game_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                                           </td>
-                                          <td className="py-3 px-4 text-sm font-bold text-gray-900 dark:text-white">
-                                            {getTeamName(game.home_team_id)} <span className="text-gray-400 font-normal">vs</span> {getTeamName(game.away_team_id)}
+                                          <td className="py-3 px-4 text-sm font-heading font-bold text-foreground">
+                                            {getTeamName(game.home_team_id)} <span className="text-muted-foreground font-normal">vs</span> {getTeamName(game.away_team_id)}
                                           </td>
                                           <td className="py-3 px-4">
-                                            <Badge variant="outline" className={`text-${game.sport === 'basketball' ? 'orange' : 'blue'}-600 dark:text-${game.sport === 'basketball' ? 'orange' : 'blue'}-400 border-${game.sport === 'basketball' ? 'orange' : 'blue'}-600 font-bold`}>
+                                            <Badge variant="outline" className="border-border text-foreground font-heading font-bold uppercase text-xs">
                                               {game.sport}
                                             </Badge>
                                           </td>
-                                          <td className="py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                          <td className="py-3 px-4 text-sm font-medium text-muted-foreground">
                                             {game.court_number || '-'}
                                           </td>
                                           <td className="py-3 px-4">
-                                            <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold">
+                                            <Badge variant="outline" className="border-border text-muted-foreground font-medium uppercase text-xs">
                                               {game.status.replace('_', ' ').toUpperCase()}
                                             </Badge>
                                           </td>
@@ -1061,7 +1063,7 @@ export default function Games() {
                                                 variant="ghost" 
                                                 size="icon"
                                                 onClick={() => handleEditGame(game)}
-                                                className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                                                className="text-muted-foreground hover:text-foreground"
                                               >
                                                 <Edit className="w-4 h-4" />
                                               </Button>
@@ -1069,7 +1071,7 @@ export default function Games() {
                                                 variant="ghost" 
                                                 size="icon"
                                                 onClick={() => handleDeleteClick(game)}
-                                                className="text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                                                className="text-muted-foreground hover:text-destructive"
                                               >
                                                 <Trash2 className="w-4 h-4" />
                                               </Button>
@@ -1092,10 +1094,10 @@ export default function Games() {
                   
                   {scheduledGames.length === 0 && (
                     <div className="text-center py-20">
-                      <div className="w-24 h-24 bg-gradient-to-br from-blue-200 to-blue-300 dark:from-blue-800 dark:to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Clock className="w-12 h-12 text-blue-600 dark:text-blue-300" />
+                      <div className="w-24 h-24 border border-border bg-card flex items-center justify-center mx-auto mb-6">
+                        <Clock className="w-12 h-12 text-muted-foreground" />
                       </div>
-                      <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No scheduled games</p>
+                      <p className="text-muted-foreground text-xl font-heading font-bold">No scheduled games</p>
                     </div>
                   )}
                 </TabsContent>
@@ -1106,32 +1108,32 @@ export default function Games() {
                   </div>
                   {inProgressGames.length === 0 && (
                     <div className="text-center py-20">
-                      <div className="w-24 h-24 bg-gradient-to-br from-yellow-200 to-yellow-300 dark:from-yellow-800 dark:to-yellow-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <PlayCircle className="w-12 h-12 text-yellow-600 dark:text-yellow-300" />
+                      <div className="w-24 h-24 border border-border bg-card flex items-center justify-center mx-auto mb-6">
+                        <PlayCircle className="w-12 h-12 text-muted-foreground" />
                       </div>
-                      <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No games in progress</p>
+                      <p className="text-muted-foreground text-xl font-heading font-bold">No games in progress</p>
                     </div>
                   )}
                 </TabsContent>
 
                 <TabsContent value="completed" className="space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex flex-wrap items-center gap-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-2 rounded-xl">
-                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Sport</label>
+                    <div className="flex flex-wrap items-center gap-2 bg-card border border-border p-2">
+                      <label className="text-sm font-medium text-foreground">Sport</label>
                       <select
                         value={completedSportFilter}
                         onChange={(e) => setCompletedSportFilter(e.target.value)}
-                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 text-sm font-medium"
+                        className="bg-background border border-border px-2 py-1 text-sm font-medium"
                       >
                         <option value="all">All</option>
                         <option value="basketball">Basketball</option>
                         <option value="volleyball">Volleyball</option>
                       </select>
-                      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-3">Week</label>
+                      <label className="text-sm font-medium text-foreground ml-3">Week</label>
                       <select
                         value={completedWeekFilter}
                         onChange={(e) => setCompletedWeekFilter(e.target.value)}
-                        className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 text-sm font-medium"
+                        className="bg-background border border-border px-2 py-1 text-sm font-medium"
                       >
                         <option value="all">All</option>
                         {completedWeekOptions.map((w) => (
@@ -1140,12 +1142,12 @@ export default function Games() {
                         {hasUnassignedCompleted && <option value="unassigned">Unassigned</option>}
                       </select>
                     </div>
-                    <div className="flex gap-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl">
+                    <div className="flex gap-1 bg-card border border-border p-1">
                       <Button
                         onClick={() => setCompletedView('card')}
                         variant={completedView === 'card' ? 'default' : 'ghost'}
                         size="sm"
-                        className={completedView === 'card' ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold' : 'font-semibold text-gray-600 dark:text-gray-400'}
+                        className={completedView === 'card' ? 'bg-primary text-primary-foreground font-medium' : 'font-medium text-muted-foreground'}
                       >
                         Card View
                       </Button>
@@ -1153,12 +1155,12 @@ export default function Games() {
                         onClick={() => setCompletedView('table')}
                         variant={completedView === 'table' ? 'default' : 'ghost'}
                         size="sm"
-                        className={completedView === 'table' ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold' : 'font-semibold text-gray-600 dark:text-gray-400'}
+                        className={completedView === 'table' ? 'bg-primary text-primary-foreground font-medium' : 'font-medium text-muted-foreground'}
                       >
                         Table View
                       </Button>
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                    <div className="text-sm text-muted-foreground font-medium">
                       Showing {filteredCompletedGames.length} of {completedGames.length}
                     </div>
                   </div>
@@ -1167,44 +1169,44 @@ export default function Games() {
                       {filteredCompletedGames.map(game => <GameCard key={game.id} game={game} />)}
                     </div>
                   ) : (
-                    <div className="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg">
+                    <div className="bg-card border border-border overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50 dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
+                        <thead className="bg-muted/50 border-b border-border">
                           <tr>
-                            <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Date & Time</th>
-                            <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Matchup</th>
-                            <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Sport</th>
-                            <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Court</th>
-                            <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Score</th>
-                            <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Week</th>
-                            <th className="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-bold text-sm">Actions</th>
+                            <th className="text-left py-3 px-4 text-foreground font-heading font-bold text-sm">Date & Time</th>
+                            <th className="text-left py-3 px-4 text-foreground font-heading font-bold text-sm">Matchup</th>
+                            <th className="text-left py-3 px-4 text-foreground font-heading font-bold text-sm">Sport</th>
+                            <th className="text-left py-3 px-4 text-foreground font-heading font-bold text-sm">Court</th>
+                            <th className="text-left py-3 px-4 text-foreground font-heading font-bold text-sm">Score</th>
+                            <th className="text-left py-3 px-4 text-foreground font-heading font-bold text-sm">Week</th>
+                            <th className="text-left py-3 px-4 text-foreground font-heading font-bold text-sm">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {filteredCompletedGames.map((game) => (
-                            <tr key={game.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
-                              <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">
+                            <tr key={game.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                              <td className="py-3 px-4 text-sm font-medium text-foreground">
                                 {new Date(game.game_date).toLocaleDateString()}<br />
                                 <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(game.game_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                               </td>
-                              <td className="py-3 px-4 text-sm font-bold text-gray-900 dark:text-white">
-                                {getTeamName(game.home_team_id)} <span className="text-gray-400 font-normal">vs</span> {getTeamName(game.away_team_id)}
+                              <td className="py-3 px-4 text-sm font-heading font-bold text-foreground">
+                                {getTeamName(game.home_team_id)} <span className="text-muted-foreground font-normal">vs</span> {getTeamName(game.away_team_id)}
                               </td>
                               <td className="py-3 px-4">
-                                <Badge variant="outline" className={`text-${game.sport === 'basketball' ? 'orange' : 'blue'}-600 dark:text-${game.sport === 'basketball' ? 'orange' : 'blue'}-400 border-${game.sport === 'basketball' ? 'orange' : 'blue'}-600 font-bold`}>
+                                <Badge variant="outline" className="border-border text-foreground font-heading font-bold uppercase text-xs">
                                   {game.sport}
                                 </Badge>
                               </td>
-                              <td className="py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">{game.court_number || '-'}</td>
-                              <td className="py-3 px-4 text-sm font-black text-gray-900 dark:text-white">{game.home_score} - {game.away_score}</td>
-                              <td className="py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">{game.week_number || '-'}</td>
+                              <td className="py-3 px-4 text-sm font-medium text-muted-foreground">{game.court_number || '-'}</td>
+                              <td className="py-3 px-4 text-sm font-heading font-bold tabular-nums text-foreground">{game.home_score} - {game.away_score}</td>
+                              <td className="py-3 px-4 text-sm font-medium text-muted-foreground">{game.week_number || '-'}</td>
                               <td className="py-3 px-4">
                                 <div className="flex gap-1">
                                   <Button 
                                     variant="ghost" 
                                     size="icon"
                                     onClick={() => handleEditGame(game)}
-                                    className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                                    className="text-muted-foreground hover:text-foreground"
                                   >
                                     <Edit className="w-4 h-4" />
                                   </Button>
@@ -1212,16 +1214,7 @@ export default function Games() {
                                     <Button 
                                       variant="ghost" 
                                       size="icon"
-                                      className="text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400"
-                                    >
-                                      <FileEdit className="w-4 h-4" />
-                                    </Button>
-                                  </Link>
-                                  <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}&edit=1`}>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="icon"
-                                      className="text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400"
+                                      className="text-muted-foreground hover:text-primary"
                                     >
                                       <FileEdit className="w-4 h-4" />
                                     </Button>
@@ -1230,7 +1223,7 @@ export default function Games() {
                                     variant="ghost" 
                                     size="icon"
                                     onClick={() => setArchivingGame(game)}
-                                    className="text-gray-400 hover:text-purple-600 dark:hover:text-purple-400"
+                                    className="text-muted-foreground hover:text-foreground"
                                   >
                                     <Archive className="w-4 h-4" />
                                   </Button>
@@ -1238,7 +1231,7 @@ export default function Games() {
                                     variant="ghost" 
                                     size="icon"
                                     onClick={() => handleDeleteClick(game)}
-                                    className="text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                                    className="text-muted-foreground hover:text-destructive"
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
@@ -1252,10 +1245,10 @@ export default function Games() {
                   )}
                   {filteredCompletedGames.length === 0 && (
                    <div className="text-center py-20">
-                     <div className="w-24 h-24 bg-gradient-to-br from-green-200 to-green-300 dark:from-green-800 dark:to-green-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                       <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-300" />
+                     <div className="w-24 h-24 border border-border bg-card flex items-center justify-center mx-auto mb-6">
+                                             <CheckCircle className="w-12 h-12 text-muted-foreground" />
                      </div>
-                     <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No completed games match your filters</p>
+                     <p className="text-muted-foreground text-xl font-heading font-bold">No completed games match your filters</p>
                    </div>
                   )}
                 </TabsContent>
@@ -1266,10 +1259,10 @@ export default function Games() {
                   </div>
                   {archivedGames.length === 0 && (
                     <div className="text-center py-20">
-                      <div className="w-24 h-24 bg-gradient-to-br from-purple-200 to-purple-300 dark:from-purple-800 dark:to-purple-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Archive className="w-12 h-12 text-purple-600 dark:text-purple-300" />
+                      <div className="w-24 h-24 border border-border bg-card flex items-center justify-center mx-auto mb-6">
+                        <Archive className="w-12 h-12 text-muted-foreground" />
                       </div>
-                      <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No archived games</p>
+                      <p className="text-muted-foreground text-xl font-heading font-bold">No archived games</p>
                     </div>
                   )}
                 </TabsContent>
@@ -1307,21 +1300,21 @@ export default function Games() {
                   setEditingGame(null);
                 }
               }}>
-                <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">
+                    <DialogTitle className="text-2xl font-heading font-bold">
                       {editingGame ? 'Edit Game' : 'Schedule New Game'}
                     </DialogTitle>
                   </DialogHeader>
                   <form id="game-form" onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                      <Label htmlFor="sport" className="font-bold text-gray-700 dark:text-gray-300">Sport</Label>
+                      <Label htmlFor="sport" className="font-heading font-bold text-foreground">Sport</Label>
                       <select
                         id="sport"
                         name="sport"
                         required
                         onChange={(e) => setFormSport(e.target.value)}
-                        className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                        className="w-full bg-background border border-border text-foreground px-3 py-2 font-medium"
                       >
                         <option value="">Select sport</option>
                         <option value="basketball">Basketball</option>
@@ -1330,12 +1323,12 @@ export default function Games() {
                     </div>
 
                     <div>
-                      <Label htmlFor="game_type" className="font-bold text-gray-700 dark:text-gray-300">Game Type</Label>
+                      <Label htmlFor="game_type" className="font-heading font-bold text-foreground">Game Type</Label>
                       <select
                         id="game_type"
                         name="game_type"
                         required
-                        className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                        className="w-full bg-background border border-border text-foreground px-3 py-2 font-medium"
                       >
                         <option value="pre_season">Pre-Season</option>
                         <option value="regular_season">Regular Season</option>
@@ -1348,12 +1341,12 @@ export default function Games() {
                     </div>
 
                     <div>
-                      <Label htmlFor="division" className="font-bold text-gray-700 dark:text-gray-300">Division</Label>
+                      <Label htmlFor="division" className="font-heading font-bold text-foreground">Division</Label>
                       <select
                         id="division"
                         name="division"
                         onChange={(e) => setFormDivision(e.target.value)}
-                        className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                        className="w-full bg-background border border-border text-foreground px-3 py-2 font-medium"
                       >
                         <option value="">Select division</option>
                         {divisions.map(div => (
@@ -1363,75 +1356,75 @@ export default function Games() {
                     </div>
 
                     {/* Scorekeeper Role Assignments (Basketball Only) */}
-                    <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-xl border-2 border-blue-200 dark:border-blue-800 space-y-4">
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <Users className="w-5 h-5 text-blue-600" />
+                    <div className="bg-muted/50 p-4 border border-border space-y-4">
+                      <h3 className="text-lg font-heading font-bold text-foreground flex items-center gap-2">
+                        <Users className="w-5 h-5 text-primary" />
                         Scorekeeper & Statistician Assignments
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         For basketball: Assign specific roles. The Overall Scorekeeper handles points, fouls, timeouts, and game flow. Statisticians only record non-point stats for their assigned team.
                       </p>
                       
                       <div>
-                        <Label htmlFor="overall_scorekeeper_email" className="font-bold text-gray-700 dark:text-gray-300">Overall Scorekeeper</Label>
+                        <Label htmlFor="overall_scorekeeper_email" className="font-heading font-bold text-foreground">Overall Scorekeeper</Label>
                         <select
                           id="overall_scorekeeper_email"
                           name="overall_scorekeeper_email"
-                          className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                          className="w-full bg-background border border-border text-foreground px-3 py-2 font-medium"
                         >
                           <option value="">-- None --</option>
                           {scorekeepers.map(sk => (
                             <option key={sk.email} value={sk.email}>{sk.full_name} ({sk.email})</option>
                           ))}
                         </select>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Controls score, fouls, timeouts, game flow, and all player stats.</p>
+                        <p className="text-xs text-muted-foreground mt-1">Controls score, fouls, timeouts, game flow, and all player stats.</p>
                       </div>
 
                       <div>
-                        <Label htmlFor="home_statistician_email" className="font-bold text-gray-700 dark:text-gray-300">Home Team Statistician</Label>
+                        <Label htmlFor="home_statistician_email" className="font-heading font-bold text-foreground">Home Team Statistician</Label>
                         <select
                           id="home_statistician_email"
                           name="home_statistician_email"
-                          className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                          className="w-full bg-background border border-border text-foreground px-3 py-2 font-medium"
                         >
                           <option value="">-- None --</option>
                           {scorekeepers.map(sk => (
                             <option key={sk.email} value={sk.email}>{sk.full_name} ({sk.email})</option>
                           ))}
                         </select>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Records non-point stats (rebounds, assists, etc.) for Home team only.</p>
+                        <p className="text-xs text-muted-foreground mt-1">Records non-point stats (rebounds, assists, etc.) for Home team only.</p>
                       </div>
 
                       <div>
-                        <Label htmlFor="away_statistician_email" className="font-bold text-gray-700 dark:text-gray-300">Away Team Statistician</Label>
+                        <Label htmlFor="away_statistician_email" className="font-heading font-bold text-foreground">Away Team Statistician</Label>
                         <select
                           id="away_statistician_email"
                           name="away_statistician_email"
-                          className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                          className="w-full bg-background border border-border text-foreground px-3 py-2 font-medium"
                         >
                           <option value="">-- None --</option>
                           {scorekeepers.map(sk => (
                             <option key={sk.email} value={sk.email}>{sk.full_name} ({sk.email})</option>
                           ))}
                         </select>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Records non-point stats (rebounds, assists, etc.) for Away team only.</p>
+                        <p className="text-xs text-muted-foreground mt-1">Records non-point stats (rebounds, assists, etc.) for Away team only.</p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <Label htmlFor="game_date" className="font-bold text-gray-700 dark:text-gray-300">Date & Time *</Label>
+                        <Label htmlFor="game_date" className="font-heading font-bold text-foreground">Date & Time *</Label>
                         <Input
                           id="game_date"
                           name="game_date"
                           type="datetime-local"
                           required
                           onChange={handleFormChange}
-                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                          className="bg-background border border-border text-foreground font-medium"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="court_number" className="font-bold text-gray-700 dark:text-gray-300">Court Number *</Label>
+                        <Label htmlFor="court_number" className="font-heading font-bold text-foreground">Court Number *</Label>
                         <Input
                           id="court_number"
                           name="court_number"
@@ -1439,19 +1432,19 @@ export default function Games() {
                           required
                           onChange={handleFormChange}
                           placeholder="e.g., 1, 2, A, B"
-                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                          className="bg-background border border-border text-foreground font-medium"
                         />
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Duration: 1.5 hours</p>
+                        <p className="text-xs text-muted-foreground mt-1">Duration: 1.5 hours</p>
                       </div>
                       <div>
-                        <Label htmlFor="week_number" className="font-bold text-gray-700 dark:text-gray-300">Week Number</Label>
+                        <Label htmlFor="week_number" className="font-heading font-bold text-foreground">Week Number</Label>
                         <Input
                           id="week_number"
                           name="week_number"
                           type="number"
                           min="1"
                           placeholder="e.g., 1, 2, 3"
-                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                          className="bg-background border border-border text-foreground font-medium"
                         />
                       </div>
                     </div>
@@ -1466,7 +1459,7 @@ export default function Games() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="penalty_limit_per_quarter" className="font-bold text-gray-700 dark:text-gray-300">Team Foul Penalty Limit</Label>
+                        <Label htmlFor="penalty_limit_per_quarter" className="font-heading font-bold text-foreground">Team Foul Penalty Limit</Label>
                         <Input
                           id="penalty_limit_per_quarter"
                           name="penalty_limit_per_quarter"
@@ -1475,11 +1468,11 @@ export default function Games() {
                           min="1"
                           max="10"
                           required
-                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                          className="bg-background border border-border text-foreground font-medium"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="player_foul_limit" className="font-bold text-gray-700 dark:text-gray-300">Player Foul Limit</Label>
+                        <Label htmlFor="player_foul_limit" className="font-heading font-bold text-foreground">Player Foul Limit</Label>
                         <Input
                           id="player_foul_limit"
                           name="player_foul_limit"
@@ -1488,18 +1481,18 @@ export default function Games() {
                           min="1"
                           max="10"
                           required
-                          className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                          className="bg-background border border-border text-foreground font-medium"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <Label htmlFor="home_team_id" className="font-bold text-gray-700 dark:text-gray-300">Home Team</Label>
+                      <Label htmlFor="home_team_id" className="font-heading font-bold text-foreground">Home Team</Label>
                       <select
                         id="home_team_id"
                         name="home_team_id"
                         required
-                        className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                        className="w-full bg-background border border-border text-foreground px-3 py-2 font-medium"
                       >
                         <option value="">Select team</option>
                         {teamsForSelect.map(team => (
@@ -1508,12 +1501,12 @@ export default function Games() {
                       </select>
                     </div>
                     <div>
-                      <Label htmlFor="away_team_id" className="font-bold text-gray-700 dark:text-gray-300">Away Team</Label>
+                      <Label htmlFor="away_team_id" className="font-heading font-bold text-foreground">Away Team</Label>
                       <select
                         id="away_team_id"
                         name="away_team_id"
                         required
-                        className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-3 py-2 font-medium"
+                        className="w-full bg-background border border-border text-foreground px-3 py-2 font-medium"
                       >
                         <option value="">Select team</option>
                         {teamsForSelect.map(team => (
@@ -1522,23 +1515,23 @@ export default function Games() {
                       </select>
                     </div>
                     <div>
-                                                <Label htmlFor="location" className="font-bold text-gray-700 dark:text-gray-300">Location</Label>
+                                                <Label htmlFor="location" className="font-heading font-bold text-foreground">Location</Label>
                                                 <Input
                                                   id="location"
                                                   name="location"
                                                   placeholder="e.g., Main Gym, Sports Complex"
-                                                  className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                                                  className="bg-background border border-border text-foreground font-medium"
                                                 />
                                               </div>
                                               <div>
-                                                <Label htmlFor="stream_url" className="font-bold text-gray-700 dark:text-gray-300">Live Stream URL (Optional)</Label>
+                                                <Label htmlFor="stream_url" className="font-heading font-bold text-foreground">Live Stream URL (Optional)</Label>
                                                 <Input
                                                   id="stream_url"
                                                   name="stream_url"
                                                   placeholder="e.g., https://youtube.com/live/... or https://twitch.tv/..."
-                                                  className="bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium"
+                                                  className="bg-background border border-border text-foreground font-medium"
                                                 />
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Paste a YouTube Live, Twitch, or other embed URL for live streaming.</p>
+                                                <p className="text-xs text-muted-foreground mt-1">Paste a YouTube Live, Twitch, or other embed URL for live streaming.</p>
                                               </div>
                     <div className="flex justify-end gap-3 pt-4">
                       <Button type="button" variant="outline" onClick={() => { 
@@ -1547,13 +1540,13 @@ export default function Games() {
                         setRecurringConfig({ enabled: false });
                         setSelectedScorekeeperEmails([]);
                         setEditingGame(null);
-                      }} className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold">
+                      }} className="font-medium">
                         Cancel
                       </Button>
                       <Button 
                         type="submit" 
                         disabled={createMutation.isLoading || updateMutation.isLoading}
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold"
+                        className="font-medium"
                       >
                         {editingGame ? (updateMutation.isLoading ? 'Updating...' : 'Update Game') : (createMutation.isLoading ? 'Scheduling...' : (recurringConfig.enabled ? `Schedule ${recurringConfig.occurrences} Games` : 'Schedule Game'))}
                       </Button>
@@ -1563,39 +1556,39 @@ export default function Games() {
               </Dialog>
 
               <AlertDialog open={!!deletingGame} onOpenChange={() => setDeletingGame(null)}>
-                <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                <AlertDialogContent>
                   <AlertDialogHeader>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 bg-red-100 dark:bg-red-950/30 rounded-xl flex items-center justify-center">
-                        <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                      <div className="w-12 h-12 bg-destructive/10 flex items-center justify-center">
+                        <AlertTriangle className="w-6 h-6 text-destructive" />
                       </div>
-                      <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+                      <AlertDialogTitle className="text-xl font-heading font-bold">
                         Delete Game Permanently?
                       </AlertDialogTitle>
                     </div>
-                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
-                      Are you sure you want to permanently delete this game between <span className="font-bold text-gray-900 dark:text-white">{getTeamName(deletingGame?.home_team_id)}</span> and <span className="font-bold text-gray-900 dark:text-white">{getTeamName(deletingGame?.away_team_id)}</span>?
+                    <AlertDialogDescription className="text-muted-foreground font-medium">
+                      Are you sure you want to permanently delete this game between <span className="font-heading font-bold text-foreground">{getTeamName(deletingGame?.home_team_id)}</span> and <span className="font-heading font-bold text-foreground">{getTeamName(deletingGame?.away_team_id)}</span>?
                       <br /><br />
                       <p className="text-sm">
                         📅 {deletingGame?.game_date && new Date(deletingGame.game_date).toLocaleString()}
                       </p>
                       {deletingGame?.statsCount > 0 && (
-                        <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                          <p className="text-sm text-yellow-800 dark:text-yellow-300 font-semibold">
+                        <div className="mt-3 p-3 bg-muted border border-border">
+                          <p className="text-sm text-foreground font-medium">
                             ⚠️ This game has {deletingGame.statsCount} player statistic record(s) that will also be deleted.
                           </p>
                         </div>
                       )}
-                      <p className="mt-3 font-semibold text-red-600 dark:text-red-400">This action cannot be undone.</p>
+                      <p className="mt-3 font-medium text-destructive">This action cannot be undone.</p>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+                    <AlertDialogCancel className="font-medium">
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => deleteMutation.mutate(deletingGame.id)}
-                      className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold"
+                      className="font-medium"
                     >
                       Delete Permanently
                     </AlertDialogAction>
@@ -1604,31 +1597,31 @@ export default function Games() {
               </AlertDialog>
 
               <AlertDialog open={!!archivingGame} onOpenChange={() => setArchivingGame(null)}>
-                <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                <AlertDialogContent>
                   <AlertDialogHeader>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 bg-purple-100 dark:bg-purple-950/30 rounded-xl flex items-center justify-center">
-                        <Archive className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                      <div className="w-12 h-12 bg-muted flex items-center justify-center">
+                        <Archive className="w-6 h-6 text-foreground" />
                       </div>
-                      <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+                      <AlertDialogTitle className="text-xl font-heading font-bold">
                         Archive Completed Game?
                       </AlertDialogTitle>
                     </div>
-                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
-                      Archive the completed game between <span className="font-bold text-gray-900 dark:text-white">{getTeamName(archivingGame?.home_team_id)}</span> and <span className="font-bold text-gray-900 dark:text-white">{getTeamName(archivingGame?.away_team_id)}</span>?
+                    <AlertDialogDescription className="text-muted-foreground font-medium">
+                      Archive the completed game between <span className="font-heading font-bold text-foreground">{getTeamName(archivingGame?.home_team_id)}</span> and <span className="font-heading font-bold text-foreground">{getTeamName(archivingGame?.away_team_id)}</span>?
                       <br /><br />
-                      <p className="text-sm text-purple-700 dark:text-purple-300 font-semibold">
+                      <p className="text-sm text-muted-foreground font-medium">
                         📦 Archived games can be restored later from the Archived tab.
                       </p>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+                    <AlertDialogCancel className="font-medium">
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => archiveMutation.mutate({ id: archivingGame.id })}
-                      className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold"
+                      className="font-medium"
                     >
                       Archive Game
                     </AlertDialogAction>
@@ -1637,27 +1630,27 @@ export default function Games() {
               </AlertDialog>
 
               <AlertDialog open={!!restoringGame} onOpenChange={() => setRestoringGame(null)}>
-                <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                <AlertDialogContent>
                   <AlertDialogHeader>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 bg-green-100 dark:bg-green-950/30 rounded-xl flex items-center justify-center">
-                        <ArchiveRestore className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      <div className="w-12 h-12 bg-primary/10 flex items-center justify-center">
+                        <ArchiveRestore className="w-6 h-6 text-primary" />
                       </div>
-                      <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+                      <AlertDialogTitle className="text-xl font-heading font-bold">
                         Restore Archived Game?
                       </AlertDialogTitle>
                     </div>
-                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
-                      Restore the archived game between <span className="font-bold text-gray-900 dark:text-white">{getTeamName(restoringGame?.home_team_id)}</span> and <span className="font-bold text-gray-900 dark:text-white">{getTeamName(restoringGame?.away_team_id)}</span> back to the Completed tab?
+                    <AlertDialogDescription className="text-muted-foreground font-medium">
+                      Restore the archived game between <span className="font-heading font-bold text-foreground">{getTeamName(restoringGame?.home_team_id)}</span> and <span className="font-heading font-bold text-foreground">{getTeamName(restoringGame?.away_team_id)}</span> back to the Completed tab?
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+                    <AlertDialogCancel className="font-medium">
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => restoreMutation.mutate({ id: restoringGame.id })}
-                      className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold"
+                      className="font-medium"
                     >
                       Restore Game
                     </AlertDialogAction>
@@ -1666,29 +1659,29 @@ export default function Games() {
               </AlertDialog>
 
               <AlertDialog open={showClearAllDialog} onOpenChange={setShowClearAllDialog}>
-                <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                <AlertDialogContent>
                   <AlertDialogHeader>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 bg-red-100 dark:bg-red-950/30 rounded-xl flex items-center justify-center">
-                        <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                      <div className="w-12 h-12 bg-destructive/10 flex items-center justify-center">
+                        <AlertTriangle className="w-6 h-6 text-destructive" />
                       </div>
-                      <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+                      <AlertDialogTitle className="text-xl font-heading font-bold">
                         Clear All Scheduled Games?
                       </AlertDialogTitle>
                     </div>
-                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
-                      Are you sure you want to delete all <span className="font-bold text-gray-900 dark:text-white">{scheduledGames.length}</span> scheduled games?
+                    <AlertDialogDescription className="text-muted-foreground font-medium">
+                      Are you sure you want to delete all <span className="font-heading font-bold text-foreground">{scheduledGames.length}</span> scheduled games?
                       <br /><br />
-                      <p className="font-semibold text-red-600 dark:text-red-400">⚠️ This action cannot be undone. All scheduled games will be permanently deleted.</p>
+                      <p className="font-medium text-destructive">⚠️ This action cannot be undone. All scheduled games will be permanently deleted.</p>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+                    <AlertDialogCancel className="font-medium">
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => clearAllScheduledMutation.mutate()}
-                      className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold"
+                      className="font-medium"
                     >
                       {clearAllScheduledMutation.isLoading ? 'Deleting...' : 'Delete All'}
                     </AlertDialogAction>

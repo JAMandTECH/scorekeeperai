@@ -119,8 +119,8 @@ export default function SubscriptionCheckout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
@@ -186,7 +186,7 @@ export default function SubscriptionCheckout() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-50 dark:from-gray-900 dark:via-purple-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -211,10 +211,10 @@ export default function SubscriptionCheckout() {
             <div className="max-w-7xl mx-auto space-y-8">
               {/* Header */}
               <div className="text-center">
-                <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-3">
+                <h1 className="font-heading text-3xl font-bold tracking-tight mb-3">
                   Choose Your Plan
                 </h1>
-                <p className="text-lg text-gray-600 dark:text-gray-400">
+                <p className="text-lg text-muted-foreground">
                   Upgrade your organization to unlock advanced features
                 </p>
               </div>
@@ -228,15 +228,15 @@ export default function SubscriptionCheckout() {
                   Yearly
                 </Button>
                 {billingCycle === 'yearly' && (
-                  <span className="text-xs text-gray-500 dark:text-gray-400">Yearly billing coming soon</span>
+                  <span className="text-xs text-muted-foreground">Yearly billing coming soon</span>
                 )}
               </div>
 
               {/* Current Status */}
               {currentTier !== 'free' && (
-                <Alert className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30">
-                  <AlertCircle className="w-4 h-4 text-blue-600" />
-                  <AlertDescription className="text-blue-900 dark:text-blue-300">
+                <Alert className="bg-muted border border-border">
+                  <AlertCircle className="w-4 h-4 text-primary" />
+                  <AlertDescription className="text-foreground">
                     Current Plan: <strong>{currentTier.toUpperCase()}</strong> • Status: <strong>{subscriptionStatus.toUpperCase()}</strong>
                     {subscriptionStatus === 'trial' && organization?.trial_end_date && (
                       <> • Trial ends: {new Date(organization.trial_end_date).toLocaleDateString()}</>
@@ -258,39 +258,43 @@ export default function SubscriptionCheckout() {
                       key={tier.value}
                       className={`relative ${
                          tier.popular
-                           ? 'border-4 border-purple-400 dark:border-purple-600 shadow-2xl scale-105'
-                           : 'border-2 border-gray-200 dark:border-gray-700'
-                       } bg-white dark:bg-gray-800 ${tier.value === 'premium' ? 'neon-glow-purple shadow-futuristic-lg' : ''} transition-all hover:shadow-xl`}
+                           ? 'border-primary border-2'
+                           : ''
+                       } transition-colors hover:border-foreground/20`}
                     >
                       {tier.popular && (
                         <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                          <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 px-4 py-1 font-bold">
+                          <Badge className="px-4 py-1 font-medium">
                             RECOMMENDED
                           </Badge>
                         </div>
                       )}
                       {tier.value === 'premium' && (
                         <div className="absolute -top-4 right-4">
-                          <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 px-3 py-1 font-bold">
+                          <Badge variant="outline" className="border-primary text-primary px-3 py-1 font-medium">
                             BEST VALUE
                           </Badge>
                         </div>
                       )}
 
                       <CardHeader className="text-center pb-6 pt-5">
-                        <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-gradient-to-br ${
-                          tier.color === 'purple' ? 'from-purple-500 to-pink-500' :
-                          tier.color === 'blue' ? 'from-blue-500 to-cyan-500' :
-                          'from-gray-400 to-gray-500'
-                        } shadow-lg`}>
-                          <Icon className="w-8 h-8 text-white" />
+                        <div className={`w-16 h-16 mx-auto mb-4 border flex items-center justify-center ${
+                          tier.color === 'purple' ? 'border-primary' :
+                          tier.color === 'blue' ? 'border-foreground' :
+                          'border-border'
+                        }`}>
+                          <Icon className={`w-8 h-8 ${
+                            tier.color === 'purple' ? 'text-primary' :
+                            tier.color === 'blue' ? 'text-foreground' :
+                            'text-muted-foreground'
+                          }`} />
                         </div>
-                        <CardTitle className="text-2xl font-black text-gray-900 dark:text-white mb-2">
+                        <CardTitle className="text-2xl font-heading font-bold mb-2">
                           {tier.name}
                         </CardTitle>
-                        <div className="text-4xl font-black text-gray-900 dark:text-white">
+                        <div className="font-heading text-4xl font-bold tabular-nums">
                           AUD ${billingCycle === 'monthly' ? tier.monthly : tier.yearly}
-                          <span className="text-lg font-normal text-gray-500 dark:text-gray-400">
+                          <span className="text-lg font-normal text-muted-foreground">
                             /{billingCycle === 'monthly' ? 'month' : 'year'}
                           </span>
                         </div>
@@ -300,15 +304,15 @@ export default function SubscriptionCheckout() {
                         <div className="space-y-2.5">
                           {tier.features.map((feature, idx) => (
                             <div key={idx} className="flex items-start gap-2">
-                              <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                              <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
+                              <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                              <span className="text-sm text-foreground">{feature}</span>
                             </div>
                           ))}
                         </div>
 
                         {tier.value === 'basic' && selectedTier === 'basic' && (
-                          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                          <div className="pt-4 border-t border-border">
+                            <label className="block text-sm font-heading font-bold text-foreground mb-2">
                               Select Your Sport:
                             </label>
                             <div className="grid grid-cols-2 gap-2">
@@ -316,7 +320,6 @@ export default function SubscriptionCheckout() {
                                 variant={selectedSport === 'basketball' ? 'default' : 'outline'}
                                 size="sm"
                                 onClick={() => setSelectedSport('basketball')}
-                                className={selectedSport === 'basketball' ? 'bg-orange-600' : ''}
                               >
                                 Basketball
                               </Button>
@@ -324,7 +327,6 @@ export default function SubscriptionCheckout() {
                                 variant={selectedSport === 'volleyball' ? 'default' : 'outline'}
                                 size="sm"
                                 onClick={() => setSelectedSport('volleyball')}
-                                className={selectedSport === 'volleyball' ? 'bg-blue-600' : ''}
                               >
                                 Volleyball
                               </Button>
@@ -335,15 +337,8 @@ export default function SubscriptionCheckout() {
                         <Button
                           onClick={() => handleSubscribe(tier.value)}
                           disabled={isCurrentTier || processingPayment || (billingCycle === 'yearly' && tier.value !== 'free')}
-                          className={`w-full font-bold ${
-                            isCurrentTier
-                              ? 'bg-gray-400 cursor-not-allowed'
-                              : tier.color === 'purple'
-                              ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
-                              : tier.color === 'blue'
-                              ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700'
-                              : 'bg-gray-600 hover:bg-gray-700'
-                          } text-white`}
+                          variant={isCurrentTier ? "outline" : "default"}
+                          className="w-full font-medium"
                         >
                           {billingCycle === 'yearly' && tier.value !== 'free' ? (
                             'Yearly billing coming soon'
@@ -361,7 +356,7 @@ export default function SubscriptionCheckout() {
                         </Button>
 
                         {isCurrentTier && (
-                          <p className="text-center text-xs text-green-600 dark:text-green-400 font-bold">
+                          <p className="text-center text-xs text-primary font-medium">
                             ✓ Active Plan
                           </p>
                         )}
@@ -372,28 +367,28 @@ export default function SubscriptionCheckout() {
               </div>
 
               {/* FAQ Section */}
-              <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-xl font-black text-gray-900 dark:text-white">
+                  <CardTitle className="text-xl font-heading font-bold">
                     Frequently Asked Questions
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-1">Can I cancel anytime?</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <h3 className="font-heading font-bold text-foreground mb-1">Can I cancel anytime?</h3>
+                    <p className="text-sm text-muted-foreground">
                       Yes, you can cancel your subscription at any time. Your access will continue until the end of your billing period.
                     </p>
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-1">What happens after the trial?</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <h3 className="font-heading font-bold text-foreground mb-1">What happens after the trial?</h3>
+                    <p className="text-sm text-muted-foreground">
                       Your 30-day trial gives you full access to your selected tier. After the trial, you'll need to subscribe to continue using premium features.
                     </p>
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-1">Can I upgrade or downgrade later?</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <h3 className="font-heading font-bold text-foreground mb-1">Can I upgrade or downgrade later?</h3>
+                    <p className="text-sm text-muted-foreground">
                       Yes, you can change your plan at any time. Changes take effect immediately and billing is prorated.
                     </p>
                   </div>

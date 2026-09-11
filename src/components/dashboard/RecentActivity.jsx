@@ -63,7 +63,6 @@ export default function RecentActivity({ organizationId, teams = [], players = [
     return m;
   }, [players]);
 
-  // Top scorer for EACH team per game (aggregated across quarters)
   const bestPlayersByGame = React.useMemo(() => {
     const byGame = {};
     gameStats.forEach((s) => {
@@ -120,7 +119,6 @@ export default function RecentActivity({ organizationId, teams = [], players = [
         id: `game-${g.id}`,
         type: 'game',
         icon: Trophy,
-        color: 'from-purple-500 to-pink-600',
         title: `${home} ${g.home_score ?? 0} – ${g.away_score ?? 0} ${away}`,
         subtitle: 'Game completed',
         date: g.updated_date,
@@ -133,7 +131,6 @@ export default function RecentActivity({ organizationId, teams = [], players = [
         id: `team-${t.id}`,
         type: 'team',
         icon: Users,
-        color: 'from-orange-500 to-red-600',
         title: t.name,
         subtitle: 'Team added',
         date: t.created_date,
@@ -145,7 +142,6 @@ export default function RecentActivity({ organizationId, teams = [], players = [
         id: `player-${p.id}`,
         type: 'player',
         icon: UserPlus,
-        color: 'from-green-500 to-emerald-600',
         title: `${p.first_name} ${p.last_name}`,
         subtitle: 'Player registered',
         date: p.created_date,
@@ -159,55 +155,53 @@ export default function RecentActivity({ organizationId, teams = [], players = [
   }, [games, teams, players, teamMap, bestPlayersByGame]);
 
   return (
-    <Card className="border border-gray-200 bg-white dark:border-[#1c2c4a] dark:bg-[#0d1830] shadow-futuristic">
-      <CardHeader className="border-b border-gray-200 dark:border-[#1c2c4a]">
-        <CardTitle className="text-xl font-black text-gray-900 dark:text-white">Recent Activity</CardTitle>
+    <Card>
+      <CardHeader className="border-b border-border">
+        <CardTitle className="text-base font-heading font-bold">Recent Activity</CardTitle>
       </CardHeader>
-      <CardContent className="pt-6">
+      <CardContent className="pt-4">
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-14 rounded-xl bg-gray-100 dark:bg-[#16243f] animate-pulse" />
+              <div key={i} className="h-14 bg-muted animate-pulse" />
             ))}
           </div>
         ) : activities.length === 0 ? (
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <TrendingUp className="w-8 h-8 text-cyan-600 dark:text-cyan-400" />
-            </div>
-            <p className="text-gray-500 dark:text-slate-400 font-medium">No recent activity yet</p>
+            <TrendingUp className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">No recent activity yet</p>
           </div>
         ) : (
-          <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
             {activities.map((a) => {
               const Icon = a.icon;
               return (
-                <div key={a.id} className="p-3 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-[#16243f] dark:hover:bg-[#1b2c4d] transition-colors">
+                <div key={a.id} className="p-3 border border-border bg-card hover:bg-muted transition-colors">
                   <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 flex-shrink-0 bg-gradient-to-br ${a.color} rounded-xl flex items-center justify-center shadow-lg`}>
-                      <Icon className="w-5 h-5 text-white" />
+                    <div className="w-8 h-8 flex-shrink-0 border border-border bg-secondary flex items-center justify-center">
+                      <Icon className="w-4 h-4 text-muted-foreground" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{a.title}</p>
-                      <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">{a.subtitle}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{a.title}</p>
+                      <p className="text-xs text-muted-foreground">{a.subtitle}</p>
                     </div>
-                    <span className="text-xs text-gray-400 dark:text-slate-500 font-medium whitespace-nowrap">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap tabular-nums">
                       {formatDistanceToNow(new Date(a.date), { addSuffix: true })}
                     </span>
                   </div>
                   {Array.isArray(a.best) && a.best.length > 0 && (
-                    <div className="mt-2.5 ml-[52px] grid grid-cols-2 gap-3 border-t border-gray-200 dark:border-[#1c2c4a] pt-2">
+                    <div className="mt-2.5 ml-[44px] grid grid-cols-2 gap-3 border-t border-border pt-2">
                       {[0, 1].map((idx) => {
                         const b = a.best[idx];
                         return (
                           <div key={idx} className={`flex flex-col gap-0.5 ${idx === 1 ? 'items-end text-right' : 'items-start text-left'}`}>
                             {b ? (
                               <>
-                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-yellow-500 dark:text-yellow-400">
-                                  <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground">
+                                  <Star className="w-3 h-3 fill-primary text-primary" />
                                   {b.name}
                                 </span>
-                                <span className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">{b.stats}</span>
+                                <span className="text-[11px] text-muted-foreground tabular-nums">{b.stats}</span>
                               </>
                             ) : null}
                           </div>

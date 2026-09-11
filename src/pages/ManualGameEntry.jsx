@@ -339,8 +339,8 @@ export default function ManualGameEntry() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
@@ -350,20 +350,20 @@ export default function ManualGameEntry() {
 
   const StatInput = ({ playerId, stat, label, max = 100 }) => (
     <div className="flex flex-col">
-      <label className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-1">{label}</label>
+      <label className="text-xs text-muted-foreground font-medium mb-1">{label}</label>
       <Input
         type="number"
         min="0"
         max={max}
         value={playerStats[playerId]?.[stat] || 0}
         onChange={(e) => updatePlayerStat(playerId, stat, e.target.value)}
-        className="w-16 h-8 text-center text-sm font-bold bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600"
+        className="w-16 h-8 text-center text-sm font-heading font-bold tabular-nums"
       />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -389,35 +389,35 @@ export default function ManualGameEntry() {
               {/* Header */}
               <div className="flex items-center gap-4">
                 <Link to={createPageUrl("Games")}>
-                  <Button variant="outline" className="border-2 border-gray-300 dark:border-gray-600">
+                  <Button variant="outline">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Games
                   </Button>
                 </Link>
                 <div>
-                  <h1 className="text-4xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                    <FileEdit className="w-10 h-10 text-blue-600" />
+                  <h1 className="font-heading text-3xl font-bold tracking-tight flex items-center gap-3">
+                    <FileEdit className="w-10 h-10 text-primary" />
                     Manual Game Entry
                   </h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">
+                  <p className="text-muted-foreground mt-2 font-medium">
                     Enter game results and player statistics for games not scored in the app
                   </p>
                 </div>
               </div>
 
               {successMessage && (
-                <div className="bg-green-100 dark:bg-green-950/30 border-2 border-green-300 dark:border-green-700 rounded-xl p-4 flex items-center gap-3">
-                  <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
-                  <p className="text-green-800 dark:text-green-300 font-bold">{successMessage}</p>
+                <div className="bg-primary/10 border border-primary/30 p-4 flex items-center gap-3">
+                  <CheckCircle className="w-6 h-6 text-primary" />
+                  <p className="text-foreground font-medium">{successMessage}</p>
                 </div>
               )}
 
               <Tabs defaultValue="scheduled" className="space-y-6">
-                <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-1 rounded-xl shadow-lg">
-                  <TabsTrigger value="scheduled" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                <TabsList>
+                  <TabsTrigger value="scheduled">
                     Enter New Results ({scheduledGames.length})
                   </TabsTrigger>
-                  <TabsTrigger value="completed" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white dark:text-gray-300 font-bold rounded-lg">
+                  <TabsTrigger value="completed">
                     Edit Completed ({completedGames.length})
                   </TabsTrigger>
                 </TabsList>
@@ -425,43 +425,43 @@ export default function ManualGameEntry() {
                 <TabsContent value="scheduled">
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {scheduledGames.map(game => (
-                      <Card key={game.id} className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all cursor-pointer" onClick={() => handleSelectGame(game)}>
+                      <Card key={game.id} className="hover:border-foreground/20 transition-colors cursor-pointer" onClick={() => handleSelectGame(game)}>
                         <CardHeader>
                           <div className="flex justify-between items-center">
-                            <Badge className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 font-bold">
+                            <Badge variant="outline" className="border-border text-muted-foreground font-medium">
                               SCHEDULED
                             </Badge>
-                            <Badge variant="outline" className={`font-bold ${game.sport === 'basketball' ? 'text-orange-600 border-orange-600' : 'text-blue-600 border-blue-600'}`}>
+                            <Badge variant="outline" className="border-border text-muted-foreground font-medium uppercase">
                               {game.sport}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold mt-2">
+                          <p className="text-sm text-muted-foreground font-medium mt-2">
                             {new Date(game.game_date).toLocaleDateString()} at {new Date(game.game_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                           </p>
                         </CardHeader>
                         <CardContent>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700">
+                              <Avatar className="w-10 h-10 border border-border">
                                 <AvatarImage src={getTeamLogo(game.home_team_id)} />
-                                <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white text-xs font-bold">
+                                <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                                   {getTeamName(game.home_team_id)?.substring(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="font-bold text-gray-900 dark:text-white text-sm">{getTeamName(game.home_team_id)}</span>
+                              <span className="font-heading font-bold text-foreground text-sm">{getTeamName(game.home_team_id)}</span>
                             </div>
-                            <span className="text-gray-400 font-bold">vs</span>
+                            <span className="text-muted-foreground font-medium">vs</span>
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-gray-900 dark:text-white text-sm">{getTeamName(game.away_team_id)}</span>
-                              <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700">
+                              <span className="font-heading font-bold text-foreground text-sm">{getTeamName(game.away_team_id)}</span>
+                              <Avatar className="w-10 h-10 border border-border">
                                 <AvatarImage src={getTeamLogo(game.away_team_id)} />
-                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold">
+                                <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                                   {getTeamName(game.away_team_id)?.substring(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
                             </div>
                           </div>
-                          <Button className="w-full mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
+                          <Button className="w-full mt-4 font-medium">
                             <FileEdit className="w-4 h-4 mr-2" />
                             Enter Result
                           </Button>
@@ -471,8 +471,8 @@ export default function ManualGameEntry() {
                   </div>
                   {scheduledGames.length === 0 && (
                     <div className="text-center py-20">
-                      <Trophy className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                      <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No scheduled games to enter results for</p>
+                      <Trophy className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground text-xl font-heading font-bold">No scheduled games to enter results for</p>
                     </div>
                   )}
                 </TabsContent>
@@ -480,49 +480,49 @@ export default function ManualGameEntry() {
                 <TabsContent value="completed">
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {completedGames.map(game => (
-                      <Card key={game.id} className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all cursor-pointer" onClick={() => handleSelectGame(game)}>
+                      <Card key={game.id} className="hover:border-foreground/20 transition-colors cursor-pointer" onClick={() => handleSelectGame(game)}>
                         <CardHeader>
                           <div className="flex justify-between items-center">
-                            <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800 font-bold">
+                            <Badge variant="outline" className="border-primary text-primary font-medium">
                               COMPLETED
                             </Badge>
-                            <Badge variant="outline" className={`font-bold ${game.sport === 'basketball' ? 'text-orange-600 border-orange-600' : 'text-blue-600 border-blue-600'}`}>
+                            <Badge variant="outline" className="border-border text-muted-foreground font-medium uppercase">
                               {game.sport}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold mt-2">
+                          <p className="text-sm text-muted-foreground font-medium mt-2">
                             {new Date(game.game_date).toLocaleDateString()}
                           </p>
                         </CardHeader>
                         <CardContent>
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
-                              <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700">
+                              <Avatar className="w-10 h-10 border border-border">
                                 <AvatarImage src={getTeamLogo(game.home_team_id)} />
-                                <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white text-xs font-bold">
+                                <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                                   {getTeamName(game.home_team_id)?.substring(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <span className="font-bold text-gray-900 dark:text-white text-sm block">{getTeamName(game.home_team_id)}</span>
-                                <span className="text-2xl font-black text-gray-900 dark:text-white">{game.home_score}</span>
+                                <span className="font-heading font-bold text-foreground text-sm block">{getTeamName(game.home_team_id)}</span>
+                                <span className="text-2xl font-heading font-bold text-foreground tabular-nums">{game.home_score}</span>
                               </div>
                             </div>
-                            <span className="text-gray-400 font-bold text-2xl">-</span>
+                            <span className="text-muted-foreground font-medium text-2xl">-</span>
                             <div className="flex items-center gap-2">
                               <div className="text-right">
-                                <span className="font-bold text-gray-900 dark:text-white text-sm block">{getTeamName(game.away_team_id)}</span>
-                                <span className="text-2xl font-black text-gray-900 dark:text-white">{game.away_score}</span>
+                                <span className="font-heading font-bold text-foreground text-sm block">{getTeamName(game.away_team_id)}</span>
+                                <span className="text-2xl font-heading font-bold text-foreground tabular-nums">{game.away_score}</span>
                               </div>
-                              <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700">
+                              <Avatar className="w-10 h-10 border border-border">
                                 <AvatarImage src={getTeamLogo(game.away_team_id)} />
-                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-bold">
+                                <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">
                                   {getTeamName(game.away_team_id)?.substring(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
                             </div>
                           </div>
-                          <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold">
+                          <Button variant="secondary" className="w-full font-medium">
                             <BarChart3 className="w-4 h-4 mr-2" />
                             Edit Stats
                           </Button>
@@ -532,8 +532,8 @@ export default function ManualGameEntry() {
                   </div>
                   {completedGames.length === 0 && (
                     <div className="text-center py-20">
-                      <CheckCircle className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                      <p className="text-gray-500 dark:text-gray-400 text-xl font-bold">No completed games to edit</p>
+                      <CheckCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground text-xl font-heading font-bold">No completed games to edit</p>
                     </div>
                   )}
                 </TabsContent>
@@ -544,10 +544,10 @@ export default function ManualGameEntry() {
                 setShowStatsDialog(open);
                 if (!open) setSelectedGame(null);
               }}>
-                <DialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 max-w-6xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                      <FileEdit className="w-6 h-6 text-blue-600" />
+                    <DialogTitle className="text-2xl font-heading font-bold flex items-center gap-3">
+                      <FileEdit className="w-6 h-6 text-primary" />
                       {selectedGame?.status === 'completed' ? 'Edit Game Stats' : 'Enter Game Result'}
                     </DialogTitle>
                   </DialogHeader>
@@ -555,45 +555,45 @@ export default function ManualGameEntry() {
                   {selectedGame && (
                     <div className="space-y-6">
                       {/* Game Score Entry */}
-                      <Card className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                      <Card>
                         <CardHeader>
-                          <CardTitle className="text-lg font-bold text-gray-900 dark:text-white">Final Score</CardTitle>
+                          <CardTitle className="text-lg font-heading font-bold">Final Score</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="flex items-center justify-center gap-8">
                             <div className="text-center">
-                              <Avatar className="w-16 h-16 mx-auto mb-2 border-4 border-white dark:border-gray-700 shadow-lg">
+                              <Avatar className="w-16 h-16 mx-auto mb-2 border border-border">
                                 <AvatarImage src={getTeamLogo(selectedGame.home_team_id)} />
-                                <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-bold">
+                                <AvatarFallback className="bg-secondary text-foreground font-heading font-bold">
                                   {getTeamName(selectedGame.home_team_id)?.substring(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
-                              <p className="font-bold text-gray-900 dark:text-white mb-2">{getTeamName(selectedGame.home_team_id)}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">HOME</p>
+                              <p className="font-heading font-bold text-foreground mb-2">{getTeamName(selectedGame.home_team_id)}</p>
+                              <p className="text-xs text-muted-foreground font-medium mb-2 uppercase tracking-wide">HOME</p>
                               <Input
                                 type="number"
                                 min="0"
                                 value={gameScores.home}
                                 onChange={(e) => setGameScores(prev => ({ ...prev, home: parseInt(e.target.value) || 0 }))}
-                                className="w-24 h-16 text-center text-3xl font-black bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600"
+                                className="w-24 h-16 text-center text-3xl font-heading font-bold tabular-nums"
                               />
                             </div>
-                            <div className="text-4xl font-black text-gray-400">-</div>
+                            <div className="text-4xl font-heading font-bold text-muted-foreground">-</div>
                             <div className="text-center">
-                              <Avatar className="w-16 h-16 mx-auto mb-2 border-4 border-white dark:border-gray-700 shadow-lg">
+                              <Avatar className="w-16 h-16 mx-auto mb-2 border border-border">
                                 <AvatarImage src={getTeamLogo(selectedGame.away_team_id)} />
-                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold">
+                                <AvatarFallback className="bg-secondary text-foreground font-heading font-bold">
                                   {getTeamName(selectedGame.away_team_id)?.substring(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
-                              <p className="font-bold text-gray-900 dark:text-white mb-2">{getTeamName(selectedGame.away_team_id)}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">AWAY</p>
+                              <p className="font-heading font-bold text-foreground mb-2">{getTeamName(selectedGame.away_team_id)}</p>
+                              <p className="text-xs text-muted-foreground font-medium mb-2 uppercase tracking-wide">AWAY</p>
                               <Input
                                 type="number"
                                 min="0"
                                 value={gameScores.away}
                                 onChange={(e) => setGameScores(prev => ({ ...prev, away: parseInt(e.target.value) || 0 }))}
-                                className="w-24 h-16 text-center text-3xl font-black bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600"
+                                className="w-24 h-16 text-center text-3xl font-heading font-bold tabular-nums"
                               />
                             </div>
                           </div>
@@ -602,11 +602,11 @@ export default function ManualGameEntry() {
 
                       {/* Player Stats Entry */}
                       <Tabs defaultValue="home" className="space-y-4">
-                        <TabsList className="bg-gray-100 dark:bg-gray-900 p-1 rounded-xl">
-                          <TabsTrigger value="home" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white font-bold rounded-lg">
+                        <TabsList>
+                          <TabsTrigger value="home">
                             {getTeamName(selectedGame.home_team_id)} ({homeTeamPlayers.length})
                           </TabsTrigger>
-                          <TabsTrigger value="away" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white font-bold rounded-lg">
+                          <TabsTrigger value="away">
                             {getTeamName(selectedGame.away_team_id)} ({awayTeamPlayers.length})
                           </TabsTrigger>
                         </TabsList>
@@ -614,18 +614,18 @@ export default function ManualGameEntry() {
                         <TabsContent value="home">
                           <div className="space-y-3">
                             {homeTeamPlayers.map(player => (
-                              <Card key={player.id} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                              <Card key={player.id}>
                                 <CardContent className="p-4">
                                   <div className="flex items-center gap-4">
-                                    <Avatar className="w-12 h-12 border-2 border-orange-200 dark:border-orange-800">
+                                    <Avatar className="w-12 h-12 border border-border">
                                       <AvatarImage src={player.photo_url} />
-                                      <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-bold">
+                                      <AvatarFallback className="bg-secondary text-foreground font-heading font-bold">
                                         {player.jersey_number}
                                       </AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 min-w-0">
-                                      <p className="font-bold text-gray-900 dark:text-white">#{player.jersey_number} {player.first_name} {player.last_name}</p>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400">{player.position}</p>
+                                      <p className="font-heading font-bold text-foreground">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                                      <p className="text-xs text-muted-foreground">{player.position}</p>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                       {selectedGame.sport === 'basketball' ? (
@@ -653,7 +653,7 @@ export default function ManualGameEntry() {
                               </Card>
                             ))}
                             {homeTeamPlayers.length === 0 && (
-                              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                              <div className="text-center py-8 text-muted-foreground">
                                 <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
                                 <p>No players found for this team</p>
                               </div>
@@ -664,18 +664,18 @@ export default function ManualGameEntry() {
                         <TabsContent value="away">
                           <div className="space-y-3">
                             {awayTeamPlayers.map(player => (
-                              <Card key={player.id} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                              <Card key={player.id}>
                                 <CardContent className="p-4">
                                   <div className="flex items-center gap-4">
-                                    <Avatar className="w-12 h-12 border-2 border-blue-200 dark:border-blue-800">
+                                    <Avatar className="w-12 h-12 border border-border">
                                       <AvatarImage src={player.photo_url} />
-                                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold">
+                                      <AvatarFallback className="bg-secondary text-foreground font-heading font-bold">
                                         {player.jersey_number}
                                       </AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 min-w-0">
-                                      <p className="font-bold text-gray-900 dark:text-white">#{player.jersey_number} {player.first_name} {player.last_name}</p>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400">{player.position}</p>
+                                      <p className="font-heading font-bold text-foreground">#{player.jersey_number} {player.first_name} {player.last_name}</p>
+                                      <p className="text-xs text-muted-foreground">{player.position}</p>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                       {selectedGame.sport === 'basketball' ? (
@@ -703,7 +703,7 @@ export default function ManualGameEntry() {
                               </Card>
                             ))}
                             {awayTeamPlayers.length === 0 && (
-                              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                              <div className="text-center py-8 text-muted-foreground">
                                 <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
                                 <p>No players found for this team</p>
                               </div>
@@ -713,20 +713,18 @@ export default function ManualGameEntry() {
                       </Tabs>
 
                       {/* Save Button */}
-                      <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <div className="flex justify-end gap-3 pt-4 border-t border-border">
                         <Button 
                           variant="outline" 
                           onClick={() => {
                             setShowStatsDialog(false);
                             setSelectedGame(null);
                           }}
-                          className="border-2 border-gray-300 dark:border-gray-600 font-bold"
                         >
                           Cancel
                         </Button>
                         <Button 
                           onClick={() => setConfirmSave(true)}
-                          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold"
                           disabled={updateGameMutation.isLoading || saveStatsMutation.isLoading}
                         >
                           <Save className="w-4 h-4 mr-2" />
@@ -740,38 +738,37 @@ export default function ManualGameEntry() {
 
               {/* Confirm Save Dialog */}
               <AlertDialog open={confirmSave} onOpenChange={setConfirmSave}>
-                <AlertDialogContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
+                <AlertDialogContent>
                   <AlertDialogHeader>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 bg-green-100 dark:bg-green-950/30 rounded-xl flex items-center justify-center">
-                        <Save className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      <div className="w-12 h-12 bg-primary/10 border border-primary/30 flex items-center justify-center">
+                        <Save className="w-6 h-6 text-primary" />
                       </div>
-                      <AlertDialogTitle className="text-xl font-black text-gray-900 dark:text-white">
+                      <AlertDialogTitle className="text-xl font-heading font-bold">
                         Save Game Data?
                       </AlertDialogTitle>
                     </div>
-                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400 font-medium">
-                      This will save the final score of <span className="font-bold text-gray-900 dark:text-white">{gameScores.home} - {gameScores.away}</span> and all player statistics.
+                    <AlertDialogDescription className="text-muted-foreground font-medium">
+                      This will save the final score of <span className="font-heading font-bold text-foreground">{gameScores.home} - {gameScores.away}</span> and all player statistics.
                       <br /><br />
                       {selectedGame?.status === 'scheduled' && (
-                        <p className="text-blue-600 dark:text-blue-400 font-semibold">
+                        <p className="text-primary font-medium">
                           ✓ The game status will be changed to "Completed"
                         </p>
                       )}
                       {selectedGame?.status === 'completed' && (
-                        <p className="text-orange-600 dark:text-orange-400 font-semibold">
+                        <p className="text-foreground font-medium">
                           ⚠️ This will replace any existing stats for this game
                         </p>
                       )}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="border-2 border-gray-300 dark:border-gray-600 font-bold">
+                    <AlertDialogCancel>
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleSaveAll}
-                      className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold"
                     >
                       Save All
                     </AlertDialogAction>

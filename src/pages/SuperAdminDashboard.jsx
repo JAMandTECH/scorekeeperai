@@ -126,8 +126,8 @@ Keep the response concise and actionable for a super administrator.`;
   };
 
   const sportDistribution = [
-    { name: 'Basketball', value: filteredData.teams.filter(t => t.sport === 'basketball').length, color: '#f97316' },
-    { name: 'Volleyball', value: filteredData.teams.filter(t => t.sport === 'volleyball').length, color: '#3b82f6' },
+    { name: 'Basketball', value: filteredData.teams.filter(t => t.sport === 'basketball').length, color: 'hsl(var(--primary))' },
+    { name: 'Volleyball', value: filteredData.teams.filter(t => t.sport === 'volleyball').length, color: 'hsl(var(--muted-foreground))' },
   ];
 
   const gameStatusData = [
@@ -148,14 +148,14 @@ Keep the response concise and actionable for a super administrator.`;
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={null}
@@ -181,20 +181,20 @@ Keep the response concise and actionable for a super administrator.`;
               {/* Header */}
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-xl">
-                    <BarChart3 className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 border border-border flex items-center justify-center">
+                    <BarChart3 className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h1 className="text-4xl font-black text-gray-900 dark:text-white">Super Admin Dashboard</h1>
-                    <p className="text-gray-600 dark:text-gray-400 font-medium">Platform-wide analytics and insights</p>
+                    <h1 className="font-heading text-3xl font-bold tracking-tight">Super Admin Dashboard</h1>
+                    <p className="text-muted-foreground font-medium">Platform-wide analytics and insights</p>
                   </div>
                 </div>
               </div>
 
               {/* Organization Selector */}
-              <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-xl font-black text-gray-900 dark:text-white">
+                  <CardTitle className="flex items-center gap-2 text-xl font-heading font-bold">
                     <Building2 className="w-5 h-5" />
                     Select Organization
                   </CardTitle>
@@ -206,23 +206,23 @@ Keep the response concise and actionable for a super administrator.`;
                       setSelectedOrgId(e.target.value);
                       setAiAnalysis(null);
                     }}
-                    className="w-full bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl px-4 py-3 font-bold shadow-sm hover:border-blue-400 dark:hover:border-blue-600 transition-colors"
+                    className="w-full bg-background border border-border text-foreground px-4 py-3 font-medium hover:border-foreground/20 transition-colors"
                   >
-                    <option value="all">🌐 All Organizations (Platform-wide)</option>
+                    <option value="all">All Organizations (Platform-wide)</option>
                     {activeOrganizations.map(org => (
                       <option key={org.id} value={org.id}>
-                        🏢 {org.name}
+                        {org.name}
                       </option>
                     ))}
                   </select>
                   {selectedOrg && (
-                    <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-200 dark:border-blue-800">
-                      <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">
-                        📧 {selectedOrg.contact_email}
+                    <div className="mt-4 p-4 bg-muted border border-border">
+                      <p className="text-sm font-medium text-foreground">
+                        {selectedOrg.contact_email}
                       </p>
                       {selectedOrg.contact_phone && (
-                        <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">
-                          📱 {selectedOrg.contact_phone}
+                        <p className="text-sm font-medium text-foreground">
+                          {selectedOrg.contact_phone}
                         </p>
                       )}
                     </div>
@@ -232,71 +232,70 @@ Keep the response concise and actionable for a super administrator.`;
 
               {/* Key Metrics */}
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0 shadow-xl text-white">
+                <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-sm font-bold opacity-90">
+                    <CardTitle className="flex items-center gap-2 text-sm font-heading font-bold text-muted-foreground">
                       <Building2 className="w-4 h-4" />
                       Organizations
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-4xl font-black">{selectedOrgId === 'all' ? activeOrganizations.length : '1'}</div>
-                    <p className="text-xs opacity-80 mt-1">
+                    <div className="text-4xl font-heading font-bold tabular-nums">{selectedOrgId === 'all' ? activeOrganizations.length : '1'}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
                       {selectedOrgId === 'all' ? 'Active organizations' : 'Selected'}
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-orange-500 to-orange-600 border-0 shadow-xl text-white">
+                <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-sm font-bold opacity-90">
+                    <CardTitle className="flex items-center gap-2 text-sm font-heading font-bold text-muted-foreground">
                       <Users className="w-4 h-4" />
                       Teams
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-4xl font-black">{filteredData.teams.length}</div>
-                    <p className="text-xs opacity-80 mt-1">
-                      🏀 {filteredData.teams.filter(t => t.sport === 'basketball').length} Basketball • 
-                      🏐 {filteredData.teams.filter(t => t.sport === 'volleyball').length} Volleyball
+                    <div className="text-4xl font-heading font-bold tabular-nums">{filteredData.teams.length}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      BB {filteredData.teams.filter(t => t.sport === 'basketball').length} • VB {filteredData.teams.filter(t => t.sport === 'volleyball').length}
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-purple-500 to-purple-600 border-0 shadow-xl text-white">
+                <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-sm font-bold opacity-90">
+                    <CardTitle className="flex items-center gap-2 text-sm font-heading font-bold text-muted-foreground">
                       <Trophy className="w-4 h-4" />
                       Players
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-4xl font-black">{filteredData.players.length}</div>
-                    <p className="text-xs opacity-80 mt-1">Registered players</p>
+                    <div className="text-4xl font-heading font-bold tabular-nums">{filteredData.players.length}</div>
+                    <p className="text-xs text-muted-foreground mt-1">Registered players</p>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-green-500 to-green-600 border-0 shadow-xl text-white">
+                <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-sm font-bold opacity-90">
+                    <CardTitle className="flex items-center gap-2 text-sm font-heading font-bold text-muted-foreground">
                       <Calendar className="w-4 h-4" />
                       Games
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-4xl font-black">{filteredData.games.length}</div>
-                    <p className="text-xs opacity-80 mt-1">
-                      ✅ {filteredData.games.filter(g => g.status === 'completed').length} Completed
+                    <div className="text-4xl font-heading font-bold tabular-nums">{filteredData.games.length}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {filteredData.games.filter(g => g.status === 'completed').length} Completed
                     </p>
                   </CardContent>
                 </Card>
               </div>
 
               {/* AI Analysis */}
-              <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 border-2 border-indigo-200 dark:border-indigo-800 shadow-lg">
+              <Card className="border-primary/30">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-xl font-black text-gray-900 dark:text-white">
-                    <Zap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  <CardTitle className="flex items-center gap-2 text-xl font-heading font-bold">
+                    <Zap className="w-5 h-5 text-primary" />
                     AI Performance Analysis
                   </CardTitle>
                 </CardHeader>
@@ -304,7 +303,7 @@ Keep the response concise and actionable for a super administrator.`;
                   {!aiAnalysis && !loadingAnalysis && (
                     <Button
                       onClick={generateAIAnalysis}
-                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold shadow-lg"
+                      className="w-full font-medium"
                     >
                       <Zap className="w-5 h-5 mr-2" />
                       Generate AI Analysis
@@ -313,8 +312,8 @@ Keep the response concise and actionable for a super administrator.`;
 
                   {loadingAnalysis && (
                     <div className="flex items-center justify-center py-12">
-                      <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
-                      <span className="ml-3 text-gray-600 dark:text-gray-400 font-semibold">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      <span className="ml-3 text-muted-foreground font-medium">
                         Analyzing data...
                       </span>
                     </div>
@@ -322,9 +321,9 @@ Keep the response concise and actionable for a super administrator.`;
 
                   {aiAnalysis && !loadingAnalysis && (
                     <div className="space-y-4">
-                      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border-2 border-indigo-200 dark:border-indigo-800">
+                      <div className="bg-muted border border-border p-6">
                         <div className="prose dark:prose-invert max-w-none">
-                          <div className="text-gray-900 dark:text-white whitespace-pre-wrap font-medium">
+                          <div className="text-foreground whitespace-pre-wrap font-medium">
                             {aiAnalysis}
                           </div>
                         </div>
@@ -332,7 +331,7 @@ Keep the response concise and actionable for a super administrator.`;
                       <Button
                         onClick={generateAIAnalysis}
                         variant="outline"
-                        className="w-full border-2 border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 font-bold"
+                        className="w-full font-medium"
                       >
                         <Zap className="w-4 h-4 mr-2" />
                         Regenerate Analysis
@@ -345,9 +344,9 @@ Keep the response concise and actionable for a super administrator.`;
               {/* Charts Row 1 */}
               <div className="grid lg:grid-cols-2 gap-6">
                 {/* Sport Distribution */}
-                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+                <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl font-black text-gray-900 dark:text-white">
+                    <CardTitle className="text-xl font-heading font-bold">
                       Sport Distribution
                     </CardTitle>
                   </CardHeader>
@@ -361,7 +360,7 @@ Keep the response concise and actionable for a super administrator.`;
                           labelLine={false}
                           label={({ name, value }) => `${name}: ${value}`}
                           outerRadius={100}
-                          fill="#8884d8"
+                          fill="hsl(var(--primary))"
                           dataKey="value"
                         >
                           {sportDistribution.map((entry, index) => (
@@ -375,9 +374,9 @@ Keep the response concise and actionable for a super administrator.`;
                 </Card>
 
                 {/* Game Status */}
-                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+                <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl font-black text-gray-900 dark:text-white">
+                    <CardTitle className="text-xl font-heading font-bold">
                       Game Status Overview
                     </CardTitle>
                   </CardHeader>
@@ -388,7 +387,7 @@ Keep the response concise and actionable for a super administrator.`;
                         <XAxis dataKey="name" />
                         <YAxis />
                         <Tooltip />
-                        <Bar dataKey="value" fill="#3b82f6" />
+                        <Bar dataKey="value" fill="hsl(var(--primary))" />
                       </BarChart>
                     </ResponsiveContainer>
                   </CardContent>
@@ -397,9 +396,9 @@ Keep the response concise and actionable for a super administrator.`;
 
               {/* Organization Comparison (only if viewing all) */}
               {selectedOrgId === 'all' && organizationStats.length > 0 && (
-                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+                <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl font-black text-gray-900 dark:text-white">
+                    <CardTitle className="text-xl font-heading font-bold">
                       Top Organizations by Teams
                     </CardTitle>
                   </CardHeader>
@@ -411,9 +410,9 @@ Keep the response concise and actionable for a super administrator.`;
                         <YAxis dataKey="name" type="category" width={150} />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey="teams" fill="#3b82f6" name="Teams" />
-                        <Bar dataKey="players" fill="#8b5cf6" name="Players" />
-                        <Bar dataKey="games" fill="#10b981" name="Games" />
+                        <Bar dataKey="teams" fill="hsl(var(--primary))" name="Teams" />
+                        <Bar dataKey="players" fill="hsl(var(--secondary-foreground))" name="Players" />
+                        <Bar dataKey="games" fill="hsl(var(--muted-foreground))" name="Games" />
                       </BarChart>
                     </ResponsiveContainer>
                   </CardContent>
@@ -422,9 +421,9 @@ Keep the response concise and actionable for a super administrator.`;
 
               {/* Organizations List */}
               {selectedOrgId === 'all' && (
-                <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+                <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl font-black text-gray-900 dark:text-white">
+                    <CardTitle className="text-xl font-heading font-bold">
                       All Organizations
                     </CardTitle>
                   </CardHeader>
@@ -441,16 +440,16 @@ Keep the response concise and actionable for a super administrator.`;
                         return (
                           <Card
                             key={org.id}
-                            className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:shadow-xl transition-all cursor-pointer"
+                            className="hover:border-foreground/20 transition-colors cursor-pointer"
                             onClick={() => setSelectedOrgId(org.id)}
                           >
                             <CardHeader className="pb-3">
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                  <h3 className="font-black text-lg text-gray-900 dark:text-white">
+                                  <h3 className="font-heading font-bold text-lg text-foreground">
                                     {org.name}
                                   </h3>
-                                  <Badge className="mt-2 bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800 font-bold">
+                                  <Badge variant="outline" className="mt-2 border-primary text-primary font-medium">
                                     Active
                                   </Badge>
                                 </div>
@@ -458,27 +457,27 @@ Keep the response concise and actionable for a super administrator.`;
                             </CardHeader>
                             <CardContent>
                               <div className="grid grid-cols-3 gap-3 text-center">
-                                <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                                  <div className="text-2xl font-black text-orange-600 dark:text-orange-400">
+                                <div className="bg-muted p-3">
+                                  <div className="text-2xl font-heading font-bold text-foreground tabular-nums">
                                     {orgTeams.length}
                                   </div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                                  <div className="text-xs text-muted-foreground font-medium">
                                     Teams
                                   </div>
                                 </div>
-                                <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                                  <div className="text-2xl font-black text-purple-600 dark:text-purple-400">
+                                <div className="bg-muted p-3">
+                                  <div className="text-2xl font-heading font-bold text-foreground tabular-nums">
                                     {orgPlayers.length}
                                   </div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                                  <div className="text-xs text-muted-foreground font-medium">
                                     Players
                                   </div>
                                 </div>
-                                <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                                  <div className="text-2xl font-black text-green-600 dark:text-green-400">
+                                <div className="bg-muted p-3">
+                                  <div className="text-2xl font-heading font-bold text-foreground tabular-nums">
                                     {orgGames.length}
                                   </div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                                  <div className="text-xs text-muted-foreground font-medium">
                                     Games
                                   </div>
                                 </div>

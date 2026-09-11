@@ -103,14 +103,14 @@ export default function SuperAdminHome() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/30 to-gray-50 dark:from-gray-900 dark:via-indigo-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={null}
@@ -134,94 +134,91 @@ export default function SuperAdminHome() {
           <div className="p-6 lg:p-8">
             <div className="max-w-7xl mx-auto space-y-8">
               {/* Welcome Header */}
-              <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-8 shadow-2xl">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvZz48L3N2Zz4=')] opacity-20"></div>
-                <div className="relative z-10">
-                  <h1 className="text-4xl md:text-5xl font-black text-white mb-3">
-                    Welcome, Super Admin
-                  </h1>
-                  <p className="text-xl text-blue-100 font-medium">
-                    Platform Overview • {activeOrganizations.length} Active Organizations
-                  </p>
-                </div>
+              <div className="border border-border bg-card p-8">
+                <h1 className="font-heading text-4xl md:text-5xl font-bold tracking-tight mb-3">
+                  Welcome, Super Admin
+                </h1>
+                <p className="text-lg text-muted-foreground font-medium">
+                  Platform Overview • {activeOrganizations.length} Active Organizations
+                </p>
               </div>
 
               {/* Key Platform Metrics */}
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0 shadow-xl text-white hover:shadow-2xl transition-all">
+                <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-sm font-bold opacity-90">
+                    <CardTitle className="flex items-center gap-2 text-sm font-heading font-bold text-muted-foreground">
                       <Building2 className="w-4 h-4" />
                       Organizations
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-5xl font-black mb-2">{allOrganizations.length}</div>
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="text-4xl font-heading font-bold tabular-nums mb-2">{allOrganizations.length}</div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div>
-                        <span className="opacity-80">✅ Active:</span>
-                        <span className="font-bold ml-1">{activeOrganizations.length}</span>
+                        <span>Active:</span>
+                        <span className="font-heading font-bold ml-1 text-foreground">{activeOrganizations.length}</span>
                       </div>
                       <div>
-                        <span className="opacity-80">⏸️ Inactive:</span>
-                        <span className="font-bold ml-1">{inactiveOrganizations.length}</span>
+                        <span>Inactive:</span>
+                        <span className="font-heading font-bold ml-1 text-foreground">{inactiveOrganizations.length}</span>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-orange-500 to-orange-600 border-0 shadow-xl text-white hover:shadow-2xl transition-all">
+                <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-sm font-bold opacity-90">
+                    <CardTitle className="flex items-center gap-2 text-sm font-heading font-bold text-muted-foreground">
                       <Users className="w-4 h-4" />
                       Teams
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-5xl font-black mb-2">{allTeams.length}</div>
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="text-4xl font-heading font-bold tabular-nums mb-2">{allTeams.length}</div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div>
-                        <span className="opacity-80">🏀</span>
-                        <span className="font-bold ml-1">{allTeams.filter(t => t.sport === 'basketball').length}</span>
+                        <span>BB:</span>
+                        <span className="font-heading font-bold ml-1 text-foreground">{allTeams.filter(t => t.sport === 'basketball').length}</span>
                       </div>
                       <div>
-                        <span className="opacity-80">🏐</span>
-                        <span className="font-bold ml-1">{allTeams.filter(t => t.sport === 'volleyball').length}</span>
+                        <span>VB:</span>
+                        <span className="font-heading font-bold ml-1 text-foreground">{allTeams.filter(t => t.sport === 'volleyball').length}</span>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-purple-500 to-purple-600 border-0 shadow-xl text-white hover:shadow-2xl transition-all">
+                <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-sm font-bold opacity-90">
+                    <CardTitle className="flex items-center gap-2 text-sm font-heading font-bold text-muted-foreground">
                       <Trophy className="w-4 h-4" />
                       Players
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-5xl font-black mb-2">{allPlayers.length}</div>
-                    <p className="text-sm opacity-80">Registered athletes</p>
+                    <div className="text-4xl font-heading font-bold tabular-nums mb-2">{allPlayers.length}</div>
+                    <p className="text-sm text-muted-foreground">Registered athletes</p>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-green-500 to-green-600 border-0 shadow-xl text-white hover:shadow-2xl transition-all">
+                <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-sm font-bold opacity-90">
+                    <CardTitle className="flex items-center gap-2 text-sm font-heading font-bold text-muted-foreground">
                       <Calendar className="w-4 h-4" />
                       Games
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-5xl font-black mb-2">{allGames.length}</div>
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="text-4xl font-heading font-bold tabular-nums mb-2">{allGames.length}</div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div>
-                        <span className="opacity-80">✅</span>
-                        <span className="font-bold ml-1">{completedGames.length}</span>
+                        <span>Done:</span>
+                        <span className="font-heading font-bold ml-1 text-foreground">{completedGames.length}</span>
                       </div>
                       <div>
-                        <span className="opacity-80">📅</span>
-                        <span className="font-bold ml-1">{scheduledGames.length}</span>
+                        <span>Sched:</span>
+                        <span className="font-heading font-bold ml-1 text-foreground">{scheduledGames.length}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -231,83 +228,83 @@ export default function SuperAdminHome() {
               {/* Quick Actions */}
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Link to={createPageUrl("SuperAdminDashboard")}>
-                  <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all cursor-pointer group">
+                  <Card className="hover:border-foreground/20 transition-colors cursor-pointer group">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <Activity className="w-6 h-6 text-white" />
+                          <div className="w-12 h-12 border border-border flex items-center justify-center">
+                            <Activity className="w-6 h-6 text-foreground" />
                           </div>
                           <div>
-                            <h3 className="font-black text-gray-900 dark:text-white">Analytics Dashboard</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Detailed insights</p>
+                            <h3 className="font-heading font-bold text-foreground">Analytics Dashboard</h3>
+                            <p className="text-sm text-muted-foreground">Detailed insights</p>
                           </div>
                         </div>
-                        <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                        <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-foreground transition-colors" />
                       </div>
                     </CardContent>
                   </Card>
                 </Link>
 
                 <Link to={createPageUrl("Organizations")}>
-                  <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all cursor-pointer group">
+                  <Card className="hover:border-foreground/20 transition-colors cursor-pointer group">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <Building2 className="w-6 h-6 text-white" />
+                          <div className="w-12 h-12 border border-border flex items-center justify-center">
+                            <Building2 className="w-6 h-6 text-foreground" />
                           </div>
                           <div>
-                            <h3 className="font-black text-gray-900 dark:text-white">Manage Organizations</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Add or edit orgs</p>
+                            <h3 className="font-heading font-bold text-foreground">Manage Organizations</h3>
+                            <p className="text-sm text-muted-foreground">Add or edit orgs</p>
                           </div>
                         </div>
-                        <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors" />
+                        <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-foreground transition-colors" />
                       </div>
                     </CardContent>
                   </Card>
                 </Link>
 
                 <Link to={createPageUrl("DataBackup")}>
-                  <Card className="bg-white dark:bg-gray-800 border-2 border-green-200 dark:border-green-700 shadow-lg hover:shadow-xl transition-all cursor-pointer group">
+                  <Card className="hover:border-foreground/20 transition-colors cursor-pointer group">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <Database className="w-6 h-6 text-white" />
+                          <div className="w-12 h-12 border border-border flex items-center justify-center">
+                            <Database className="w-6 h-6 text-foreground" />
                           </div>
                           <div>
-                            <h3 className="font-black text-gray-900 dark:text-white">Data Backups</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Manage backups</p>
+                            <h3 className="font-heading font-bold text-foreground">Data Backups</h3>
+                            <p className="text-sm text-muted-foreground">Manage backups</p>
                           </div>
                         </div>
-                        <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors" />
+                        <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-foreground transition-colors" />
                       </div>
                     </CardContent>
                   </Card>
                 </Link>
 
                 <Link to={createPageUrl("AdminApprovals")}>
-                  <Card className={`bg-white dark:bg-gray-800 border-2 shadow-lg hover:shadow-xl transition-all cursor-pointer group ${pendingAdminRequests.length > 0 ? 'border-red-400 dark:border-red-600' : 'border-gray-200 dark:border-gray-700'}`}>
+                  <Card className={`hover:border-foreground/20 transition-colors cursor-pointer group ${pendingAdminRequests.length > 0 ? 'border-primary' : ''}`}>
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg relative ${pendingAdminRequests.length > 0 ? 'bg-gradient-to-br from-red-500 to-red-600' : 'bg-gradient-to-br from-purple-500 to-purple-600'}`}>
-                            <Shield className="w-6 h-6 text-white" />
+                          <div className="w-12 h-12 border border-border flex items-center justify-center relative">
+                            <Shield className="w-6 h-6 text-foreground" />
                             {pendingAdminRequests.length > 0 && (
-                              <span className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse border-2 border-white">
+                              <span className="absolute -top-2 -right-2 w-6 h-6 bg-primary text-primary-foreground text-xs font-heading font-bold flex items-center justify-center border border-background">
                                 {pendingAdminRequests.length}
                               </span>
                             )}
                           </div>
                           <div>
-                            <h3 className="font-black text-gray-900 dark:text-white">Admin Approvals</h3>
-                            <p className={`text-sm ${pendingAdminRequests.length > 0 ? 'text-red-600 dark:text-red-400 font-bold' : 'text-gray-500 dark:text-gray-400'}`}>
-                              {pendingAdminRequests.length > 0 ? `${pendingAdminRequests.length} pending request(s)!` : 'Review requests'}
+                            <h3 className="font-heading font-bold text-foreground">Admin Approvals</h3>
+                            <p className={`text-sm ${pendingAdminRequests.length > 0 ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                              {pendingAdminRequests.length > 0 ? `${pendingAdminRequests.length} pending request(s)` : 'Review requests'}
                             </p>
                           </div>
                         </div>
-                        <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
+                        <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-foreground transition-colors" />
                       </div>
                     </CardContent>
                   </Card>
@@ -315,10 +312,10 @@ export default function SuperAdminHome() {
               </div>
 
               {/* Top Organizations */}
-              <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-xl font-black text-gray-900 dark:text-white">
-                    <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <CardTitle className="flex items-center gap-2 text-xl font-heading font-bold">
+                    <TrendingUp className="w-5 h-5 text-primary" />
                     Top 5 Organizations by Activity
                   </CardTitle>
                 </CardHeader>
@@ -330,22 +327,22 @@ export default function SuperAdminHome() {
                         to={createPageUrl("SuperAdminDashboard") + `?org=${org.id}`}
                         className="block"
                       >
-                        <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer group">
-                          <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl font-black text-white text-xl shadow-lg">
+                        <div className="flex items-center gap-4 p-4 bg-muted hover:bg-muted/60 transition-colors cursor-pointer group">
+                          <div className="flex items-center justify-center w-12 h-12 border border-border font-heading font-bold text-foreground text-xl">
                             #{index + 1}
                           </div>
                           <div className="flex-1">
-                            <h3 className="font-black text-lg text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            <h3 className="font-heading font-bold text-lg text-foreground group-hover:text-primary transition-colors">
                               {org.name}
                             </h3>
                             <div className="flex items-center gap-4 mt-1">
-                              <Badge className="bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 font-bold">
+                              <Badge variant="outline" className="font-medium">
                                 {org.teamsCount} Teams
                               </Badge>
-                              <Badge className="bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800 font-bold">
+                              <Badge variant="outline" className="font-medium">
                                 {org.playersCount} Players
                               </Badge>
-                              <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800 font-bold">
+                              <Badge variant="outline" className="font-medium">
                                 {org.completedGamesCount} Games
                               </Badge>
                             </div>
@@ -353,13 +350,13 @@ export default function SuperAdminHome() {
                           <div className="text-right">
                             <div className="flex gap-2">
                               {org.basketballTeams > 0 && (
-                                <div className="text-sm font-bold text-orange-600 dark:text-orange-400">
-                                  🏀 {org.basketballTeams}
+                                <div className="text-sm font-heading font-bold text-muted-foreground">
+                                  BB {org.basketballTeams}
                                 </div>
                               )}
                               {org.volleyballTeams > 0 && (
-                                <div className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                                  🏐 {org.volleyballTeams}
+                                <div className="text-sm font-heading font-bold text-muted-foreground">
+                                  VB {org.volleyballTeams}
                                 </div>
                               )}
                             </div>
@@ -372,9 +369,9 @@ export default function SuperAdminHome() {
               </Card>
 
               {/* Activity Chart */}
-              <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-xl font-black text-gray-900 dark:text-white">
+                  <CardTitle className="text-xl font-heading font-bold">
                     Organization Activity (Games Played)
                   </CardTitle>
                 </CardHeader>
@@ -385,21 +382,21 @@ export default function SuperAdminHome() {
                       <XAxis dataKey="name" />
                       <YAxis />
                       <Tooltip />
-                      <Bar dataKey="games" fill="#3b82f6" />
+                      <Bar dataKey="games" fill="hsl(var(--primary))" />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
 
               {/* All Organizations Grid */}
-              <Card className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+              <Card>
                 <CardHeader>
                   <div className="flex justify-between items-center">
-                    <CardTitle className="text-xl font-black text-gray-900 dark:text-white">
+                    <CardTitle className="text-xl font-heading font-bold">
                       All Registered Organizations
                     </CardTitle>
                     <Link to={createPageUrl("Organizations")}>
-                      <Badge className="bg-blue-600 text-white hover:bg-blue-700 cursor-pointer font-bold">
+                      <Badge className="cursor-pointer font-medium">
                         View All →
                       </Badge>
                     </Link>
@@ -410,51 +407,47 @@ export default function SuperAdminHome() {
                     {organizationsWithStats.map((org) => (
                       <Card
                         key={org.id}
-                        className={`border-2 shadow-md hover:shadow-xl transition-all ${
-                          org.status === 'active'
-                            ? 'bg-gradient-to-br from-white to-green-50 dark:from-gray-900 dark:to-green-950/20 border-green-200 dark:border-green-800'
-                            : 'bg-gradient-to-br from-white to-gray-100 dark:from-gray-900 dark:to-gray-800 border-gray-300 dark:border-gray-600 opacity-60'
+                        className={`hover:border-foreground/20 transition-colors ${
+                          org.status === 'active' ? '' : 'opacity-60'
                         }`}
                       >
                         <CardHeader className="pb-3">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <h3 className="font-black text-lg text-gray-900 dark:text-white truncate">
+                              <h3 className="font-heading font-bold text-lg text-foreground truncate">
                                 {org.name}
                               </h3>
-                              <Badge className={`mt-2 font-bold ${
-                                org.status === 'active'
-                                  ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800'
-                                  : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600'
+                              <Badge variant="outline" className={`mt-2 font-medium ${
+                                org.status === 'active' ? 'border-primary text-primary' : 'border-border text-muted-foreground'
                               }`}>
-                                {org.status === 'active' ? '✅ Active' : '⏸️ Inactive'}
+                                {org.status === 'active' ? 'Active' : 'Inactive'}
                               </Badge>
                             </div>
                           </div>
                         </CardHeader>
                         <CardContent>
                           <div className="grid grid-cols-3 gap-2 text-center">
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-2">
-                              <div className="text-xl font-black text-orange-600 dark:text-orange-400">
+                            <div className="bg-muted p-2">
+                              <div className="text-xl font-heading font-bold text-foreground tabular-nums">
                                 {org.teamsCount}
                               </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                              <div className="text-xs text-muted-foreground font-medium">
                                 Teams
                               </div>
                             </div>
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-2">
-                              <div className="text-xl font-black text-purple-600 dark:text-purple-400">
+                            <div className="bg-muted p-2">
+                              <div className="text-xl font-heading font-bold text-foreground tabular-nums">
                                 {org.playersCount}
                               </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                              <div className="text-xs text-muted-foreground font-medium">
                                 Players
                               </div>
                             </div>
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-2">
-                              <div className="text-xl font-black text-green-600 dark:text-green-400">
+                            <div className="bg-muted p-2">
+                              <div className="text-xl font-heading font-bold text-foreground tabular-nums">
                                 {org.gamesCount}
                               </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                              <div className="text-xs text-muted-foreground font-medium">
                                 Games
                               </div>
                             </div>

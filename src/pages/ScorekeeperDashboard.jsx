@@ -111,8 +111,8 @@ export default function ScorekeeperDashboard() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
@@ -178,7 +178,7 @@ export default function ScorekeeperDashboard() {
                 <>
                   <div className={`text-4xl font-black text-${sportColor}-600 dark:text-${sportColor}-400`}>{game.home_score}</div>
                   <div className="text-gray-400 dark:text-gray-600 px-4 text-2xl font-black">-</div>
-                  <div className="text-4xl font-black text-gray-900 dark:text-white">{game.away_score}</div>
+                  <div className="font-heading text-4xl font-bold tabular-nums">{game.away_score}</div>
                 </>
               ) : (
                 <div className="text-gray-400 dark:text-gray-600 text-xl font-bold">vs</div>
@@ -217,7 +217,7 @@ export default function ScorekeeperDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -321,7 +321,7 @@ export default function ScorekeeperDashboard() {
                     You don't have any games assigned to you at the moment.
                   </p>
                   <Link to={createPageUrl("Home")}>
-                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold">
+                    <Button className="font-medium">
                       <HomeIcon className="w-4 h-4 mr-2" />
                       Go to Organization Home
                     </Button>

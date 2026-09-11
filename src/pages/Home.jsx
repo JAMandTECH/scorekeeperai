@@ -394,85 +394,60 @@ export default function Home() {
   const getTeamName = (teamId) => allTeams.find(t => t.id === teamId)?.name || 'Unknown';
 
   if (loading) {
-    return <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div></div>;
+    return <div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div></div>;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 mesh-gradient">
+    <div className="min-h-screen bg-background text-foreground">
       {user && <AdminHeader user={user} organization={organization} darkMode={darkMode} toggleDarkMode={toggleDarkMode} handleLogout={handleLogout} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />}
       <div className="flex">
         {user && <AdminSidebar user={user} organization={organization} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} handleLogout={handleLogout} navigationItems={navigationItems} />}
         <main className={user ? "flex-1 min-w-0" : "w-full"}>
-          <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 dark:from-black dark:via-gray-900 dark:to-indigo-950 text-white py-24 px-4 overflow-hidden gradient-animate">
-            <div className="absolute inset-0 grid-pattern opacity-30"></div>
-            <div className="absolute inset-0 particles"></div>
-            <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-cyan-500/30 to-blue-500/30 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-            {!user && <div className="absolute top-6 right-6 flex items-center gap-3 z-50"><button onClick={toggleDarkMode} className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-all">{darkMode ? <Sun className="w-6 h-6 text-white" /> : <Moon className="w-6 h-6 text-white" />}</button>{isAuthenticated && <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-3 bg-red-600/90 hover:bg-red-700 backdrop-blur-md rounded-xl transition-all font-bold text-white shadow-lg"><LogOut className="w-5 h-5" /><span className="hidden sm:inline">Logout</span></button>}</div>}
-            {organization && user && (
-              <div className="hidden lg:block absolute right-0 bottom-0 top-0 w-[40%] z-0 pointer-events-none">
-                <div className="relative w-full h-full flex items-end justify-center">
-                  <div className="smoke smoke-1"></div>
-                  <div className="smoke smoke-2"></div>
-                  <div className="smoke smoke-3"></div>
-                  <img
-                    src="https://media.base44.com/images/public/690476f21c3624553ac82b4f/f18e6c393_Gemini_Generated_Image_2rtwlr2rtwlr2rtw_visioncut.png"
-                    alt="Athlete"
-                    className="relative z-10 h-full max-h-[520px] w-auto object-contain object-bottom drop-shadow-2xl"
-                  />
-                </div>
-              </div>
-            )}
-            <div className="max-w-7xl mx-auto text-center relative z-10">
+          <section className="relative border-b border-border py-16 lg:py-20 px-4 overflow-hidden">
+            {!user && <div className="absolute top-6 right-6 flex items-center gap-3 z-50"><button onClick={toggleDarkMode} className="p-2 text-muted-foreground hover:text-foreground transition-colors">{darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}</button>{isAuthenticated && <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"><LogOut className="w-4 h-4" /><span className="hidden sm:inline">Logout</span></button>}</div>}
+            <div className="max-w-7xl mx-auto relative z-10">
               {organization && user ? (
-                <div className="space-y-6">
-                  <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10">
-                    {/* Left: Logo + Org name */}
+                <div className="space-y-8">
+                  <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
                     <div className="flex items-center gap-5 flex-shrink-0">
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl blur-2xl opacity-30 animate-pulse"></div>
-                        <Avatar className="relative w-24 h-24 border-4 border-white/20 shadow-2xl backdrop-blur-sm"><AvatarImage src={organization.logo_url} className="object-cover" /><AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-3xl">{organization.name?.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar>
-                      </div>
-                      <div className="text-center lg:text-left">
-                        <Badge className="mb-2 bg-orange-500/20 text-orange-300 border border-orange-400/30 text-xs font-bold px-4 py-1 backdrop-blur-sm">YOUR ORGANIZATION</Badge>
-                        <h1 className="text-3xl md:text-4xl font-black tracking-tight">{organization.name}</h1>
-                        {organization.tournament_name && <p className="text-base text-blue-100 font-medium mt-1">{organization.tournament_name}</p>}
+                      <Avatar className="w-16 h-16 border border-border"><AvatarImage src={organization.logo_url} className="object-cover" /><AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-xl">{organization.name?.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+                      <div className="text-left">
+                        <p className="text-xs text-muted-foreground mb-1 tracking-wide uppercase">Your Organization</p>
+                        <h1 className="font-heading text-2xl md:text-3xl font-bold tracking-tight">{organization.name}</h1>
+                        {organization.tournament_name && <p className="text-sm text-muted-foreground mt-1">{organization.tournament_name}</p>}
                       </div>
                     </div>
-                    {/* Right: Stat cards */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1 lg:max-w-2xl lg:ml-auto w-full">
-                      <div className="glass-card rounded-xl p-4 text-center"><div className="text-3xl font-black text-gradient-primary">{teams.length}</div><div className="text-xs text-cyan-200 font-semibold mt-1">Teams</div></div>
-                      <div className="glass-card rounded-xl p-4 text-center"><div className="text-3xl font-black text-gradient-warm">{players.length}</div><div className="text-xs text-cyan-200 font-semibold mt-1">Players</div></div>
-                      <div className="glass-card rounded-xl p-4 text-center"><div className="text-3xl font-black bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">{games.length}</div><div className="text-xs text-cyan-200 font-semibold mt-1">Games</div></div>
-                      <div className="glass-card rounded-xl p-4 text-center"><div className="text-3xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">{completedGames.length}</div><div className="text-xs text-cyan-200 font-semibold mt-1">Completed</div></div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border border border-border flex-1 lg:max-w-2xl lg:ml-auto w-full">
+                      <div className="bg-card p-4"><div className="font-heading text-2xl font-bold tabular-nums">{teams.length}</div><div className="text-xs text-muted-foreground mt-1">Teams</div></div>
+                      <div className="bg-card p-4"><div className="font-heading text-2xl font-bold tabular-nums">{players.length}</div><div className="text-xs text-muted-foreground mt-1">Players</div></div>
+                      <div className="bg-card p-4"><div className="font-heading text-2xl font-bold tabular-nums">{games.length}</div><div className="text-xs text-muted-foreground mt-1">Games</div></div>
+                      <div className="bg-card p-4"><div className="font-heading text-2xl font-bold tabular-nums">{completedGames.length}</div><div className="text-xs text-muted-foreground mt-1">Completed</div></div>
                     </div>
                   </div>
-                  <div className="flex gap-6 justify-center flex-wrap">{isAdmin && <Link to={createPageUrl("Dashboard")}><Button className="btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white text-lg px-12 py-6 font-bold shadow-2xl rounded-2xl">Go to Dashboard<ArrowRight className="w-5 h-5 ml-2" /></Button></Link>}{!isAdmin && isAuthenticated && <Link to={createPageUrl("TeamRegistration")}><Button className="btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white text-lg px-12 py-6 font-bold shadow-2xl rounded-2xl"><UserPlus className="w-5 h-5 mr-2" />Register Your Team</Button></Link>}</div>
+                  <div className="flex gap-3 flex-wrap">{isAdmin && <Link to={createPageUrl("Dashboard")}><Button>Go to Dashboard<ArrowRight className="w-4 h-4 ml-2" /></Button></Link>}{!isAdmin && isAuthenticated && <Link to={createPageUrl("TeamRegistration")}><Button><UserPlus className="w-4 h-4 mr-2" />Register Your Team</Button></Link>}</div>
                 </div>
               ) : (
-                <>
-                  <div className="flex items-center justify-center gap-4 mb-8"><div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-2xl"><Trophy className="w-10 h-10 text-white" /></div></div>
-                  <h1 className="text-6xl md:text-7xl font-black mb-6 tracking-tight"><span className="text-gradient-primary neon-text-blue">Scorekeeper</span><span className="text-gradient-warm">AI</span></h1>
-                  <p className="text-xl md:text-2xl text-blue-100 mb-3 max-w-3xl mx-auto font-medium">Professional Basketball & Volleyball League Management</p>
-                  <p className="text-blue-200 mb-10 max-w-2xl mx-auto">Real-time scoring • Live statistics • Tournament management</p>
-                  {!isAuthenticated && <div className="flex gap-6 justify-center flex-wrap"><Button onClick={() => base44.auth.redirectToLogin(createPageUrl("Dashboard"))} className="btn-futuristic bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white text-lg px-12 py-7 font-bold shadow-2xl rounded-2xl">Get Started<ArrowRight className="w-5 h-5 ml-2" /></Button><Link to={createPageUrl("RequestAdminAccess")}><Button variant="outline" className="glass border-2 border-cyan-400/50 text-cyan-100 hover:bg-cyan-500/20 text-lg px-12 py-7 font-bold rounded-2xl">Request Admin Access</Button></Link></div>}
-                </>
+                <div className="text-center py-12">
+                  <p className="text-sm text-muted-foreground mb-4 tracking-wide">AI-Powered Sports League Management</p>
+                  <h1 className="font-heading text-5xl md:text-6xl font-bold tracking-tight mb-4">Scorekeeper<span className="text-primary">AI</span></h1>
+                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">Professional basketball and volleyball league management. Real-time scoring, live statistics, and tournament management.</p>
+                  {!isAuthenticated && <div className="flex gap-3 justify-center flex-wrap"><Button size="lg" onClick={() => base44.auth.redirectToLogin(createPageUrl("Dashboard"))}>Get Started<ArrowRight className="w-4 h-4 ml-2" /></Button><Link to={createPageUrl("RequestAdminAccess")}><Button size="lg" variant="outline">Request Admin Access</Button></Link></div>}
+                </div>
               )}
             </div>
-            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent"></div>
           </section>
 
           {user && (
             <div className="max-w-7xl mx-auto px-4 py-16">
               {games.filter(g => g.status === 'in_progress').length > 0 && (
                 <section className="mb-12">
-                  <div className="flex items-center gap-3 mb-6"><div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg"><PlayCircle className="w-5 h-5 text-white animate-pulse" /></div><h2 className="text-3xl font-black text-gray-900 dark:text-white">Games In Progress</h2><Badge className="bg-red-500 text-white font-bold animate-pulse">LIVE</Badge></div>
+                  <div className="flex items-center gap-3 mb-6"><span className="live-dot" /><h2 className="font-heading text-2xl font-bold tracking-tight">Games In Progress</h2><Badge variant="destructive" className="badge-pulse">LIVE</Badge></div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {games.filter(g => g.status === 'in_progress').map(game => {
                       const homeTeamData = allTeams.find(t => t.id === game.home_team_id);
                       const awayTeamData = allTeams.find(t => t.id === game.away_team_id);
                       if (!homeTeamData || !awayTeamData) return null;
-                      return <Card key={game.id} className="glass-card border-2 border-orange-400/50 shadow-lg hover:shadow-xl transition-shadow overflow-hidden"><CardHeader className="bg-gradient-to-r from-orange-600 to-orange-700 py-3 px-4"><CardTitle className="text-white text-lg font-bold flex items-center justify-between"><div className="flex items-center gap-2"><div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>LIVE</div><Badge className="bg-white/20 text-white font-bold border-0">{game.sport.toUpperCase()}</Badge></CardTitle></CardHeader><CardContent className="p-4"><div className="flex items-center justify-between mb-4"><div className="flex-1 text-center"><Avatar className="w-14 h-14 mx-auto mb-2 border-4 border-white dark:border-gray-700 shadow-lg"><AvatarImage src={homeTeamData.logo_url} /><AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white text-sm font-bold">{homeTeamData.name?.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar><p className="font-semibold text-gray-800 dark:text-gray-200 text-sm truncate">{homeTeamData.name}</p></div><div className="flex flex-col items-center mx-4"><span className="text-4xl font-black text-gray-900 dark:text-white">{game.home_score} - {game.away_score}</span></div><div className="flex-1 text-center"><Avatar className="w-14 h-14 mx-auto mb-2 border-4 border-white dark:border-gray-700 shadow-lg"><AvatarImage src={awayTeamData.logo_url} /><AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-bold">{awayTeamData.name?.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar><p className="font-semibold text-gray-800 dark:text-gray-200 text-sm truncate">{awayTeamData.name}</p></div></div>{game.stream_url && <div className="mb-4"><LiveStreamEmbed streamUrl={game.stream_url} gameTitle={`${homeTeamData.name} vs ${awayTeamData.name}`} /></div>}<div className="flex gap-2"><Link to={createPageUrl("PublicGameView") + `?game_id=${game.id}`} className="flex-1"><Button className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold shadow-md"><PlayCircle className="w-4 h-4 mr-2" />View Live</Button></Link>{game.stream_url && <Button variant="outline" className="border-2 border-red-400 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30" onClick={() => window.open(game.stream_url, '_blank')}><Video className="w-4 h-4" /></Button>}</div></CardContent></Card>;
+                      return <Card key={game.id} className="overflow-hidden"><CardHeader className="border-b border-border py-3 px-4"><CardTitle className="text-base flex items-center justify-between"><div className="flex items-center gap-2"><span className="live-dot" /><span className="text-sm font-medium">LIVE</span></div><Badge variant="outline">{game.sport.toUpperCase()}</Badge></CardTitle></CardHeader><CardContent className="p-4"><div className="flex items-center justify-between mb-4"><div className="flex-1 text-center"><Avatar className="w-12 h-12 mx-auto mb-2 border border-border"><AvatarImage src={homeTeamData.logo_url} /><AvatarFallback className="bg-secondary text-foreground text-sm font-heading font-bold">{homeTeamData.name?.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar><p className="font-medium text-sm truncate">{homeTeamData.name}</p></div><div className="flex flex-col items-center mx-4"><span className="font-heading text-3xl font-bold tabular-nums">{game.home_score} - {game.away_score}</span></div><div className="flex-1 text-center"><Avatar className="w-12 h-12 mx-auto mb-2 border border-border"><AvatarImage src={awayTeamData.logo_url} /><AvatarFallback className="bg-secondary text-foreground text-sm font-heading font-bold">{awayTeamData.name?.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar><p className="font-medium text-sm truncate">{awayTeamData.name}</p></div></div>{game.stream_url && <div className="mb-4"><LiveStreamEmbed streamUrl={game.stream_url} gameTitle={`${homeTeamData.name} vs ${awayTeamData.name}`} /></div>}<div className="flex gap-2"><Link to={createPageUrl("PublicGameView") + `?game_id=${game.id}`} className="flex-1"><Button className="w-full"><PlayCircle className="w-4 h-4 mr-2" />View Live</Button></Link>{game.stream_url && <Button variant="outline" onClick={() => window.open(game.stream_url, '_blank')}><Video className="w-4 h-4" /></Button>}</div></CardContent></Card>;
                     })}
                   </div>
                 </section>
@@ -491,7 +466,7 @@ export default function Home() {
             </div>
           )}
 
-          <footer className="bg-gradient-to-br from-gray-900 via-gray-900 to-black dark:from-black dark:via-gray-950 dark:to-black text-white py-16 px-4 mt-20 relative overflow-hidden"><div className="absolute inset-0 grid-pattern opacity-10"></div><div className="max-w-7xl mx-auto text-center relative z-10"><div className="flex items-center justify-center gap-4 mb-6"><div className="w-16 h-16 bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 rounded-xl flex items-center justify-center shadow-2xl neon-glow-orange"><Trophy className="w-8 h-8 text-white" /></div><span className="text-3xl font-black tracking-tight text-gradient-warm">ScorekeeperAI</span></div><p className="text-blue-200 dark:text-blue-300 text-lg mb-2 font-medium">Professional League Management System</p><p className="text-blue-300 dark:text-blue-400 text-sm">Basketball • Volleyball • Real-time Scoring</p><p className="text-blue-400 dark:text-blue-500 text-sm mt-8">© 2025 ScorekeeperAI. All rights reserved.</p></div></footer>
+          <footer className="border-t border-border py-12 px-4 mt-20"><div className="max-w-7xl mx-auto text-center"><span className="font-heading text-xl font-bold tracking-tight block mb-2">ScorekeeperAI</span><p className="text-sm text-muted-foreground mb-1">Professional League Management System</p><p className="text-xs text-muted-foreground">Basketball · Volleyball · Real-time Scoring</p><p className="text-xs text-muted-foreground mt-6">© 2025 ScorekeeperAI. All rights reserved.</p></div></footer>
         </main>
       </div>
       <AIAssistant />

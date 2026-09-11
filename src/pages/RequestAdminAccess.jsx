@@ -110,7 +110,7 @@ export default function RequestAdminAccess() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
       </div>
     );
@@ -118,7 +118,7 @@ export default function RequestAdminAccess() {
 
   if (user?.role === 'admin') {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full border-2 border-green-200 dark:border-green-800">
           <CardHeader>
             <div className="flex items-center gap-3 mb-2">
@@ -141,7 +141,7 @@ export default function RequestAdminAccess() {
 
   if (existingRequest) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full border-2 border-gray-200 dark:border-gray-700 shadow-xl">
           <CardHeader>
             <div className="flex items-center gap-3 mb-2">
@@ -286,7 +286,7 @@ export default function RequestAdminAccess() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
       <Card className="max-w-2xl w-full border-2 border-blue-200 dark:border-blue-800 shadow-2xl">
         <CardHeader className="border-b-2 border-blue-100 dark:border-blue-900 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
           <div className="flex items-center gap-4 mb-4">

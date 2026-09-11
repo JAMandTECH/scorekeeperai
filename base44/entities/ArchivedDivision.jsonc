@@ -1,0 +1,121 @@
+{
+  "name": "ArchivedDivision",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "season_id": {
+      "type": "string",
+      "description": "Season this archived division belongs to"
+    },
+    "original_id": {
+      "type": "string",
+      "description": "Original Division record id"
+    },
+    "name": {
+      "type": "string"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "basketball",
+        "volleyball"
+      ]
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "organization_id",
+    "season_id",
+    "original_id",
+    "name",
+    "sport"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "data.organization_id": "{{user.data.organization_id}}"
+        },
+        {
+          "data.organization_id": "{{user.data.active_organization_id}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

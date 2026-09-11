@@ -5,6 +5,10 @@
     "organization_id": {
       "type": "string"
     },
+    "season_id": {
+      "type": "string",
+      "description": "Active season this division belongs to"
+    },
     "name": {
       "type": "string"
     },

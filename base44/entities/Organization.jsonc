@@ -95,6 +95,10 @@
         }
       },
       "default": {}
+    },
+    "season_pin": {
+      "type": "string",
+      "description": "Security PIN required to open a new season (prevents accidental creation)"
     }
   },
   "required": [

@@ -696,13 +696,13 @@ export default function AllGames() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-50 dark:from-gray-900 dark:via-purple-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Header with View Toggle */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-4xl font-black text-gray-900 dark:text-white">Games History</h1>
+              <h1 className="font-heading text-3xl font-bold tracking-tight">Games History</h1>
               <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">
                 Complete game history with detailed statistics
               </p>

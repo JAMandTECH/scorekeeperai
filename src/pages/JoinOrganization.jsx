@@ -201,14 +201,14 @@ export default function JoinOrganization() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 dark:from-gray-900 dark:via-blue-950/10 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={currentOrganization}
@@ -233,43 +233,43 @@ export default function JoinOrganization() {
             <div className="max-w-6xl mx-auto space-y-8">
               {/* Header */}
               <div>
-                <h1 className="text-4xl font-black text-gray-900 dark:text-white">
+                <h1 className="font-heading text-3xl font-bold tracking-tight">
                   Join an Organization
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2 font-medium">
-                  Browse and request to join sports organizations
-                </p>
-              </div>
+                <p className="text-muted-foreground mt-2 font-medium">
+                   Browse and request to join sports organizations
+                 </p>
+                </div>
 
-              {/* My Requests Section */}
-              {myRequests.length > 0 && (
-                <Card className="border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
+                {/* My Requests Section */}
+                {myRequests.length > 0 && (
+                <Card className="border-primary/30">
                   <CardHeader>
-                    <CardTitle className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-blue-600" />
+                    <CardTitle className="text-xl font-heading font-bold flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-primary" />
                       My Join Requests
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
                       {myRequests.map(request => (
-                        <div key={request.id} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div key={request.id} className="flex items-center justify-between p-4 bg-muted border border-border">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                              <Building2 className="w-5 h-5 text-white" />
+                            <div className="w-10 h-10 border border-border flex items-center justify-center">
+                              <Building2 className="w-5 h-5 text-foreground" />
                             </div>
                             <div>
-                              <p className="font-bold text-gray-900 dark:text-white">{request.organization_name}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                              <p className="font-heading font-bold text-foreground">{request.organization_name}</p>
+                              <p className="text-sm text-muted-foreground">
                                 Requested as: <span className="capitalize">{request.requested_role_in_org}</span>
                               </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <Badge className={
-                              request.status === 'pending' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' :
-                              request.status === 'approved' ? 'bg-green-100 text-green-700 border-green-300' :
-                              'bg-red-100 text-red-700 border-red-300'
+                            <Badge variant="outline" className={
+                              request.status === 'pending' ? 'border-foreground/60 text-foreground' :
+                              request.status === 'approved' ? 'border-primary text-primary' :
+                              'border-destructive text-destructive'
                             }>
                               {request.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
                               {request.status === 'approved' && <CheckCircle className="w-3 h-3 mr-1" />}
@@ -280,7 +280,7 @@ export default function JoinOrganization() {
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                className="text-red-600 border-red-300 hover:bg-red-50"
+                                className="text-destructive border-destructive/30 hover:bg-destructive/10"
                                 onClick={() => cancelRequestMutation.mutate(request.id)}
                               >
                                 Cancel
@@ -292,48 +292,48 @@ export default function JoinOrganization() {
                     </div>
                   </CardContent>
                 </Card>
-              )}
+                )}
 
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                {/* Search */}
+                <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   placeholder="Search organizations..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-12 text-lg rounded-xl border-2 border-gray-200 dark:border-gray-700"
+                  className="pl-12 h-12 text-lg border border-border"
                 />
-              </div>
+                </div>
 
-              {/* Organizations Grid */}
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Organizations Grid */}
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredOrgs.map(org => {
                   const status = getMembershipStatus(org.id);
                   const isCurrentOrg = org.id === user?.organization_id || org.id === user?.active_organization_id;
-                  
+
                   return (
-                    <Card key={org.id} className="relative overflow-hidden border-2 border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 card-hover">
+                    <Card key={org.id} className="relative overflow-hidden hover:border-foreground/20 transition-colors">
                       {isCurrentOrg && (
                         <div className="absolute top-3 right-3">
-                          <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">
+                          <Badge className="font-medium">
                             Current
                           </Badge>
                         </div>
                       )}
                       <CardHeader className="pb-2">
                         <div className="flex items-center gap-3">
-                          <Avatar className="w-14 h-14 border-2 border-white dark:border-gray-700 shadow-lg">
+                          <Avatar className="w-14 h-14 border border-border">
                             <AvatarImage src={org.logo_url} />
-                            <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-lg">
+                            <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-lg">
                               {org.name?.substring(0, 2).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <CardTitle className="text-lg font-black text-gray-900 dark:text-white truncate">
+                            <CardTitle className="text-lg font-heading font-bold truncate">
                               {org.name}
                             </CardTitle>
                             {org.tournament_name && (
-                              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                              <p className="text-sm text-muted-foreground truncate">
                                 {org.tournament_name}
                               </p>
                             )}
@@ -341,7 +341,7 @@ export default function JoinOrganization() {
                         </div>
                       </CardHeader>
                       <CardContent className="pt-2">
-                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                           <div className="flex items-center gap-1">
                             <Trophy className="w-4 h-4" />
                             <span>Sports League</span>
@@ -349,15 +349,15 @@ export default function JoinOrganization() {
                         </div>
 
                         {status?.type === 'member' ? (
-                          <Badge className="w-full justify-center py-2 bg-green-100 text-green-700 border-green-300 dark:bg-green-950 dark:text-green-400 dark:border-green-800">
+                          <Badge variant="outline" className="w-full justify-center py-2 border-primary text-primary">
                             <CheckCircle className="w-4 h-4 mr-2" />
                             Member ({status.data.role_in_org})
                           </Badge>
                         ) : status?.type === 'request' ? (
-                          <Badge className={`w-full justify-center py-2 ${
-                            status.data.status === 'pending' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' :
-                            status.data.status === 'rejected' ? 'bg-red-100 text-red-700 border-red-300' :
-                            'bg-green-100 text-green-700 border-green-300'
+                          <Badge variant="outline" className={`w-full justify-center py-2 ${
+                            status.data.status === 'pending' ? 'border-foreground/60 text-foreground' :
+                            status.data.status === 'rejected' ? 'border-destructive text-destructive' :
+                            'border-primary text-primary'
                           }`}>
                             {status.data.status === 'pending' && <Clock className="w-4 h-4 mr-2" />}
                             {status.data.status === 'rejected' && <XCircle className="w-4 h-4 mr-2" />}
@@ -365,13 +365,13 @@ export default function JoinOrganization() {
                             Request {status.data.status}
                           </Badge>
                         ) : isCurrentOrg ? (
-                          <Badge className="w-full justify-center py-2 bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800">
+                          <Badge variant="outline" className="w-full justify-center py-2 border-border text-muted-foreground">
                             <Building2 className="w-4 h-4 mr-2" />
                             Your Primary Organization
                           </Badge>
                         ) : (
                           <Button 
-                            className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold"
+                            className="w-full font-medium"
                             onClick={() => openRequestDialog(org)}
                           >
                             <Send className="w-4 h-4 mr-2" />
@@ -382,19 +382,19 @@ export default function JoinOrganization() {
                     </Card>
                   );
                 })}
-              </div>
+                </div>
 
-              {filteredOrgs.length === 0 && (
+                {filteredOrgs.length === 0 && (
                 <div className="text-center py-16">
-                  <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Building2 className="w-10 h-10 text-gray-400" />
+                  <div className="w-20 h-20 bg-muted border border-border flex items-center justify-center mx-auto mb-4">
+                    <Building2 className="w-10 h-10 text-muted-foreground" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Organizations Found</h3>
-                  <p className="text-gray-500 dark:text-gray-400">
+                  <h3 className="text-xl font-heading font-bold mb-2">No Organizations Found</h3>
+                  <p className="text-muted-foreground">
                     {searchQuery ? "Try adjusting your search query" : "No active organizations available"}
                   </p>
                 </div>
-              )}
+                )}
             </div>
           </div>
         </main>
@@ -404,28 +404,28 @@ export default function JoinOrganization() {
       <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-black">Request to Join</DialogTitle>
+            <DialogTitle className="text-xl font-heading font-bold">Request to Join</DialogTitle>
           </DialogHeader>
           
           {selectedOrg && (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                <Avatar className="w-12 h-12 border-2 border-white dark:border-gray-700 shadow-lg">
+              <div className="flex items-center gap-3 p-4 bg-muted border border-border">
+                <Avatar className="w-12 h-12 border border-border">
                   <AvatarImage src={selectedOrg.logo_url} />
-                  <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black">
+                  <AvatarFallback className="bg-secondary text-foreground font-heading font-bold">
                     {selectedOrg.name?.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-bold text-gray-900 dark:text-white">{selectedOrg.name}</p>
+                  <p className="font-heading font-bold text-foreground">{selectedOrg.name}</p>
                   {selectedOrg.tournament_name && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{selectedOrg.tournament_name}</p>
+                    <p className="text-sm text-muted-foreground">{selectedOrg.tournament_name}</p>
                   )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-heading font-bold text-foreground">
                   Request Role
                 </label>
                 <Select value={requestRole} onValueChange={setRequestRole}>
@@ -441,7 +441,7 @@ export default function JoinOrganization() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-heading font-bold text-foreground">
                   Message (Optional)
                 </label>
                 <Textarea
@@ -459,7 +459,7 @@ export default function JoinOrganization() {
               Cancel
             </Button>
             <Button 
-              className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold"
+              className="font-medium"
               onClick={handleSubmitRequest}
               disabled={submitRequestMutation.isPending}
             >

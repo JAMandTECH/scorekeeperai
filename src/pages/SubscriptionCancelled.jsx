@@ -25,7 +25,7 @@ export default function SubscriptionCancelled() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-gray-50 dark:from-gray-900 dark:via-orange-950/10 dark:to-gray-900 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6">
       <Card className="max-w-2xl w-full border-2 border-orange-200 dark:border-orange-800 shadow-2xl">
         <CardHeader className="text-center pb-4">
           <div className="flex justify-center mb-4">

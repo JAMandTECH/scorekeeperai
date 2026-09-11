@@ -4,22 +4,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Crown } from "lucide-react";
 import { usePlayerLeaders, buildLeaderboard } from "@/components/hooks/usePlayerLeaders";
 
-const BASKETBALL_IMG = "https://media.base44.com/images/public/690476f21c3624553ac82b4f/21d6fe5db_generated_image.png";
-const VOLLEYBALL_IMG = "https://media.base44.com/images/public/690476f21c3624553ac82b4f/555569101_generated_image.png";
-
 const BASKETBALL_CATEGORIES = [
-  { key: "points", label: "Points", color: "from-orange-500 to-red-500" },
-  { key: "rebounds", label: "Rebounds", color: "from-amber-500 to-orange-500" },
-  { key: "assists", label: "Assists", color: "from-yellow-500 to-amber-500" },
-  { key: "steals", label: "Steals", color: "from-rose-500 to-pink-500" },
-  { key: "blocks", label: "Blocks", color: "from-red-500 to-rose-500" },
-  { key: "three_pointers", label: "3-Pointers", color: "from-orange-500 to-yellow-500" },
+  { key: "points", label: "Points" },
+  { key: "rebounds", label: "Rebounds" },
+  { key: "assists", label: "Assists" },
+  { key: "steals", label: "Steals" },
+  { key: "blocks", label: "Blocks" },
+  { key: "three_pointers", label: "3-Pointers" },
 ];
 
 const VOLLEYBALL_CATEGORIES = [
-  { key: "points", label: "Points", color: "from-cyan-500 to-blue-500" },
-  { key: "aces", label: "Aces", color: "from-blue-500 to-indigo-500" },
-  { key: "attacks", label: "Attacks", color: "from-sky-500 to-cyan-500" },
+  { key: "points", label: "Points" },
+  { key: "aces", label: "Aces" },
+  { key: "attacks", label: "Attacks" },
 ];
 
 function LeaderRow({ category, leader }) {
@@ -27,35 +24,30 @@ function LeaderRow({ category, leader }) {
     ? `${(leader.first_name || "?")[0] || ""}${(leader.last_name || "")[0] || ""}`.toUpperCase()
     : "—";
   return (
-    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-100 dark:bg-[#16243f]">
-      <div className="flex flex-col items-center justify-center w-20 shrink-0">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400">{category.label}</span>
-        <span className={`text-2xl font-black bg-gradient-to-r ${category.color} bg-clip-text text-transparent leading-none`}>
+    <div className="flex items-center gap-3 p-2.5 border border-border bg-card">
+      <div className="flex flex-col items-center justify-center w-16 shrink-0">
+        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{category.label}</span>
+        <span className="font-heading text-xl font-bold tabular-nums leading-none">
           {leader ? leader.avg : "0.0"}
         </span>
-        <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 leading-none">avg</span>
-        {leader && (
-          <span className="text-[10px] font-semibold text-gray-400 dark:text-slate-500 mt-0.5">
-            {leader.total} total
-          </span>
-        )}
+        <span className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground leading-none">avg</span>
       </div>
       {leader ? (
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <Avatar className="w-9 h-9 ring-1 ring-yellow-400/50">
+          <Avatar className="w-8 h-8 border border-border">
             <AvatarImage src={leader.photo_url} alt={leader.first_name} />
-            <AvatarFallback className={`bg-gradient-to-br ${category.color} text-white text-xs font-bold`}>{initials}</AvatarFallback>
+            <AvatarFallback className="bg-secondary text-foreground text-xs font-heading font-bold">{initials}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+            <p className="text-sm font-medium text-foreground truncate">
               {leader.first_name} {leader.last_name}
             </p>
-            <p className="text-xs text-gray-500 dark:text-slate-400 truncate">{leader.team_name || "—"}</p>
+            <p className="text-xs text-muted-foreground truncate">{leader.team_name || "—"}</p>
           </div>
-          <Crown className="w-4 h-4 text-yellow-500 ml-auto shrink-0" />
+          <Crown className="w-4 h-4 text-primary ml-auto shrink-0" />
         </div>
       ) : (
-        <span className="text-sm text-gray-400 dark:text-slate-500 font-medium">No data yet</span>
+        <span className="text-sm text-muted-foreground">No data yet</span>
       )}
     </div>
   );
@@ -81,8 +73,8 @@ function DivisionGroup({ label, leaders }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 px-1">
-        <span className="text-xs font-black uppercase tracking-widest text-gray-600 dark:text-slate-300">{label}</span>
-        <div className="flex-1 h-px bg-gray-200 dark:bg-[#1c2c4a]" />
+        <span className="text-xs font-heading font-bold uppercase tracking-wide text-muted-foreground">{label}</span>
+        <div className="flex-1 h-px bg-border" />
       </div>
       {leaders.map(({ category, leader }) => (
         <LeaderRow key={category.key} category={category} leader={leader} />
@@ -91,23 +83,17 @@ function DivisionGroup({ label, leaders }) {
   );
 }
 
-function SportLeaders({ title, image, overlay, categories, sport, ctx, splitDivisions, openDivision, veteranDivision }) {
+function SportLeaders({ title, categories, sport, ctx, splitDivisions, openDivision, veteranDivision }) {
   const openLeaders = splitDivisions ? computeLeaders(categories, { ...ctx, sport, division: openDivision }) : null;
   const veteranLeaders = splitDivisions ? computeLeaders(categories, { ...ctx, sport, division: veteranDivision }) : null;
   const leaders = computeLeaders(categories, { ...ctx, sport, division: null });
 
   return (
-    <Card className="overflow-hidden border border-gray-200 bg-white dark:border-[#1c2c4a] dark:bg-[#0d1830] shadow-futuristic">
-      <div className="relative h-28">
-        <img src={image} alt={title} className="absolute inset-0 w-full h-full object-cover" />
-        <div className={`absolute inset-0 bg-gradient-to-t ${overlay}`} />
-        <div className="absolute bottom-0 left-0 p-4">
-          <span className="text-xs font-bold uppercase tracking-widest text-white/70">Category Leaders</span>
-          <h3 className="text-2xl font-black text-white drop-shadow-lg leading-tight">{title}</h3>
-        </div>
-        <div className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center">
-          <Crown className="w-5 h-5 text-yellow-300" />
-        </div>
+    <Card className="overflow-hidden">
+      <div className="border-b border-border px-5 py-4 flex items-center gap-2">
+        <Crown className="w-4 h-4 text-primary" />
+        <h3 className="font-heading text-base font-bold tracking-tight">{title}</h3>
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide ml-auto">Category Leaders</span>
       </div>
       <CardContent className="pt-4 space-y-4">
         {splitDivisions ? (
@@ -131,7 +117,6 @@ export default function CategoryLeaders({ organizationId, players = [], teams = 
   const { games, playerStats } = usePlayerLeaders(organizationId, teams);
   const ctx = { games, playerStats, teams, players };
 
-  // Resolve the actual division names used by basketball teams so the split matches Home.
   const basketballDivisions = [...new Set(
     teams.filter((t) => (t.sport || "").toLowerCase() === "basketball").map((t) => t.division).filter(Boolean)
   )];
@@ -142,8 +127,6 @@ export default function CategoryLeaders({ organizationId, players = [], teams = 
     <div className="grid md:grid-cols-2 gap-6">
       <SportLeaders
         title="Basketball"
-        image={BASKETBALL_IMG}
-        overlay="from-orange-950/95 via-orange-900/50 to-transparent"
         categories={BASKETBALL_CATEGORIES}
         sport="basketball"
         ctx={ctx}
@@ -154,8 +137,6 @@ export default function CategoryLeaders({ organizationId, players = [], teams = 
       <div className="space-y-6">
         <SportLeaders
           title="Volleyball"
-          image={VOLLEYBALL_IMG}
-          overlay="from-cyan-950/95 via-blue-900/50 to-transparent"
           categories={VOLLEYBALL_CATEGORIES}
           sport="volleyball"
           ctx={ctx}
