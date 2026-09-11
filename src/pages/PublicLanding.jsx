@@ -147,8 +147,8 @@ export default function PublicLanding() {
                 Run your league<br />
                 with{" "}
                 <span
-                  className="text-[#34D399]"
-                  style={{ textShadow: "0 0 30px rgba(16,185,129,0.55), 0 0 70px rgba(52,211,153,0.3)" }}
+                  className="text-[#6EE787]"
+                  style={{ textShadow: "0 0 30px rgba(110,231,135,0.55), 0 0 70px rgba(110,231,135,0.3)" }}
                 >
                   precision
                 </span>
@@ -160,21 +160,21 @@ export default function PublicLanding() {
               <div className="flex flex-wrap gap-4">
                 {!isAuthenticated ? (
                   <>
-                    <Button size="lg" onClick={handleGetStarted} className="rounded-full bg-[#10B981] text-black hover:bg-[#34D399] hover:text-black border-0 px-8">
+                    <Button size="lg" onClick={handleGetStarted} className="rounded-none bg-[#6EE787] text-black hover:bg-[#6EE787] hover:text-black border-0 px-8">
                       Get Started Free
                       <ArrowRight className="w-4 h-4" />
                     </Button>
-                    <Button size="lg" variant="outline" onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })} className="rounded-full border-white/30 text-white hover:bg-white/10 hover:text-white px-8">
+                    <Button size="lg" variant="outline" onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })} className="rounded-none border-white/30 text-white hover:bg-white/10 hover:text-white px-8">
                       View Demo
                     </Button>
                   </>
                 ) : (
                   <>
-                    <Button size="lg" onClick={() => navigate(user?.role === 'admin' ? '/Dashboard' : '/Home')} className="rounded-full bg-[#10B981] text-black hover:bg-[#34D399] hover:text-black border-0 px-8">
+                    <Button size="lg" onClick={() => navigate(user?.role === 'admin' ? '/Dashboard' : '/Home')} className="rounded-none bg-[#6EE787] text-black hover:bg-[#6EE787] hover:text-black border-0 px-8">
                       {user?.role === 'admin' ? 'Go to Dashboard' : 'Go to Home'}
                       <ArrowRight className="w-4 h-4" />
                     </Button>
-                    <Button size="lg" variant="outline" onClick={handleLogout} className="rounded-full border-white/30 text-white hover:bg-white/10 hover:text-white px-8">
+                    <Button size="lg" variant="outline" onClick={handleLogout} className="rounded-none border-white/30 text-white hover:bg-white/10 hover:text-white px-8">
                       <LogOut className="w-4 h-4" />
                       Logout
                     </Button>
@@ -183,9 +183,9 @@ export default function PublicLanding() {
               </div>
             </div>
             <div className="lg:col-span-5 relative">
-              <div className="rounded-2xl border border-white/10 bg-[#2D2D2D]/65 backdrop-blur-xl p-8 lg:p-10 shadow-2xl">
+              <div className="rounded-none border border-white/10 bg-[#2D2D2D]/65 backdrop-blur-xl p-8 lg:p-10 shadow-2xl">
                 <div className="flex items-center gap-2.5 mb-7">
-                  <Radio className="w-4 h-4 text-[#34D399]" style={{ filter: "drop-shadow(0 0 6px rgba(52,211,153,0.8))" }} />
+                  <Radio className="w-4 h-4 text-[#6EE787]" style={{ filter: "drop-shadow(0 0 6px rgba(110,231,135,0.8))" }} />
                   <span className="text-xs font-semibold tracking-[0.2em] text-white">LIVE SCORING</span>
                 </div>
                 <div className="space-y-5">
