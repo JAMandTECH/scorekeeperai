@@ -11,6 +11,7 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  LabelList,
 } from "recharts";
 
 function ScorerCard({ label, topScorer, teamMap }) {
@@ -51,7 +52,7 @@ function ScorerCard({ label, topScorer, teamMap }) {
         </div>
 
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 shrink-0 rounded-full overflow-hidden bg-secondary/60">
+          <div className="w-24 h-24 shrink-0 rounded-full overflow-hidden bg-secondary/60">
             {p.photo_url ? (
               <img src={p.photo_url} alt={p.first_name} className="w-full h-full object-cover object-top" />
             ) : (
@@ -93,7 +94,9 @@ function ScorerCard({ label, topScorer, teamMap }) {
                   contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 0, color: "hsl(var(--foreground))" }}
                   labelStyle={{ color: "hsl(var(--muted-foreground))" }}
                 />
-                <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={2} dot={renderDot} activeDot={false} isAnimationActive={false} />
+                <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={2} dot={renderDot} activeDot={false} isAnimationActive={false}>
+                  <LabelList dataKey="points" position="top" fill="hsl(var(--foreground))" fontSize={11} fontWeight={700} offset={6} />
+                </Line>
               </LineChart>
             </ResponsiveContainer>
           </div>
