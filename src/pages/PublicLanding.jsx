@@ -138,7 +138,7 @@ export default function PublicLanding() {
           style={{ backgroundImage: "url('https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=2000&q=80')", opacity: 0.32 }}
           aria-hidden="true"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0B0F0E] via-[#0B0F0E]/85 to-[#0B0F0E]/55" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0B0F0E] via-[#0B0F0E]/70 to-[#0B0F0E]/25" aria-hidden="true" />
         <div className="relative max-w-[1400px] mx-auto px-6 lg:px-10 py-20 lg:py-32">
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
             <div className="lg:col-span-7">
@@ -183,7 +183,7 @@ export default function PublicLanding() {
               </div>
             </div>
             <div className="lg:col-span-5 relative">
-              <div className="rounded-2xl border border-white/20 bg-[#1F1F1F]/45 backdrop-blur-2xl p-8 lg:p-10 shadow-2xl">
+              <div className="rounded-2xl border border-white/20 bg-[#1F1F1F]/30 backdrop-blur-2xl p-8 lg:p-10 shadow-2xl">
                 <div className="flex items-center gap-2.5 mb-7">
                   <Radio className="w-4 h-4 text-primary" style={{ filter: "drop-shadow(0 0 6px hsl(var(--primary) / 0.8))" }} />
                   <span className="text-xs font-semibold tracking-[0.2em] text-white">LIVE SCORING</span>
