@@ -1583,42 +1583,22 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
         </div>
       </div>
 
-      {/* Voice Assistant - Add below scoreboard */}
-      <div className="max-w-7xl mx-auto px-4 mt-4">
-        <div className="flex justify-end mb-2">
-          <Button
-            onClick={() => setShowVoiceAssistant(!showVoiceAssistant)}
-            variant="outline"
-            size="sm"
-            className="border border-border text-foreground hover:bg-muted font-medium"
-          >
-            {showVoiceAssistant ? (
-              <>
-                <EyeOff className="w-4 h-4 mr-2" />
-                Hide Voice Assistant
-              </>
-            ) : (
-              <>
-                <Eye className="w-4 h-4 mr-2" />
-                Show Voice Assistant
-              </>
-            )}
-          </Button>
-        </div>
-        {showVoiceAssistant && (
+      {/* Voice Assistant (rendered when toggled on) */}
+      {showVoiceAssistant && (
+        <div className="max-w-7xl mx-auto px-4 mt-4">
           <VoiceAssistant
             homePlayers={homePlayers}
             awayPlayers={awayPlayers}
             onCommand={handleVoiceCommand}
             sport="basketball"
           />
-        )}
-        {voiceFeedback?.text && (
-          <div className={`mt-3 text-sm font-semibold ${voiceFeedback.status === 'success' ? 'text-green-600' : voiceFeedback.status === 'error' ? 'text-red-600' : 'text-gray-600'}`}>
-            {voiceFeedback.status === 'processing' ? 'Listening: ' : voiceFeedback.status === 'success' ? 'Recorded: ' : 'Error: '} {voiceFeedback.text}
-          </div>
-        )}
-      </div>
+          {voiceFeedback?.text && (
+            <div className={`mt-3 text-sm font-semibold ${voiceFeedback.status === 'success' ? 'text-green-600' : voiceFeedback.status === 'error' ? 'text-red-600' : 'text-gray-600'}`}>
+              {voiceFeedback.status === 'processing' ? 'Listening: ' : voiceFeedback.status === 'success' ? 'Recorded: ' : 'Error: '} {voiceFeedback.text}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Control Panel */}
       {selectedPlayer ? (
@@ -1796,6 +1776,24 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
           <p className="text-sm text-muted-foreground font-medium truncate">
             Click on a player below to start tracking statistics
           </p>
+          <Button
+            onClick={() => setShowVoiceAssistant(!showVoiceAssistant)}
+            variant="outline"
+            size="sm"
+            className="ml-auto border border-border text-foreground hover:bg-muted font-medium whitespace-nowrap"
+          >
+            {showVoiceAssistant ? (
+              <>
+                <EyeOff className="w-4 h-4 mr-2" />
+                Hide Voice Assistant
+              </>
+            ) : (
+              <>
+                <Eye className="w-4 h-4 mr-2" />
+                Show Voice Assistant
+              </>
+            )}
+          </Button>
         </div>
       )}
 
