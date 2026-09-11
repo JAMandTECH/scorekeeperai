@@ -135,7 +135,7 @@ export default function PublicLanding() {
         {/* Court backdrop */}
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=2000&q=80')", opacity: 0.18 }}
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=2000&q=80')", opacity: 0.32 }}
           aria-hidden="true"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-[#0B0F0E] via-[#0B0F0E]/85 to-[#0B0F0E]/55" aria-hidden="true" />
@@ -183,7 +183,7 @@ export default function PublicLanding() {
               </div>
             </div>
             <div className="lg:col-span-5 relative">
-              <div className="rounded-none border border-white/10 bg-[#2D2D2D]/65 backdrop-blur-xl p-8 lg:p-10 shadow-2xl">
+              <div className="rounded-2xl border border-white/20 bg-[#1F1F1F]/45 backdrop-blur-2xl p-8 lg:p-10 shadow-2xl">
                 <div className="flex items-center gap-2.5 mb-7">
                   <Radio className="w-4 h-4 text-primary" style={{ filter: "drop-shadow(0 0 6px hsl(var(--primary) / 0.8))" }} />
                   <span className="text-xs font-semibold tracking-[0.2em] text-white">LIVE SCORING</span>
@@ -193,6 +193,7 @@ export default function PublicLanding() {
                     <span className="text-base font-medium text-white">Thunder Hawks</span>
                     <span className="font-heading text-4xl font-bold tabular-nums text-white">67</span>
                   </div>
+                  <div className="border-t border-white/15" />
                   <div className="flex items-center justify-between">
                     <span className="text-base font-medium text-white">Storm Eagles</span>
                     <span className="font-heading text-4xl font-bold tabular-nums text-white">62</span>
