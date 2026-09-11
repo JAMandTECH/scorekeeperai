@@ -1214,10 +1214,10 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
           </div>
         </div>
       ) : (
-        <div className="mx-4 mt-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-gray-700 rounded-xl p-8 text-center shadow-lg">
-          <User className="w-16 h-16 text-blue-400 dark:text-blue-500 mx-auto mb-4" />
-          <p className="text-xl font-black text-gray-900 dark:text-white mb-2">Select a Player</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+        <div className="mx-4 mt-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-gray-700 rounded-xl px-4 py-3 flex items-center gap-3 shadow-lg">
+          <p className="text-base font-black text-gray-900 dark:text-white whitespace-nowrap">Select a Player</p>
+          <span className="text-gray-400 dark:text-gray-500 select-none">·</span>
+          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium truncate">
             Click on a player below to start tracking statistics
           </p>
         </div>

@@ -1790,10 +1790,10 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
           </div>
         </div>
       ) : (
-        <div className="mx-4 mt-4 border border-border bg-card p-8 text-center">
-          <User className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <p className="text-xl font-heading font-bold text-foreground mb-2">Select a Player</p>
-          <p className="text-sm text-muted-foreground font-medium">
+        <div className="mx-4 mt-4 border border-border bg-card px-4 py-3 flex items-center gap-3">
+          <p className="text-base font-heading font-bold text-foreground whitespace-nowrap">Select a Player</p>
+          <span className="text-muted-foreground/40 select-none">·</span>
+          <p className="text-sm text-muted-foreground font-medium truncate">
             Click on a player below to start tracking statistics
           </p>
         </div>
