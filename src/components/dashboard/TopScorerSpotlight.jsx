@@ -76,7 +76,7 @@ function ScorerCard({ label, topScorer, teamMap }) {
           <span className="text-border">·</span>
           <span><span className="font-heading font-bold text-foreground">{topScorer.gp}</span> GP</span>
           <span className="text-border">·</span>
-          <span><span className="font-heading font-bold text-foreground">{topScorer.stats.total_rebounds || 0}</span> REB</span>
+          <span><span className="font-heading font-bold text-foreground">{topScorer.stats.total_rebounds || 0}</span> {topScorer.stats.secondaryLabel || "REB"}</span>
         </div>
 
         <div className="flex items-center gap-2 mb-2">
@@ -129,19 +129,26 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
   const openDivision = basketballDivisions.find((d) => d.toLowerCase().includes("open")) || "Open Division";
   const veteranDivision = basketballDivisions.find((d) => d.toLowerCase().includes("veteran")) || "Veterans Division";
 
-  const buildTop = React.useCallback((division) => {
-    const ctx = { games, playerStats, teams, players, sport: "basketball", division, limit: 1 };
+  const volleyballDivisions = React.useMemo(() => [...new Set(
+    teams.filter((t) => (t.sport || "").toLowerCase() === "volleyball").map((t) => t.division).filter(Boolean)
+  )], [teams]);
+  const vOpenDivision = volleyballDivisions.find((d) => d.toLowerCase().includes("open")) || "Open Division";
+  const vVeteranDivision = volleyballDivisions.find((d) => d.toLowerCase().includes("veteran")) || "Veterans Division";
+
+  const buildTop = React.useCallback((division, sport = "basketball") => {
+    const ctx = { games, playerStats, teams, players, sport, division, limit: 1 };
     const ptsRow = buildLeaderboard({ ...ctx, statType: "points" })[0];
     if (!ptsRow) return null;
     const player = playerMap[ptsRow.id];
     if (!player) return null;
-    const rebRow = buildLeaderboard({ ...ctx, statType: "rebounds", limit: 50 }).find((r) => r.id === ptsRow.id);
+    const secondaryStat = sport === "volleyball" ? "aces" : "rebounds";
+    const secRow = buildLeaderboard({ ...ctx, statType: secondaryStat, limit: 50 }).find((r) => r.id === ptsRow.id);
 
     const teamsById = new Map(teams.map((t) => [t.id, t]));
     const teamGames = games
       .filter((g) => {
         if (g.status !== "completed") return false;
-        if ((g.sport || "").toLowerCase() !== "basketball") return false;
+        if ((g.sport || "").toLowerCase() !== sport) return false;
         if (g.home_team_id !== player.team_id && g.away_team_id !== player.team_id) return false;
         const homeDiv = teamsById.get(g.home_team_id)?.division || "No Division";
         const awayDiv = teamsById.get(g.away_team_id)?.division || "No Division";
@@ -152,7 +159,13 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
     const ptsByGame = {};
     playerStats.forEach((s) => {
       if (s.player_id !== ptsRow.id) return;
-      ptsByGame[s.game_id] = (ptsByGame[s.game_id] || 0) + Number(s.points || 0);
+      let val;
+      if (sport === "volleyball") {
+        val = Number(s.aces || 0) + Number(s.attacks || 0) + Number(s.blocks || 0);
+      } else {
+        val = Number(s.points || 0);
+      }
+      ptsByGame[s.game_id] = (ptsByGame[s.game_id] || 0) + val;
     });
 
     const chartData = teamGames.map((g, i) => ({ game: `G${i + 1}`, points: ptsByGame[g.id] || 0 }));
@@ -162,21 +175,35 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
       ppg: ptsRow.avgNum,
       gp: ptsRow.gamesPlayed,
       chartData,
+      sport,
       stats: {
         total_points: ptsRow.total,
-        total_rebounds: rebRow?.total || 0,
+        total_rebounds: secRow?.total || 0,
+        secondaryLabel: sport === "volleyball" ? "ACES" : "REB",
       },
     };
   }, [games, playerStats, teams, players, playerMap]);
 
-  const openTop = React.useMemo(() => buildTop(openDivision), [buildTop, openDivision]);
-  const veteranTop = React.useMemo(() => buildTop(veteranDivision), [buildTop, veteranDivision]);
+  const openTop = React.useMemo(() => buildTop(openDivision, "basketball"), [buildTop, openDivision]);
+  const veteranTop = React.useMemo(() => buildTop(veteranDivision, "basketball"), [buildTop, veteranDivision]);
+  const vOpenTop = React.useMemo(() => buildTop(vOpenDivision, "volleyball"), [buildTop, vOpenDivision]);
+  const vVeteranTop = React.useMemo(() => buildTop(vVeteranDivision, "volleyball"), [buildTop, vVeteranDivision]);
+
+  const hasVolleyball = volleyballDivisions.length > 0;
 
   return (
     <StatsFetchingIndicator loading={isLoading} fetching={isFetching} label="Refreshing top scorers…">
-      <div className="grid md:grid-cols-2 gap-6">
-        <ScorerCard label="Open" topScorer={openTop} teamMap={teamMap} />
-        <ScorerCard label="Veterans" topScorer={veteranTop} teamMap={teamMap} />
+      <div className="space-y-6">
+        <div className="grid md:grid-cols-2 gap-6">
+          <ScorerCard label="Open" topScorer={openTop} teamMap={teamMap} />
+          <ScorerCard label="Veterans" topScorer={veteranTop} teamMap={teamMap} />
+        </div>
+        {hasVolleyball && (
+          <div className="grid md:grid-cols-2 gap-6">
+            <ScorerCard label="Volleyball · Open" topScorer={vOpenTop} teamMap={teamMap} />
+            <ScorerCard label="Volleyball · Veterans" topScorer={vVeteranTop} teamMap={teamMap} />
+          </div>
+        )}
       </div>
     </StatsFetchingIndicator>
   );
