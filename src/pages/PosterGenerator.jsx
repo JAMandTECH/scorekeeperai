@@ -60,6 +60,8 @@ export default function PosterGenerator() {
   const [playerAction, setPlayerAction] = React.useState('');
   const [actionLoading, setActionLoading] = React.useState(false);
   const [faceSwap, setFaceSwap] = React.useState(true);
+  const [potgMode, setPotgMode] = React.useState('auto'); // 'auto' | 'manual'
+  const [potgPlayerId, setPotgPlayerId] = React.useState('');
   const [savedOpen, setSavedOpen] = React.useState(false);
   const [localOnlyBgRemove, setLocalOnlyBgRemove] = React.useState(true);
   // Template upload dialog state
@@ -82,7 +84,7 @@ export default function PosterGenerator() {
     try {
       let img;
       if ('createImageBitmap' in window) {
-        img = await createImageBitmap(inBlob);
+        img = await window.createImageBitmap(inBlob);
       } else {
         const url = URL.createObjectURL(inBlob);
         img = await new Promise((resolve) => {
@@ -199,6 +201,34 @@ export default function PosterGenerator() {
   });
 
   const gameForPoster = gameQ.data || topQ.data?.game || null;
+
+  // Resolve the featured "Player of the Game": manual selection wins over auto top-scorer.
+  const resolvedPotg = React.useMemo(() => {
+    const tops = topQ.data?.topPlayers || [];
+    if (!gameForPoster || tops.length === 0) return null;
+    if (potgMode === 'manual' && potgPlayerId) {
+      const manual = tops.find(p => p.id === potgPlayerId || p.player_id === potgPlayerId);
+      if (manual) return manual;
+    }
+    const winTeamId = gameForPoster.winning_team_id || (() => {
+      if (gameForPoster.sport === 'volleyball' && Array.isArray(gameForPoster.quarter_scores)) {
+        let hw = 0, aw = 0;
+        gameForPoster.quarter_scores.forEach(s => {
+          const h = s?.home ?? 0, a = s?.away ?? 0;
+          if (h > a) hw++; else if (a > h) aw++;
+        });
+        if (hw !== aw) return hw > aw ? gameForPoster.home_team_id : gameForPoster.away_team_id;
+      }
+      return ((gameForPoster.home_score ?? 0) > (gameForPoster.away_score ?? 0))
+        ? gameForPoster.home_team_id : gameForPoster.away_team_id;
+    })();
+    return tops.find(p => p.team_id === winTeamId) || tops[0];
+  }, [topQ.data, gameForPoster, potgMode, potgPlayerId]);
+
+  // Reset manual selection when the game changes.
+  React.useEffect(() => {
+    setPotgPlayerId('');
+  }, [selectedGameId]);
 
   const orgQ = useQuery({
     queryKey: ['orgForGame', gameForPoster?.organization_id],
@@ -321,13 +351,13 @@ export default function PosterGenerator() {
     }
   };
 
-  const actionSourceUrl = bestPlayerImageUrl || (topQ.data?.topPlayers?.[0]?.photo_url) || '';
+  const actionSourceUrl = bestPlayerImageUrl || resolvedPotg?.photo_url || '';
 
   const handleGenerateAction = async () => {
     if (!playerAction || !actionSourceUrl) return;
     setActionLoading(true);
     try {
-      const topPlayer = topQ.data?.topPlayers?.[0];
+      const topPlayer = resolvedPotg;
       const res = await base44.functions.invoke('generatePlayerAction', {
         playerImageUrl: actionSourceUrl,
         action: playerAction,
@@ -408,9 +438,9 @@ export default function PosterGenerator() {
               <Select value={posterStyle} onValueChange={setPosterStyle}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Select style" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="spotlight">Spotlight (Best Player)</SelectItem>
-                  <SelectItem value="stat_leader">Best Player of the Game</SelectItem>
-                  <SelectItem value="bold_dark">Bold Dark (Gold Stats)</SelectItem>
+                  <SelectItem value="spotlight">POSTER DESIGN - 001</SelectItem>
+                  <SelectItem value="stat_leader">POSTER DESIGN - 002</SelectItem>
+                  <SelectItem value="bold_dark">POSTER DESIGN - 003</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -450,6 +480,34 @@ export default function PosterGenerator() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div>
+              <label className="text-sm text-muted-foreground">Player of the Game</label>
+              <div className="mt-1 flex items-center gap-2">
+                <Select value={potgMode} onValueChange={(v) => setPotgMode(v)}>
+                  <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">Auto (top scorer)</SelectItem>
+                    <SelectItem value="manual">Manual</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={potgPlayerId}
+                  onValueChange={setPotgPlayerId}
+                  disabled={potgMode === 'auto' || !topQ.data?.topPlayers?.length}
+                >
+                  <SelectTrigger className="flex-1"><SelectValue placeholder={potgMode === 'auto' ? 'Auto-selected' : 'Select a player'} /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {(topQ.data?.topPlayers || []).map(p => (
+                      <SelectItem key={p.id || p.player_id} value={p.id || p.player_id}>
+                        {p.first_name} {p.last_name} #{p.jersey_number} • {p.team_id ? teamMap[p.team_id] : ''} • {p.total_points ?? p.points ?? 0} pts
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Auto uses the top scorer on the winning team. Switch to Manual to feature any player from the game's top scorers.</p>
             </div>
 
             <div>
@@ -751,9 +809,9 @@ export default function PosterGenerator() {
                   <PosterCanvas
                     backgroundUrl={imageUrl}
                     game={gameForPoster}
-                    players={[(() => { const gp = gameForPoster; const tops = topQ.data?.topPlayers || []; if (!gp || tops.length === 0) return null; const winTeamId = gp.winning_team_id || (() => { if (gp.sport === 'volleyball' && Array.isArray(gp.quarter_scores)) { let hw=0, aw=0; gp.quarter_scores.forEach(s=>{ const h=(s?.home ?? 0), a=(s?.away ?? 0); if (h>a) hw++; else if (a>h) aw++; }); if (hw !== aw) return hw>aw ? gp.home_team_id : gp.away_team_id; } return ( (gp.home_score ?? 0) > (gp.away_score ?? 0) ) ? gp.home_team_id : gp.away_team_id; })(); const winnerTop = tops.find(p => p.team_id === winTeamId) || tops[0]; return winnerTop; })()].filter(Boolean)}
+                    players={resolvedPotg ? [resolvedPotg] : []}
                     org={orgQ.data}
-                    bestPlayerImageUrl={(() => { if (bestPlayerImageUrl) return bestPlayerImageUrl; const gp = gameForPoster; const tops = topQ.data?.topPlayers || []; if (!gp || tops.length === 0) return ''; const winTeamId = gp.winning_team_id || (() => { if (gp.sport === 'volleyball' && Array.isArray(gp.quarter_scores)) { let hw=0, aw=0; gp.quarter_scores.forEach(s=>{ const h=(s?.home ?? 0), a=(s?.away ?? 0); if (h>a) hw++; else if (a>h) aw++; }); if (hw !== aw) return hw>aw ? gp.home_team_id : gp.away_team_id; } return ( (gp.home_score ?? 0) > (gp.away_score ?? 0) ) ? gp.home_team_id : gp.away_team_id; })(); const winnerTop = tops.find(p => p.team_id === winTeamId) || tops[0]; return winnerTop?.photo_url || ''; })()}
+                    bestPlayerImageUrl={bestPlayerImageUrl || resolvedPotg?.photo_url || ''}
                     homeName={teamMap[gameForPoster?.home_team_id] || 'Home Team'}
                     awayName={teamMap[gameForPoster?.away_team_id] || 'Away Team'}
                     layout={layout}
@@ -761,6 +819,7 @@ export default function PosterGenerator() {
                     printMode={printMode}
                     paperSize={paperSize}
                     onReady={setPosterDataUrl}
+                    onSaved={() => { qc.invalidateQueries({ queryKey: ['posters'] }); toast({ title: 'Poster saved', description: 'It now appears in your Saved posters.' }); }}
                   />
                   <div className="mt-4">
                     <SocialShare
