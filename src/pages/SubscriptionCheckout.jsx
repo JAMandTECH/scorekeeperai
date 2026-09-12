@@ -152,7 +152,6 @@ export default function SubscriptionCheckout() {
       color: 'blue',
       popular: currentTier === 'free',
       features: [
-        'Manage 1 organization',
         'Single sport only',
         'Team & player management',
         'Game scheduling & live scoring',
