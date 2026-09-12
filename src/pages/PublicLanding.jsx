@@ -3,7 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Calendar, Target, Zap, Shield, ArrowRight, Sun, Moon, 
-  PlayCircle, Users, BarChart3, Trophy, CheckCircle, Globe, LogOut, LayoutGrid, Sparkles, Mic, Brain, Menu, X, Radio
+  PlayCircle, Users, BarChart3, Trophy, CheckCircle, Globe, LogOut, LayoutGrid, Sparkles, Mic, Brain, Menu, X, Radio,
+  ClipboardList, CalendarClock, Calculator, Eye, MessageSquare, DollarSign
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AIAssistant from "@/components/AIAssistant";
@@ -74,6 +75,15 @@ export default function PublicLanding() {
     { icon: Globe, title: "Public Access", description: "Share standings, schedules, and stats publicly. Fans can follow their favorite teams and players in real-time." }
   ];
 
+  const problems = [
+    { icon: ClipboardList, problem: "Paper scorebooks & lost stats", pain: "Scores scribbled on paper, stats misplaced, and no easy way to share what happened after the game.", solution: "Live Scoring", fix: "Tap or speak every point, foul and timeout — with undo, edit and instant save." },
+    { icon: CalendarClock, problem: "Scheduling chaos & court conflicts", pain: "Building a season schedule by hand takes hours and still manages to double-book courts.", solution: "AI Schedule Generator", fix: "Generate a full round-robin in seconds, then fine-tune dates, courts and scorekeepers." },
+    { icon: Calculator, problem: "Manual standings & rankings", pain: "Updating win-loss records and leaderboards in spreadsheets after every game is exhausting.", solution: "Automatic Standings & Stats", fix: "Standings, draws and player leaders recalculate the moment a game ends — no math required." },
+    { icon: Eye, problem: "No live access for fans", pain: "Friends and family miss games because there's nowhere to follow the action in real time.", solution: "Public Live Scores & Stream Overlay", fix: "Share a live public link with real-time scores, quarter breakdowns and a stream embed." },
+    { icon: MessageSquare, problem: "Scattered comms & social", pain: "Announcements, highlights and photos spread across group chats and get lost in the noise.", solution: "Social Feed + AI Posters", fix: "Post updates, auto-generate highlight posters and weekly summaries your community actually loves." },
+    { icon: DollarSign, problem: "Expensive, clunky tools", pain: "Paying for separate scoring, stats and bracket software that nobody enjoys using.", solution: "One Affordable Platform", fix: "Everything in a single low subscription — with a free trial and no credit card to start." }
+  ];
+
   const howItWorks = [
     { step: "01", title: "Sign Up & Setup", description: "Create your organization account and set up your league structure with divisions and teams.", icon: Shield },
     { step: "02", title: "Add Teams & Players", description: "Register teams, upload logos, and add player rosters with photos and details.", icon: Users },
@@ -98,6 +108,7 @@ export default function PublicLanding() {
             <span className="font-heading text-xl font-bold tracking-tight">Scorekeeper<span style={{ color: "#4ADE80" }}>AI</span></span>
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
+            <a href="#problems" className="hover:text-foreground transition-colors">Problems</a>
             <a href="#features" className="hover:text-foreground transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-foreground transition-colors">How It Works</a>
             <a href="#use-cases" className="hover:text-foreground transition-colors">Use Cases</a>
@@ -122,6 +133,7 @@ export default function PublicLanding() {
         </div>
         {mobileMenuOpen && (
           <nav className="md:hidden border-t border-border px-6 py-4 flex flex-col gap-3 text-sm">
+            <a href="#problems" onClick={() => setMobileMenuOpen(false)} className="text-muted-foreground hover:text-foreground">Problems</a>
             <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-muted-foreground hover:text-foreground">Features</a>
             <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="text-muted-foreground hover:text-foreground">How It Works</a>
             <a href="#use-cases" onClick={() => setMobileMenuOpen(false)} className="text-muted-foreground hover:text-foreground">Use Cases</a>
@@ -142,20 +154,20 @@ export default function PublicLanding() {
         <div className="relative max-w-[1400px] mx-auto px-6 lg:px-10 py-20 lg:py-32">
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
             <div className="lg:col-span-7">
-              <p className="text-xs sm:text-sm font-medium tracking-[0.2em] uppercase text-white/50 mb-6">AI-Powered Sports League Management</p>
+              <p className="text-xs sm:text-sm font-medium tracking-[0.2em] uppercase text-white/50 mb-6">Run Your League Without the Headaches</p>
               <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl font-bold leading-[0.95] tracking-tight mb-6 text-white">
-                Run your league<br />
-                with{" "}
+                Stop juggling.<br />
+                Start{" "}
                 <span
                   className="text-primary"
                   style={{ textShadow: "0 0 30px hsl(var(--primary) / 0.55), 0 0 70px hsl(var(--primary) / 0.3)" }}
                 >
-                  precision
+                  enjoying
                 </span>
-                .
+                it.
               </h1>
               <p className="text-lg text-white/70 max-w-xl mb-10 leading-relaxed">
-                The complete platform for basketball and volleyball leagues. Live scoring, AI insights, voice commands, and real-time statistics — all in one place.
+                ScorekeeperAI takes the chaos out of running basketball and volleyball leagues — live scoring, AI insights, voice commands and real-time standings, all in one affordable place your whole community can enjoy.
               </p>
               <div className="flex flex-wrap gap-4">
                 {!isAuthenticated ? (
@@ -208,15 +220,46 @@ export default function PublicLanding() {
         </div>
       </section>
 
-      {/* ── Stats Strip ── */}
+      {/* ── Problems We Solve ── */}
+      <section id="problems" className="border-b border-border">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
+          <div className="mb-12">
+            <p className="text-sm text-muted-foreground mb-3">Problems We Solve</p>
+            <h2 className="font-heading text-3xl md:text-4xl font-bold tracking-tight mb-4">
+              We know running a league is <span className="text-primary">hard work</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl">
+              You shouldn't need a spreadsheet, a clipboard and three group chats just to get through game day. Here's how ScorekeeperAI turns each headache into a one-tap fix.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-border border border-border">
+            {problems.map((p, i) => (
+              <div key={i} className="bg-card p-8 flex flex-col">
+                <p.icon className="w-7 h-7 text-muted-foreground mb-5" />
+                <h3 className="font-heading text-lg font-bold mb-2">{p.problem}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-5">{p.pain}</p>
+                <div className="mt-auto pt-5 border-t border-border">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span className="text-xs font-semibold tracking-wide uppercase text-primary">Solved by {p.solution}</span>
+                  </div>
+                  <p className="text-sm text-foreground leading-relaxed">{p.fix}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Value Callouts ── */}
       <section className="border-b border-border">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { label: "AI-Powered", value: "Smart", icon: Brain },
-              { label: "Voice Commands", value: "Hands-free", icon: Mic },
-              { label: "Live Updates", value: "Real-time", icon: PlayCircle },
-              { label: "Easy Setup", value: "Minutes", icon: Zap }
+              { label: "saved every week", value: "Hours", icon: Zap },
+              { label: "covers it all", value: "1 subscription", icon: Shield },
+              { label: "no credit card needed", value: "Free trial", icon: CheckCircle },
+              { label: "to set up your league", value: "Minutes", icon: PlayCircle }
             ].map((stat, i) => (
               <div key={i} className="flex flex-col gap-1">
                 <stat.icon className="w-5 h-5 text-muted-foreground mb-2" />
@@ -535,10 +578,10 @@ export default function PublicLanding() {
       <section className="border-b border-border bg-secondary/30">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-16 lg:py-24 text-center">
           <h2 className="font-heading text-3xl md:text-5xl font-bold tracking-tight mb-6">
-            Ready to transform <br className="hidden md:block" />your league?
+            Ready to make league day <br className="hidden md:block" />effortless?
           </h2>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10">
-            Join hundreds of organizations managing their sports leagues with ScorekeeperAI.
+            Join the organizations who put down the clipboards and let ScorekeeperAI handle the busywork — so you can actually enjoy the game.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             {!isAuthenticated ? (
