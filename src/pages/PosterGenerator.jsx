@@ -438,9 +438,9 @@ export default function PosterGenerator() {
               <Select value={posterStyle} onValueChange={setPosterStyle}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Select style" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="spotlight">Spotlight (Best Player)</SelectItem>
-                  <SelectItem value="stat_leader">Best Player of the Game</SelectItem>
-                  <SelectItem value="bold_dark">Bold Dark (Gold Stats)</SelectItem>
+                  <SelectItem value="spotlight">POSTER DESIGN - 001</SelectItem>
+                  <SelectItem value="stat_leader">POSTER DESIGN - 002</SelectItem>
+                  <SelectItem value="bold_dark">POSTER DESIGN - 003</SelectItem>
                 </SelectContent>
               </Select>
             </div>
