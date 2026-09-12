@@ -819,6 +819,7 @@ export default function PosterGenerator() {
                     printMode={printMode}
                     paperSize={paperSize}
                     onReady={setPosterDataUrl}
+                    onSaved={() => { qc.invalidateQueries({ queryKey: ['posters'] }); toast({ title: 'Poster saved', description: 'It now appears in your Saved posters.' }); }}
                   />
                   <div className="mt-4">
                     <SocialShare
