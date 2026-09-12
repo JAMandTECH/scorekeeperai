@@ -30,6 +30,11 @@
     "metadata": {
       "type": "object",
       "description": "Optional layout metadata (positions, fonts, predefined locations for text/stats)"
+    },
+    "is_custom_style": {
+      "type": "boolean",
+      "default": false,
+      "description": "True for user-uploaded custom styles edited via the visual layout editor"
     }
   },
   "required": [

@@ -12,6 +12,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, Download, Sparkles, Trash2, FolderOpen, RefreshCcw, ArrowLeft, LayoutGrid, List } from 'lucide-react'; // cleaned: removed AI chat; kept background remover
 import PosterCanvas from '@/components/posters/PosterCanvas';
+import StyleLayoutEditor from '@/components/posters/StyleLayoutEditor';
+import { Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
 import SocialShare from '@/components/social/SocialShare';
@@ -72,6 +74,9 @@ export default function PosterGenerator() {
   const [newTplLayout, setNewTplLayout] = React.useState('{}');
   const [newTplFile, setNewTplFile] = React.useState(null);
   const [tplUploading, setTplUploading] = React.useState(false);
+  // Style layout editor state
+  const [editingTemplate, setEditingTemplate] = React.useState(null);
+  const [editorOpen, setEditorOpen] = React.useState(false);
   // Saved posters view/filter state
   const [viewMode, setViewMode] = React.useState('cards'); // 'cards' | 'table'
   const [filterSport, setFilterSport] = React.useState('all');
@@ -637,10 +642,10 @@ export default function PosterGenerator() {
 
         <Card className="md:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Templates</CardTitle>
+            <CardTitle>My Styles</CardTitle>
             <Dialog open={addOpen} onOpenChange={setAddOpen}>
               <DialogTrigger asChild>
-                <Button size="sm">Add Template</Button>
+                <Button size="sm">Upload Style</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -690,7 +695,8 @@ export default function PosterGenerator() {
                           sport: newTplSport,
                           description: newTplDesc || undefined,
                           sample_image_url: file_url,
-                          metadata: meta
+                          metadata: meta,
+                          is_custom_style: true
                         });
                         setAddOpen(false);
                         setNewTplName(''); setNewTplDesc(''); setNewTplLayout('{}'); setNewTplFile(null);
@@ -720,13 +726,21 @@ export default function PosterGenerator() {
                     role="button"
                     tabIndex={0}
                   >
-                    <div className="absolute top-2 right-2 z-10" onClick={(e)=>e.stopPropagation()}>
+                    <div className="absolute top-2 right-2 z-10 flex gap-1" onClick={(e)=>e.stopPropagation()}>
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        onClick={() => { setEditingTemplate(t); setEditorOpen(true); }}
+                        title="Edit Style Layout"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                       <Button
                         size="icon"
                         variant="destructive"
-                        onClick={() => { if (window.confirm('Delete this template?')) deleteTplMutation.mutate(t.id); }}
+                        onClick={() => { if (window.confirm('Delete this style?')) deleteTplMutation.mutate(t.id); }}
                         disabled={deleteTplMutation.isPending}
-                        title="Delete Template"
+                        title="Delete Style"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -760,6 +774,8 @@ export default function PosterGenerator() {
                         const t = (templatesQ.data || []).find(x => x.id === selectedTemplateId);
                         if (t?.sample_image_url) setImageUrl(t.sample_image_url);
                         if (t?.metadata) setLayout(t.metadata);
+                        // Custom styles rely on the spotlight renderer which respects layout metadata
+                        if (t?.is_custom_style) setPosterStyle('spotlight');
                         // Ensure freshest top player stats after backend change
                         qc.invalidateQueries({ queryKey: ['topPlayers', selectedGameId] });
                       }}
@@ -1007,6 +1023,21 @@ export default function PosterGenerator() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <StyleLayoutEditor
+        template={editingTemplate}
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        onSaved={(saved) => {
+          qc.invalidateQueries({ queryKey: ['ptemplates'] });
+          // Refresh the active background/layout if the edited style is currently selected
+          if (saved?.id === selectedTemplateId) {
+            if (saved.sample_image_url) setImageUrl(saved.sample_image_url);
+            if (saved.metadata) setLayout(saved.metadata);
+          }
+          toast({ title: 'Style saved', description: 'Layout and metadata updated.' });
+        }}
+      />
     </div>
   );
 }
