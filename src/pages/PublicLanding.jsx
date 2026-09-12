@@ -95,7 +95,7 @@ export default function PublicLanding() {
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-heading text-xl font-bold tracking-tight">ScorekeeperAI</span>
+            <span className="font-heading text-xl font-bold tracking-tight">Scorekeeper<span style={{ color: "#CCFF00" }}>AI</span></span>
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
             <a href="#features" className="hover:text-foreground transition-colors">Features</a>
@@ -567,7 +567,7 @@ export default function PublicLanding() {
         <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-16">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div className="md:col-span-2">
-              <span className="font-heading text-xl font-bold tracking-tight mb-4 block">ScorekeeperAI</span>
+              <span className="font-heading text-xl font-bold tracking-tight mb-4 block">Scorekeeper<span style={{ color: "#CCFF00" }}>AI</span></span>
               <p className="text-sm text-muted-foreground max-w-md mb-4">
                 Professional sports league management platform for basketball and volleyball leagues.
               </p>
