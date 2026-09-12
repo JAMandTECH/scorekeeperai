@@ -14,7 +14,7 @@ export const PAPER_SIZES = {
 };
 
 // Canvas composer that overlays org logo/info and the single best player's headshot + stats
-export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady, onSaved, posterNumber, posterStyle = 'spotlight', printMode = false, paperSize = 'a4' }) {
+export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady, onSaved, posterStyle = 'spotlight', printMode = false, paperSize = 'a4' }) {
   const canvasRef = useRef(null);
   const [dataUrl, setDataUrl] = useState('');
   const [saving, setSaving] = useState(false);
@@ -928,7 +928,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         image_url,
         width: printMode ? (PAPER_SIZES[paperSize] || PAPER_SIZES.a4).w : 1080,
         height: printMode ? (PAPER_SIZES[paperSize] || PAPER_SIZES.a4).h : 1350,
-        title: `POSTER DESIGN - ${String(posterNumber || 1).padStart(3, '0')}`
+        title: `${String(homeName||'HOME')} vs ${String(awayName||'AWAY')} - Best Player`
       };
       const rec = await base44.entities.Poster.create(payload);
       setSavedId(rec.id);

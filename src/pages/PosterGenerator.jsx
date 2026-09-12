@@ -274,15 +274,6 @@ export default function PosterGenerator() {
     return Array.from(set);
   }, [posterGamesQ.data]);
 
-  // Next sequential poster design number (POSTER DESIGN - 001, 002, ...)
-  const nextPosterNumber = React.useMemo(() => {
-    const nums = (postersQ.data || []).map(p => {
-      const m = String(p.title || '').match(/POSTER DESIGN - (\d+)/i);
-      return m ? parseInt(m[1], 10) : 0;
-    });
-    return Math.max(0, ...nums) + 1;
-  }, [postersQ.data]);
-
   const filteredPosters = React.useMemo(() => {
     const from = dateFrom ? new Date(dateFrom) : null;
     const to = dateTo ? new Date(dateTo) : null;
@@ -828,7 +819,6 @@ export default function PosterGenerator() {
                     printMode={printMode}
                     paperSize={paperSize}
                     onReady={setPosterDataUrl}
-                    posterNumber={nextPosterNumber}
                     onSaved={() => { qc.invalidateQueries({ queryKey: ['posters'] }); toast({ title: 'Poster saved', description: 'It now appears in your Saved posters.' }); }}
                   />
                   <div className="mt-4">
