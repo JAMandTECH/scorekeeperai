@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Calendar, Filter, Trophy, ChevronDown, ChevronUp, LayoutGrid, Table } from "lucide-react";
+import { Calendar, Filter, Trophy, ChevronDown, ChevronUp, LayoutGrid, Table, Link as LinkIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AIGameSummary from "@/components/AIGameSummary";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function AllGames() {
   const [user, setUser] = useState(null);
@@ -16,6 +17,19 @@ export default function AllGames() {
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [expandedGame, setExpandedGame] = useState(null);
   const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
+  const { toast } = useToast();
+
+  const handleCopyCoachLink = (game) => {
+    const url = `${window.location.origin}/CoachScoring?gameId=${game.id}`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(
+        () => toast({ title: "Coach link copied", description: "Share it for a read-only live view." }),
+        () => toast({ title: "Coach link", description: url })
+      );
+    } else {
+      toast({ title: "Coach link", description: url });
+    }
+  };
 
   useEffect(() => {
     loadUser();
@@ -405,6 +419,16 @@ export default function AllGames() {
             </Button>
           )}
 
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleCopyCoachLink(game)}
+            className="w-full font-medium text-muted-foreground"
+          >
+            <LinkIcon className="w-4 h-4 mr-2" />
+            Copy coach link
+          </Button>
+
           {/* Expanded Stats */}
           {isExpanded && (
             <div className="space-y-4 pt-4 border-t-2 border-gray-200 dark:border-gray-700">
@@ -590,6 +614,15 @@ export default function AllGames() {
                             )}
                           </Button>
                         )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleCopyCoachLink(game)}
+                          className="mt-1 text-muted-foreground"
+                          title="Copy coach link"
+                        >
+                          <LinkIcon className="w-4 h-4" />
+                        </Button>
                       </td>
                     </tr>
                     

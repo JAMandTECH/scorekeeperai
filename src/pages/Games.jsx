@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap, Edit, ChevronDown, ChevronUp, FileEdit } from "lucide-react";
+import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap, Edit, ChevronDown, ChevronUp, FileEdit, Link as LinkIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,6 +18,7 @@ import ConflictResolver from "@/components/ConflictResolver";
 import AIScheduleGenerator from "@/components/AIScheduleGenerator";
 import AIAssistant from "@/components/AIAssistant";
 import { usePermissions } from "@/components/hooks/usePermissions";
+import { useToast } from "@/components/ui/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,6 +57,19 @@ export default function Games() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { hasPermission, loading: permissionsLoading, isAdmin } = usePermissions();
+  const { toast } = useToast();
+
+  const handleCopyCoachLink = (game) => {
+    const url = `${window.location.origin}/CoachScoring?gameId=${game.id}`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(
+        () => toast({ title: "Coach link copied", description: "Share it for a read-only live view." }),
+        () => toast({ title: "Coach link", description: url })
+      );
+    } else {
+      toast({ title: "Coach link", description: url });
+    }
+  };
 
   useEffect(() => {
     loadUser();
@@ -732,6 +746,17 @@ export default function Games() {
                 Continue Scoring
               </Button>
             </Link>
+          )}
+          {['scheduled', 'in_progress'].includes(game.status) && !game.archived && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCopyCoachLink(game)}
+              className="w-full font-medium text-muted-foreground"
+            >
+              <LinkIcon className="w-4 h-4 mr-2" />
+              Copy coach link
+            </Button>
           )}
           {showActions && game.status === 'completed' && !game.archived && (
             <div className="flex flex-wrap gap-2">
