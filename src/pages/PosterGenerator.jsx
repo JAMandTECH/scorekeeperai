@@ -84,7 +84,7 @@ export default function PosterGenerator() {
     try {
       let img;
       if ('createImageBitmap' in window) {
-        img = await createImageBitmap(inBlob);
+        img = await window.createImageBitmap(inBlob);
       } else {
         const url = URL.createObjectURL(inBlob);
         img = await new Promise((resolve) => {
