@@ -224,7 +224,7 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
         {/* Center column */}
         <div
           className="flex flex-col items-center justify-center gap-1.5 px-4 sm:px-6 py-2 flex-shrink-0"
-          style={{ background: "#98E8A8", flex: "0 0 28%" }}
+          style={{ background: "#6EDC6F", flex: "0 0 28%" }}
         >
           <div className="flex items-center gap-1.5">
             <span
