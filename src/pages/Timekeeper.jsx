@@ -42,7 +42,8 @@ export default function Timekeeper() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       // Non-timekeepers (who aren't admins) shouldn't be here
-      if (!currentUser.is_timekeeper && currentUser.role !== "admin") {
+      const isTk = currentUser.is_timekeeper === true || currentUser.data?.is_timekeeper === true;
+      if (!isTk && currentUser.role !== "admin") {
         window.location.href = createPageUrl("Home");
       }
     } catch (e) {
@@ -63,12 +64,17 @@ export default function Timekeeper() {
     enabled: !!user?.organization_id || !!user?.active_organization_id,
   });
 
-  // Assigned games (service-role fetch bypasses Game RLS for timekeeper-only users)
+  // Assigned games — direct query filtered by the caller's email.
+  // RLS allows read for users whose org matches the game's org.
   const { data: myGames = [], isLoading: gamesLoading } = useQuery({
     queryKey: ["timekeeper-games", user?.email],
     queryFn: async () => {
-      const res = await base44.functions.invoke("getTimekeeperGames", {});
-      return Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : [];
+      const games = await base44.entities.Game.filter(
+        { timekeeper_email: user.email },
+        "-game_date",
+        100
+      );
+      return Array.isArray(games) ? games : [];
     },
     enabled: !!user?.email,
   });
