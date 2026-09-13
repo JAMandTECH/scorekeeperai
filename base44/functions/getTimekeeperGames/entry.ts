@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const isTimekeeper = user.is_timekeeper === true;
+    const isTimekeeper = user.is_timekeeper === true || user.data?.is_timekeeper === true;
     const isAdmin = user.role === 'admin';
 
     // Only timekeepers (or admins) should fetch their assigned games
@@ -18,7 +18,8 @@ Deno.serve(async (req) => {
     }
 
     const email = (user.email || '').toLowerCase();
-    const orgId = user.organization_id || user.active_organization_id || null;
+    const orgId = user.active_organization_id || user.organization_id ||
+      user.data?.active_organization_id || user.data?.organization_id || null;
 
     // Service role bypasses Game RLS so a timekeeper-only user can read their assigned games
     const allGames = await base44.asServiceRole.entities.Game.list('-game_date', 500);
