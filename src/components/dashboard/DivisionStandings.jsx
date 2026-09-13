@@ -31,9 +31,9 @@ function TeamRow({ team, rank }) {
       <div className="flex items-center gap-1.5 shrink-0 text-sm font-heading font-bold tabular-nums">
         <span className="text-foreground">{wins}</span>
         <span className="text-muted-foreground">-</span>
-        <span className="text-muted-foreground">{draws}</span>
-        <span className="text-muted-foreground">-</span>
         <span className="text-muted-foreground">{losses}</span>
+        <span className="text-muted-foreground">-</span>
+        <span className="text-muted-foreground">{draws}</span>
       </div>
     </div>
   );
