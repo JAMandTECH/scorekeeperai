@@ -11,6 +11,7 @@ import { ArrowLeft, PlayCircle, Video, RefreshCw, Eye, EyeOff, Maximize, Minimiz
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
+import ShareGameBar from "@/components/ShareGameBar";
 import ScoreboardInsights from "@/components/ScoreboardInsights";
 import { useFullscreen } from "@/lib/useFullscreen";
 import { useGameTimer } from "@/lib/useGameTimer";
@@ -159,6 +160,7 @@ export default function PublicGameView() {
                 LIVE
               </Badge>
             )}
+            <ShareGameBar title={`${homeTeam?.name || 'Home'} vs ${awayTeam?.name || 'Away'} — live on ScorekeeperAI`} />
             <Button variant="ghost" size="sm" onClick={() => refetch()}>
               <RefreshCw className="w-4 h-4" />
             </Button>
