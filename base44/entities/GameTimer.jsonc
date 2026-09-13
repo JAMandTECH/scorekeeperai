@@ -1,0 +1,167 @@
+{
+  "name": "GameTimer",
+  "type": "object",
+  "properties": {
+    "game_id": {
+      "type": "string",
+      "description": "Game this timer controls (one timer per game)"
+    },
+    "organization_id": {
+      "type": "string",
+      "description": "Organization this timer belongs to"
+    },
+    "season_id": {
+      "type": "string",
+      "description": "Active season this timer belongs to"
+    },
+    "timekeeper_email": {
+      "type": "string",
+      "description": "Denormalized email of the assigned timekeeper (used for access control)"
+    },
+    "period_length_seconds": {
+      "type": "number",
+      "default": 600,
+      "description": "Length of each period in seconds (configurable per game)"
+    },
+    "period_count": {
+      "type": "number",
+      "default": 4,
+      "description": "Total number of periods in the game"
+    },
+    "period_structure": {
+      "type": "string",
+      "enum": [
+        "quarters",
+        "halves",
+        "sets",
+        "periods"
+      ],
+      "default": "quarters",
+      "description": "How periods are labeled (quarters, halves, sets, periods)"
+    },
+    "shot_clock_length_seconds": {
+      "type": "number",
+      "default": 24,
+      "description": "Length of the shot clock in seconds"
+    },
+    "current_period": {
+      "type": "number",
+      "default": 1,
+      "description": "The period currently in play (1-indexed)"
+    },
+    "game_clock_remaining_ms": {
+      "type": "number",
+      "default": 0,
+      "description": "Remaining milliseconds on the game clock when paused; when running this is the value at the last start/pause"
+    },
+    "game_clock_running": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the game clock is currently counting down"
+    },
+    "game_clock_end_iso": {
+      "type": "string",
+      "description": "ISO timestamp at which the running game clock will reach zero (null when paused)"
+    },
+    "shot_clock_remaining_ms": {
+      "type": "number",
+      "default": 0,
+      "description": "Remaining milliseconds on the shot clock when paused"
+    },
+    "shot_clock_running": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the shot clock is currently counting down"
+    },
+    "shot_clock_end_iso": {
+      "type": "string",
+      "description": "ISO timestamp at which the running shot clock will reach zero (null when paused)"
+    },
+    "last_updated_by": {
+      "type": "string",
+      "description": "Email of the user who last updated the timer"
+    }
+  },
+  "required": [
+    "game_id"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "is_timekeeper": true
+          }
+        }
+      ]
+    },
+    "read": true,
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "is_timekeeper": true
+              }
+            },
+            {
+              "data.timekeeper_email": "{{user.email}}"
+            }
+          ]
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

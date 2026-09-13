@@ -216,6 +216,15 @@ export default function Games() {
     enabled: !!user?.organization_id,
   });
 
+  const { data: timekeepers = [] } = useQuery({
+    queryKey: ['timekeepers', user?.organization_id],
+    queryFn: async () => {
+      const allUsers = await base44.entities.User.list();
+      return (allUsers || []).filter(u => u.is_timekeeper === true && u.organization_id === user?.organization_id);
+    },
+    enabled: !!user?.organization_id,
+  });
+
   const checkScheduleConflicts = (gameDate, courtNumber, durationHours = 1.5) => {
     if (!gameDate || !courtNumber) return [];
     
@@ -403,6 +412,7 @@ export default function Games() {
                 overall_scorekeeper_email: formData.get('overall_scorekeeper_email') || null,
                 home_statistician_email: formData.get('home_statistician_email') || null,
                 away_statistician_email: formData.get('away_statistician_email') || null,
+                timekeeper_email: formData.get('timekeeper_email') || null,
                 week_number: weekNumber ? parseInt(weekNumber) : null,
               };
 
@@ -437,6 +447,7 @@ export default function Games() {
         form.overall_scorekeeper_email.value = game.overall_scorekeeper_email || '';
         form.home_statistician_email.value = game.home_statistician_email || '';
         form.away_statistician_email.value = game.away_statistician_email || '';
+        form.timekeeper_email.value = game.timekeeper_email || '';
         form.week_number.value = game.week_number || '';
                       form.stream_url.value = game.stream_url || '';
 
@@ -1433,6 +1444,21 @@ export default function Games() {
                           ))}
                         </select>
                         <p className="text-xs text-muted-foreground mt-1">Records non-point stats (rebounds, assists, etc.) for Away team only.</p>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="timekeeper_email" className="font-heading font-bold text-foreground">Timekeeper</Label>
+                        <select
+                          id="timekeeper_email"
+                          name="timekeeper_email"
+                          className="w-full bg-background border border-border text-foreground px-3 py-2 font-medium"
+                        >
+                          <option value="">-- None --</option>
+                          {timekeepers.map(tk => (
+                            <option key={tk.email} value={tk.email}>{tk.full_name} ({tk.email})</option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-muted-foreground mt-1">Runs the game and shot clocks from the Timekeeper page.</p>
                       </div>
                     </div>
 

@@ -11,6 +11,7 @@ import { ArrowLeft, PlayCircle, Video, RefreshCw, Eye, EyeOff } from "lucide-rea
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
+import TimerPanel from "@/components/TimerPanel";
 
 export default function PublicGameView() {
   const [darkMode, setDarkMode] = useState(false);
@@ -214,6 +215,8 @@ export default function PublicGameView() {
                 <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide">AWAY</p>
               </div>
             </div>
+
+            <TimerPanel gameId={gameId} game={game} variant="scoreboard" />
 
             {/* Game Info */}
             <div className="flex justify-center gap-8 mt-6 text-sm text-muted-foreground">

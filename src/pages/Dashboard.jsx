@@ -16,6 +16,7 @@ import CategoryLeaders from "@/components/dashboard/CategoryLeaders";
 import SportShowcase from "@/components/dashboard/SportShowcase";
 import FeaturedMatch from "@/components/dashboard/FeaturedMatch";
 import DivisionStandings from "@/components/dashboard/DivisionStandings";
+import TimerPanel from "@/components/TimerPanel";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -278,11 +279,16 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-2">
                     {featuredGame ? (
-                      <FeaturedMatch
-                        game={featuredGame}
-                        homeTeam={teamMap[featuredGame.home_team_id]}
-                        awayTeam={teamMap[featuredGame.away_team_id]}
-                      />
+                      <>
+                        <FeaturedMatch
+                          game={featuredGame}
+                          homeTeam={teamMap[featuredGame.home_team_id]}
+                          awayTeam={teamMap[featuredGame.away_team_id]}
+                        />
+                        <div className="mt-4">
+                          <TimerPanel gameId={featuredGame.id} game={featuredGame} variant="compact" />
+                        </div>
+                      </>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 h-full">
                         <FeaturedMatch

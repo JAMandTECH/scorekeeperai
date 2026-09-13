@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import OverlayTimerBits from "@/components/OverlayTimerBits";
 
 /**
  * Reusable live scoreboard overlay.
@@ -138,6 +139,7 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
               {game.status === "completed" ? "FINAL" : "LIVE"}
             </span>
             <span className="text-white font-display font-black text-base sm:text-xl lg:text-2xl">{periodLabel}</span>
+            <OverlayTimerBits gameId={game.id} game={game} />
             {isBasketball && (
               <div className="flex gap-2 mt-0.5">
                 <span className="text-white/70 text-[10px] sm:text-xs font-bold">F {game.home_team_fouls ?? 0}</span>
@@ -179,6 +181,7 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
             {game.status === "completed" ? "FINAL" : "LIVE"}
           </span>
           <span className="text-white font-display font-black text-sm sm:text-lg">{periodLabel}</span>
+          <OverlayTimerBits gameId={game.id} game={game} />
           {isBasketball && (
             <div className="flex gap-1.5 sm:gap-2 mt-0.5">
               <span className="text-white/80 text-[9px] sm:text-[10px] font-bold">F:{game.home_team_fouls ?? 0}/{game.away_team_fouls ?? 0}</span>
