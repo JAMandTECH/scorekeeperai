@@ -9,24 +9,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const isTimekeeper = user.is_timekeeper === true || user.data?.is_timekeeper === true;
-    const isAdmin = user.role === 'admin';
-
-    // Only timekeepers (or admins) should fetch their assigned games
-    if (!isTimekeeper && !isAdmin) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
+    // Access control is the email filter below: only games where timekeeper_email
+    // matches the caller's email are returned, so the caller only ever sees their
+    // own assigned games. No separate role gate is needed.
     const email = (user.email || '').toLowerCase();
-    const orgId = user.active_organization_id || user.organization_id ||
-      user.data?.active_organization_id || user.data?.organization_id || null;
 
     // Service role bypasses Game RLS so a timekeeper-only user can read their assigned games
     const allGames = await base44.asServiceRole.entities.Game.list('-game_date', 500);
 
     const myGames = (allGames || [])
       .filter((g) => (g.timekeeper_email || '').toLowerCase() === email)
-      .filter((g) => !orgId || g.organization_id === orgId)
       .map((g) => ({
         id: g.id,
         home_team_id: g.home_team_id,
