@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 import TimerPanel from "@/components/TimerPanel";
+import ScoreboardInsights from "@/components/ScoreboardInsights";
 
 export default function PublicGameView() {
   const [darkMode, setDarkMode] = useState(false);
@@ -215,6 +216,8 @@ export default function PublicGameView() {
                 <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide">AWAY</p>
               </div>
             </div>
+
+            <ScoreboardInsights game={game} players={players} playerStats={playerStats} />
 
             <TimerPanel gameId={gameId} game={game} variant="scoreboard" />
 

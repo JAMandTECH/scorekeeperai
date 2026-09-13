@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import OverlayTimerBits from "@/components/OverlayTimerBits";
+import OverlayInsights from "@/components/OverlayInsights";
+import { useGameInsights } from "@/lib/useGameInsights";
 
 /**
  * Reusable live scoreboard overlay.
@@ -15,6 +17,7 @@ import OverlayTimerBits from "@/components/OverlayTimerBits";
 export default function ScoreOverlay({ game: initialGame, teams: teamsMap, variant = "in-app", position = "bottom" }) {
   const [game, setGame] = useState(initialGame);
   const [teams, setTeams] = useState(teamsMap || {});
+  const insights = useGameInsights(game?.id, game);
 
   // Keep local state in sync if parent passes updated score fields (live scoring pages
   // pass an enriched game object with current local scores; the ID stays constant but
@@ -83,7 +86,7 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
   const homeScore = isBasketball ? (game.home_score ?? 0) : (homeSetsWon ?? 0);
   const awayScore = isBasketball ? (game.away_score ?? 0) : (awaySetsWon ?? 0);
 
-  const TeamCell = ({ team, score, align }) => {
+  const TeamCell = ({ team, score, align, insights: teamInsights }) => {
     if (!team) {
       return (
         <div className={`flex items-center gap-3 ${align === "right" ? "flex-row-reverse" : ""}`}>
@@ -104,6 +107,7 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
           <div className="text-white font-heading font-bold text-sm sm:text-base lg:text-lg truncate max-w-[140px] sm:max-w-[200px]">
             {team.name}
           </div>
+          {teamInsights && <OverlayInsights {...teamInsights} align={align} />}
         </div>
       </div>
     );
@@ -129,7 +133,7 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
         >
           {/* Home */}
           <div className="flex items-center gap-3">
-            <TeamCell team={homeTeam} align="left" />
+            <TeamCell team={homeTeam} align="left" insights={isBasketball ? insights.home : null} />
             <ScoreNumber value={homeScore} />
           </div>
 
@@ -151,7 +155,7 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
           {/* Away */}
           <div className="flex items-center gap-3">
             <ScoreNumber value={awayScore} />
-            <TeamCell team={awayTeam} align="right" />
+            <TeamCell team={awayTeam} align="right" insights={isBasketball ? insights.away : null} />
           </div>
         </div>
       </div>
@@ -171,7 +175,7 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
       >
         {/* Home side */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          <TeamCell team={homeTeam} align="left" />
+          <TeamCell team={homeTeam} align="left" insights={isBasketball ? insights.home : null} />
           <ScoreNumber value={homeScore} />
         </div>
 
@@ -193,7 +197,7 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
         {/* Away side */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 justify-end">
           <ScoreNumber value={awayScore} />
-          <TeamCell team={awayTeam} align="right" />
+          <TeamCell team={awayTeam} align="right" insights={isBasketball ? insights.away : null} />
         </div>
       </div>
     </div>
