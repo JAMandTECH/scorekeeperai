@@ -166,7 +166,7 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
     return (
       <div
         className="relative flex items-center gap-3 sm:gap-4 px-3 sm:px-5 py-2.5 sm:py-3 flex-1 min-w-0"
-        style={{ background: side === "home" ? "#1A1C1E" : "#16191B" }}
+        style={{ background: "#1A1A1A" }}
       >
         {hasPossession && (
           <span
@@ -192,7 +192,7 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
           )}
           <div className={`min-w-0 ${isRight ? "text-right" : ""}`}>
             <span
-              className="inline-block text-[8px] sm:text-[9px] font-bold tracking-widest px-1.5 py-0.5 mb-0.5"
+              className="inline-block text-[8px] sm:text-[9px] font-bold tracking-widest px-2 py-0.5 mb-0.5 rounded-full"
               style={{ background: "#2A2D30", color: "#9CA3AF" }}
             >
               {side === "home" ? "HOME" : "AWAY"}
@@ -218,21 +218,21 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
       <div className="flex items-stretch w-full" style={{ background: "#0E0F11" }}>
         <SplitTeamCell team={homeTeam} align="left" score={homeScore} insights={isBasketball ? insights.home : null} side="home" hasPossession={possessionHome} />
 
-        {/* Center seam */}
+        {/* Center column */}
         <div
-          className="flex flex-col items-center justify-center gap-1 px-3 sm:px-5 py-2 flex-shrink-0"
-          style={{ background: "#4ADE80", minWidth: 96 }}
+          className="flex flex-col items-center justify-center gap-1.5 px-4 sm:px-6 py-2 flex-shrink-0"
+          style={{ background: "#4ADE80", minWidth: 160, flex: "0 0 160px" }}
         >
           <div className="flex items-center gap-1.5">
             <span
-              className="text-[8px] sm:text-[9px] font-black tracking-widest px-1.5 py-0.5"
-              style={{ background: "rgba(0,0,0,0.25)", color: "#0E0F11" }}
+              className="text-[8px] sm:text-[9px] font-black tracking-widest px-2 py-0.5 rounded-full"
+              style={{ background: "#065F46", color: "#FFFFFF" }}
             >
               {game.status === "completed" ? "FINAL" : "● LIVE"}
             </span>
             <span
-              className="text-[8px] sm:text-[9px] font-black tracking-widest px-1.5 py-0.5"
-              style={{ background: "rgba(0,0,0,0.25)", color: "#0E0F11" }}
+              className="text-[8px] sm:text-[9px] font-black tracking-widest px-2 py-0.5 rounded-full"
+              style={{ background: "#065F46", color: "#FFFFFF" }}
             >
               {periodLabel}
             </span>
