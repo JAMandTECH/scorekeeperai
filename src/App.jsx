@@ -16,6 +16,8 @@ import WidgetStandings from './pages/WidgetStandings';
 import StreamOverlay from './pages/StreamOverlay';
 import PastSeasons from './pages/PastSeasons';
 import SeasonManagerPage from './pages/SeasonManager';
+import TimekeeperPage from './pages/Timekeeper';
+import TimekeepersPage from './pages/Timekeepers';
 import { StatsRefreshProvider } from '@/lib/StatsRefreshContext';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -65,6 +67,8 @@ const AuthenticatedApp = () => {
         <Route path="/overlay/:gameId" element={<StreamOverlay />} />
         <Route path="/PastSeasons" element={<PastSeasons />} />
         <Route path="/SeasonManager" element={<SeasonManagerPage />} />
+        <Route path="/Timekeeper" element={<TimekeeperPage />} />
+        <Route path="/Timekeepers" element={<TimekeepersPage />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </LayoutWrapper>

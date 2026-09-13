@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles, Clock, UserPlus, UserCog, FileEdit, UserCheck, CreditCard, ChevronDown, ChevronRight, Layers, Gamepad2, UsersRound, FileText, Archive, CalendarCheck } from "lucide-react";
+import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles, Clock, UserPlus, UserCog, FileEdit, UserCheck, CreditCard, ChevronDown, ChevronRight, Layers, Gamepad2, UsersRound, FileText, Archive, CalendarCheck, Timer as TimerIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePermissions } from "@/components/hooks/usePermissions";
@@ -63,6 +63,7 @@ export default function AdminSidebar({
         items: [
           { title: "Games", url: createPageUrl("Games"), icon: Calendar, permission: "manage_games" },
           { title: "Live Scoring", url: createPageUrl("LiveScoring"), icon: PlayCircle, permission: "live_scoring" },
+          { title: "Timekeeper", url: createPageUrl("Timekeeper"), icon: TimerIcon },
         ]
       },
       {
@@ -71,6 +72,7 @@ export default function AdminSidebar({
         icon: UsersRound,
         items: [
           { title: "Scorekeepers", url: createPageUrl("Scorekeepers"), icon: Shield, permission: "manage_scorekeepers" },
+          { title: "Timekeepers", url: createPageUrl("Timekeepers"), icon: TimerIcon, permission: "manage_scorekeepers" },
         ]
       },
       {
@@ -135,6 +137,11 @@ export default function AdminSidebar({
 
   if (user && (isAdmin || isSuperAdmin) && !navStructure.main.some((item) => item.title === "Statistics")) {
     navStructure.main.push({ title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 });
+  }
+
+  // Surface Timekeeper for timekeeper-only (non-admin) users so they can reach /Timekeeper
+  if (user?.is_timekeeper && !isAdmin && !isSuperAdmin && !navStructure.main.some((item) => item.title === "Timekeeper")) {
+    navStructure.main.push({ title: "Timekeeper", url: createPageUrl("Timekeeper"), icon: TimerIcon });
   }
 
   return (

@@ -12,6 +12,11 @@
       "default": false,
       "description": "Whether this user has scorekeeper privileges for live scoring"
     },
+    "is_timekeeper": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this user has timekeeper privileges for running the game and shot clocks"
+    },
     "organization_id": {
       "type": "string",
       "description": "Primary organization this user belongs to"

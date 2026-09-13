@@ -78,6 +78,10 @@
     "away_statistician_email": {
       "type": "string"
     },
+    "timekeeper_email": {
+      "type": "string",
+      "description": "Email of the assigned timekeeper who runs the game and shot clocks"
+    },
     "recurring_series_id": {
       "type": "string"
     },
