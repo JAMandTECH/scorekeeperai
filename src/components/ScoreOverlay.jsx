@@ -168,17 +168,6 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
         className="relative flex items-center gap-3 sm:gap-4 px-3 sm:px-5 py-2.5 sm:py-3 flex-1 min-w-0"
         style={{ background: "#1A1A1A" }}
       >
-        {hasPossession && (
-          <span
-            className="absolute inset-y-0 pointer-events-none"
-            style={{
-              [isRight ? "right" : "left"]: 0,
-              width: 3,
-              background: "#4ADE80",
-              boxShadow: "0 0 12px 2px rgba(74,222,128,0.7)",
-            }}
-          />
-        )}
         <div className={`flex items-center gap-3 min-w-0 ${isRight ? "flex-row-reverse" : ""}`}>
           {team ? (
             <Avatar className="w-10 h-10 sm:w-12 sm:h-12 rounded-none border border-white/15 flex-shrink-0">
@@ -204,10 +193,21 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
           </div>
         </div>
         <div
-          className={`font-display font-black text-white tabular-nums leading-none text-3xl sm:text-4xl lg:text-5xl flex-shrink-0 ${isRight ? "order-first" : ""}`}
-          style={hasPossession ? { textShadow: "0 0 16px rgba(74,222,128,0.6)" } : undefined}
+          className={`relative font-display font-black text-white tabular-nums leading-none text-3xl sm:text-4xl lg:text-5xl flex-shrink-0 ${isRight ? "order-first" : ""}`}
         >
-          {score}
+          {hasPossession && (
+            <span
+              aria-hidden
+              className="absolute inset-0 -m-2 pointer-events-none rounded-full"
+              style={{
+                background: "radial-gradient(circle, rgba(118,229,154,0.55) 0%, rgba(118,229,154,0) 70%)",
+                boxShadow: "0 0 24px 6px rgba(118,229,154,0.45)",
+              }}
+            />
+          )}
+          <span className="relative" style={hasPossession ? { textShadow: "0 0 14px rgba(118,229,154,0.8)" } : undefined}>
+            {score}
+          </span>
         </div>
       </div>
     );
@@ -221,7 +221,7 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
         {/* Center column */}
         <div
           className="flex flex-col items-center justify-center gap-1.5 px-4 sm:px-6 py-2 flex-shrink-0"
-          style={{ background: "#4ADE80", minWidth: 160, flex: "0 0 160px" }}
+          style={{ background: "#76E59A", minWidth: 160, flex: "0 0 160px" }}
         >
           <div className="flex items-center gap-1.5">
             <span
@@ -232,7 +232,7 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
             </span>
             <span
               className="text-[8px] sm:text-[9px] font-black tracking-widest px-2 py-0.5 rounded-full"
-              style={{ background: "#065F46", color: "#FFFFFF" }}
+              style={{ background: "#5D5D5D", color: "#FFFFFF" }}
             >
               {periodLabel}
             </span>
