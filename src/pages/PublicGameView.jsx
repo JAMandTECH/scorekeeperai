@@ -117,6 +117,17 @@ export default function PublicGameView() {
 
   const isLive = game.status === 'in_progress';
 
+  const homeScore = game.sport === 'volleyball'
+    ? ((game.quarter_scores && game.quarter_scores.length > 0)
+        ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0)
+        : (game.home_score ?? 0))
+    : (game.home_score ?? 0);
+  const awayScore = game.sport === 'volleyball'
+    ? ((game.quarter_scores && game.quarter_scores.length > 0)
+        ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0)
+        : (game.away_score ?? 0))
+    : (game.away_score ?? 0);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
@@ -157,111 +168,124 @@ export default function PublicGameView() {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Main Scoreboard */}
-        <Card ref={scoreboardRef} className={`mb-8 ${isLive ? 'border-primary' : ''} ${scoreboardFullscreen ? 'overflow-auto rounded-none' : 'overflow-hidden'}`} style={scoreboardFullscreen ? { background: 'hsl(var(--background))' } : { display: hideScoreboard ? 'none' : 'block' }}>
+        <Card ref={scoreboardRef} className={`mb-8 rounded-none border ${scoreboardFullscreen ? 'overflow-auto' : 'overflow-hidden'}`} style={{ background: '#0E0F11', display: hideScoreboard ? 'none' : 'block' }}>
           <div style={scoreboardFullscreen ? { zoom: scoreboardScale, width: `${scoreboardDesignWidth}px`, margin: '0 auto' } : undefined}>
-            <CardHeader className="bg-muted border-b border-border py-4">
+            <CardHeader className="py-4 border-b" style={{ background: '#14181C', borderColor: '#2A2D31' }}>
               <div className="flex items-center justify-between">
-                <Badge variant="outline" className="font-medium uppercase border-border text-muted-foreground">
+                <Badge variant="outline" className="font-medium uppercase" style={{ borderColor: '#2A2D31', color: '#9CA3AF' }}>
                   {game.sport}
                 </Badge>
-                <span className="font-heading font-bold text-foreground">{quarterLabel}</span>
+                <span className="font-heading font-bold text-white">{quarterLabel}</span>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className={`font-medium ${isLive ? 'border-primary text-primary' : 'border-border text-muted-foreground'}`}>
-                    {game.status === 'completed' ? 'FINAL' : game.status === 'in_progress' ? 'LIVE' : 'SCHEDULED'}
-                  </Badge>
-                  <Button variant="ghost" size="icon" onClick={toggleScoreboardFullscreen} className="h-7 w-7">
-                    {scoreboardFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+                  {isLive ? (
+                    <span className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-heading font-bold uppercase tracking-widest" style={{ background: 'rgba(74,222,128,0.12)', color: '#4ADE80' }}>
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#4ADE80' }} />
+                      LIVE
+                    </span>
+                  ) : (
+                    <Badge variant="outline" className="font-medium" style={{ borderColor: '#2A2D31', color: '#9CA3AF' }}>
+                      {game.status === 'completed' ? 'FINAL' : 'SCHEDULED'}
+                    </Badge>
+                  )}
+                  <Button variant="ghost" size="icon" onClick={toggleScoreboardFullscreen} className="h-7 w-7 hover:bg-white/5">
+                    {scoreboardFullscreen ? <Minimize className="w-4 h-4 text-white" /> : <Maximize className="w-4 h-4 text-white" />}
                   </Button>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="p-8">
-              {/* Game Clock — above score */}
-              {timer && (
-                <div className="text-center mb-6">
-                  <p className="text-[11px] font-heading font-bold uppercase tracking-widest text-muted-foreground mb-1">
-                    Game Clock
-                  </p>
-                  <div className={`font-heading font-bold tabular-nums leading-none text-6xl ${gameClockRunning ? 'text-primary' : 'text-foreground'}`}>
-                    {formatGameClock(gameClockMs)}
-                  </div>
-                </div>
-              )}
+            <CardContent className="dark p-0">
+              {/* Split panel scoreboard */}
+              <div className="relative grid grid-cols-[1fr_200px_1fr]" style={{ background: '#0E0F11' }}>
+                {/* Possession glow */}
+                {timer?.possession === 'home' && (
+                  <div className="absolute left-0 top-0 bottom-0 pointer-events-none" style={{ width: 'calc((100% - 200px) / 2)', background: 'linear-gradient(90deg, rgba(74,222,128,0.10), transparent)' }} aria-hidden />
+                )}
+                {timer?.possession === 'away' && (
+                  <div className="absolute right-0 top-0 bottom-0 pointer-events-none" style={{ width: 'calc((100% - 200px) / 2)', background: 'linear-gradient(270deg, rgba(74,222,128,0.10), transparent)' }} aria-hidden />
+                )}
 
-              <div className="flex items-center justify-between">
-                {/* Home Team */}
-                <div className="flex-1 text-center">
-                  <Avatar className="w-24 h-24 mx-auto mb-4 border border-border">
+                {/* Home half */}
+                <div className="relative flex flex-col items-center justify-center py-10 px-6" style={{ background: '#1A1C1E' }}>
+                  <Avatar className="w-20 h-20 mb-4" style={{ border: '1px solid rgba(255,255,255,0.10)' }}>
                     <AvatarImage src={homeTeam?.logo_url} />
-                    <AvatarFallback className="bg-secondary text-foreground text-2xl font-heading font-bold">
+                    <AvatarFallback className="text-2xl font-heading font-bold" style={{ background: '#2A2D31', color: '#fff' }}>
                       {homeTeam?.name?.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <h3 className="text-xl font-heading font-bold text-foreground mb-1 flex items-center justify-center gap-2">
-                    {timer?.possession === 'home' && <span className="w-2.5 h-2.5 rounded-full bg-primary inline-block" />}
+                  <h3 className="text-lg font-heading font-bold text-white mb-2 text-center flex items-center gap-2">
+                    {timer?.possession === 'home' && <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }} />}
                     {homeTeam?.name || 'Home Team'}
                   </h3>
-                  <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide">HOME</p>
+                  <span className="text-[10px] font-heading font-bold uppercase tracking-widest px-3 py-1 mb-8" style={{ background: '#2A2D31', color: '#9CA3AF' }}>HOME</span>
+                  <div className="font-heading font-bold tabular-nums leading-none text-white" style={{ fontSize: '7rem' }}>
+                    {homeScore}
+                  </div>
                 </div>
 
-                {/* Score */}
-                <div className="flex flex-col items-center mx-8">
-                  <div className="text-7xl font-heading font-bold text-foreground tracking-tight tabular-nums">
-                    {game.sport === 'volleyball'
-                      ? ((game.quarter_scores && game.quarter_scores.length > 0)
-                          ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0)
-                          : (game.home_score ?? 0))
-                      : (game.home_score ?? 0)}
-                    <span className="text-muted-foreground">-</span>
-                    {game.sport === 'volleyball'
-                      ? ((game.quarter_scores && game.quarter_scores.length > 0)
-                          ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0)
-                          : (game.away_score ?? 0))
-                      : (game.away_score ?? 0)}
-                  </div>
-                  {game.quarter_scores && game.quarter_scores.length > 0 && (
-                    <div className="flex gap-2 mt-4">
-                      {game.quarter_scores.map((q, idx) => (
-                        <Badge key={idx} variant="outline" className="border-border text-muted-foreground text-xs font-medium">
-                          {game.sport === 'basketball' ? `Q${idx + 1}` : `Set ${idx + 1}`}: {q.home}-{q.away}
-                        </Badge>
-                      ))}
-                    </div>
+                {/* Center clock column */}
+                <div className="relative flex flex-col items-center justify-center px-4 py-8" style={{ background: '#0E0F11', borderLeft: '1px solid #4ADE80', borderRight: '1px solid #4ADE80' }}>
+                  {timer ? (
+                    <>
+                      <p className="text-[10px] font-heading font-bold uppercase tracking-widest mb-1" style={{ color: '#9CA3AF' }}>Game Clock</p>
+                      <div className={`font-heading font-bold tabular-nums leading-none mb-4 ${gameClockRunning ? 'text-primary' : 'text-white'}`} style={{ fontSize: '2.5rem' }}>
+                        {formatGameClock(gameClockMs)}
+                      </div>
+                      <span className="px-3 py-1 text-[10px] font-heading font-bold uppercase tracking-widest mb-4 border" style={{ borderColor: '#4ADE80', color: '#4ADE80', background: 'rgba(74,222,128,0.08)' }}>
+                        {quarterLabel}
+                      </span>
+                      {(timer.shot_clock_length_seconds || 0) > 0 && (
+                        <>
+                          <p className="text-[10px] font-heading font-bold uppercase tracking-widest mb-1" style={{ color: '#9CA3AF' }}>Shot Clock</p>
+                          <div className={`font-heading font-bold tabular-nums leading-none ${shotClockRunning ? 'text-destructive' : 'text-white'}`} style={{ fontSize: '2rem' }}>
+                            {formatShotClock(shotClockMs)}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <span className="px-3 py-1 text-[10px] font-heading font-bold uppercase tracking-widest border text-center" style={{ borderColor: '#4ADE80', color: '#4ADE80', background: 'rgba(74,222,128,0.08)' }}>
+                      {quarterLabel}
+                    </span>
                   )}
                 </div>
 
-                {/* Away Team */}
-                <div className="flex-1 text-center">
-                  <Avatar className="w-24 h-24 mx-auto mb-4 border border-border">
+                {/* Away half */}
+                <div className="relative flex flex-col items-center justify-center py-10 px-6" style={{ background: '#16191B' }}>
+                  <Avatar className="w-20 h-20 mb-4" style={{ border: '1px solid rgba(255,255,255,0.10)' }}>
                     <AvatarImage src={awayTeam?.logo_url} />
-                    <AvatarFallback className="bg-secondary text-foreground text-2xl font-heading font-bold">
+                    <AvatarFallback className="text-2xl font-heading font-bold" style={{ background: '#2A2D31', color: '#fff' }}>
                       {awayTeam?.name?.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <h3 className="text-xl font-heading font-bold text-foreground mb-1 flex items-center justify-center gap-2">
-                    {timer?.possession === 'away' && <span className="w-2.5 h-2.5 rounded-full bg-primary inline-block" />}
+                  <h3 className="text-lg font-heading font-bold text-white mb-2 text-center flex items-center gap-2">
+                    {timer?.possession === 'away' && <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }} />}
                     {awayTeam?.name || 'Away Team'}
                   </h3>
-                  <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide">AWAY</p>
+                  <span className="text-[10px] font-heading font-bold uppercase tracking-widest px-3 py-1 mb-8" style={{ background: '#2A2D31', color: '#9CA3AF' }}>AWAY</span>
+                  <div className="font-heading font-bold tabular-nums leading-none text-white" style={{ fontSize: '7rem' }}>
+                    {awayScore}
+                  </div>
                 </div>
               </div>
 
-              {/* Shot Clock — below score */}
-              {timer && (timer.shot_clock_length_seconds || 0) > 0 && (
-                <div className="text-center mt-6">
-                  <p className="text-[11px] font-heading font-bold uppercase tracking-widest text-muted-foreground mb-1">
-                    Shot Clock
-                  </p>
-                  <div className={`font-heading font-bold tabular-nums leading-none text-5xl ${shotClockRunning ? 'text-destructive' : 'text-foreground'}`}>
-                    {formatShotClock(shotClockMs)}
-                  </div>
+              {/* Quarter scores */}
+              {game.quarter_scores && game.quarter_scores.length > 0 && (
+                <div className="flex justify-center gap-2 py-3 border-t flex-wrap" style={{ background: '#0E0F11', borderColor: '#2A2D31' }}>
+                  {game.quarter_scores.map((q, idx) => (
+                    <Badge key={idx} variant="outline" className="text-xs font-medium" style={{ borderColor: '#2A2D31', color: '#9CA3AF' }}>
+                      {game.sport === 'basketball' ? `Q${idx + 1}` : `Set ${idx + 1}`}: {q.home}-{q.away}
+                    </Badge>
+                  ))}
                 </div>
               )}
 
-              <ScoreboardInsights game={game} players={players} playerStats={playerStats} />
+              {/* Insights footer */}
+              <div className="border-t" style={{ background: '#0E0F11', borderColor: '#2A2D31' }}>
+                <ScoreboardInsights game={game} players={players} playerStats={playerStats} />
+              </div>
 
-              {/* Game Info */}
-              <div className="flex justify-center gap-8 mt-6 text-sm text-muted-foreground">
+              {/* Game info */}
+              <div className="flex justify-center gap-8 py-3 text-sm border-t flex-wrap" style={{ background: '#0E0F11', borderColor: '#2A2D31', color: '#9CA3AF' }}>
                 {game.location && <span>{game.location}</span>}
                 {game.court_number && <span>Court {game.court_number}</span>}
                 <span>{new Date(game.game_date).toLocaleDateString()}</span>
