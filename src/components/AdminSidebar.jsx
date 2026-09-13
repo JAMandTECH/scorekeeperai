@@ -139,6 +139,11 @@ export default function AdminSidebar({
     navStructure.main.push({ title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 });
   }
 
+  // Surface Timekeeper for timekeeper-only (non-admin) users so they can reach /Timekeeper
+  if (user?.is_timekeeper && !isAdmin && !isSuperAdmin && !navStructure.main.some((item) => item.title === "Timekeeper")) {
+    navStructure.main.push({ title: "Timekeeper", url: createPageUrl("Timekeeper"), icon: TimerIcon });
+  }
+
   return (
     <>
       <aside className={`
