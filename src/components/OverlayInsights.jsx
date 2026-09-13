@@ -13,10 +13,10 @@ export default function OverlayInsights({ fouls, timeouts, inPenalty, topScorer,
   return (
     <div className={`flex flex-col gap-0.5 leading-tight ${isRight ? "items-end" : "items-start"}`}>
       <span className={`text-[9px] sm:text-[10px] lg:text-xs font-bold ${inPenalty ? "text-red-400" : "text-white/60"}`}>
-        Fouls: {fouls}{inPenalty && <AlertTriangle className="inline w-2.5 h-2.5 ml-0.5" />} · TO: {timeouts}
+        Fouls {fouls}{inPenalty && <AlertTriangle className="inline w-2.5 h-2.5 ml-0.5" />} / TO {timeouts}
       </span>
-      <span className="text-white/80 text-[9px] sm:text-[10px] lg:text-xs font-bold truncate max-w-[120px]">
-        {topScorer ? `${playerLabel(topScorer)} ${topScorer.points}pts` : "Top: —"}
+      <span className="text-white/80 text-[9px] sm:text-[10px] lg:text-xs font-bold truncate max-w-[140px]">
+        {topScorer ? `Top Scorer ${playerLabel(topScorer)} ${topScorer.points}pts` : "Top Scorer —"}
       </span>
       <span className="text-amber-400 text-[9px] sm:text-[10px] lg:text-xs font-bold flex items-center gap-0.5">
         <AlertTriangle className="w-2.5 h-2.5" />
