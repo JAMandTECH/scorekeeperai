@@ -311,6 +311,8 @@ export default function Timekeeper() {
                         periodLabel={timerHook.periodLabel}
                         onPatch={patchTimer}
                         busy={busy}
+                        homeTeamName={getTeamName(selectedGame?.home_team_id)}
+                        awayTeamName={getTeamName(selectedGame?.away_team_id)}
                       />
                       <TimerSetupCard
                         game={selectedGame}

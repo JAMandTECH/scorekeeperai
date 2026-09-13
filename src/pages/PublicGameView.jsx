@@ -11,18 +11,21 @@ import { ArrowLeft, PlayCircle, Video, RefreshCw, Eye, EyeOff, Maximize, Minimiz
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
-import TimerPanel from "@/components/TimerPanel";
 import ScoreboardInsights from "@/components/ScoreboardInsights";
 import { useFullscreen } from "@/lib/useFullscreen";
+import { useGameTimer } from "@/lib/useGameTimer";
+import { formatGameClock, formatShotClock } from "@/lib/timerLogic";
 
 export default function PublicGameView() {
   const [darkMode, setDarkMode] = useState(false);
   const [hideScoreboard, setHideScoreboard] = useState(false);
-  const { ref: scoreboardRef, isFullscreen: scoreboardFullscreen, toggle: toggleScoreboardFullscreen } = useFullscreen();
+  const { ref: scoreboardRef, isFullscreen: scoreboardFullscreen, toggle: toggleScoreboardFullscreen, scale: scoreboardScale } = useFullscreen();
   
   // Get game_id from URL
   const urlParams = new URLSearchParams(window.location.search);
   const gameId = urlParams.get('game_id');
+
+  const { timer, gameClockMs, shotClockMs, gameClockRunning, shotClockRunning } = useGameTimer(gameId);
 
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -155,86 +158,116 @@ export default function PublicGameView() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Main Scoreboard */}
         <Card ref={scoreboardRef} className={`mb-8 ${isLive ? 'border-primary' : ''} ${scoreboardFullscreen ? 'overflow-auto rounded-none' : 'overflow-hidden'}`} style={scoreboardFullscreen ? { background: 'hsl(var(--background))' } : { display: hideScoreboard ? 'none' : 'block' }}>
-          <CardHeader className="bg-muted border-b border-border py-4">
-            <div className="flex items-center justify-between">
-              <Badge variant="outline" className="font-medium uppercase border-border text-muted-foreground">
-                {game.sport}
-              </Badge>
-              <span className="font-heading font-bold text-foreground">{quarterLabel}</span>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className={`font-medium ${isLive ? 'border-primary text-primary' : 'border-border text-muted-foreground'}`}>
-                  {game.status === 'completed' ? 'FINAL' : game.status === 'in_progress' ? 'LIVE' : 'SCHEDULED'}
+          <div style={scoreboardFullscreen ? { zoom: scoreboardScale } : undefined}>
+            <CardHeader className="bg-muted border-b border-border py-4">
+              <div className="flex items-center justify-between">
+                <Badge variant="outline" className="font-medium uppercase border-border text-muted-foreground">
+                  {game.sport}
                 </Badge>
-                <Button variant="ghost" size="icon" onClick={toggleScoreboardFullscreen} className="h-7 w-7">
-                  {scoreboardFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-8">
-            <TimerPanel gameId={gameId} game={game} variant="scoreboard" />
-
-            <div className="flex items-center justify-between">
-              {/* Home Team */}
-              <div className="flex-1 text-center">
-                <Avatar className="w-24 h-24 mx-auto mb-4 border border-border">
-                  <AvatarImage src={homeTeam?.logo_url} />
-                  <AvatarFallback className="bg-secondary text-foreground text-2xl font-heading font-bold">
-                    {homeTeam?.name?.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <h3 className="text-xl font-heading font-bold text-foreground mb-1">{homeTeam?.name || 'Home Team'}</h3>
-                <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide">HOME</p>
-              </div>
-
-              {/* Score */}
-              <div className="flex flex-col items-center mx-8">
-                <div className="text-7xl font-heading font-bold text-foreground tracking-tight tabular-nums">
-                  {game.sport === 'volleyball'
-                    ? ((game.quarter_scores && game.quarter_scores.length > 0)
-                        ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0)
-                        : (game.home_score ?? 0))
-                    : (game.home_score ?? 0)}
-                  <span className="text-muted-foreground">-</span>
-                  {game.sport === 'volleyball'
-                    ? ((game.quarter_scores && game.quarter_scores.length > 0)
-                        ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0)
-                        : (game.away_score ?? 0))
-                    : (game.away_score ?? 0)}
+                <span className="font-heading font-bold text-foreground">{quarterLabel}</span>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className={`font-medium ${isLive ? 'border-primary text-primary' : 'border-border text-muted-foreground'}`}>
+                    {game.status === 'completed' ? 'FINAL' : game.status === 'in_progress' ? 'LIVE' : 'SCHEDULED'}
+                  </Badge>
+                  <Button variant="ghost" size="icon" onClick={toggleScoreboardFullscreen} className="h-7 w-7">
+                    {scoreboardFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+                  </Button>
                 </div>
-                {game.quarter_scores && game.quarter_scores.length > 0 && (
-                  <div className="flex gap-2 mt-4">
-                    {game.quarter_scores.map((q, idx) => (
-                      <Badge key={idx} variant="outline" className="border-border text-muted-foreground text-xs font-medium">
-                        {game.sport === 'basketball' ? `Q${idx + 1}` : `Set ${idx + 1}`}: {q.home}-{q.away}
-                      </Badge>
-                    ))}
+              </div>
+            </CardHeader>
+            <CardContent className="p-8">
+              {/* Game Clock — above score */}
+              {timer && (
+                <div className="text-center mb-6">
+                  <p className="text-[11px] font-heading font-bold uppercase tracking-widest text-muted-foreground mb-1">
+                    Game Clock
+                  </p>
+                  <div className={`font-heading font-bold tabular-nums leading-none text-6xl ${gameClockRunning ? 'text-primary' : 'text-foreground'}`}>
+                    {formatGameClock(gameClockMs)}
                   </div>
-                )}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
+                {/* Home Team */}
+                <div className="flex-1 text-center">
+                  <Avatar className="w-24 h-24 mx-auto mb-4 border border-border">
+                    <AvatarImage src={homeTeam?.logo_url} />
+                    <AvatarFallback className="bg-secondary text-foreground text-2xl font-heading font-bold">
+                      {homeTeam?.name?.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h3 className="text-xl font-heading font-bold text-foreground mb-1 flex items-center justify-center gap-2">
+                    {timer?.possession === 'home' && <span className="w-2.5 h-2.5 rounded-full bg-primary inline-block" />}
+                    {homeTeam?.name || 'Home Team'}
+                  </h3>
+                  <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide">HOME</p>
+                </div>
+
+                {/* Score */}
+                <div className="flex flex-col items-center mx-8">
+                  <div className="text-7xl font-heading font-bold text-foreground tracking-tight tabular-nums">
+                    {game.sport === 'volleyball'
+                      ? ((game.quarter_scores && game.quarter_scores.length > 0)
+                          ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.home || 0), 0)
+                          : (game.home_score ?? 0))
+                      : (game.home_score ?? 0)}
+                    <span className="text-muted-foreground">-</span>
+                    {game.sport === 'volleyball'
+                      ? ((game.quarter_scores && game.quarter_scores.length > 0)
+                          ? (game.quarter_scores || []).reduce((sum, s) => sum + (s.away || 0), 0)
+                          : (game.away_score ?? 0))
+                      : (game.away_score ?? 0)}
+                  </div>
+                  {game.quarter_scores && game.quarter_scores.length > 0 && (
+                    <div className="flex gap-2 mt-4">
+                      {game.quarter_scores.map((q, idx) => (
+                        <Badge key={idx} variant="outline" className="border-border text-muted-foreground text-xs font-medium">
+                          {game.sport === 'basketball' ? `Q${idx + 1}` : `Set ${idx + 1}`}: {q.home}-{q.away}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Away Team */}
+                <div className="flex-1 text-center">
+                  <Avatar className="w-24 h-24 mx-auto mb-4 border border-border">
+                    <AvatarImage src={awayTeam?.logo_url} />
+                    <AvatarFallback className="bg-secondary text-foreground text-2xl font-heading font-bold">
+                      {awayTeam?.name?.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h3 className="text-xl font-heading font-bold text-foreground mb-1 flex items-center justify-center gap-2">
+                    {timer?.possession === 'away' && <span className="w-2.5 h-2.5 rounded-full bg-primary inline-block" />}
+                    {awayTeam?.name || 'Away Team'}
+                  </h3>
+                  <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide">AWAY</p>
+                </div>
               </div>
 
-              {/* Away Team */}
-              <div className="flex-1 text-center">
-                <Avatar className="w-24 h-24 mx-auto mb-4 border border-border">
-                  <AvatarImage src={awayTeam?.logo_url} />
-                  <AvatarFallback className="bg-secondary text-foreground text-2xl font-heading font-bold">
-                    {awayTeam?.name?.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <h3 className="text-xl font-heading font-bold text-foreground mb-1">{awayTeam?.name || 'Away Team'}</h3>
-                <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide">AWAY</p>
+              {/* Shot Clock — below score */}
+              {timer && (timer.shot_clock_length_seconds || 0) > 0 && (
+                <div className="text-center mt-6">
+                  <p className="text-[11px] font-heading font-bold uppercase tracking-widest text-muted-foreground mb-1">
+                    Shot Clock
+                  </p>
+                  <div className={`font-heading font-bold tabular-nums leading-none text-5xl ${shotClockRunning ? 'text-destructive' : 'text-foreground'}`}>
+                    {formatShotClock(shotClockMs)}
+                  </div>
+                </div>
+              )}
+
+              <ScoreboardInsights game={game} players={players} playerStats={playerStats} />
+
+              {/* Game Info */}
+              <div className="flex justify-center gap-8 mt-6 text-sm text-muted-foreground">
+                {game.location && <span>{game.location}</span>}
+                {game.court_number && <span>Court {game.court_number}</span>}
+                <span>{new Date(game.game_date).toLocaleDateString()}</span>
               </div>
-            </div>
-
-            <ScoreboardInsights game={game} players={players} playerStats={playerStats} />
-
-            {/* Game Info */}
-            <div className="flex justify-center gap-8 mt-6 text-sm text-muted-foreground">
-              {game.location && <span>{game.location}</span>}
-              {game.court_number && <span>Court {game.court_number}</span>}
-              <span>{new Date(game.game_date).toLocaleDateString()}</span>
-            </div>
-          </CardContent>
+            </CardContent>
+          </div>
         </Card>
 
         {/* Live Stream */}

@@ -77,6 +77,14 @@
       "type": "string",
       "description": "ISO timestamp at which the running shot clock will reach zero (null when paused)"
     },
+    "possession": {
+      "type": "string",
+      "enum": [
+        "home",
+        "away"
+      ],
+      "description": "Which team currently has ball possession (drives the scoreboard possession indicator)"
+    },
     "last_updated_by": {
       "type": "string",
       "description": "Email of the user who last updated the timer"

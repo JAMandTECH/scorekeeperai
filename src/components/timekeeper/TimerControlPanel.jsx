@@ -30,6 +30,8 @@ export default function TimerControlPanel({
   periodLabel: pLabel,
   onPatch,
   busy,
+  homeTeamName = "Home",
+  awayTeamName = "Away",
 }) {
   const [adjustGame, setAdjustGame] = useState("");
   const [adjustShot, setAdjustShot] = useState("");
@@ -108,6 +110,7 @@ export default function TimerControlPanel({
       shot_clock_running: false,
       shot_clock_end_iso: null,
       shot_clock_remaining_ms: shotLenMs,
+      possession: null,
     });
     setResetTarget(null);
   };
@@ -251,6 +254,31 @@ export default function TimerControlPanel({
               />
               <Button onClick={adjustShotClock} variant="ghost" size="sm" className="font-medium">
                 Set time
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Ball Possession */}
+        {showShotClock && (
+          <div className="border-t border-border pt-6">
+            <p className="text-[11px] font-heading font-bold uppercase tracking-widest text-muted-foreground mb-3 text-center">
+              Ball Possession
+            </p>
+            <div className="flex items-center justify-center gap-2">
+              <Button
+                onClick={() => onPatch({ possession: "home" })}
+                variant={timer?.possession === "home" ? "default" : "outline"}
+                className="font-medium"
+              >
+                {homeTeamName} Ball
+              </Button>
+              <Button
+                onClick={() => onPatch({ possession: "away" })}
+                variant={timer?.possession === "away" ? "default" : "outline"}
+                className="font-medium"
+              >
+                {awayTeamName} Ball
               </Button>
             </div>
           </div>
