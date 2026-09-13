@@ -47,11 +47,13 @@ export function useGameInsights(gameId, game) {
     aggMap,
     home: {
       fouls: homeFouls,
+      timeouts: game?.home_timeouts ?? 5,
       inPenalty: isInPenalty(game, homeFouls),
       ...getTeamInsights(aggMap, players, game?.home_team_id, game),
     },
     away: {
       fouls: awayFouls,
+      timeouts: game?.away_timeouts ?? 5,
       inPenalty: isInPenalty(game, awayFouls),
       ...getTeamInsights(aggMap, players, game?.away_team_id, game),
     },

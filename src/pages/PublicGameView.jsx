@@ -7,16 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, PlayCircle, Video, RefreshCw, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, PlayCircle, Video, RefreshCw, Eye, EyeOff, Maximize, Minimize } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 import TimerPanel from "@/components/TimerPanel";
 import ScoreboardInsights from "@/components/ScoreboardInsights";
+import { useFullscreen } from "@/lib/useFullscreen";
 
 export default function PublicGameView() {
   const [darkMode, setDarkMode] = useState(false);
   const [hideScoreboard, setHideScoreboard] = useState(false);
+  const { ref: scoreboardRef, isFullscreen: scoreboardFullscreen, toggle: toggleScoreboardFullscreen } = useFullscreen();
   
   // Get game_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -152,16 +154,21 @@ export default function PublicGameView() {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Main Scoreboard */}
-        <Card className={`mb-8 overflow-hidden ${isLive ? 'border-primary' : ''}`} style={{ display: hideScoreboard ? 'none' : 'block' }}>
+        <Card ref={scoreboardRef} className={`mb-8 ${isLive ? 'border-primary' : ''} ${scoreboardFullscreen ? 'overflow-auto rounded-none' : 'overflow-hidden'}`} style={scoreboardFullscreen ? { background: 'hsl(var(--background))' } : { display: hideScoreboard ? 'none' : 'block' }}>
           <CardHeader className="bg-muted border-b border-border py-4">
             <div className="flex items-center justify-between">
               <Badge variant="outline" className="font-medium uppercase border-border text-muted-foreground">
                 {game.sport}
               </Badge>
               <span className="font-heading font-bold text-foreground">{quarterLabel}</span>
-              <Badge variant="outline" className={`font-medium ${isLive ? 'border-primary text-primary' : 'border-border text-muted-foreground'}`}>
-                {game.status === 'completed' ? 'FINAL' : game.status === 'in_progress' ? 'LIVE' : 'SCHEDULED'}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className={`font-medium ${isLive ? 'border-primary text-primary' : 'border-border text-muted-foreground'}`}>
+                  {game.status === 'completed' ? 'FINAL' : game.status === 'in_progress' ? 'LIVE' : 'SCHEDULED'}
+                </Badge>
+                <Button variant="ghost" size="icon" onClick={toggleScoreboardFullscreen} className="h-7 w-7">
+                  {scoreboardFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-8">

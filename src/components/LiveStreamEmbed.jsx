@@ -1,12 +1,15 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Video, ExternalLink, Eye, EyeOff } from "lucide-react";
+import { Video, ExternalLink, Eye, EyeOff, Maximize, Minimize } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import ScoreOverlay from "@/components/ScoreOverlay";
+import { useFullscreen } from "@/lib/useFullscreen";
 
 export default function LiveStreamEmbed({ streamUrl, gameTitle, game, showScoreOverlay = false, hideScoreOverlay = false, onToggleScoreOverlay, overlayPosition = "bottom" }) {
+  const { ref: streamRef, isFullscreen: streamFullscreen, toggle: toggleStreamFullscreen } = useFullscreen();
+
   if (!streamUrl) return null;
 
   // Convert various stream URLs to embeddable format
@@ -70,24 +73,29 @@ export default function LiveStreamEmbed({ streamUrl, gameTitle, game, showScoreO
             <Video className="w-5 h-5 animate-pulse" />
             Live Stream {gameTitle && `- ${gameTitle}`}
           </CardTitle>
-          {showScoreOverlay && onToggleScoreOverlay && (
-            <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-black/30 backdrop-blur-sm">
-              {hideScoreOverlay ? <EyeOff className="w-4 h-4 text-white/80" /> : <Eye className="w-4 h-4 text-white" />}
-              <Switch
-                checked={!hideScoreOverlay}
-                onCheckedChange={(checked) => onToggleScoreOverlay(!checked)}
-                id="score-overlay-toggle"
-              />
-              <Label htmlFor="score-overlay-toggle" className="text-xs font-bold text-white cursor-pointer whitespace-nowrap">
-                {hideScoreOverlay ? "Overlay Hidden" : "Overlay Visible"}
-              </Label>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {showScoreOverlay && onToggleScoreOverlay && (
+              <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-black/30 backdrop-blur-sm">
+                {hideScoreOverlay ? <EyeOff className="w-4 h-4 text-white/80" /> : <Eye className="w-4 h-4 text-white" />}
+                <Switch
+                  checked={!hideScoreOverlay}
+                  onCheckedChange={(checked) => onToggleScoreOverlay(!checked)}
+                  id="score-overlay-toggle"
+                />
+                <Label htmlFor="score-overlay-toggle" className="text-xs font-bold text-white cursor-pointer whitespace-nowrap">
+                  {hideScoreOverlay ? "Overlay Hidden" : "Overlay Visible"}
+                </Label>
+              </div>
+            )}
+            <Button variant="ghost" size="icon" onClick={toggleStreamFullscreen} className="h-8 w-8 text-white hover:bg-white/10">
+              {streamFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
         {isEmbeddable ? (
-          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+          <div ref={streamRef} className="relative w-full bg-black" style={{ paddingBottom: streamFullscreen ? '0' : '56.25%' }}>
             <iframe
               src={embedUrl}
               className="absolute top-0 left-0 w-full h-full"
