@@ -18,11 +18,12 @@ export default function OverlayTimerBits({ gameId, game }) {
     shotClockLengthSeconds,
   } = useGameTimer(gameId);
 
-  const hasScorekeeper =
-    Array.isArray(game?.assigned_scorekeeper_emails) &&
-    game.assigned_scorekeeper_emails.length > 0;
+  const hasOperator =
+    (Array.isArray(game?.assigned_scorekeeper_emails) &&
+      game.assigned_scorekeeper_emails.length > 0) ||
+    !!game?.timekeeper_email;
 
-  if (!hasScorekeeper || !timer) return null;
+  if (!hasOperator || !timer) return null;
 
   const showShotClock = (shotClockLengthSeconds || 0) > 0;
 

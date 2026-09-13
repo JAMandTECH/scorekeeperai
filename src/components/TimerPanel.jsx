@@ -25,12 +25,13 @@ export default function TimerPanel({ gameId, game, variant = "scoreboard" }) {
     shotClockLengthSeconds,
   } = useGameTimer(gameId);
 
-  const hasScorekeeper =
-    Array.isArray(game?.assigned_scorekeeper_emails) &&
-    game.assigned_scorekeeper_emails.length > 0;
+  const hasOperator =
+    (Array.isArray(game?.assigned_scorekeeper_emails) &&
+      game.assigned_scorekeeper_emails.length > 0) ||
+    !!game?.timekeeper_email;
 
-  // No timer or no scorekeeper → render nothing (existing UI untouched)
-  if (!hasScorekeeper) return null;
+  // No timer or no operator assigned → render nothing (existing UI untouched)
+  if (!hasOperator) return null;
   if (loading || !timer) return null;
 
   const showShotClock = (shotClockLengthSeconds || 0) > 0;
