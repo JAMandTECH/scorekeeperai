@@ -172,6 +172,8 @@ export default function PublicGameView() {
             </div>
           </CardHeader>
           <CardContent className="p-8">
+            <TimerPanel gameId={gameId} game={game} variant="scoreboard" />
+
             <div className="flex items-center justify-between">
               {/* Home Team */}
               <div className="flex-1 text-center">
@@ -225,8 +227,6 @@ export default function PublicGameView() {
             </div>
 
             <ScoreboardInsights game={game} players={players} playerStats={playerStats} />
-
-            <TimerPanel gameId={gameId} game={game} variant="scoreboard" />
 
             {/* Game Info */}
             <div className="flex justify-center gap-8 mt-6 text-sm text-muted-foreground">
