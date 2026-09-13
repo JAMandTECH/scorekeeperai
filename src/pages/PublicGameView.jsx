@@ -19,7 +19,7 @@ import { formatGameClock, formatShotClock } from "@/lib/timerLogic";
 export default function PublicGameView() {
   const [darkMode, setDarkMode] = useState(false);
   const [hideScoreboard, setHideScoreboard] = useState(false);
-  const { ref: scoreboardRef, isFullscreen: scoreboardFullscreen, toggle: toggleScoreboardFullscreen, scale: scoreboardScale } = useFullscreen();
+  const { ref: scoreboardRef, isFullscreen: scoreboardFullscreen, toggle: toggleScoreboardFullscreen, scale: scoreboardScale, designWidth: scoreboardDesignWidth } = useFullscreen();
   
   // Get game_id from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -158,7 +158,7 @@ export default function PublicGameView() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Main Scoreboard */}
         <Card ref={scoreboardRef} className={`mb-8 ${isLive ? 'border-primary' : ''} ${scoreboardFullscreen ? 'overflow-auto rounded-none' : 'overflow-hidden'}`} style={scoreboardFullscreen ? { background: 'hsl(var(--background))' } : { display: hideScoreboard ? 'none' : 'block' }}>
-          <div style={scoreboardFullscreen ? { zoom: scoreboardScale } : undefined}>
+          <div style={scoreboardFullscreen ? { zoom: scoreboardScale, width: `${scoreboardDesignWidth}px`, margin: '0 auto' } : undefined}>
             <CardHeader className="bg-muted border-b border-border py-4">
               <div className="flex items-center justify-between">
                 <Badge variant="outline" className="font-medium uppercase border-border text-muted-foreground">

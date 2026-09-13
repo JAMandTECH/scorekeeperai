@@ -1,19 +1,23 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
+const DEFAULT_DESIGN_WIDTH = 1152;
+
 /**
  * Reusable hook for the browser Fullscreen API.
  * Returns a ref to attach to the target element, the current fullscreen state,
- * a toggle function, and a `scale` value that represents the zoom factor needed
- * to fit the element's natural content size into the viewport while fullscreen.
+ * a toggle function, and a `scale` value (zoom factor to fill the viewport width)
+ * plus the `designWidth` the caller should pin the content wrapper to.
+ *
+ * Uses a fixed design width instead of measuring the element, which avoids
+ * timing issues when the element mounts after an async loading state.
  */
-export function useFullscreen() {
+export function useFullscreen(designWidth = DEFAULT_DESIGN_WIDTH) {
   const ref = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [viewport, setViewport] = useState({
     w: typeof window !== "undefined" ? window.innerWidth : 0,
     h: typeof window !== "undefined" ? window.innerHeight : 0,
   });
-  const [naturalSize, setNaturalSize] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
     const onResize = () =>
@@ -28,28 +32,7 @@ export function useFullscreen() {
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
-  // Measure the element's natural (unscaled) size while NOT fullscreen so we
-  // can compute the correct zoom factor once we enter fullscreen.
-  useEffect(() => {
-    if (isFullscreen) return;
-    const el = ref.current;
-    if (!el) return;
-    const measure = () => {
-      const prevZoom = el.style.zoom;
-      el.style.zoom = "1";
-      setNaturalSize({ w: el.scrollWidth, h: el.scrollHeight });
-      el.style.zoom = prevZoom;
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [isFullscreen]);
-
-  const scale =
-    isFullscreen && naturalSize.w > 0 && naturalSize.h > 0
-      ? Math.min(viewport.w / naturalSize.w, viewport.h / naturalSize.h)
-      : 1;
+  const scale = isFullscreen ? viewport.w / designWidth : 1;
 
   const toggle = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -59,5 +42,5 @@ export function useFullscreen() {
     }
   }, []);
 
-  return { ref, isFullscreen, toggle, scale };
+  return { ref, isFullscreen, toggle, scale, designWidth };
 }
