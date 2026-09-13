@@ -92,18 +92,22 @@ export default function Timekeeper() {
 
   const getTeamName = (id) => teams.find((t) => t.id === id)?.name || "TBD";
 
-  // Create the GameTimer record with the chosen config
+  // Create the GameTimer record with the chosen config (via service role)
   const initializeTimer = async (config) => {
     if (!selectedGame) return;
     setBusy(true);
     try {
       const base = defaultTimerForGame(selectedGame);
-      await base44.entities.GameTimer.create({
+      const patch = {
         ...base,
         ...config,
         game_clock_remaining_ms: config.period_length_seconds * 1000,
         shot_clock_remaining_ms: config.shot_clock_length_seconds * 1000,
-        last_updated_by: user.email,
+      };
+      await base44.functions.invoke("mutateGameTimer", {
+        action: "create",
+        game_id: selectedGame.id,
+        patch,
       });
       timerHook.refetch();
     } catch (e) {
@@ -122,7 +126,6 @@ export default function Timekeeper() {
       const bothStopped = !timer.game_clock_running && !timer.shot_clock_running;
       const patch = {
         ...config,
-        last_updated_by: user.email,
         ...(bothStopped
           ? {
               game_clock_remaining_ms: config.period_length_seconds * 1000,
@@ -132,7 +135,11 @@ export default function Timekeeper() {
             }
           : {}),
       };
-      await base44.entities.GameTimer.update(timer.id, patch);
+      await base44.functions.invoke("mutateGameTimer", {
+        action: "update",
+        timer_id: timer.id,
+        patch,
+      });
     } catch (e) {
       console.error("Save config failed:", e);
       alert("Could not save config: " + (e.message || e));
@@ -145,9 +152,10 @@ export default function Timekeeper() {
   const patchTimer = async (patch) => {
     if (!timer) return;
     try {
-      await base44.entities.GameTimer.update(timer.id, {
-        ...patch,
-        last_updated_by: user.email,
+      await base44.functions.invoke("mutateGameTimer", {
+        action: "update",
+        timer_id: timer.id,
+        patch,
       });
     } catch (e) {
       console.error("Patch timer failed:", e);
