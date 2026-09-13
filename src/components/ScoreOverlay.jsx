@@ -156,37 +156,94 @@ export default function ScoreOverlay({ game: initialGame, teams: teamsMap, varia
     );
   }
 
-  // --- In-app variant (semi-transparent bar overlaid on video) ---
+  // --- In-app variant (Split Panel Bar overlaid on video) ---
   const posClass = position === "top" ? "top-0" : "bottom-0";
-  return (
-    <div className={`absolute ${posClass} left-0 right-0 z-20 pointer-events-none`}>
+  const possessionHome = game.possession === "home";
+  const possessionAway = game.possession === "away";
+
+  const SplitTeamCell = ({ team, align, score, insights: teamInsights, side, hasPossession }) => {
+    const isRight = align === "right";
+    return (
       <div
-        className="flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-5 py-2.5 sm:py-3"
-        style={{
-          background: "linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.5))",
-          backdropFilter: "blur(6px)",
-        }}
+        className={`relative flex items-center justify-between gap-4 px-4 sm:px-6 py-3 flex-1 min-w-0 ${isRight ? "flex-row-reverse" : ""}`}
+        style={{ background: "#1A1A1A" }}
       >
-        {/* Home side */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          <TeamCell team={homeTeam} align="left" insights={isBasketball ? insights.home : null} />
-          <ScoreNumber value={homeScore} />
+        <div className={`flex items-center gap-3 min-w-0 ${isRight ? "flex-row-reverse" : ""}`}>
+          {team ? (
+            <Avatar className="w-11 h-11 sm:w-14 sm:h-14 rounded-none border border-white/15 flex-shrink-0">
+              <AvatarImage src={team.logo_url} />
+              <AvatarFallback className="bg-white/5 text-white font-black text-xs rounded-none">
+                {team.name?.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          ) : (
+            <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-none border border-white/15 bg-white/5 flex items-center justify-center text-white/50 font-bold text-xs flex-shrink-0">TBD</div>
+          )}
+          <div className={`min-w-0 ${isRight ? "text-right" : ""}`}>
+            <span
+              className="inline-block text-[8px] sm:text-[9px] font-bold tracking-widest px-2 py-0.5 mb-1 rounded-full"
+              style={{ background: "#2A2D30", color: "#9CA3AF" }}
+            >
+              {side === "home" ? "HOME" : "AWAY"}
+            </span>
+            <div className="text-white font-heading font-bold text-base sm:text-xl lg:text-2xl leading-tight truncate max-w-[140px] sm:max-w-[220px]">
+              {team?.name || "TBD"}
+            </div>
+            {teamInsights && <OverlayInsights {...teamInsights} align={align} />}
+          </div>
         </div>
-
-        {/* Center */}
-        <div className="flex flex-col items-center px-2 sm:px-3 flex-shrink-0">
-          <span className="text-red-500 font-display font-black text-[10px] sm:text-xs tracking-widest animate-pulse">
-            {game.status === "completed" ? "FINAL" : "LIVE"}
+        <div className="flex flex-col items-center flex-shrink-0">
+          <span className="text-[8px] sm:text-[9px] text-white/40 lowercase tracking-wide mb-0.5 font-medium">
+            {side}
           </span>
-          <span className="text-white font-display font-black text-sm sm:text-lg">{periodLabel}</span>
-          <OverlayTimerBits gameId={game.id} game={game} />
+          <div className="relative font-display font-black text-white tabular-nums leading-none text-5xl sm:text-6xl">
+            {hasPossession && (
+              <span
+                aria-hidden
+                className="absolute inset-0 -m-3 pointer-events-none rounded-full"
+                style={{
+                  background: "radial-gradient(circle, rgba(118,229,154,0.55) 0%, rgba(118,229,154,0) 70%)",
+                  boxShadow: "0 0 28px 8px rgba(118,229,154,0.45)",
+                }}
+              />
+            )}
+            <span className="relative" style={hasPossession ? { textShadow: "0 0 14px rgba(118,229,154,0.8)" } : undefined}>
+              {score}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className={`absolute ${posClass} left-0 right-0 z-20 pointer-events-none px-2`}>
+      <div className="flex items-stretch w-full overflow-hidden rounded-2xl border border-white/90" style={{ background: "#0E0F11" }}>
+        <SplitTeamCell team={homeTeam} align="left" score={homeScore} insights={isBasketball ? insights.home : null} side="home" hasPossession={possessionHome} />
+
+        {/* Center column */}
+        <div
+          className="flex flex-col items-center justify-center gap-1.5 px-4 sm:px-6 py-2 flex-shrink-0"
+          style={{ background: "#6EDC6F", flex: "0 0 28%" }}
+        >
+          <div className="flex items-center gap-1.5">
+            <span
+              className="text-[8px] sm:text-[9px] font-black tracking-widest px-2 py-0.5 rounded-full"
+              style={{ background: "#065F46", color: "#FFFFFF" }}
+            >
+              {game.status === "completed" ? "FINAL" : "● LIVE"}
+            </span>
+            <span
+              className="text-[8px] sm:text-[9px] font-black tracking-widest px-2 py-0.5 rounded-full"
+              style={{ background: "#5D5D5D", color: "#FFFFFF" }}
+            >
+              {periodLabel}
+            </span>
+          </div>
+          <OverlayTimerBits gameId={game.id} game={game} tone="dark" />
         </div>
 
-        {/* Away side */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 justify-end">
-          <ScoreNumber value={awayScore} />
-          <TeamCell team={awayTeam} align="right" insights={isBasketball ? insights.away : null} />
-        </div>
+        <SplitTeamCell team={awayTeam} align="right" score={awayScore} insights={isBasketball ? insights.away : null} side="away" hasPossession={possessionAway} />
       </div>
     </div>
   );

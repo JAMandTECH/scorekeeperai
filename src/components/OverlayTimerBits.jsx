@@ -7,7 +7,7 @@ import { formatGameClock, formatShotClock } from "@/lib/timerLogic";
  * Drops into the overlay's center column. Renders null when there is no timer
  * or the game has no assigned scorekeeper, so the overlay is unchanged.
  */
-export default function OverlayTimerBits({ gameId, game }) {
+export default function OverlayTimerBits({ gameId, game, tone = "light" }) {
   const {
     timer,
     gameClockMs,
@@ -26,12 +26,15 @@ export default function OverlayTimerBits({ gameId, game }) {
   if (!hasOperator || !timer) return null;
 
   const showShotClock = (shotClockLengthSeconds || 0) > 0;
+  const dark = tone === "dark";
+  const idleColor = dark ? "text-[#0E0F11]" : "text-white";
+  const idleShotColor = dark ? "text-[#0E0F11]/70" : "text-white/80";
 
   return (
     <div className="flex flex-col items-center gap-0.5">
       <span
         className={`font-display font-black tabular-nums leading-none ${
-          gameClockRunning ? "text-red-400" : "text-white"
+          gameClockRunning ? "text-red-600" : idleColor
         } text-lg sm:text-2xl lg:text-3xl`}
       >
         {formatGameClock(gameClockMs)}
@@ -39,7 +42,7 @@ export default function OverlayTimerBits({ gameId, game }) {
       {showShotClock && (
         <span
           className={`font-display font-black tabular-nums leading-none text-xs sm:text-sm ${
-            shotClockRunning ? "text-red-400" : "text-white/80"
+            shotClockRunning ? "text-red-600" : idleShotColor
           }`}
         >
           ⏱ {formatShotClock(shotClockMs)}
