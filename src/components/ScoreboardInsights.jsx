@@ -1,5 +1,4 @@
 import React from "react";
-import { AlertTriangle } from "lucide-react";
 import {
   aggregateByPlayer,
   getTeamInsights,
@@ -7,61 +6,40 @@ import {
   playerLabel,
 } from "@/lib/gameInsights";
 
-function TeamColumn({ fouls, inPenalty, topScorer, foulTrouble, align }) {
-  const isRight = align === "right";
+function topScorerLabel(entry) {
+  if (!entry?.player) return "—";
+  const p = entry.player;
+  const first = p.first_name ? `${p.first_name[0]}. ` : "";
+  return `${first}${p.last_name || p.first_name || "—"} ${entry.points}`;
+}
+
+function foulTroubleLabel(entries) {
+  if (!entries || entries.length === 0) return "—";
+  return entries
+    .map((e) => {
+      const num = e.player?.jersey_number ? `#${e.player.jersey_number}` : "—";
+      return `${num} (${e.fouls})`;
+    })
+    .join(", ");
+}
+
+function StatRow({ label, value, warning }) {
   return (
-    <div className={`flex-1 px-4 py-3 ${isRight ? "text-right" : "text-left"}`}>
-      {/* Team Fouls + Penalty */}
-      <div className={`flex items-center gap-2 ${isRight ? "justify-end" : ""}`}>
-        <span className="text-[10px] font-heading font-bold uppercase tracking-widest text-muted-foreground">
-          Team Fouls
-        </span>
-        <span
-          className={`font-heading text-lg font-bold tabular-nums ${
-            inPenalty ? "text-destructive" : "text-foreground"
-          }`}
-        >
-          {fouls}
-        </span>
-        {inPenalty && (
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 border border-destructive text-destructive text-[9px] font-heading font-bold uppercase tracking-widest">
-            <AlertTriangle className="w-2.5 h-2.5" />
-            Penalty
-          </span>
-        )}
-      </div>
+    <div className="flex items-center justify-between text-[10px]">
+      <span className="tracking-[0.12em] text-white/45 uppercase">{label}</span>
+      <span className={`font-semibold tabular-nums ${warning ? "text-warning" : "text-white/85"}`}>
+        {value}
+      </span>
+    </div>
+  );
+}
 
-      {/* Top Scorer */}
-      <div className="mt-2">
-        <span className="text-[10px] font-heading font-bold uppercase tracking-widest text-muted-foreground">
-          Top Scorer
-        </span>
-        <p className="text-sm font-heading font-bold text-foreground">
-          {topScorer ? `${playerLabel(topScorer)} · ${topScorer.points} PTS` : "—"}
-        </p>
-      </div>
-
-      {/* Foul Trouble */}
-      <div className="mt-2">
-        <span className="text-[10px] font-heading font-bold uppercase tracking-widest text-muted-foreground">
-          Foul Trouble
-        </span>
-        {foulTrouble.length > 0 ? (
-          <div className={`flex flex-wrap gap-1 mt-0.5 ${isRight ? "justify-end" : ""}`}>
-            {foulTrouble.map((e) => (
-              <span
-                key={e.player_id}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 border border-warning/60 text-warning text-[10px] font-heading font-bold tabular-nums"
-              >
-                <AlertTriangle className="w-2.5 h-2.5" />
-                {playerLabel(e)} ({e.fouls})
-              </span>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">—</p>
-        )}
-      </div>
+function TeamColumn({ fouls, inPenalty, topScorer, foulTrouble }) {
+  return (
+    <div className="px-5 py-3 space-y-1.5">
+      <StatRow label="TEAM FOULS" value={fouls} warning={inPenalty} />
+      <StatRow label="TOP SCORER" value={topScorer ? topScorerLabel(topScorer) : "—"} />
+      <StatRow label="FOUL TROUBLE" value={foulTroubleLabel(foulTrouble)} warning={foulTrouble.length > 0} />
     </div>
   );
 }
@@ -76,21 +54,19 @@ export default function ScoreboardInsights({ game, players, playerStats }) {
   const away = getTeamInsights(aggMap, players, game.away_team_id, game);
 
   return (
-    <div className="flex items-stretch border-y border-border">
+    <div className="grid grid-cols-2">
       <TeamColumn
         fouls={homeFouls}
         inPenalty={isInPenalty(game, homeFouls)}
         topScorer={home.topScorer}
         foulTrouble={home.foulTrouble}
-        align="left"
       />
-      <div className="border-l border-border" />
+      <div className="border-l" style={{ borderColor: "rgba(255,255,255,0.06)" }} />
       <TeamColumn
         fouls={awayFouls}
         inPenalty={isInPenalty(game, awayFouls)}
         topScorer={away.topScorer}
         foulTrouble={away.foulTrouble}
-        align="right"
       />
     </div>
   );

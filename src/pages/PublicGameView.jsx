@@ -7,15 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, PlayCircle, Video, RefreshCw, Eye, EyeOff, Maximize, Minimize } from "lucide-react";
+import { ArrowLeft, PlayCircle, Video, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 import ShareGameBar from "@/components/ShareGameBar";
-import ScoreboardInsights from "@/components/ScoreboardInsights";
+import BroadcastScoreboardCard from "@/components/BroadcastScoreboardCard";
 import { useFullscreen } from "@/lib/useFullscreen";
 import { useGameTimer } from "@/lib/useGameTimer";
-import { formatGameClock, formatShotClock } from "@/lib/timerLogic";
+
 
 export default function PublicGameView() {
   const [darkMode, setDarkMode] = useState(false);
@@ -26,7 +26,7 @@ export default function PublicGameView() {
   const urlParams = new URLSearchParams(window.location.search);
   const gameId = urlParams.get('game_id');
 
-  const { timer, gameClockMs, shotClockMs, gameClockRunning, shotClockRunning } = useGameTimer(gameId);
+  const { timer, gameClockMs, shotClockMs, gameClockRunning } = useGameTimer(gameId);
 
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -170,131 +170,27 @@ export default function PublicGameView() {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Main Scoreboard */}
-        <Card ref={scoreboardRef} className={`mb-8 rounded-none border ${scoreboardFullscreen ? 'overflow-auto' : 'overflow-hidden'}`} style={{ background: '#0E0F11', display: hideScoreboard ? 'none' : 'block' }}>
+        <div ref={scoreboardRef} className="mb-8" style={{ display: hideScoreboard ? 'none' : 'block' }}>
           <div style={scoreboardFullscreen ? { zoom: scoreboardScale, width: `${scoreboardDesignWidth}px`, margin: '0 auto' } : undefined}>
-            <CardHeader className="py-4 border-b" style={{ background: '#14181C', borderColor: '#2A2D31' }}>
-              <div className="flex items-center justify-between">
-                <Badge variant="outline" className="font-medium uppercase" style={{ borderColor: '#2A2D31', color: '#9CA3AF' }}>
-                  {game.sport}
-                </Badge>
-                <span className="font-heading font-bold text-white">{quarterLabel}</span>
-                <div className="flex items-center gap-2">
-                  {isLive ? (
-                    <span className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-heading font-bold uppercase tracking-widest" style={{ background: 'rgba(74,222,128,0.12)', color: '#4ADE80' }}>
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#4ADE80' }} />
-                      LIVE
-                    </span>
-                  ) : (
-                    <Badge variant="outline" className="font-medium" style={{ borderColor: '#2A2D31', color: '#9CA3AF' }}>
-                      {game.status === 'completed' ? 'FINAL' : 'SCHEDULED'}
-                    </Badge>
-                  )}
-                  <Button variant="ghost" size="icon" onClick={toggleScoreboardFullscreen} className="h-7 w-7 hover:bg-white/5">
-                    {scoreboardFullscreen ? <Minimize className="w-4 h-4 text-white" /> : <Maximize className="w-4 h-4 text-white" />}
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="dark p-0">
-              {/* Split panel scoreboard */}
-              <div className="relative grid grid-cols-[1fr_200px_1fr]" style={{ background: '#0E0F11' }}>
-                {/* Possession glow */}
-                {timer?.possession === 'home' && (
-                  <div className="absolute left-0 top-0 bottom-0 pointer-events-none" style={{ width: 'calc((100% - 200px) / 2)', background: 'linear-gradient(90deg, rgba(74,222,128,0.10), transparent)' }} aria-hidden />
-                )}
-                {timer?.possession === 'away' && (
-                  <div className="absolute right-0 top-0 bottom-0 pointer-events-none" style={{ width: 'calc((100% - 200px) / 2)', background: 'linear-gradient(270deg, rgba(74,222,128,0.10), transparent)' }} aria-hidden />
-                )}
-
-                {/* Home half */}
-                <div className="relative flex flex-col items-center justify-center py-10 px-6" style={{ background: '#1A1C1E' }}>
-                  <Avatar className="w-20 h-20 mb-4" style={{ border: '1px solid rgba(255,255,255,0.10)' }}>
-                    <AvatarImage src={homeTeam?.logo_url} />
-                    <AvatarFallback className="text-2xl font-heading font-bold" style={{ background: '#2A2D31', color: '#fff' }}>
-                      {homeTeam?.name?.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <h3 className="text-lg font-heading font-bold text-white mb-2 text-center flex items-center gap-2">
-                    {timer?.possession === 'home' && <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }} />}
-                    {homeTeam?.name || 'Home Team'}
-                  </h3>
-                  <span className="text-[10px] font-heading font-bold uppercase tracking-widest px-3 py-1 mb-8" style={{ background: '#2A2D31', color: '#9CA3AF' }}>HOME</span>
-                  <div className="font-heading font-bold tabular-nums leading-none text-white" style={{ fontSize: '7rem' }}>
-                    {homeScore}
-                  </div>
-                </div>
-
-                {/* Center clock column */}
-                <div className="relative flex flex-col items-center justify-center px-4 py-8" style={{ background: '#0E0F11', borderLeft: '1px solid #4ADE80', borderRight: '1px solid #4ADE80' }}>
-                  {timer ? (
-                    <>
-                      <p className="text-[10px] font-heading font-bold uppercase tracking-widest mb-1" style={{ color: '#9CA3AF' }}>Game Clock</p>
-                      <div className={`font-heading font-bold tabular-nums leading-none mb-4 ${gameClockRunning ? 'text-primary' : 'text-white'}`} style={{ fontSize: '2.5rem' }}>
-                        {formatGameClock(gameClockMs)}
-                      </div>
-                      <span className="px-3 py-1 text-[10px] font-heading font-bold uppercase tracking-widest mb-4 border" style={{ borderColor: '#4ADE80', color: '#4ADE80', background: 'rgba(74,222,128,0.08)' }}>
-                        {quarterLabel}
-                      </span>
-                      {(timer.shot_clock_length_seconds || 0) > 0 && (
-                        <>
-                          <p className="text-[10px] font-heading font-bold uppercase tracking-widest mb-1" style={{ color: '#9CA3AF' }}>Shot Clock</p>
-                          <div className={`font-heading font-bold tabular-nums leading-none ${shotClockRunning ? 'text-destructive' : 'text-white'}`} style={{ fontSize: '2rem' }}>
-                            {formatShotClock(shotClockMs)}
-                          </div>
-                        </>
-                      )}
-                    </>
-                  ) : (
-                    <span className="px-3 py-1 text-[10px] font-heading font-bold uppercase tracking-widest border text-center" style={{ borderColor: '#4ADE80', color: '#4ADE80', background: 'rgba(74,222,128,0.08)' }}>
-                      {quarterLabel}
-                    </span>
-                  )}
-                </div>
-
-                {/* Away half */}
-                <div className="relative flex flex-col items-center justify-center py-10 px-6" style={{ background: '#16191B' }}>
-                  <Avatar className="w-20 h-20 mb-4" style={{ border: '1px solid rgba(255,255,255,0.10)' }}>
-                    <AvatarImage src={awayTeam?.logo_url} />
-                    <AvatarFallback className="text-2xl font-heading font-bold" style={{ background: '#2A2D31', color: '#fff' }}>
-                      {awayTeam?.name?.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <h3 className="text-lg font-heading font-bold text-white mb-2 text-center flex items-center gap-2">
-                    {timer?.possession === 'away' && <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }} />}
-                    {awayTeam?.name || 'Away Team'}
-                  </h3>
-                  <span className="text-[10px] font-heading font-bold uppercase tracking-widest px-3 py-1 mb-8" style={{ background: '#2A2D31', color: '#9CA3AF' }}>AWAY</span>
-                  <div className="font-heading font-bold tabular-nums leading-none text-white" style={{ fontSize: '7rem' }}>
-                    {awayScore}
-                  </div>
-                </div>
-              </div>
-
-              {/* Quarter scores */}
-              {game.quarter_scores && game.quarter_scores.length > 0 && (
-                <div className="flex justify-center gap-2 py-3 border-t flex-wrap" style={{ background: '#0E0F11', borderColor: '#2A2D31' }}>
-                  {game.quarter_scores.map((q, idx) => (
-                    <Badge key={idx} variant="outline" className="text-xs font-medium" style={{ borderColor: '#2A2D31', color: '#9CA3AF' }}>
-                      {game.sport === 'basketball' ? `Q${idx + 1}` : `Set ${idx + 1}`}: {q.home}-{q.away}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              {/* Insights footer */}
-              <div className="border-t" style={{ background: '#0E0F11', borderColor: '#2A2D31' }}>
-                <ScoreboardInsights game={game} players={players} playerStats={playerStats} />
-              </div>
-
-              {/* Game info */}
-              <div className="flex justify-center gap-8 py-3 text-sm border-t flex-wrap" style={{ background: '#0E0F11', borderColor: '#2A2D31', color: '#9CA3AF' }}>
-                {game.location && <span>{game.location}</span>}
-                {game.court_number && <span>Court {game.court_number}</span>}
-                <span>{new Date(game.game_date).toLocaleDateString()}</span>
-              </div>
-            </CardContent>
+            <BroadcastScoreboardCard
+              game={game}
+              homeTeam={homeTeam}
+              awayTeam={awayTeam}
+              timer={timer}
+              gameClockMs={gameClockMs}
+              shotClockMs={shotClockMs}
+              gameClockRunning={gameClockRunning}
+              quarterLabel={quarterLabel}
+              isLive={isLive}
+              homeScore={homeScore}
+              awayScore={awayScore}
+              onToggleFullscreen={toggleScoreboardFullscreen}
+              isFullscreen={scoreboardFullscreen}
+              players={players}
+              playerStats={playerStats}
+            />
           </div>
-        </Card>
+        </div>
 
         {/* Live Stream */}
         {game.stream_url && (
