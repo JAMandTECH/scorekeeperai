@@ -230,17 +230,6 @@ export default function PosterGenerator() {
     setPotgPlayerId('');
   }, [selectedGameId]);
 
-  const orgQ = useQuery({
-    queryKey: ['orgForGame', gameForPoster?.organization_id],
-    queryFn: async () => {
-      if (!gameForPoster?.organization_id) return null;
-      const arr = await base44.entities.Organization.filter({ id: gameForPoster.organization_id });
-      return arr?.[0] || null;
-    },
-    enabled: !!user && !!gameForPoster?.organization_id,
-    initialData: null,
-  });
-
   const postersQ = useQuery({
     queryKey: ['posters'],
     queryFn: async () => {
@@ -810,7 +799,7 @@ export default function PosterGenerator() {
                     backgroundUrl={imageUrl}
                     game={gameForPoster}
                     players={resolvedPotg ? [resolvedPotg] : []}
-                    org={orgQ.data}
+                    org={topQ.data?.organization}
                     bestPlayerImageUrl={bestPlayerImageUrl || resolvedPotg?.photo_url || ''}
                     homeName={teamMap[gameForPoster?.home_team_id] || 'Home Team'}
                     awayName={teamMap[gameForPoster?.away_team_id] || 'Away Team'}

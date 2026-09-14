@@ -89,7 +89,21 @@ Deno.serve(async (req) => {
       base44.entities.Team.filter({ id: game.away_team_id })
     ]);
 
+    // Fetch organization via service role to bypass RLS (user token may not resolve user.data fields)
+    let organization = null;
+    if (game.organization_id) {
+      try {
+        organization = await base44.asServiceRole.entities.Organization.get(game.organization_id);
+      } catch (_) { /* org may not exist or be inaccessible; leave null */ }
+    }
+
     const result = {
+      organization: organization ? {
+        id: organization.id,
+        name: organization.name || '',
+        tournament_name: organization.tournament_name || '',
+        logo_url: organization.logo_url || '',
+      } : null,
       game: {
         id: game.id,
         organization_id: game.organization_id,
