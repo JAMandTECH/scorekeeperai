@@ -43,17 +43,26 @@ function TeamColumn({ team, side, score, possession, badge }) {
   const initials = (team?.name || "??").substring(0, 2).toUpperCase();
   const hasPossession = possession === side;
   return (
-    <div className="flex-1 flex flex-col items-center text-center px-4 py-6 min-w-0">
-      <Avatar className="w-14 h-14 mb-3" style={{ border: "2px solid rgba(255,255,255,0.15)" }}>
+    <div
+      className="flex-1 flex flex-col items-center text-center px-4 py-6 min-w-0 relative transition-all"
+      style={hasPossession ? { boxShadow: `inset 0 0 0 2px ${NEON}, 0 0 24px ${NEON}33` } : undefined}
+    >
+      {hasPossession && (
+        <span
+          className="absolute top-3 left-1/2 -translate-x-1/2 flex items-center gap-1 text-[9px] font-bold tracking-[0.15em] uppercase"
+          style={{ color: NEON }}
+        >
+          <span className="w-2 h-2 rounded-full inline-block" style={{ background: NEON, boxShadow: `0 0 8px ${NEON}` }} />
+          POSSESSION
+        </span>
+      )}
+      <Avatar className="w-14 h-14 mb-3" style={{ border: `2px solid ${hasPossession ? NEON : "rgba(255,255,255,0.15)"}` }}>
         <AvatarImage src={team?.logo_url} />
         <AvatarFallback className="text-base font-heading font-bold" style={{ background: "#262626", color: "#fff" }}>
           {initials}
         </AvatarFallback>
       </Avatar>
-      <span className="font-heading text-sm font-bold tracking-wide text-white uppercase leading-tight flex items-center gap-1.5">
-        {hasPossession && (
-          <span className="w-2 h-2 rounded-full inline-block" style={{ background: NEON, boxShadow: `0 0 6px ${NEON}` }} />
-        )}
+      <span className="font-heading text-sm font-bold tracking-wide text-white uppercase leading-tight">
         {team?.name || (side === "home" ? "Home Team" : "Away Team")}
       </span>
       <span className="mt-1.5 mb-3 text-[10px] font-semibold tracking-[0.15em] text-white/55 border border-white/15 rounded-full px-2 py-0.5">
