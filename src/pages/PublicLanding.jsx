@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import AIAssistant from "@/components/AIAssistant";
 import LiveScorePreview from "@/components/LiveScorePreview";
 import ReviewsSection from "@/components/landing/ReviewsSection";
+import BroadcastScoreboard from "@/components/landing/BroadcastScoreboard";
 
 export default function PublicLanding() {
   const [darkMode, setDarkMode] = useState(false);
@@ -195,26 +196,7 @@ export default function PublicLanding() {
               </div>
             </div>
             <div className="lg:col-span-5 relative">
-              <div className="rounded-2xl border border-white/20 bg-[#1F1F1F]/30 backdrop-blur-2xl p-8 lg:p-10 shadow-2xl">
-                <div className="flex items-center gap-2.5 mb-7">
-                  <Radio className="w-4 h-4 text-primary" style={{ filter: "drop-shadow(0 0 6px hsl(var(--primary) / 0.8))" }} />
-                  <span className="text-xs font-semibold tracking-[0.2em] text-white">LIVE SCORING</span>
-                </div>
-                <div className="space-y-5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-base font-medium text-white">Thunder Hawks</span>
-                    <span className="font-heading text-4xl font-bold tabular-nums text-white">67</span>
-                  </div>
-                  <div className="border-t border-white/15" />
-                  <div className="flex items-center justify-between">
-                    <span className="text-base font-medium text-white">Storm Eagles</span>
-                    <span className="font-heading text-4xl font-bold tabular-nums text-white">62</span>
-                  </div>
-                  <div className="border-t border-white/15 pt-4 text-center text-xs text-white/60 tabular-nums tracking-wide">
-                    Q3 • 08:24 remaining
-                  </div>
-                </div>
-              </div>
+              <BroadcastScoreboard />
             </div>
           </div>
         </div>
