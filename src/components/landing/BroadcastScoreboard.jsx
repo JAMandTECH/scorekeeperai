@@ -147,7 +147,7 @@ export default function BroadcastScoreboard() {
     });
   }, [scores, fouls]);
 
-  const timeOfDay = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2px" });
+  const timeOfDay = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 
   return (
     <div
