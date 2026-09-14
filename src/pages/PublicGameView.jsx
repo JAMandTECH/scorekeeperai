@@ -170,8 +170,21 @@ export default function PublicGameView() {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Main Scoreboard */}
-        <div ref={scoreboardRef} className="mb-8" style={{ display: hideScoreboard ? 'none' : 'block' }}>
-          <div style={scoreboardFullscreen ? { zoom: scoreboardScale, width: `${scoreboardDesignWidth}px`, margin: '0 auto' } : undefined}>
+        <div
+          ref={scoreboardRef}
+          className={scoreboardFullscreen ? "flex justify-center items-start min-h-screen pt-4" : "mb-8"}
+          style={{
+            display: hideScoreboard ? 'none' : 'flex',
+            background: scoreboardFullscreen ? '#0a0a0a' : undefined,
+          }}
+        >
+          <div
+            style={scoreboardFullscreen ? {
+              transform: `scale(${scoreboardScale})`,
+              transformOrigin: 'top center',
+              width: `${scoreboardDesignWidth}px`,
+            } : { width: '100%' }}
+          >
             <BroadcastScoreboardCard
               game={game}
               homeTeam={homeTeam}

@@ -59,7 +59,7 @@ function TeamColumn({ team, side, score, possession, badge }) {
       <span className="mt-1.5 mb-3 text-[10px] font-semibold tracking-[0.15em] text-white/55 border border-white/15 rounded-full px-2 py-0.5">
         {badge}
       </span>
-      <span className="font-heading text-6xl font-bold tabular-nums text-white leading-none">
+      <span className="font-heading text-8xl font-bold tabular-nums text-white leading-none">
         {score}
       </span>
     </div>
