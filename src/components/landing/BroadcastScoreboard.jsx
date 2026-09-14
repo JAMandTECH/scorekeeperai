@@ -8,13 +8,13 @@ const TEAMS = {
   home: {
     name: "STRIKERS (OPEN)",
     badge: "HOME",
-    logo: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=200&q=80",
+    logo: "https://images.unsplash.com/photo-1608245449230-4ac19066d2d0?auto=format&fit=crop&w=200&q=80",
     color: "#f97316",
   },
   away: {
     name: "DUKE HOOPS",
     badge: "AWAY",
-    logo: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=200&q=80",
+    logo: "https://images.unsplash.com/photo-1577471488278-16eec37ffcc2?auto=format&fit=crop&w=200&q=80",
     color: "#facc15",
   },
 };
