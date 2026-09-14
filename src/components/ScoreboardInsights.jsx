@@ -34,9 +34,9 @@ function StatRow({ label, value, warning }) {
   );
 }
 
-function TeamColumn({ fouls, inPenalty, topScorer, foulTrouble }) {
+function TeamColumn({ fouls, inPenalty, topScorer, foulTrouble, divider }) {
   return (
-    <div className="px-5 py-3 space-y-1.5">
+    <div className={`px-5 py-3 space-y-1.5 ${divider ? "border-l" : ""}`} style={divider ? { borderColor: "rgba(255,255,255,0.06)" } : undefined}>
       <StatRow label="TEAM FOULS" value={fouls} warning={inPenalty} />
       <StatRow label="TOP SCORER" value={topScorer ? topScorerLabel(topScorer) : "—"} />
       <StatRow label="FOUL TROUBLE" value={foulTroubleLabel(foulTrouble)} warning={foulTrouble.length > 0} />
@@ -61,12 +61,12 @@ export default function ScoreboardInsights({ game, players, playerStats }) {
         topScorer={home.topScorer}
         foulTrouble={home.foulTrouble}
       />
-      <div className="border-l" style={{ borderColor: "rgba(255,255,255,0.06)" }} />
       <TeamColumn
         fouls={awayFouls}
         inPenalty={isInPenalty(game, awayFouls)}
         topScorer={away.topScorer}
         foulTrouble={away.foulTrouble}
+        divider
       />
     </div>
   );
