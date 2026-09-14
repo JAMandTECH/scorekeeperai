@@ -23,23 +23,18 @@ function foulTroubleLabel(entries) {
     .join(", ");
 }
 
-function StatRow({ label, value, warning }) {
+function InsightRow({ label, homeValue, awayValue, homeWarning, awayWarning }) {
   return (
-    <div className="flex items-center justify-between text-[10px]">
-      <span className="tracking-[0.12em] text-white/45 uppercase">{label}</span>
-      <span className={`font-semibold tabular-nums ${warning ? "text-warning" : "text-white/85"}`}>
-        {value}
+    <div className="grid grid-cols-3 items-center text-[10px] py-1">
+      <span className={`text-left font-semibold tabular-nums ${homeWarning ? "text-warning" : "text-white/85"}`}>
+        {homeValue}
       </span>
-    </div>
-  );
-}
-
-function TeamColumn({ fouls, inPenalty, topScorer, foulTrouble, divider }) {
-  return (
-    <div className={`px-5 py-3 space-y-1.5 ${divider ? "border-l" : ""}`} style={divider ? { borderColor: "rgba(255,255,255,0.06)" } : undefined}>
-      <StatRow label="TEAM FOULS" value={fouls} warning={inPenalty} />
-      <StatRow label="TOP SCORER" value={topScorer ? topScorerLabel(topScorer) : "—"} />
-      <StatRow label="FOUL TROUBLE" value={foulTroubleLabel(foulTrouble)} warning={foulTrouble.length > 0} />
+      <span className="text-center tracking-[0.12em] text-white/45 uppercase">
+        {label}
+      </span>
+      <span className={`text-right font-semibold tabular-nums ${awayWarning ? "text-warning" : "text-white/85"}`}>
+        {awayValue}
+      </span>
     </div>
   );
 }
@@ -54,19 +49,25 @@ export default function ScoreboardInsights({ game, players, playerStats }) {
   const away = getTeamInsights(aggMap, players, game.away_team_id, game);
 
   return (
-    <div className="grid grid-cols-2">
-      <TeamColumn
-        fouls={homeFouls}
-        inPenalty={isInPenalty(game, homeFouls)}
-        topScorer={home.topScorer}
-        foulTrouble={home.foulTrouble}
+    <div className="px-5 py-3 space-y-1.5">
+      <InsightRow
+        label="TEAM FOULS"
+        homeValue={homeFouls}
+        awayValue={awayFouls}
+        homeWarning={isInPenalty(game, homeFouls)}
+        awayWarning={isInPenalty(game, awayFouls)}
       />
-      <TeamColumn
-        fouls={awayFouls}
-        inPenalty={isInPenalty(game, awayFouls)}
-        topScorer={away.topScorer}
-        foulTrouble={away.foulTrouble}
-        divider
+      <InsightRow
+        label="TOP SCORER"
+        homeValue={home.topScorer ? topScorerLabel(home.topScorer) : "—"}
+        awayValue={away.topScorer ? topScorerLabel(away.topScorer) : "—"}
+      />
+      <InsightRow
+        label="FOUL TROUBLE"
+        homeValue={foulTroubleLabel(home.foulTrouble)}
+        awayValue={foulTroubleLabel(away.foulTrouble)}
+        homeWarning={home.foulTrouble.length > 0}
+        awayWarning={away.foulTrouble.length > 0}
       />
     </div>
   );
