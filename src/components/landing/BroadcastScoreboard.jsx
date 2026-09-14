@@ -7,14 +7,14 @@ const RED = "#ff3b3b";
 const TEAMS = {
   home: {
     name: "STRIKERS (OPEN)",
+    initials: "SO",
     badge: "HOME",
-    logo: "https://images.unsplash.com/photo-1608245449230-4ac19066d2d0?auto=format&fit=crop&w=200&q=80",
     color: "#f97316",
   },
   away: {
     name: "DUKE HOOPS",
+    initials: "DH",
     badge: "AWAY",
-    logo: "https://images.unsplash.com/photo-1577471488278-16eec37ffcc2?auto=format&fit=crop&w=200&q=80",
     color: "#facc15",
   },
 };
@@ -66,10 +66,19 @@ function TeamColumn({ side, score, flash }) {
   return (
     <div className="flex-1 flex flex-col items-center text-center px-4 py-6 min-w-0">
       <div
-        className="w-14 h-14 rounded-full border-2 mb-3 overflow-hidden bg-white/5 flex items-center justify-center"
-        style={{ borderColor: `${t.color}55` }}
+        className="w-14 h-14 rounded-full border-2 mb-3 flex items-center justify-center relative"
+        style={{
+          borderColor: t.color,
+          background: `radial-gradient(circle at 30% 25%, ${t.color}33, ${t.color}0d 70%)`,
+          boxShadow: `0 0 12px ${t.color}40, inset 0 0 8px ${t.color}22`,
+        }}
       >
-        <img src={t.logo} alt="" className="w-full h-full object-cover" />
+        <span
+          className="font-heading text-base font-bold tracking-tight text-white"
+          style={{ textShadow: `0 0 8px ${t.color}66` }}
+        >
+          {t.initials}
+        </span>
       </div>
       <span className="font-heading text-sm font-bold tracking-wide text-white uppercase leading-tight">
         {t.name}
