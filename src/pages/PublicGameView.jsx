@@ -172,10 +172,16 @@ export default function PublicGameView() {
         {/* Main Scoreboard */}
         <div
           ref={scoreboardRef}
-          className={scoreboardFullscreen ? "flex justify-center items-start min-h-screen pt-4" : "mb-8"}
+          className={scoreboardFullscreen ? "flex justify-center items-start pt-6" : "mb-8"}
           style={{
             display: hideScoreboard ? 'none' : 'flex',
-            background: scoreboardFullscreen ? '#0a0a0a' : undefined,
+            ...(scoreboardFullscreen ? {
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              background: '#0a0a0a',
+              overflow: 'auto',
+            } : {}),
           }}
         >
           <div
