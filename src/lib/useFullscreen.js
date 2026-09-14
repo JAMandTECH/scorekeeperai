@@ -8,8 +8,9 @@ const DEFAULT_DESIGN_WIDTH = 1152;
  * a toggle function, and a `scale` value (zoom factor to fill the viewport width)
  * plus the `designWidth` the caller should pin the content wrapper to.
  *
- * Uses a fixed design width instead of measuring the element, which avoids
- * timing issues when the element mounts after an async loading state.
+ * Uses screen dimensions (not window.innerWidth) when fullscreen, because the
+ * app preview runs inside an iframe where window.innerWidth does not update to
+ * the real screen size on entering fullscreen.
  */
 export function useFullscreen(designWidth = DEFAULT_DESIGN_WIDTH) {
   const ref = useRef(null);
@@ -27,7 +28,19 @@ export function useFullscreen(designWidth = DEFAULT_DESIGN_WIDTH) {
   }, []);
 
   useEffect(() => {
-    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    const handler = () => {
+      const fs = !!document.fullscreenElement;
+      setIsFullscreen(fs);
+      if (fs) {
+        // Screen dimensions reflect the true fullscreen size even inside an iframe
+        setViewport({
+          w: window.screen.width,
+          h: window.screen.height,
+        });
+      } else {
+        setViewport({ w: window.innerWidth, h: window.innerHeight });
+      }
+    };
     document.addEventListener("fullscreenchange", handler);
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
