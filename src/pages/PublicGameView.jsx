@@ -180,8 +180,8 @@ export default function PublicGameView() {
                 <span className="font-heading font-bold text-white">{quarterLabel}</span>
                 <div className="flex items-center gap-2">
                   {isLive ? (
-                    <span className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-heading font-bold uppercase tracking-widest" style={{ background: 'rgba(74,222,128,0.12)', color: '#4ADE80' }}>
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#4ADE80' }} />
+                    <span className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-heading font-bold uppercase tracking-widest" style={{ background: 'rgba(119,221,119,0.12)', color: '#77DD77' }}>
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#77DD77' }} />
                       LIVE
                     </span>
                   ) : (
@@ -200,10 +200,10 @@ export default function PublicGameView() {
               <div className="relative grid grid-cols-[1fr_200px_1fr]" style={{ background: '#0E0F11' }}>
                 {/* Possession glow */}
                 {timer?.possession === 'home' && (
-                  <div className="absolute left-0 top-0 bottom-0 pointer-events-none" style={{ width: 'calc((100% - 200px) / 2)', background: 'linear-gradient(90deg, rgba(74,222,128,0.10), transparent)' }} aria-hidden />
+                  <div className="absolute left-0 top-0 bottom-0 pointer-events-none" style={{ width: 'calc((100% - 200px) / 2)', background: 'linear-gradient(90deg, rgba(119,221,119,0.10), transparent)' }} aria-hidden />
                 )}
                 {timer?.possession === 'away' && (
-                  <div className="absolute right-0 top-0 bottom-0 pointer-events-none" style={{ width: 'calc((100% - 200px) / 2)', background: 'linear-gradient(270deg, rgba(74,222,128,0.10), transparent)' }} aria-hidden />
+                  <div className="absolute right-0 top-0 bottom-0 pointer-events-none" style={{ width: 'calc((100% - 200px) / 2)', background: 'linear-gradient(270deg, rgba(119,221,119,0.10), transparent)' }} aria-hidden />
                 )}
 
                 {/* Home half */}
@@ -215,7 +215,7 @@ export default function PublicGameView() {
                     </AvatarFallback>
                   </Avatar>
                   <h3 className="text-lg font-heading font-bold text-white mb-2 text-center flex items-center gap-2">
-                    {timer?.possession === 'home' && <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }} />}
+                    {timer?.possession === 'home' && <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#77DD77', boxShadow: '0 0 8px #77DD77' }} />}
                     {homeTeam?.name || 'Home Team'}
                   </h3>
                   <span className="text-[10px] font-heading font-bold uppercase tracking-widest px-3 py-1 mb-8" style={{ background: '#2A2D31', color: '#9CA3AF' }}>HOME</span>
@@ -225,14 +225,14 @@ export default function PublicGameView() {
                 </div>
 
                 {/* Center clock column */}
-                <div className="relative flex flex-col items-center justify-center px-4 py-8" style={{ background: '#0E0F11', borderLeft: '1px solid #4ADE80', borderRight: '1px solid #4ADE80' }}>
+                <div className="relative flex flex-col items-center justify-center px-4 py-8" style={{ background: '#0E0F11', borderLeft: '1px solid #77DD77', borderRight: '1px solid #77DD77' }}>
                   {timer ? (
                     <>
                       <p className="text-[10px] font-heading font-bold uppercase tracking-widest mb-1" style={{ color: '#9CA3AF' }}>Game Clock</p>
                       <div className={`font-heading font-bold tabular-nums leading-none mb-4 ${gameClockRunning ? 'text-primary' : 'text-white'}`} style={{ fontSize: '2.5rem' }}>
                         {formatGameClock(gameClockMs)}
                       </div>
-                      <span className="px-3 py-1 text-[10px] font-heading font-bold uppercase tracking-widest mb-4 border" style={{ borderColor: '#4ADE80', color: '#4ADE80', background: 'rgba(74,222,128,0.08)' }}>
+                      <span className="px-3 py-1 text-[10px] font-heading font-bold uppercase tracking-widest mb-4 border" style={{ borderColor: '#77DD77', color: '#77DD77', background: 'rgba(119,221,119,0.08)' }}>
                         {quarterLabel}
                       </span>
                       {(timer.shot_clock_length_seconds || 0) > 0 && (
@@ -245,7 +245,7 @@ export default function PublicGameView() {
                       )}
                     </>
                   ) : (
-                    <span className="px-3 py-1 text-[10px] font-heading font-bold uppercase tracking-widest border text-center" style={{ borderColor: '#4ADE80', color: '#4ADE80', background: 'rgba(74,222,128,0.08)' }}>
+                    <span className="px-3 py-1 text-[10px] font-heading font-bold uppercase tracking-widest border text-center" style={{ borderColor: '#77DD77', color: '#77DD77', background: 'rgba(119,221,119,0.08)' }}>
                       {quarterLabel}
                     </span>
                   )}
@@ -260,7 +260,7 @@ export default function PublicGameView() {
                     </AvatarFallback>
                   </Avatar>
                   <h3 className="text-lg font-heading font-bold text-white mb-2 text-center flex items-center gap-2">
-                    {timer?.possession === 'away' && <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#4ADE80', boxShadow: '0 0 8px #4ADE80' }} />}
+                    {timer?.possession === 'away' && <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#77DD77', boxShadow: '0 0 8px #77DD77' }} />}
                     {awayTeam?.name || 'Away Team'}
                   </h3>
                   <span className="text-[10px] font-heading font-bold uppercase tracking-widest px-3 py-1 mb-8" style={{ background: '#2A2D31', color: '#9CA3AF' }}>AWAY</span>
