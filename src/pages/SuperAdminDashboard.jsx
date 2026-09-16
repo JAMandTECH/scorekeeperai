@@ -9,6 +9,7 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { createPageUrl } from "@/utils";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
+import AnalyticsPanel from "@/components/superadmin/AnalyticsPanel";
 
 export default function SuperAdminDashboard() {
   const [user, setUser] = useState(null);
@@ -290,6 +291,9 @@ Keep the response concise and actionable for a super administrator.`;
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Site Analytics */}
+              <AnalyticsPanel />
 
               {/* AI Analysis */}
               <Card className="border-primary/30">
