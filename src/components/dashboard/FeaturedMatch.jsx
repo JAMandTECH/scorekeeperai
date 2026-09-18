@@ -3,16 +3,21 @@ import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Radio, Calendar, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
+import GameClockRing from "@/components/dashboard/GameClockRing";
 
 function TeamBlock({ team }) {
   const initials = (team?.name || "?").slice(0, 2).toUpperCase();
   return (
     <div className="flex flex-col items-center gap-2">
-      <Avatar className="w-14 h-14 md:w-16 md:h-16 border border-border">
+      <Avatar className="w-14 h-14 md:w-16 md:h-16 border border-border bg-secondary">
         <AvatarImage src={team?.logo_url} alt={team?.name} />
-        <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-lg">{initials}</AvatarFallback>
+        <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-lg">
+          {initials}
+        </AvatarFallback>
       </Avatar>
-      <span className="text-xs md:text-sm font-medium text-foreground text-center max-w-[110px] truncate">{team?.name || "TBD"}</span>
+      <span className="text-xs md:text-sm font-medium text-foreground text-center max-w-[120px] truncate">
+        {team?.name || "TBD"}
+      </span>
     </div>
   );
 }
@@ -20,7 +25,7 @@ function TeamBlock({ team }) {
 export default function FeaturedMatch({ game, homeTeam, awayTeam }) {
   if (!game) {
     return (
-      <div className="border border-border bg-card p-8 h-full flex flex-col items-center justify-center text-center min-h-[260px]">
+      <div className="rounded-xl border border-border bg-card p-8 h-full flex flex-col items-center justify-center text-center min-h-[280px]">
         <Calendar className="w-10 h-10 text-muted-foreground mb-4" />
         <h3 className="font-heading text-lg font-bold">No featured match yet</h3>
         <p className="text-sm text-muted-foreground mt-2">Schedule a game to feature it here.</p>
@@ -37,37 +42,65 @@ export default function FeaturedMatch({ game, homeTeam, awayTeam }) {
   const isCompleted = game.status === "completed";
 
   return (
-    <Link to="/games" className="group block border border-border bg-card p-6 md:p-8 h-full min-h-[260px] hover:bg-muted transition-colors">
+    <Link
+      to="/games"
+      className="group block relative overflow-hidden rounded-xl border border-border bg-card p-6 md:p-8 min-h-[280px] hover:border-primary/40 transition-colors"
+    >
       <div className="flex items-center justify-between mb-6">
-        <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <span className="inline-flex items-center gap-2 text-xs font-heading font-bold uppercase tracking-widest text-muted-foreground">
           {isLive ? (
-            <><span className="live-dot" /> Live Match</>
+            <>
+              <span className="live-dot" /> Live Match
+            </>
           ) : isCompleted ? (
-            <><Radio className="w-3.5 h-3.5" /> Final Result</>
+            <>
+              <Radio className="w-3.5 h-3.5" /> Final Result
+            </>
           ) : (
-            <><Calendar className="w-3.5 h-3.5" /> Featured Match</>
+            <>
+              <Calendar className="w-3.5 h-3.5" /> Featured Match
+            </>
           )}
         </span>
-        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground capitalize">{game.sport}</span>
+        <span className="text-xs font-heading font-bold uppercase tracking-widest text-muted-foreground capitalize">
+          {game.sport}
+        </span>
       </div>
 
-      <div className="grid grid-cols-3 items-center gap-2">
-        <TeamBlock team={homeTeam} />
-        <div className="flex flex-col items-center">
-          {isCompleted || isLive ? (
-            <div className="flex items-center gap-2 md:gap-3">
-              <span className="font-heading text-3xl md:text-4xl font-bold tabular-nums">{game.home_score ?? 0}</span>
-              <span className="text-muted-foreground text-xl">:</span>
-              <span className="font-heading text-3xl md:text-4xl font-bold tabular-nums">{game.away_score ?? 0}</span>
-            </div>
-          ) : (
-            <span className="font-heading text-2xl text-muted-foreground">VS</span>
-          )}
-          <span className="mt-2 text-xs text-muted-foreground tabular-nums">
-            {game.game_date ? format(new Date(game.game_date), "MMM d, h:mm a") : ""}
-          </span>
+      <div className="flex items-center gap-4 md:gap-8">
+        <div className="flex-1 grid grid-cols-3 items-center gap-2">
+          <TeamBlock team={homeTeam} />
+          <div className="flex flex-col items-center">
+            {isCompleted || isLive ? (
+              <div className="flex items-center gap-2 md:gap-3">
+                <span className="font-heading text-3xl md:text-4xl font-bold tabular-nums">
+                  {game.home_score ?? 0}
+                </span>
+                <span className="text-muted-foreground text-xl">:</span>
+                <span className="font-heading text-3xl md:text-4xl font-bold tabular-nums">
+                  {game.away_score ?? 0}
+                </span>
+              </div>
+            ) : (
+              <span className="font-heading text-2xl text-muted-foreground">VS</span>
+            )}
+          </div>
+          <TeamBlock team={awayTeam} />
         </div>
-        <TeamBlock team={awayTeam} />
+        {isLive && (
+          <div className="hidden md:block shrink-0">
+            <GameClockRing gameId={game.id} size={120} />
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 flex items-center justify-between">
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {game.game_date ? format(new Date(game.game_date), "EEE, MMM d · h:mm a") : ""}
+        </span>
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+          View <ChevronRight className="w-3.5 h-3.5" />
+        </span>
       </div>
     </Link>
   );

@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, Users, Trophy, Calendar, TrendingUp, Plus, PlayCircle, Sun, Moon, LogOut, CalendarCheck } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Building2, Users, Trophy, Calendar, Plus, PlayCircle } from "lucide-react";
+import { format } from "date-fns";
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import AIAssistant from "@/components/AIAssistant";
@@ -17,6 +17,22 @@ import SportShowcase from "@/components/dashboard/SportShowcase";
 import FeaturedMatch from "@/components/dashboard/FeaturedMatch";
 import DivisionStandings from "@/components/dashboard/DivisionStandings";
 import TimerPanel from "@/components/TimerPanel";
+import KpiTile from "@/components/dashboard/KpiTile";
+
+function ResultLine({ game, homeTeam, awayTeam, label }) {
+  if (!game) return null;
+  return (
+    <Link to="/games" className="flex items-center justify-between gap-2 py-2 hover:bg-muted transition-colors -mx-2 px-2 rounded-sm">
+      <span className="text-[10px] font-heading font-bold uppercase tracking-widest text-muted-foreground w-16 shrink-0">{label}</span>
+      <span className="text-sm font-medium text-foreground truncate flex-1 text-center">
+        {homeTeam?.name || "TBD"} <span className="text-muted-foreground">vs</span> {awayTeam?.name || "TBD"}
+      </span>
+      <span className="font-heading text-sm font-bold tabular-nums text-primary whitespace-nowrap">
+        {game.home_score ?? 0}–{game.away_score ?? 0}
+      </span>
+    </Link>
+  );
+}
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -202,8 +218,10 @@ export default function Dashboard() {
   const isAdmin = user?.role === 'admin';
   const organizationCount = isSuperAdmin ? allOrganizations.length : (organization ? 1 : 0);
 
+  const hasLatestResults = latestResults.basketball || latestResults.volleyball;
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="arena-command min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
@@ -225,7 +243,8 @@ export default function Dashboard() {
 
         <main className="flex-1 min-w-0">
           <div className="p-6 lg:p-8">
-            <div className="max-w-7xl mx-auto space-y-8">
+            <div className="max-w-7xl mx-auto space-y-6">
+              {/* Header */}
               <div>
                 <h1 className="font-heading text-3xl font-bold tracking-tight">
                   {isSuperAdmin ? 'Super Admin Dashboard' : 'Organization Dashboard'}
@@ -249,6 +268,7 @@ export default function Dashboard() {
                 )}
               </div>
 
+              {/* Setup card */}
               {!organization && !isSuperAdmin && (
                 <Card>
                   <CardHeader>
@@ -271,13 +291,10 @@ export default function Dashboard() {
                 </Card>
               )}
 
-              {organization && teams.length > 0 && (
-                <DivisionStandings teams={teams} games={games} />
-              )}
-
+              {/* Row 1: Featured hero + KPI rail */}
               {organization && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="lg:col-span-2 space-y-4">
                     {featuredGame ? (
                       <>
                         <FeaturedMatch
@@ -285,12 +302,10 @@ export default function Dashboard() {
                           homeTeam={teamMap[featuredGame.home_team_id]}
                           awayTeam={teamMap[featuredGame.away_team_id]}
                         />
-                        <div className="mt-4">
-                          <TimerPanel gameId={featuredGame.id} game={featuredGame} variant="compact" />
-                        </div>
+                        <TimerPanel gameId={featuredGame.id} game={featuredGame} variant="compact" />
                       </>
                     ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 h-full">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FeaturedMatch
                           game={latestResults.basketball}
                           homeTeam={latestResults.basketball ? teamMap[latestResults.basketball.home_team_id] : null}
@@ -303,26 +318,132 @@ export default function Dashboard() {
                         />
                       </div>
                     )}
+
+                    {hasLatestResults && (
+                      <div className="rounded-xl border border-border bg-card p-4">
+                        <div className="text-[10px] font-heading font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                          Latest Results
+                        </div>
+                        <div className="divide-y divide-border">
+                          <ResultLine
+                            game={latestResults.basketball}
+                            homeTeam={latestResults.basketball ? teamMap[latestResults.basketball.home_team_id] : null}
+                            awayTeam={latestResults.basketball ? teamMap[latestResults.basketball.away_team_id] : null}
+                            label="Basketball"
+                          />
+                          <ResultLine
+                            game={latestResults.volleyball}
+                            homeTeam={latestResults.volleyball ? teamMap[latestResults.volleyball.home_team_id] : null}
+                            awayTeam={latestResults.volleyball ? teamMap[latestResults.volleyball.away_team_id] : null}
+                            label="Volleyball"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
+
+                  {/* KPI rail */}
+                  <div className="grid grid-cols-2 gap-3 content-start">
+                    <KpiTile
+                      icon={PlayCircle}
+                      label="Live"
+                      value={liveGamesCount}
+                      sub="Games now"
+                      accent={liveGamesCount > 0}
+                    />
+                    <KpiTile
+                      icon={Trophy}
+                      label="Completed"
+                      value={completedGamesCount}
+                      sub="Games played"
+                    />
+                    <KpiTile
+                      icon={Building2}
+                      label="Organizations"
+                      value={organizationCount}
+                      sub={isSuperAdmin ? 'System-wide' : 'Your org'}
+                    />
+                    <KpiTile
+                      icon={Users}
+                      label="Teams"
+                      value={teams.length}
+                      sub="Active teams"
+                    />
+                    <KpiTile
+                      icon={Trophy}
+                      label="Players"
+                      value={players.length}
+                      sub="Registered"
+                    />
+                    <KpiTile
+                      icon={Calendar}
+                      label="Games"
+                      value="Schedule"
+                      sub="Manage games →"
+                      to="/games"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Division Standings */}
+              {organization && teams.length > 0 && (
+                <DivisionStandings teams={teams} games={games} />
+              )}
+
+              {/* Sport Showcase */}
+              {organization && teams.length > 0 && (
+                <SportShowcase basketballTeams={basketballTeams} volleyballTeams={volleyballTeams} />
+              )}
+
+              {/* Recent Activity + Upcoming Games */}
+              {organization && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <RecentActivity
+                    organizationId={currentOrgId}
+                    teams={teams}
+                    players={players}
+                  />
                   <Card>
                     <CardHeader className="border-b border-border py-4">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-muted-foreground" /> Upcoming Games
+                      <CardTitle className="text-base font-heading font-bold flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-primary" /> Upcoming Games
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-4">
                       {upcomingGames.length === 0 ? (
                         <p className="text-sm text-muted-foreground py-6 text-center">No upcoming games scheduled</p>
                       ) : (
-                        <div className="space-y-0">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {upcomingGames.map((g) => (
-                            <Link key={g.id} to="/games" className="flex items-center justify-between gap-2 py-3 border-b border-border last:border-0 hover:bg-muted transition-colors -mx-2 px-2">
-                              <span className="text-sm font-medium truncate flex-1">
-                                {teamMap[g.home_team_id]?.name || 'TBD'} <span className="text-muted-foreground">vs</span> {teamMap[g.away_team_id]?.name || 'TBD'}
-                              </span>
-                              <span className="text-xs text-primary whitespace-nowrap tabular-nums">
-                                {new Date(g.game_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                              </span>
+                            <Link
+                              key={g.id}
+                              to="/games"
+                              className="rounded-lg border border-border bg-card p-3 hover:border-primary/40 transition-colors"
+                            >
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-7 h-7 rounded-full border border-border bg-secondary flex items-center justify-center shrink-0">
+                                  <span className="text-[10px] font-heading font-bold text-foreground">
+                                    {(teamMap[g.home_team_id]?.name || "?").slice(0, 2).toUpperCase()}
+                                  </span>
+                                </div>
+                                <span className="text-sm font-medium text-foreground truncate flex-1">
+                                  {teamMap[g.home_team_id]?.name || 'TBD'}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-7 h-7 rounded-full border border-border bg-secondary flex items-center justify-center shrink-0">
+                                  <span className="text-[10px] font-heading font-bold text-foreground">
+                                    {(teamMap[g.away_team_id]?.name || "?").slice(0, 2).toUpperCase()}
+                                  </span>
+                                </div>
+                                <span className="text-sm font-medium text-foreground truncate flex-1">
+                                  {teamMap[g.away_team_id]?.name || 'TBD'}
+                                </span>
+                              </div>
+                              <p className="text-xs text-primary tabular-nums mt-2">
+                                {g.game_date ? format(new Date(g.game_date), "EEE, MMM d · h:mm a") : ""}
+                              </p>
                             </Link>
                           ))}
                         </div>
@@ -332,113 +453,21 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {organization && teams.length > 0 && (
-                <SportShowcase basketballTeams={basketballTeams} volleyballTeams={volleyballTeams} />
-              )}
-
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-border border border-border">
-                <Card className="border-0 rounded-none">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-xs text-muted-foreground font-medium">Live</CardTitle>
-                      <PlayCircle className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="font-heading text-3xl font-bold tabular-nums">{liveGamesCount}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Games now</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 rounded-none">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-xs text-muted-foreground font-medium">Completed</CardTitle>
-                      <Trophy className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="font-heading text-3xl font-bold tabular-nums">{completedGamesCount}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Games played</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 rounded-none">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-xs text-muted-foreground font-medium">Organizations</CardTitle>
-                      <Building2 className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="font-heading text-3xl font-bold tabular-nums">{organizationCount}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {isSuperAdmin ? 'System-wide' : 'Your org'}
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 rounded-none">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-xs text-muted-foreground font-medium">Teams</CardTitle>
-                      <Users className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="font-heading text-3xl font-bold tabular-nums">{teams.length}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Active teams</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 rounded-none">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-xs text-muted-foreground font-medium">Players</CardTitle>
-                      <Trophy className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="font-heading text-3xl font-bold tabular-nums">{players.length}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Registered</p>
-                  </CardContent>
-                </Card>
-
-                <Link to="/games" className="block">
-                  <Card className="border-0 rounded-none h-full cursor-pointer hover:bg-muted transition-colors">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-xs text-muted-foreground font-medium">Games</CardTitle>
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="font-heading text-lg font-bold text-primary">View Schedule</p>
-                      <p className="text-xs text-muted-foreground mt-1">Manage games →</p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              </div>
-
+              {/* Top Scorer Spotlight */}
               {organization && players.length > 0 && (
                 <TopScorerSpotlight organizationId={currentOrgId} players={players} teams={teams} />
               )}
 
+              {/* Category Leaders */}
               {organization && (
                 <CategoryLeaders
                   organizationId={currentOrgId}
                   players={players}
                   teams={teams}
-                  rightColumnExtra={
-                    <RecentActivity
-                      organizationId={currentOrgId}
-                      teams={teams}
-                      players={players}
-                    />
-                  }
                 />
               )}
 
+              {/* Recent activity fallback when no organization */}
               {!organization && (
                 <RecentActivity
                   organizationId={currentOrgId}
@@ -450,6 +479,8 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+
+      <AIAssistant />
     </div>
   );
 }
