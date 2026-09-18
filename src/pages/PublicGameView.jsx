@@ -112,6 +112,46 @@ export default function PublicGameView() {
     };
   };
 
+  // Compute top scorer for a team from playerStats (highest points); null when no stats exist
+  const getTopScorer = (teamId) => {
+    const teamPlayerIds = players.filter(p => p.team_id === teamId).map(p => p.id);
+    const teamStats = playerStats.filter(s => teamPlayerIds.includes(s.player_id));
+    if (teamStats.length === 0) return null;
+    let top = null;
+    for (const player of players.filter(p => p.team_id === teamId)) {
+      const totals = getPlayerTotals(player.id);
+      if (!top || totals.points > top.points) {
+        top = { player, points: totals.points };
+      }
+    }
+    return top;
+  };
+
+  const homeTopScorer = getTopScorer(game.home_team_id);
+  const awayTopScorer = getTopScorer(game.away_team_id);
+
+  const renderTopScorer = (topScorer) => (
+    <div className="flex items-center gap-2 mb-6 px-3 py-1.5 max-w-full" style={{ background: '#2A2D31' }}>
+      {topScorer ? (
+        <>
+          <span className="text-[10px] font-heading font-bold px-1.5 py-0.5 shrink-0" style={{ background: '#77DD77', color: '#0E0F11' }}>
+            #{topScorer.player.jersey_number}
+          </span>
+          <span className="text-xs font-medium text-white truncate">
+            {topScorer.player.first_name} {topScorer.player.last_name}
+          </span>
+          <span className="text-xs font-heading font-bold text-white tabular-nums ml-auto shrink-0">
+            {topScorer.points} PTS
+          </span>
+        </>
+      ) : (
+        <span className="text-[10px] font-heading font-bold uppercase tracking-widest" style={{ color: '#9CA3AF' }}>
+          Top Scorer —
+        </span>
+      )}
+    </div>
+  );
+
   const quarterLabel = game.sport === 'basketball' 
     ? (game.current_quarter <= 4 ? `Quarter ${game.current_quarter}` : `Overtime ${game.current_quarter - 4}`)
     : `Set ${game.current_quarter}`;
@@ -218,7 +258,8 @@ export default function PublicGameView() {
                     {timer?.possession === 'home' && <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#77DD77', boxShadow: '0 0 8px #77DD77' }} />}
                     {homeTeam?.name || 'Home Team'}
                   </h3>
-                  <span className="text-[10px] font-heading font-bold uppercase tracking-widest px-3 py-1 mb-8" style={{ background: '#2A2D31', color: '#9CA3AF' }}>HOME</span>
+                  <span className="text-[10px] font-heading font-bold uppercase tracking-widest px-3 py-1 mb-4" style={{ background: '#2A2D31', color: '#9CA3AF' }}>HOME</span>
+                  {renderTopScorer(homeTopScorer)}
                   <div className="font-heading font-bold tabular-nums leading-none text-white" style={{ fontSize: '7rem' }}>
                     {homeScore}
                   </div>
@@ -263,7 +304,8 @@ export default function PublicGameView() {
                     {timer?.possession === 'away' && <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#77DD77', boxShadow: '0 0 8px #77DD77' }} />}
                     {awayTeam?.name || 'Away Team'}
                   </h3>
-                  <span className="text-[10px] font-heading font-bold uppercase tracking-widest px-3 py-1 mb-8" style={{ background: '#2A2D31', color: '#9CA3AF' }}>AWAY</span>
+                  <span className="text-[10px] font-heading font-bold uppercase tracking-widest px-3 py-1 mb-4" style={{ background: '#2A2D31', color: '#9CA3AF' }}>AWAY</span>
+                  {renderTopScorer(awayTopScorer)}
                   <div className="font-heading font-bold tabular-nums leading-none text-white" style={{ fontSize: '7rem' }}>
                     {awayScore}
                   </div>
