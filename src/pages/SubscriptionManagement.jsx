@@ -183,7 +183,7 @@ export default function SubscriptionManagement() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="arena-command min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
       </div>
     );
@@ -194,7 +194,7 @@ export default function SubscriptionManagement() {
   const premiumOrgs = organizations.filter(o => o.subscription_tier === 'premium');
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="arena-command min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={null}

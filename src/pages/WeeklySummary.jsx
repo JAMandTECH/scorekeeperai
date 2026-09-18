@@ -354,7 +354,7 @@ export default function WeeklySummary() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="arena-command min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
@@ -389,7 +389,7 @@ export default function WeeklySummary() {
   }).filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="arena-command min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}

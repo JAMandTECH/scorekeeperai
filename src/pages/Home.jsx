@@ -394,11 +394,11 @@ export default function Home() {
   const getTeamName = (teamId) => allTeams.find(t => t.id === teamId)?.name || 'Unknown';
 
   if (loading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div></div>;
+    return <div className="arena-command min-h-screen bg-background flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div></div>;
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="arena-command min-h-screen bg-background text-foreground">
       {user && <AdminHeader user={user} organization={organization} darkMode={darkMode} toggleDarkMode={toggleDarkMode} handleLogout={handleLogout} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />}
       <div className="flex">
         {user && <AdminSidebar user={user} organization={organization} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} handleLogout={handleLogout} navigationItems={navigationItems} />}

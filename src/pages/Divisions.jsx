@@ -171,7 +171,7 @@ export default function Divisions() {
   // DivisionCard component was removed, its logic is now inlined directly into the JSX below.
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="arena-command min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}

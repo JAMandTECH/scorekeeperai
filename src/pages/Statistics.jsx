@@ -629,7 +629,7 @@ Please provide:
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="arena-command min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}
