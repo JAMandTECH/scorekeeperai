@@ -71,12 +71,19 @@ function ScorerCard({ label, topScorer, teamMap }) {
           </div>
         </div>
 
-        <div className="flex items-baseline gap-2 mb-4 text-sm text-muted-foreground tabular-nums">
-          <span><span className="font-heading font-bold text-foreground">{topScorer.stats.total_points || 0}</span> PTS</span>
-          <span className="text-border">·</span>
-          <span><span className="font-heading font-bold text-foreground">{topScorer.gp}</span> GP</span>
-          <span className="text-border">·</span>
-          <span><span className="font-heading font-bold text-foreground">{topScorer.stats.total_rebounds || 0}</span> {topScorer.stats.secondaryLabel || "REB"}</span>
+        <div className="flex flex-wrap items-end gap-x-5 gap-y-3 pt-3 border-t border-border">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">GP</span>
+            <span className="font-heading text-base font-bold tabular-nums leading-tight">{topScorer.gp}</span>
+            <span className="text-[10px] text-muted-foreground tabular-nums">&nbsp;</span>
+          </div>
+          {topScorer.stats.map((s) => (
+            <div key={s.label} className="flex flex-col">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{s.label}</span>
+              <span className="font-heading text-base font-bold tabular-nums leading-tight">{Math.round(s.total)}</span>
+              <span className="text-[10px] text-muted-foreground tabular-nums">avg {s.avg.toFixed(1)}</span>
+            </div>
+          ))}
         </div>
 
         <div className="flex items-center gap-2 mb-2">
@@ -141,9 +148,6 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
     if (!ptsRow) return null;
     const player = playerMap[ptsRow.id];
     if (!player) return null;
-    const secondaryStat = sport === "volleyball" ? "aces" : "rebounds";
-    const secRow = buildLeaderboard({ ...ctx, statType: secondaryStat, limit: 50 }).find((r) => r.id === ptsRow.id);
-
     const teamsById = new Map(teams.map((t) => [t.id, t]));
     const teamGames = games
       .filter((g) => {
@@ -156,9 +160,11 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
       })
       .sort((a, b) => new Date(a.game_date) - new Date(b.game_date));
 
+    const eligibleGameIds = new Set(teamGames.map((g) => g.id));
+    const myStats = playerStats.filter((s) => s.player_id === ptsRow.id && eligibleGameIds.has(s.game_id));
+
     const ptsByGame = {};
-    playerStats.forEach((s) => {
-      if (s.player_id !== ptsRow.id) return;
+    myStats.forEach((s) => {
       let val;
       if (sport === "volleyball") {
         val = Number(s.aces || 0) + Number(s.attacks || 0) + Number(s.blocks || 0);
@@ -170,17 +176,47 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
 
     const chartData = teamGames.map((g, i) => ({ game: `G${i + 1}`, points: ptsByGame[g.id] || 0 }));
 
+    const sumKey = (key) => myStats.reduce((acc, s) => acc + Number(s[key] || 0), 0);
+    let pointsTotal;
+    if (sport === "volleyball") {
+      pointsTotal = sumKey("aces") + sumKey("attacks") + sumKey("blocks");
+    } else {
+      const stored = sumKey("points");
+      if (stored > 0) {
+        pointsTotal = stored;
+      } else {
+        const threes = sumKey("three_pointers");
+        const fgm = sumKey("field_goals_made");
+        const twos = Math.max(fgm - threes, 0);
+        const ftm = sumKey("free_throws_made");
+        pointsTotal = twos * 2 + threes * 3 + ftm;
+      }
+    }
+    const gp = ptsRow.gamesPlayed;
+    const mk = (label, total) => ({ label, total, avg: gp > 0 ? total / gp : 0 });
+    const statRows = sport === "volleyball"
+      ? [
+          mk("PTS", pointsTotal),
+          mk("ACES", sumKey("aces")),
+          mk("ATK", sumKey("attacks")),
+          mk("BLK", sumKey("blocks")),
+        ]
+      : [
+          mk("PTS", pointsTotal),
+          mk("REB", sumKey("rebounds")),
+          mk("AST", sumKey("assists")),
+          mk("STL", sumKey("steals")),
+          mk("BLK", sumKey("blocks")),
+          mk("3PM", sumKey("three_pointers")),
+        ];
+
     return {
       player,
       ppg: ptsRow.avgNum,
-      gp: ptsRow.gamesPlayed,
+      gp,
       chartData,
       sport,
-      stats: {
-        total_points: ptsRow.total,
-        total_rebounds: secRow?.total || 0,
-        secondaryLabel: sport === "volleyball" ? "ACES" : "REB",
-      },
+      stats: statRows,
     };
   }, [games, playerStats, teams, players, playerMap]);
 
@@ -196,13 +232,13 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
     <StatsFetchingIndicator loading={isLoading} fetching={isFetching} label="Refreshing top scorers…">
       <div className="space-y-6">
         {hasBasketball && (
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-4">
             {openTop && <ScorerCard label="Open" topScorer={openTop} teamMap={teamMap} />}
             {veteranTop && <ScorerCard label="Veterans" topScorer={veteranTop} teamMap={teamMap} />}
           </div>
         )}
         {hasVolleyball && (
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-4">
             {vOpenTop && <ScorerCard label="Volleyball · Open" topScorer={vOpenTop} teamMap={teamMap} />}
             {vVeteranTop && <ScorerCard label="Volleyball · Veterans" topScorer={vVeteranTop} teamMap={teamMap} />}
           </div>
