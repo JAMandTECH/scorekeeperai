@@ -1,6 +1,6 @@
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Crown, TrendingUp } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { format } from "date-fns";
 import { usePlayerLeaders, buildLeaderboard } from "@/components/hooks/usePlayerLeaders";
 import StatsFetchingIndicator from "@/components/stats/StatsFetchingIndicator";
 import {
@@ -8,9 +8,7 @@ import {
   LineChart,
   Line,
   XAxis,
-  YAxis,
   Tooltip,
-  CartesianGrid,
   LabelList,
 } from "recharts";
 
@@ -20,13 +18,9 @@ function ScorerCard({ label, topScorer, teamMap }) {
   if (!topScorer) {
     return (
       <Card>
-        <div className="px-5 py-4 border-b border-border flex items-center gap-2">
-          <Crown className="w-4 h-4 text-primary" />
-          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Top Scorer · {label}</span>
+        <div className="p-5">
+          <p className="text-sm text-muted-foreground text-center py-8">No top scorer data for {label} yet.</p>
         </div>
-        <CardContent className="py-10">
-          <p className="text-sm text-muted-foreground text-center">No data yet</p>
-        </CardContent>
       </Card>
     );
   }
@@ -34,75 +28,47 @@ function ScorerCard({ label, topScorer, teamMap }) {
   const p = topScorer.player;
   const initials = `${(p.first_name || "?")[0] || ""}${(p.last_name || "")[0] || ""}`.toUpperCase();
   const teamName = teamMap[p.team_id]?.name || "—";
-
-  const peakIdx = chartData.reduce((mi, d, i, arr) => (d.points > arr[mi].points ? i : mi), 0);
-  const lastIdx = chartData.length - 1;
-  const renderDot = (props) => {
-    const { cx, cy, index, key } = props;
-    if (index !== peakIdx && index !== lastIdx) return null;
-    return <circle key={key} cx={cx} cy={cy} r={3.5} fill="hsl(var(--primary))" stroke="hsl(var(--card))" strokeWidth={1.5} />;
-  };
+  const fullName = `${p.first_name} ${p.last_name}`;
+  const totalPoints = topScorer.stats.total_points || 0;
 
   return (
     <Card className="overflow-hidden">
-      <div className="p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Crown className="w-4 h-4 text-primary" />
-          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Top Scorer · {label}</span>
+      <div className="p-5 flex items-center gap-5">
+        {/* Free-floating avatar — sits directly on the card surface, no panel behind */}
+        <div className="w-20 h-20 shrink-0 rounded-full overflow-hidden">
+          {p.photo_url ? (
+            <img src={p.photo_url} alt={p.first_name} className="w-full h-full object-cover object-top" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-secondary text-foreground text-lg font-heading font-bold">{initials}</div>
+          )}
         </div>
 
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-28 h-28 shrink-0 rounded-full overflow-hidden ring-1 ring-border">
-            {p.photo_url ? (
-              <img src={p.photo_url} alt={p.first_name} className="w-full h-full object-cover object-top" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-secondary text-foreground text-2xl font-heading font-bold">{initials}</div>
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-heading text-lg font-bold tracking-tight truncate">{p.first_name} {p.last_name}</p>
-            <p className="text-sm text-muted-foreground truncate">{teamName}{p.jersey_number ? ` · #${p.jersey_number}` : ""}</p>
-          </div>
-          <div className="text-right shrink-0">
-            <p className="font-heading text-3xl font-bold tabular-nums leading-none text-primary">
-              {topScorer.ppg.toFixed(1)}
-            </p>
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mt-1">PPG</p>
-          </div>
+        {/* Name + subtitle */}
+        <div className="min-w-0 shrink-0">
+          <p className="font-heading text-xl font-bold tracking-tight truncate">{fullName}</p>
+          <p className="text-sm text-muted-foreground mt-1 truncate">Top Scorer: {fullName} - {totalPoints} Points</p>
+          <p className="text-xs text-muted-foreground mt-0.5 truncate">{teamName}{p.jersey_number ? ` · #${p.jersey_number}` : ""}</p>
         </div>
 
-        <div className="flex items-baseline gap-2 mb-4 text-sm text-muted-foreground tabular-nums">
-          <span><span className="font-heading font-bold text-foreground">{topScorer.stats.total_points || 0}</span> PTS</span>
-          <span className="text-border">·</span>
-          <span><span className="font-heading font-bold text-foreground">{topScorer.gp}</span> GP</span>
-          <span className="text-border">·</span>
-          <span><span className="font-heading font-bold text-foreground">{topScorer.stats.total_rebounds || 0}</span> {topScorer.stats.secondaryLabel || "REB"}</span>
-        </div>
-
-        <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Points Per Game</span>
-        </div>
-        {chartData.length > 0 ? (
-          <div className="h-40 -mx-1">
+        {/* Neon-green line chart — right side, month axis */}
+        <div className="flex-1 min-w-0 h-28">
+          {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 10, right: 8, bottom: 0, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="game" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis domain={[0, "auto"]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} width={28} />
+              <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
+                <XAxis dataKey="month" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 0, color: "hsl(var(--foreground))" }}
                   labelStyle={{ color: "hsl(var(--muted-foreground))" }}
                 />
-                <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={2} dot={renderDot} activeDot={false} isAnimationActive={false}>
+                <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} activeDot={false} isAnimationActive={false}>
                   <LabelList dataKey="points" position="top" fill="hsl(var(--foreground))" fontSize={11} fontWeight={700} offset={6} />
                 </Line>
               </LineChart>
             </ResponsiveContainer>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground text-center py-8">No per-game data yet</p>
-        )}
+          ) : (
+            <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No per-game data</div>
+          )}
+        </div>
       </div>
     </Card>
   );
@@ -168,7 +134,10 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
       ptsByGame[s.game_id] = (ptsByGame[s.game_id] || 0) + val;
     });
 
-    const chartData = teamGames.map((g, i) => ({ game: `G${i + 1}`, points: ptsByGame[g.id] || 0 }));
+    const chartData = teamGames.map((g, i) => {
+      const d = g.game_date ? new Date(g.game_date) : null;
+      return { month: d ? format(d, "MMM") : `G${i + 1}`, points: ptsByGame[g.id] || 0 };
+    });
 
     return {
       player,
