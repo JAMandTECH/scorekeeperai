@@ -17,6 +17,8 @@ import VolleyballSection from "@/components/home/VolleyballSection";
 import StatsFetchingIndicator from "@/components/stats/StatsFetchingIndicator";
 import StatsRefreshControl from "@/components/stats/StatsRefreshControl";
 import { useStatsRefresh } from "@/lib/StatsRefreshContext";
+import { computeTeamRecords, orgStandingsFlags } from "@/lib/standings";
+import StandingsControls from "@/components/standings/StandingsControls";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -88,6 +90,13 @@ export default function Home() {
   };
 
   const handleLogout = () => base44.auth.logout(createPageUrl("Home"));
+
+  const refetchOrganization = async () => {
+    try {
+      const res = await base44.functions.invoke('getUserOrganization', {});
+      setOrganization(res?.data?.organization || null);
+    } catch { /* ignore */ }
+  };
 
   const superAdminNav = [
     { title: "Home", url: createPageUrl("Home"), icon: HomeIcon },
@@ -316,47 +325,28 @@ export default function Home() {
       .slice(0, limit);
   };
 
+  const standingsFlags = orgStandingsFlags(organization);
   const getTeamStandings = (sport) => {
     const sportTeams = teams.filter(t => (t.sport || '').toLowerCase() === sport.toLowerCase());
+    const sportGames = games.filter(g => (g.sport || '').toLowerCase() === sport.toLowerCase());
+    const records = computeTeamRecords(sportTeams, sportGames, standingsFlags);
     const divisions = [...new Set(sportTeams.map(t => t.division || 'No Division'))];
     return divisions.map(division => ({
       division,
       teams: sportTeams.filter(t => (t.division || 'No Division') === division).map(team => {
-        const teamGames = games.filter(g => g.status === 'completed' && (g.game_type || 'regular_season') === 'regular_season' && (g.sport || '').toLowerCase() === sport.toLowerCase() && g.archived !== true && (g.home_team_id === team.id || g.away_team_id === team.id));
-        let wins = 0, losses = 0, draws = 0, pointsFor = 0, pointsAgainst = 0;
-        teamGames.forEach(game => {
-          const isHome = game.home_team_id === team.id;
-          let teamScore = isHome ? game.home_score : game.away_score;
-          let oppScore = isHome ? game.away_score : game.home_score;
-          if (sport === 'volleyball' && Array.isArray(game.quarter_scores) && game.quarter_scores.length > 0) {
-            const homeTotal = game.quarter_scores.reduce((sum, s) => sum + (s.home || 0), 0);
-            const awayTotal = game.quarter_scores.reduce((sum, s) => sum + (s.away || 0), 0);
-            const homeSets = game.quarter_scores.filter(s => s.home > s.away).length;
-            const awaySets = game.quarter_scores.filter(s => s.away > s.home).length;
-            teamScore = isHome ? homeTotal : awayTotal;
-            oppScore = isHome ? awayTotal : homeTotal;
-            if (homeSets > awaySets) isHome ? wins++ : losses++;
-            else if (awaySets > homeSets) isHome ? losses++ : wins++;
-            else draws++;
-          } else {
-            if (teamScore > oppScore) wins++;
-            else if (oppScore > teamScore) losses++;
-            else draws++;
-          }
-          pointsFor += Number(teamScore || 0);
-          pointsAgainst += Number(oppScore || 0);
-        });
-        const gamesPlayed = wins + losses + draws;
+        const r = records[team.id] || { wins: 0, losses: 0, draws: 0, defaults: 0, pointsFor: 0, pointsAgainst: 0, winPct: 0, diff: 0, gamesPlayed: 0 };
+        const gp = r.gamesPlayed || 0;
         return {
           ...team,
-          wins,
-          losses,
-          draws,
-          gamesPlayed,
-          winPct: gamesPlayed > 0 ? (wins + draws * 0.5) / gamesPlayed : 0,
-          avgPointsFor: gamesPlayed > 0 ? (pointsFor / gamesPlayed).toFixed(1) : 0,
-          avgPointsAgainst: gamesPlayed > 0 ? (pointsAgainst / gamesPlayed).toFixed(1) : 0,
-          diff: pointsFor - pointsAgainst,
+          wins: r.wins,
+          losses: r.losses,
+          draws: r.draws,
+          defaults: r.defaults,
+          gamesPlayed: gp,
+          winPct: r.winPct,
+          avgPointsFor: gp > 0 ? (r.pointsFor / gp).toFixed(1) : 0,
+          avgPointsAgainst: gp > 0 ? (r.pointsAgainst / gp).toFixed(1) : 0,
+          diff: r.diff,
         };
       }).sort((a, b) => b.winPct - a.winPct || b.diff - a.diff)
     }));
@@ -453,6 +443,10 @@ export default function Home() {
                 </section>
               )}
 
+              {isAdmin && organization && (
+                <StandingsControls organization={organization} onUpdated={refetchOrganization} />
+              )}
+
               <StatsRefreshControl />
 
               {isStatsFetching && (
@@ -460,9 +454,9 @@ export default function Home() {
                   <StatsFetchingIndicator fetching={isStatsFetching} label="Refreshing live stats…" />
                 </div>
               )}
-              <BasketballSection bbDivTab={bbDivTab} setBbDivTab={setBbDivTab} organization={organization} basketballStandingsOpen={basketballStandingsOpen} basketballStandingsVeterans={basketballStandingsVeterans} topScorersOpen={topScorersOpen} topScorersVeterans={topScorersVeterans} topReboundersOpen={topReboundersOpen} topReboundersVeterans={topReboundersVeterans} topBlockersOpen={topBlockersOpen} topBlockersVeterans={topBlockersVeterans} top3PointersOpen={top3PointersOpen} top3PointersVeterans={top3PointersVeterans} upcomingBasketballGamesOpen={upcomingBasketballGamesOpen} upcomingBasketballGamesVeterans={upcomingBasketballGamesVeterans} completedBasketballGamesOpen={completedBasketballGamesOpen} completedBasketballGamesVeterans={completedBasketballGamesVeterans} allPlayerStats={allPlayerStats} allPlayers={allPlayers} allTeams={allTeams} isAdmin={isAdmin} orgId={orgId} getTeamName={getTeamName} />
+              <BasketballSection bbDivTab={bbDivTab} setBbDivTab={setBbDivTab} organization={organization} basketballStandingsOpen={basketballStandingsOpen} basketballStandingsVeterans={basketballStandingsVeterans} topScorersOpen={topScorersOpen} topScorersVeterans={topScorersVeterans} topReboundersOpen={topReboundersOpen} topReboundersVeterans={topReboundersVeterans} topBlockersOpen={topBlockersOpen} topBlockersVeterans={topBlockersVeterans} top3PointersOpen={top3PointersOpen} top3PointersVeterans={top3PointersVeterans} upcomingBasketballGamesOpen={upcomingBasketballGamesOpen} upcomingBasketballGamesVeterans={upcomingBasketballGamesVeterans} completedBasketballGamesOpen={completedBasketballGamesOpen} completedBasketballGamesVeterans={completedBasketballGamesVeterans} allPlayerStats={allPlayerStats} allPlayers={allPlayers} allTeams={allTeams} isAdmin={isAdmin} orgId={orgId} getTeamName={getTeamName} excludeDraws={standingsFlags.excludeDraws} excludeDefaults={standingsFlags.excludeDefaults} />
 
-              <VolleyballSection organization={organization} volleyballStandings={volleyballStandings} topVolleyballScorers={topVolleyballScorers} topVolleyballAttackers={topVolleyballAttackers} topVolleyballBlockers={topVolleyballBlockers} topVolleyballAces={topVolleyballAces} upcomingVolleyballGames={upcomingVolleyballGames} completedVolleyballGames={completedVolleyballGames} allPlayerStats={allPlayerStats} allPlayers={allPlayers} allTeams={allTeams} isAdmin={isAdmin} getTeamName={getTeamName} />
+              <VolleyballSection organization={organization} volleyballStandings={volleyballStandings} topVolleyballScorers={topVolleyballScorers} topVolleyballAttackers={topVolleyballAttackers} topVolleyballBlockers={topVolleyballBlockers} topVolleyballAces={topVolleyballAces} upcomingVolleyballGames={upcomingVolleyballGames} completedVolleyballGames={completedVolleyballGames} allPlayerStats={allPlayerStats} allPlayers={allPlayers} allTeams={allTeams} isAdmin={isAdmin} getTeamName={getTeamName} excludeDraws={standingsFlags.excludeDraws} excludeDefaults={standingsFlags.excludeDefaults} />
             </div>
           )}
 

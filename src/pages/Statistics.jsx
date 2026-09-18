@@ -15,6 +15,8 @@ import StatsFetchingIndicator from "@/components/stats/StatsFetchingIndicator";
 import StatsRefreshControl from "@/components/stats/StatsRefreshControl";
 import { useStatsRefresh } from "@/lib/StatsRefreshContext";
 import { createPageUrl } from "@/utils";
+import { computeTeamRecords, orgStandingsFlags, standingsColumns } from "@/lib/standings";
+import StandingsControls from "@/components/standings/StandingsControls";
 
 export default function Statistics() {
   const [user, setUser] = useState(null);
@@ -72,6 +74,13 @@ export default function Statistics() {
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("PublicLanding"));
+  };
+
+  const refetchOrganization = async () => {
+    try {
+      const res = await base44.functions.invoke('getUserOrganization', {});
+      setOrganization(res?.data?.organization || null);
+    } catch { /* ignore */ }
   };
 
   const orgId = user?.organization_id || user?.active_organization_id;
@@ -326,32 +335,23 @@ export default function Statistics() {
       : 0,
   };
 
-  // Team statistics with fouls, timeouts, etc.
+  // Team statistics — W/L/D/DEFAULT/Win% from the shared helper (respects org exclude flags);
+  // fouls/timeouts/last5 still derived from raw games for the auxiliary columns.
+  const standingsFlags = orgStandingsFlags(organization);
+  const { showDraws, showDefaults } = standingsColumns(standingsFlags);
+  const teamRecords = computeTeamRecords(filteredTeams, games, standingsFlags);
   const teamStats = filteredTeams.map(team => {
-    // Strict: only completed games that match the team and the team's sport
+    const r = teamRecords[team.id] || { wins: 0, losses: 0, draws: 0, defaults: 0, winPct: 0, gamesPlayed: 0, pointsFor: 0, pointsAgainst: 0, diff: 0 };
     const teamGames = games.filter(
       (g) => g.status === 'completed' && (g.home_team_id === team.id || g.away_team_id === team.id) && g.sport === team.sport
     );
-    
-    let wins = 0, losses = 0, draws = 0, totalFouls = 0, totalTimeouts = 0;
-    let totalPointsFor = 0, totalPointsAgainst = 0;
-    
+    let totalFouls = 0, totalTimeouts = 0;
     teamGames.forEach(game => {
       const isHome = game.home_team_id === team.id;
-      const teamScore = isHome ? game.home_score : game.away_score;
-      const oppScore = isHome ? game.away_score : game.home_score;
-      
-      totalPointsFor += teamScore;
-      totalPointsAgainst += oppScore;
-      
-      if (teamScore > oppScore) wins++;
-      else if (oppScore > teamScore) losses++;
-      else draws++;
-      
       totalFouls += isHome ? (game.home_team_fouls || 0) : (game.away_team_fouls || 0);
       totalTimeouts += isHome ? (5 - (game.home_timeouts || 5)) : (5 - (game.away_timeouts || 5));
     });
-
+    const gp = r.gamesPlayed || 0;
     const last5Games = teamGames.slice(-5);
     const last5Results = last5Games.map(game => {
       const isHome = game.home_team_id === team.id;
@@ -364,12 +364,14 @@ export default function Statistics() {
 
     return {
       ...team,
-      wins,
-      losses,
-      draws,
-      gamesPlayed: teamGames.length,
-      avgPointsFor: teamGames.length > 0 ? (totalPointsFor / teamGames.length).toFixed(1) : 0,
-      avgPointsAgainst: teamGames.length > 0 ? (totalPointsAgainst / teamGames.length).toFixed(1) : 0,
+      wins: r.wins,
+      losses: r.losses,
+      draws: r.draws,
+      defaults: r.defaults,
+      gamesPlayed: gp,
+      winPct: r.winPct,
+      avgPointsFor: gp > 0 ? (r.pointsFor / gp).toFixed(1) : 0,
+      avgPointsAgainst: gp > 0 ? (r.pointsAgainst / gp).toFixed(1) : 0,
       avgFouls: teamGames.length > 0 ? (totalFouls / teamGames.length).toFixed(1) : 0,
       avgTimeouts: teamGames.length > 0 ? (totalTimeouts / teamGames.length).toFixed(1) : 0,
       last5: last5Results,
@@ -1301,6 +1303,9 @@ Please provide:
 
                 {/* TEAM STATS TAB */}
                 <TabsContent value="teams" className="space-y-6">
+                  {isAdmin && organization && (
+                    <StandingsControls organization={organization} onUpdated={refetchOrganization} />
+                  )}
                   <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">
                     <CardHeader className="border-b border-border">
                       <CardTitle className="text-2xl font-heading font-bold print:text-xl">
@@ -1314,7 +1319,10 @@ Please provide:
                             <tr className="bg-muted/50 border-b border-border">
                               <th className="text-left py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">TEAM</th>
                               <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">SPORT</th>
-                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">W-D-L</th>
+                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">W</th>
+                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">L</th>
+                              {showDraws && <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">D</th>}
+                              {showDefaults && <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">DEF</th>}
                               <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">WIN%</th>
                               <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">PPG</th>
                               <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">PAPG</th>
@@ -1341,11 +1349,12 @@ Please provide:
                                     {team.sport === 'basketball' ? 'Basketball' : 'Volleyball'}
                                   </Badge>
                                 </td>
+                                <td className="py-4 px-4 text-center font-heading font-bold text-foreground tabular-nums print:py-2 print:px-2 print:text-xs">{team.wins}</td>
+                                <td className="py-4 px-4 text-center font-heading font-bold text-foreground tabular-nums print:py-2 print:px-2 print:text-xs">{team.losses}</td>
+                                {showDraws && <td className="py-4 px-4 text-center font-heading font-bold text-foreground tabular-nums print:py-2 print:px-2 print:text-xs">{team.draws || 0}</td>}
+                                {showDefaults && <td className="py-4 px-4 text-center font-heading font-bold text-primary tabular-nums print:py-2 print:px-2 print:text-xs">{team.defaults || 0}</td>}
                                 <td className="py-4 px-4 text-center font-heading font-bold text-foreground tabular-nums print:py-2 print:px-2 print:text-xs">
-                                  {team.wins}-{team.draws || 0}-{team.losses}
-                                </td>
-                                <td className="py-4 px-4 text-center font-heading font-bold text-foreground tabular-nums print:py-2 print:px-2 print:text-xs">
-                                  {team.gamesPlayed > 0 ? (((team.wins + (team.draws || 0) * 0.5) / team.gamesPlayed) * 100).toFixed(0) : 0}%
+                                  {team.gamesPlayed > 0 ? (team.winPct * 100).toFixed(0) : 0}%
                                 </td>
                                 <td className="py-4 px-4 text-center font-medium text-foreground tabular-nums print:py-2 print:px-2 print:text-xs">
                                   {team.avgPointsFor}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,7 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const currentOrgId = user?.active_organization_id || user?.organization_id;
 
@@ -388,7 +389,13 @@ export default function Dashboard() {
 
               {/* Division Standings */}
               {organization && teams.length > 0 && (
-                <DivisionStandings teams={teams} games={games} />
+                <DivisionStandings
+                  teams={teams}
+                  games={games}
+                  organization={organization}
+                  user={user}
+                  onStandingsUpdated={() => queryClient.invalidateQueries(['user-organization', currentOrgId])}
+                />
               )}
 
               {/* Sport Showcase */}

@@ -31,6 +31,8 @@ export default function BasketballSection({
   isAdmin,
   orgId,
   getTeamName,
+  excludeDraws = false,
+  excludeDefaults = false,
 }) {
   return (
     <section className="mb-20">
@@ -63,7 +65,7 @@ export default function BasketballSection({
 
         <TabsContent value="standings">
           {(bbDivTab === 'open' ? basketballStandingsOpen : basketballStandingsVeterans).map((divisionData, idx) => (
-            <StandingsTable key={idx} divisionData={divisionData} organization={organization} accent="orange" />
+            <StandingsTable key={idx} divisionData={divisionData} organization={organization} accent="orange" excludeDraws={excludeDraws} excludeDefaults={excludeDefaults} />
           ))}
         </TabsContent>
 

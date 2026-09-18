@@ -2,7 +2,15 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export default function StandingsTable({ divisionData, organization, accent = "orange" }) {
+export default function StandingsTable({ divisionData, organization, accent = "orange", excludeDraws = false, excludeDefaults = false }) {
+  const showDraws = !excludeDraws;
+  const showDefaults = !excludeDefaults;
+  const repeatCount = 6 + (showDraws ? 1 : 0) + (showDefaults ? 1 : 0);
+  const gridClass = {
+    6: "grid-cols-[40px_1fr_repeat(6,minmax(0,40px))] sm:grid-cols-[56px_1fr_repeat(6,minmax(0,56px))]",
+    7: "grid-cols-[40px_1fr_repeat(7,minmax(0,40px))] sm:grid-cols-[56px_1fr_repeat(7,minmax(0,56px))]",
+    8: "grid-cols-[40px_1fr_repeat(8,minmax(0,40px))] sm:grid-cols-[56px_1fr_repeat(8,minmax(0,56px))]",
+  }[repeatCount];
   return (
     <Card className="mb-6 overflow-hidden">
       <div className="border-b border-border px-6 py-4 flex items-center justify-between">
@@ -28,12 +36,13 @@ export default function StandingsTable({ divisionData, organization, accent = "o
       </div>
 
       <div className="px-4 sm:px-6 pt-4 pb-2">
-        <div className="grid grid-cols-[40px_1fr_repeat(7,minmax(0,40px))] sm:grid-cols-[56px_1fr_repeat(7,minmax(0,56px))] items-center gap-2 text-[10px] sm:text-xs font-medium tracking-widest text-muted-foreground uppercase px-2">
+        <div className={`grid ${gridClass} items-center gap-2 text-[10px] sm:text-xs font-medium tracking-widest text-muted-foreground uppercase px-2`}>
           <div className="text-left">Pos</div>
           <div className="text-left pl-1">Team</div>
           <div className="text-center">W</div>
           <div className="text-center">L</div>
-          <div className="text-center">D</div>
+          {showDraws && <div className="text-center">D</div>}
+          {showDefaults && <div className="text-center">DEF</div>}
           <div className="text-center">Pct</div>
           <div className="text-center">PF</div>
           <div className="text-center">PA</div>
@@ -45,7 +54,7 @@ export default function StandingsTable({ divisionData, organization, accent = "o
         {divisionData.teams.map((team, i) => (
           <div
             key={team.id}
-            className="grid grid-cols-[40px_1fr_repeat(7,minmax(0,40px))] sm:grid-cols-[56px_1fr_repeat(7,minmax(0,56px))] items-center gap-2 px-2 py-2.5 hover:bg-muted transition-colors border-b border-border last:border-0"
+            className={`grid ${gridClass} items-center gap-2 px-2 py-2.5 hover:bg-muted transition-colors border-b border-border last:border-0`}
           >
             <div className={`text-center font-heading text-sm font-bold tabular-nums ${i < 3 ? 'text-primary' : 'text-muted-foreground'}`}>
               {i + 1}
@@ -63,7 +72,8 @@ export default function StandingsTable({ divisionData, organization, accent = "o
             </div>
             <div className="text-center font-heading font-bold text-foreground text-sm tabular-nums">{team.wins}</div>
             <div className="text-center font-heading font-bold text-foreground text-sm tabular-nums">{team.losses}</div>
-            <div className="text-center font-heading font-bold text-foreground text-sm tabular-nums">{team.draws || 0}</div>
+            {showDraws && <div className="text-center font-heading font-bold text-foreground text-sm tabular-nums">{team.draws || 0}</div>}
+            {showDefaults && <div className="text-center font-heading font-bold text-primary text-sm tabular-nums">{team.defaults || 0}</div>}
             <div className="text-center font-heading font-bold text-foreground text-sm tabular-nums">{(team.winPct * 100).toFixed(0)}%</div>
             <div className="text-center text-muted-foreground text-sm tabular-nums">{team.avgPointsFor}</div>
             <div className="text-center text-muted-foreground text-sm tabular-nums">{team.avgPointsAgainst}</div>

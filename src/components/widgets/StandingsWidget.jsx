@@ -1,6 +1,7 @@
 import React from 'react';
 
-export default function StandingsWidget({ title, teams }) {
+export default function StandingsWidget({ title, teams, showDraws = true, showDefaults = true }) {
+  const colCount = 3 + (showDraws ? 1 : 0) + (showDefaults ? 1 : 0) + 1; // #, team, W, L, [D], [DEF], Win%
   return (
     <div className="w-full max-w-xl mx-auto text-foreground">
       {title && <h2 className="text-lg font-semibold mb-2">{title}</h2>}
@@ -12,7 +13,8 @@ export default function StandingsWidget({ title, teams }) {
               <th className="text-left px-3 py-2">Team</th>
               <th className="text-center px-2 py-2 w-12">W</th>
               <th className="text-center px-2 py-2 w-12">L</th>
-              <th className="text-center px-2 py-2 w-12">D</th>
+              {showDraws && <th className="text-center px-2 py-2 w-12">D</th>}
+              {showDefaults && <th className="text-center px-2 py-2 w-14">DEF</th>}
               <th className="text-center px-2 py-2 w-16">Win%</th>
             </tr>
           </thead>
@@ -30,13 +32,14 @@ export default function StandingsWidget({ title, teams }) {
                 </td>
                 <td className="px-2 py-2 text-center">{t.wins}</td>
                 <td className="px-2 py-2 text-center">{t.losses}</td>
-                <td className="px-2 py-2 text-center">{t.draws ?? 0}</td>
-                <td className="px-2 py-2 text-center">{t.win_pct.toFixed(3)}</td>
+                {showDraws && <td className="px-2 py-2 text-center">{t.draws ?? 0}</td>}
+                {showDefaults && <td className="px-2 py-2 text-center text-primary font-semibold">{t.defaults ?? 0}</td>}
+                <td className="px-2 py-2 text-center">{(t.win_pct ?? 0).toFixed(3)}</td>
               </tr>
             ))}
             {(!teams || teams.length === 0) && (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">No teams found.</td>
+                <td colSpan={colCount} className="px-3 py-6 text-center text-muted-foreground">No teams found.</td>
               </tr>
             )}
           </tbody>
