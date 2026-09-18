@@ -95,7 +95,7 @@ export default function SocialFeed() {
 
   if (!user || orgLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="arena-command min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
@@ -103,7 +103,7 @@ export default function SocialFeed() {
 
   if (!organization) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="arena-command min-h-screen bg-background flex items-center justify-center p-6">
         <div className="max-w-md text-center">
           <div className="w-16 h-16 border border-border flex items-center justify-center mx-auto mb-6">
             <Users className="w-8 h-8 text-muted-foreground" />
@@ -124,7 +124,7 @@ export default function SocialFeed() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="arena-command min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}

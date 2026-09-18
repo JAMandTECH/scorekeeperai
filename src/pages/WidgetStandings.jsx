@@ -45,7 +45,12 @@ export default function WidgetStandings() {
         <div className="text-sm text-destructive">{error}</div>
       )}
       {!loading && !error && (
-        <StandingsWidget title={title} teams={data?.teams || []} />
+        <StandingsWidget
+          title={title}
+          teams={data?.teams || []}
+          showDraws={data?.show_draws !== false}
+          showDefaults={data?.show_defaults !== false}
+        />
       )}
     </div>
   );

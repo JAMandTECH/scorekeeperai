@@ -155,7 +155,7 @@ export default function OrganizationSettings() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="arena-command min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
@@ -163,7 +163,7 @@ export default function OrganizationSettings() {
 
   if (!currentOrgId || !organization) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="arena-command min-h-screen bg-background flex items-center justify-center p-6">
         <Card className="max-w-md text-center p-8">
           <CardContent className="pt-6">
             <AlertCircle className="w-12 h-12 text-primary mx-auto mb-4" />
@@ -179,7 +179,7 @@ export default function OrganizationSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="arena-command min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}

@@ -119,7 +119,7 @@ export default function Timekeepers() {
   const handleLogout = () => base44.auth.logout(createPageUrl("PublicLanding"));
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="arena-command min-h-screen bg-background text-foreground">
       <AdminHeader
         user={user}
         organization={organization}
