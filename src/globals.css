@@ -75,7 +75,31 @@
    Overrides design tokens so all token-based children inherit the
    dark charcoal + neon-emerald aesthetic without per-file changes.
    ============================================================ */
+/* Light Arena Command — off-white stone surfaces, hairline borders, emerald accent */
 .arena-command {
+  --background: 40 18% 96%;
+  --foreground: 0 0% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 10%;
+  --primary: 152 76% 40%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 40 12% 92%;
+  --secondary-foreground: 0 0% 10%;
+  --muted: 40 12% 92%;
+  --muted-foreground: 0 0% 40%;
+  --accent: 40 12% 92%;
+  --accent-foreground: 0 0% 10%;
+  --destructive: 0 72% 48%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 40 10% 88%;
+  --input: 40 10% 88%;
+  --ring: 152 76% 40%;
+}
+
+/* Dark Arena Command — charcoal broadcast palette, neon-emerald accent */
+.dark .arena-command {
   --background: 240 4% 7%;
   --foreground: 0 0% 100%;
   --card: 240 4% 12%;
