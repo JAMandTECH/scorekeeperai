@@ -798,7 +798,7 @@ Please provide:
                       <CardContent>
                         <div className="text-3xl font-heading font-bold text-foreground tabular-nums print:text-2xl">{orgStats.totalTeams}</div>
                         <p className="text-xs text-muted-foreground mt-1 font-medium">
-                          🏀 {orgStats.basketballTeams} • 🏐 {orgStats.volleyballTeams}
+                          Basketball {orgStats.basketballTeams} • Volleyball {orgStats.volleyballTeams}
                         </p>
                       </CardContent>
                     </Card>
@@ -820,7 +820,7 @@ Please provide:
                       <CardContent>
                         <div className="text-3xl font-heading font-bold text-foreground tabular-nums print:text-2xl">{orgStats.totalGames}</div>
                         <p className="text-xs text-muted-foreground mt-1 font-medium">
-                          🏀 {orgStats.basketballGames} • 🏐 {orgStats.volleyballGames}
+                          Basketball {orgStats.basketballGames} • Volleyball {orgStats.volleyballGames}
                         </p>
                       </CardContent>
                     </Card>
@@ -1153,7 +1153,7 @@ Please provide:
                           <option value="all">All Teams</option>
                           {filteredTeams.map(team => (
                             <option key={team.id} value={team.id}>
-                              {team.sport === 'basketball' ? '🏀' : '🏐'} {team.name}
+                              {team.name}
                             </option>
                           ))}
                         </select>
@@ -1338,7 +1338,7 @@ Please provide:
                                 </td>
                                 <td className="py-4 px-4 text-center print:py-2 print:px-2">
                                   <Badge variant="outline" className="border-border text-muted-foreground font-medium print:text-xs">
-                                    {team.sport === 'basketball' ? '🏀' : '🏐'}
+                                    {team.sport === 'basketball' ? 'Basketball' : 'Volleyball'}
                                   </Badge>
                                 </td>
                                 <td className="py-4 px-4 text-center font-heading font-bold text-foreground tabular-nums print:py-2 print:px-2 print:text-xs">

@@ -659,7 +659,7 @@ export default function Players() {
                         >
                           {sports.map(sport => (
                             <option key={sport} value={sport}>
-                              {sport === 'all' ? '🏀🏐 All Sports' : sport === 'basketball' ? '🏀 Basketball' : '🏐 Volleyball'}
+                              {sport === 'all' ? 'All Sports' : sport === 'basketball' ? 'Basketball' : 'Volleyball'}
                             </option>
                           ))}
                         </select>
@@ -690,7 +690,7 @@ export default function Players() {
                           <option value="all">👥 All Teams</option>
                           {filteredTeams.map(team => (
                             <option key={team.id} value={team.id}>
-                              {team.sport === 'basketball' ? '🏀' : '🏐'} {team.name}
+                              {team.name}
                             </option>
                           ))}
                         </select>
@@ -724,7 +724,7 @@ export default function Players() {
                         <span className="text-xs font-heading font-bold text-muted-foreground">Active Filters:</span>
                         {selectedSport !== 'all' && (
                           <Badge variant="outline" className="border-border text-muted-foreground font-medium">
-                            {selectedSport === 'basketball' ? '🏀 Basketball' : '🏐 Volleyball'}
+                            {selectedSport === 'basketball' ? 'Basketball' : 'Volleyball'}
                             <button
                               onClick={() => handleSportChange('all')}
                               className="ml-2 hover:text-foreground"

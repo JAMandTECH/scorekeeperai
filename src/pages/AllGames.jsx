@@ -254,7 +254,7 @@ export default function AllGames() {
                 {game.status?.replace('_', ' ').toUpperCase() || 'SCHEDULED'}
               </Badge>
               <Badge variant="outline" className={`text-${sportColor}-600 dark:text-${sportColor}-400 border-${sportColor}-600 dark:border-${sportColor}-400 font-bold`}>
-                {game.sport === 'basketball' ? '🏀' : '🏐'} {game.sport}
+                {game.sport}
               </Badge>
             </div>
           </div>
@@ -567,7 +567,7 @@ export default function AllGames() {
                       </td>
                       <td className="py-4 px-4 text-center">
                         <Badge variant="outline" className={`text-${sportColor}-600 dark:text-${sportColor}-400 border-${sportColor}-600 dark:border-${sportColor}-400 font-bold`}>
-                          {game.sport === 'basketball' ? '🏀' : '🏐'} {game.sport}
+                          {game.sport}
                         </Badge>
                       </td>
                       <td className="py-4 px-4 text-center">
@@ -791,7 +791,7 @@ export default function AllGames() {
                     >
                       {sports.map(sport => (
                         <option key={sport} value={sport}>
-                          {sport === 'all' ? '🏀🏐 All Sports' : sport === 'basketball' ? '🏀 Basketball' : '🏐 Volleyball'}
+                          {sport === 'all' ? 'All Sports' : sport === 'basketball' ? 'Basketball' : 'Volleyball'}
                         </option>
                       ))}
                     </select>
@@ -824,7 +824,7 @@ export default function AllGames() {
                       <option value="all">👥 All Teams</option>
                       {filteredTeams.map(team => (
                         <option key={team.id} value={team.id}>
-                          {team.sport === 'basketball' ? '🏀' : '🏐'} {team.name}
+                          {team.name}
                         </option>
                       ))}
                     </select>
@@ -837,7 +837,7 @@ export default function AllGames() {
                     <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Active Filters:</span>
                     {selectedSport !== 'all' && (
                       <Badge className="bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 font-bold">
-                        {selectedSport === 'basketball' ? '🏀 Basketball' : '🏐 Volleyball'}
+                        {selectedSport === 'basketball' ? 'Basketball' : 'Volleyball'}
                         <button
                           onClick={() => handleSportChange('all')}
                           className="ml-2 hover:text-orange-900 dark:hover:text-orange-100"
