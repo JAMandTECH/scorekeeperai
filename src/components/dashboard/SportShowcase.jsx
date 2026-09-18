@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 
 function ShowcaseCard({ label, title, stat, statLabel, to }) {
   return (
-    <Link to={to} className="group block border border-border bg-card p-6 h-48 hover:bg-muted transition-colors">
+    <Link to={to} className="group block rounded-lg border border-border bg-card p-6 h-48 hover:bg-muted transition-colors">
       <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
       <h3 className="font-heading text-2xl font-bold tracking-tight mt-1">{title}</h3>
       <div className="mt-auto pt-6 flex items-center justify-between">

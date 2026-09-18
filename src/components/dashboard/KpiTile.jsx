@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 export default function KpiTile({ icon: Icon, label, value, sub, accent = false, to }) {
   const inner = (
     <div
-      className={`relative overflow-hidden rounded-xl border bg-card p-4 h-full transition-colors ${
+      className={`relative overflow-hidden rounded-lg border bg-card p-4 h-full transition-colors ${
         accent ? "border-primary/50" : "border-border"
       } ${to ? "hover:border-primary/40 cursor-pointer" : ""}`}
     >

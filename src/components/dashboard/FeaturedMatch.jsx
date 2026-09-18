@@ -44,7 +44,7 @@ export default function FeaturedMatch({ game, homeTeam, awayTeam }) {
   return (
     <Link
       to="/games"
-      className="group block relative overflow-hidden rounded-xl border border-border bg-card p-6 md:p-8 min-h-[280px] hover:border-primary/40 transition-colors"
+      className="group block relative overflow-hidden rounded-lg border border-border bg-card p-6 md:p-8 min-h-[280px] hover:border-primary/40 transition-colors"
     >
       <div className="flex items-center justify-between mb-6">
         <span className="inline-flex items-center gap-2 text-xs font-heading font-bold uppercase tracking-widest text-muted-foreground">

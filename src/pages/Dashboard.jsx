@@ -320,7 +320,7 @@ export default function Dashboard() {
                     )}
 
                     {hasLatestResults && (
-                      <div className="rounded-xl border border-border bg-card p-4">
+                      <div className="rounded-lg border border-border bg-card p-4">
                         <div className="text-[10px] font-heading font-bold uppercase tracking-widest text-muted-foreground mb-2">
                           Latest Results
                         </div>
