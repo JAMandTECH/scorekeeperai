@@ -52,11 +52,11 @@ function ScorerCard({ label, topScorer, teamMap }) {
         </div>
 
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-24 h-24 shrink-0 rounded-full overflow-hidden bg-secondary/60">
+          <div className="w-28 h-28 shrink-0 rounded-full overflow-hidden ring-1 ring-border">
             {p.photo_url ? (
               <img src={p.photo_url} alt={p.first_name} className="w-full h-full object-cover object-top" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-foreground/40 text-xl font-heading font-bold">{initials}</div>
+              <div className="w-full h-full flex items-center justify-center bg-secondary text-foreground text-2xl font-heading font-bold">{initials}</div>
             )}
           </div>
           <div className="min-w-0 flex-1">
