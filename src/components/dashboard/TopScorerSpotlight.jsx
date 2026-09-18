@@ -101,7 +101,7 @@ function ScorerCard({ label, topScorer, teamMap }) {
           <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{selectedLabel} Per Game</span>
         </div>
         {activeSeries.length > 0 ? (
-          <div className="h-40 -mx-1">
+          <div className="h-28 -mx-1">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={activeSeries} margin={{ top: 10, right: 8, bottom: 0, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
