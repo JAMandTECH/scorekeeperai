@@ -52,41 +52,34 @@ function ScorerCard({ label, topScorer, teamMap }) {
         </div>
 
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-28 h-28 shrink-0 rounded-full overflow-hidden ring-1 ring-border">
+          <div className="w-24 h-24 shrink-0 rounded-full overflow-hidden ring-1 ring-border">
             {p.photo_url ? (
               <img src={p.photo_url} alt={p.first_name} className="w-full h-full object-cover object-top" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-secondary text-foreground text-2xl font-heading font-bold">{initials}</div>
             )}
           </div>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 shrink-0">
             <p className="font-heading text-lg font-bold tracking-tight truncate">{p.first_name} {p.last_name}</p>
             <p className="text-sm text-muted-foreground truncate">{teamName}{p.jersey_number ? ` · #${p.jersey_number}` : ""}</p>
           </div>
-          <div className="text-right shrink-0">
-            <p className="font-heading text-3xl font-bold tabular-nums leading-none text-primary">
-              {topScorer.ppg.toFixed(1)}
-            </p>
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mt-1">PPG</p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-end gap-x-5 gap-y-3 pt-3 border-t border-border">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">GP</span>
-            <span className="font-heading text-base font-bold tabular-nums leading-tight">{topScorer.gp}</span>
-            <span className="text-[10px] text-muted-foreground tabular-nums">&nbsp;</span>
-          </div>
-          {topScorer.stats.map((s) => (
-            <div key={s.label} className="flex flex-col">
-              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{s.label}</span>
-              <span className="font-heading text-base font-bold tabular-nums leading-tight">{Math.round(s.total)}</span>
-              <span className="text-[10px] text-muted-foreground tabular-nums">avg {s.avg.toFixed(1)}</span>
+          <div className="flex flex-wrap items-end justify-end gap-x-4 gap-y-2 ml-auto">
+            <div className="flex flex-col items-center min-w-[42px]">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">GP</span>
+              <span className="font-heading text-xl font-bold tabular-nums leading-none text-foreground">{topScorer.gp}</span>
+              <span className="text-[10px] text-muted-foreground tabular-nums mt-0.5">&nbsp;</span>
             </div>
-          ))}
+            {topScorer.stats.map((s) => (
+              <div key={s.label} className="flex flex-col items-center min-w-[42px]">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{s.label}</span>
+                <span className="font-heading text-xl font-bold tabular-nums leading-none text-primary">{s.avg.toFixed(1)}</span>
+                <span className="text-[10px] text-muted-foreground tabular-nums mt-0.5">{Math.round(s.total)}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-2 pt-4 border-t border-border">
           <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Points Per Game</span>
         </div>
