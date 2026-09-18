@@ -1319,9 +1319,9 @@ Please provide:
                             <tr className="bg-muted/50 border-b border-border">
                               <th className="text-left py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">TEAM</th>
                               <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">SPORT</th>
-                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">W</th>
-                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">L</th>
-                              {showDraws && <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">D</th>}
+                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">WIN</th>
+                              <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">LOSS</th>
+                              {showDraws && <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">DRAW</th>}
                               {showDefaults && <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">DEF</th>}
                               <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">WIN%</th>
                               <th className="text-center py-4 px-4 text-muted-foreground font-heading font-bold text-sm uppercase tracking-wide print:text-xs">PPG</th>

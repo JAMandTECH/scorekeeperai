@@ -11,9 +11,9 @@ export default function StandingsWidget({ title, teams, showDraws = true, showDe
             <tr>
               <th className="text-left px-3 py-2 w-10">#</th>
               <th className="text-left px-3 py-2">Team</th>
-              <th className="text-center px-2 py-2 w-12">W</th>
-              <th className="text-center px-2 py-2 w-12">L</th>
-              {showDraws && <th className="text-center px-2 py-2 w-12">D</th>}
+              <th className="text-center px-2 py-2 w-12">WIN</th>
+              <th className="text-center px-2 py-2 w-12">LOSS</th>
+              {showDraws && <th className="text-center px-2 py-2 w-12">DRAW</th>}
               {showDefaults && <th className="text-center px-2 py-2 w-14">DEF</th>}
               <th className="text-center px-2 py-2 w-16">Win%</th>
             </tr>
