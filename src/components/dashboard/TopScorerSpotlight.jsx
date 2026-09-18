@@ -11,11 +11,19 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
-  LabelList,
 } from "recharts";
 
 function ScorerCard({ label, topScorer, teamMap }) {
+  const [selectedKey, setSelectedKey] = React.useState("points");
   const chartData = topScorer?.chartData || [];
+
+  const activeSeries = React.useMemo(
+    () => chartData.map((d) => ({ game: d.game, value: d[selectedKey] ?? 0 })),
+    [chartData, selectedKey]
+  );
+
+  const selectedStat = topScorer?.stats.find((s) => s.key === selectedKey) || topScorer?.stats?.[0];
+  const selectedLabel = selectedStat?.label || "Points";
 
   if (!topScorer) {
     return (
@@ -35,8 +43,8 @@ function ScorerCard({ label, topScorer, teamMap }) {
   const initials = `${(p.first_name || "?")[0] || ""}${(p.last_name || "")[0] || ""}`.toUpperCase();
   const teamName = teamMap[p.team_id]?.name || "—";
 
-  const peakIdx = chartData.reduce((mi, d, i, arr) => (d.points > arr[mi].points ? i : mi), 0);
-  const lastIdx = chartData.length - 1;
+  const peakIdx = activeSeries.reduce((mi, d, i, arr) => (d.value > arr[mi].value ? i : mi), 0);
+  const lastIdx = activeSeries.length - 1;
   const renderDot = (props) => {
     const { cx, cy, index, key } = props;
     if (index !== peakIdx && index !== lastIdx) return null;
@@ -63,40 +71,48 @@ function ScorerCard({ label, topScorer, teamMap }) {
             <p className="font-heading text-lg font-bold tracking-tight truncate">{p.first_name} {p.last_name}</p>
             <p className="text-sm text-muted-foreground truncate">{teamName}{p.jersey_number ? ` · #${p.jersey_number}` : ""}</p>
           </div>
-          <div className="flex flex-wrap items-end justify-end gap-x-4 gap-y-2 ml-auto">
+          <div className="flex flex-wrap items-end justify-end gap-x-3 gap-y-2 ml-auto">
             <div className="flex flex-col items-center min-w-[42px]">
               <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">GP</span>
               <span className="font-heading text-xl font-bold tabular-nums leading-none text-foreground">{topScorer.gp}</span>
               <span className="text-[10px] text-muted-foreground tabular-nums mt-0.5">&nbsp;</span>
             </div>
-            {topScorer.stats.map((s) => (
-              <div key={s.label} className="flex flex-col items-center min-w-[42px]">
-                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{s.label}</span>
-                <span className="font-heading text-xl font-bold tabular-nums leading-none text-primary">{s.avg.toFixed(1)}</span>
-                <span className="text-[10px] text-muted-foreground tabular-nums mt-0.5">{Math.round(s.total)}</span>
-              </div>
-            ))}
+            {topScorer.stats.map((s) => {
+              const isActive = s.key === selectedKey;
+              return (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => setSelectedKey(s.key)}
+                  className={`flex flex-col items-center min-w-[42px] rounded-md px-1.5 py-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isActive ? "bg-primary/10 ring-1 ring-primary/40" : "hover:bg-muted"}`}
+                  title={`Show ${s.label} per game`}
+                >
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{s.label}</span>
+                  <span className={`font-heading text-xl font-bold tabular-nums leading-none ${isActive ? "text-primary" : "text-foreground"}`}>{s.avg.toFixed(1)}</span>
+                  <span className="text-[10px] text-muted-foreground tabular-nums mt-0.5">{Math.round(s.total)}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         <div className="flex items-center gap-2 mb-2 pt-4 border-t border-border">
           <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Points Per Game</span>
+          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{selectedLabel} Per Game</span>
         </div>
-        {chartData.length > 0 ? (
+        {activeSeries.length > 0 ? (
           <div className="h-40 -mx-1">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 10, right: 8, bottom: 0, left: 0 }}>
+              <LineChart data={activeSeries} margin={{ top: 10, right: 8, bottom: 0, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                 <XAxis dataKey="game" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis domain={[0, "auto"]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} width={28} />
                 <Tooltip
                   contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 0, color: "hsl(var(--foreground))" }}
                   labelStyle={{ color: "hsl(var(--muted-foreground))" }}
+                  formatter={(value) => [value, selectedLabel]}
                 />
-                <Line type="monotone" dataKey="points" stroke="hsl(var(--primary))" strokeWidth={2} dot={renderDot} activeDot={false} isAnimationActive={false}>
-                  <LabelList dataKey="points" position="top" fill="hsl(var(--foreground))" fontSize={11} fontWeight={700} offset={6} />
-                </Line>
+                <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={renderDot} activeDot={{ r: 4, fill: "hsl(var(--primary))", stroke: "hsl(var(--card))", strokeWidth: 1.5 }} isAnimationActive={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -156,18 +172,35 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
     const eligibleGameIds = new Set(teamGames.map((g) => g.id));
     const myStats = playerStats.filter((s) => s.player_id === ptsRow.id && eligibleGameIds.has(s.game_id));
 
-    const ptsByGame = {};
+    // Per-game accumulation for every tracked stat
+    const perGame = {};
+    const accGame = (key, gameId, val) => {
+      if (!perGame[key]) perGame[key] = {};
+      perGame[key][gameId] = (perGame[key][gameId] || 0) + val;
+    };
     myStats.forEach((s) => {
-      let val;
       if (sport === "volleyball") {
-        val = Number(s.aces || 0) + Number(s.attacks || 0) + Number(s.blocks || 0);
+        accGame("aces", s.game_id, Number(s.aces || 0));
+        accGame("attacks", s.game_id, Number(s.attacks || 0));
+        accGame("blocks", s.game_id, Number(s.blocks || 0));
+        accGame("points", s.game_id, Number(s.aces || 0) + Number(s.attacks || 0) + Number(s.blocks || 0));
       } else {
-        val = Number(s.points || 0);
+        accGame("points", s.game_id, Number(s.points || 0));
+        accGame("rebounds", s.game_id, Number(s.rebounds || 0));
+        accGame("assists", s.game_id, Number(s.assists || 0));
+        accGame("steals", s.game_id, Number(s.steals || 0));
+        accGame("blocks", s.game_id, Number(s.blocks || 0));
+        accGame("three_pointers", s.game_id, Number(s.three_pointers || 0));
       }
-      ptsByGame[s.game_id] = (ptsByGame[s.game_id] || 0) + val;
     });
 
-    const chartData = teamGames.map((g, i) => ({ game: `G${i + 1}`, points: ptsByGame[g.id] || 0 }));
+    const chartData = teamGames.map((g, i) => {
+      const row = { game: `G${i + 1}` };
+      Object.keys(perGame).forEach((key) => {
+        row[key] = perGame[key][g.id] || 0;
+      });
+      return row;
+    });
 
     const sumKey = (key) => myStats.reduce((acc, s) => acc + Number(s[key] || 0), 0);
     let pointsTotal;
@@ -186,21 +219,21 @@ export default function TopScorerSpotlight({ organizationId, players = [], teams
       }
     }
     const gp = ptsRow.gamesPlayed;
-    const mk = (label, total) => ({ label, total, avg: gp > 0 ? total / gp : 0 });
+    const mk = (label, total, key) => ({ label, total, avg: gp > 0 ? total / gp : 0, key });
     const statRows = sport === "volleyball"
       ? [
-          mk("PTS", pointsTotal),
-          mk("ACES", sumKey("aces")),
-          mk("ATK", sumKey("attacks")),
-          mk("BLK", sumKey("blocks")),
+          mk("PTS", pointsTotal, "points"),
+          mk("ACES", sumKey("aces"), "aces"),
+          mk("ATK", sumKey("attacks"), "attacks"),
+          mk("BLK", sumKey("blocks"), "blocks"),
         ]
       : [
-          mk("PTS", pointsTotal),
-          mk("REB", sumKey("rebounds")),
-          mk("AST", sumKey("assists")),
-          mk("STL", sumKey("steals")),
-          mk("BLK", sumKey("blocks")),
-          mk("3PM", sumKey("three_pointers")),
+          mk("PTS", pointsTotal, "points"),
+          mk("REB", sumKey("rebounds"), "rebounds"),
+          mk("AST", sumKey("assists"), "assists"),
+          mk("STL", sumKey("steals"), "steals"),
+          mk("BLK", sumKey("blocks"), "blocks"),
+          mk("3PM", sumKey("three_pointers"), "three_pointers"),
         ];
 
     return {
