@@ -75,126 +75,13 @@ export default function AdminApprovals() {
     refetchInterval: 10000,
   });
 
-  const { data: allUsers = [] } = useQuery({
-    queryKey: ['all-users'],
-    queryFn: () => base44.entities.User.list(),
-    enabled: !!user,
-  });
-
-  const generateCode = () => {
-    return Math.random().toString(36).substring(2, 10).toUpperCase();
-  };
-
   const approveMutation = useMutation({
     mutationFn: async (requestId) => {
-      const request = requests.find(r => r.id === requestId);
-      const code = generateCode();
-      
-      const newOrg = await base44.entities.Organization.create({
-        name: request.organization_name,
-        contact_email: request.user_email,
-        contact_phone: request.phone_number,
-        status: 'active',
-      });
-
-      await base44.entities.AdminRequest.update(requestId, {
-        status: 'approved',
-        access_code: code,
-        organization_id: newOrg.id,
-      });
-
-      const requestingUser = allUsers.find(u => u.email === request.user_email);
-      if (!requestingUser) {
-        throw new Error(`User not found: ${request.user_email}`);
+      const response = await base44.functions.invoke('approveAdminRequest', { request_id: requestId });
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Failed to approve request');
       }
-      
-      await base44.entities.User.update(requestingUser.id, {
-        role: 'admin',
-        organization_id: newOrg.id,
-      });
-
-      await base44.integrations.Core.SendEmail({
-        to: request.user_email,
-        subject: "🎉 Admin Access Approved - Enter Your Code!",
-        body: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px;">
-              Your Admin Access Has Been Approved! 🎉
-            </h2>
-            
-            <p style="font-size: 16px; color: #1f2937;">Hello ${request.user_name},</p>
-            
-            <p style="font-size: 16px; color: #1f2937;">
-              Great news! Your request for admin access has been approved.
-            </p>
-
-            <div style="background: #dcfce7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a;">
-              <h3 style="margin-top: 0; color: #15803d;">✅ Your Request is Approved!</h3>
-              <p style="color: #166534;"><strong>Organization:</strong> ${request.organization_name}</p>
-              <p style="color: #166534; margin-top: 10px;">
-                Your organization has been created and you've been assigned as its administrator.
-              </p>
-            </div>
-
-            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="margin-top: 0; color: #1f2937;">🔑 Your Confirmation Code:</h3>
-              <p style="font-size: 32px; font-weight: bold; color: #2563eb; letter-spacing: 5px; text-align: center; margin: 15px 0; font-family: monospace;">
-                ${code}
-              </p>
-              <p style="color: #6b7280; font-size: 14px; text-align: center;">
-                Enter this code to confirm your account when you log in
-              </p>
-            </div>
-
-            <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="margin-top: 0; color: #1e40af;">📋 What's Next?</h3>
-              <ol style="color: #1e3a8a; margin: 0; padding-left: 20px;">
-                <li style="margin-bottom: 8px;">Log in to the ALAB Sports system</li>
-                <li style="margin-bottom: 8px;">You'll be prompted to enter your confirmation code</li>
-                <li style="margin-bottom: 8px;">Enter the code above: <strong>${code}</strong></li>
-                <li style="margin-bottom: 8px;">Access your admin dashboard and start managing your organization!</li>
-              </ol>
-            </div>
-
-            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-              <p style="margin: 0; color: #92400e; font-size: 14px;">
-                <strong>⚠️ Important:</strong> This code is valid for one-time use only. Keep it secure!
-              </p>
-            </div>
-
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${window.location.origin}${createPageUrl('VerifyAdminCode')}" 
-                 style="display: inline-block; background: #16a34a; color: white; padding: 14px 35px; 
-                        text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
-                Enter Code & Get Started →
-              </a>
-            </div>
-
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-              <p style="color: #1f2937; font-size: 16px;">
-                As an organization administrator, you can now:
-              </p>
-              <ul style="color: #4b5563;">
-                <li>Create and manage teams</li>
-                <li>Add players to your rosters</li>
-                <li>Schedule and manage games</li>
-                <li>Track live scores and statistics</li>
-                <li>Manage divisions and leagues</li>
-              </ul>
-            </div>
-
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
-              <p>If you have any questions or need help getting started, don't hesitate to reach out to support.</p>
-              <p style="margin-top: 10px;">
-                Best regards,<br>
-                <strong>ALAB Sports Management Team</strong>
-              </p>
-            </div>
-          </div>
-        `
-      });
-
-      return newOrg;
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['adminRequests']);
@@ -209,24 +96,11 @@ export default function AdminApprovals() {
 
   const rejectMutation = useMutation({
     mutationFn: async (requestId) => {
-      await base44.entities.AdminRequest.update(requestId, {
-        status: 'rejected',
-      });
-
-      const request = requests.find(r => r.id === requestId);
-
-      await base44.integrations.Core.SendEmail({
-        to: request.user_email,
-        subject: "Admin Access Request Update",
-        body: `
-          <h2>Admin Access Request Update</h2>
-          <p>Hello ${request.user_name},</p>
-          <p>Thank you for your interest in becoming an administrator.</p>
-          <p>After reviewing your request for "${request.organization_name}", we are unable to approve admin access at this time.</p>
-          <p>If you have questions or believe this was an error, please contact support.</p>
-          <p>Best regards,<br>ALAB Sports Management Team</p>
-        `
-      });
+      const response = await base44.functions.invoke('rejectAdminRequest', { request_id: requestId });
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Failed to reject request');
+      }
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['adminRequests']);
@@ -304,9 +178,8 @@ export default function AdminApprovals() {
 
         {request.status === 'approved' && (
           <div className="bg-primary/10 border border-primary/30 p-3 text-sm">
-            <p className="font-heading font-bold text-primary">Code: {request.access_code}</p>
-            <p className="text-primary text-xs mt-1">
-              {request.code_used ? 'Code has been used' : 'Code not yet used'}
+            <p className="font-heading font-bold text-primary">
+              {request.code_used ? 'Code used' : 'Code sent — awaiting verification'}
             </p>
           </div>
         )}
@@ -373,7 +246,9 @@ export default function AdminApprovals() {
                         </>
                       )}
                       {request.status === 'approved' && (
-                        <span className="text-xs text-primary font-heading font-bold">Code: {request.access_code}</span>
+                        <span className="text-xs text-primary font-heading font-bold">
+                          {request.code_used ? 'Verified' : 'Awaiting verification'}
+                        </span>
                       )}
                     </div>
                   </td>
