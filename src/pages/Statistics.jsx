@@ -112,29 +112,42 @@ export default function Statistics() {
     localStorage.setItem('superAdminStatsOrgId', id);
   };
 
-  const { data: teams = [] } = useQuery({
-    queryKey: ['teams', orgId],
-    queryFn: () => base44.entities.Team.filter({ organization_id: orgId }),
-    enabled: !!orgId,
+  // Super admins aren't members of the org they're inspecting, so direct entity
+  // queries get filtered out by RLS. Fetch via a service-role backend function
+  // (same pattern as SuperAdminDashboard) that bypasses RLS for the selected org.
+  const { data: superAdminStatsData, isFetching: isSuperAdminStatsFetching } = useQuery({
+    queryKey: ['superAdminOrgStats', superAdminOrgId],
+    queryFn: async () => {
+      const res = await base44.functions.invoke('getOrganizationStatsData', { organization_id: superAdminOrgId });
+      return res?.data || null;
+    },
+    enabled: isSuperAdmin && !!superAdminOrgId,
+    staleTime: 30000,
+    gcTime: 5 * 60 * 1000,
   });
 
-  const { data: games = [] } = useQuery({
+  const { data: teamsData = [] } = useQuery({
+    queryKey: ['teams', orgId],
+    queryFn: () => base44.entities.Team.filter({ organization_id: orgId }),
+    enabled: !!orgId && !isSuperAdmin,
+  });
+
+  const { data: gamesData = [] } = useQuery({
     queryKey: ['games', orgId],
     // Explicit high limit so ALL games load — without this, the default page cap
     // returns only the first ~50 games, missing later completed games and making
     // leaderboard totals/averages diverge from the Dashboard.
     queryFn: () => orgId ? base44.entities.Game.filter({ organization_id: orgId }, '-game_date', 2000) : base44.entities.Game.list('-game_date', 2000),
-    enabled: !!user,
+    enabled: !!user && !isSuperAdmin,
   });
 
-  // Fallback: if org-scoped games are empty, load all games across orgs (matches AllGames behaviour)
-  // Removed cross-organization fallback; using only organization games
+  const teams = isSuperAdmin ? (superAdminStatsData?.teams || []) : teamsData;
+  const games = isSuperAdmin ? (superAdminStatsData?.games || []) : gamesData;
 
-  // Load all teams across orgs for cross-org filtering (division lookups)
   // Build team index for current organization only
   const teamById = new Map(teams.map(t => [t.id, t]));
 
-  const { data: players = [] } = useQuery({
+  const { data: playersData = [] } = useQuery({
     queryKey: ['players', orgId, teams.map(t => t.id).join(',')],
     queryFn: async () => {
       if (!orgId) return [];
@@ -145,10 +158,10 @@ export default function Statistics() {
       results.flat().forEach(p => { if (!merged.has(p.id)) merged.set(p.id, p); });
       return Array.from(merged.values());
     },
-    enabled: teams.length > 0 && !!orgId,
+    enabled: teams.length > 0 && !!orgId && !isSuperAdmin,
   });
 
-  // Removed cross-organization players list; using only organization players
+  const players = isSuperAdmin ? (superAdminStatsData?.players || []) : playersData;
 
 
   const availableTeams = teams;
@@ -187,7 +200,7 @@ export default function Statistics() {
   // backend function can return partial data on rate-limit/timeout, which made
   // the Statistics leaderboard diverge from the Dashboard. Matching the
   // Dashboard's approach guarantees identical numbers on both surfaces.
-  const { data: playerGameStats = [], isFetching: isStatsFetching } = useQuery({
+  const { data: playerGameStatsData = [], isFetching: isStatsFetchingDirect } = useQuery({
     queryKey: ['playerGameStats', orgId, JSON.stringify(gameIdsForStats)],
     queryFn: async () => {
       if (gameIdsForStats.length === 0) return [];
@@ -206,11 +219,14 @@ export default function Statistics() {
       }
       return results;
     },
-    enabled: gameIdsForStats.length > 0,
+    enabled: gameIdsForStats.length > 0 && !isSuperAdmin,
     staleTime: 30000,
     gcTime: 5 * 60 * 1000,
     refetchInterval: autoRefreshStats ? refreshIntervalMs : false,
   });
+
+  const playerGameStats = isSuperAdmin ? (superAdminStatsData?.playerGameStats || []) : playerGameStatsData;
+  const isStatsFetching = isSuperAdmin ? isSuperAdminStatsFetching : isStatsFetchingDirect;
 
 
 
