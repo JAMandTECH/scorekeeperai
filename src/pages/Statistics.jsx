@@ -31,7 +31,11 @@ export default function Statistics() {
   const [darkMode, setDarkMode] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [superAdminOrgId, setSuperAdminOrgId] = useState(
+    () => localStorage.getItem('superAdminStatsOrgId') || null
+  );
   const isAdmin = user?.role === 'admin';
+  const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
   const { autoRefreshStats, refreshIntervalMs } = useStatsRefresh();
 
   useEffect(() => {
@@ -83,7 +87,31 @@ export default function Statistics() {
     } catch { /* ignore */ }
   };
 
-  const orgId = user?.organization_id || user?.active_organization_id;
+  const orgId = user?.organization_id || user?.active_organization_id || (isSuperAdmin ? superAdminOrgId : null);
+
+  // Super admins aren't tied to an org — let them browse any active org's stats
+  const { data: allOrganizations = [] } = useQuery({
+    queryKey: ['all-organizations-stats'],
+    queryFn: async () => {
+      const res = await base44.functions.invoke('getAllOrganizations', {});
+      return res?.data?.organizations || [];
+    },
+    enabled: isSuperAdmin,
+  });
+
+  // Resolve the effective organization object for super-admin picks
+  useEffect(() => {
+    if (isSuperAdmin && superAdminOrgId) {
+      const org = allOrganizations.find(o => o.id === superAdminOrgId);
+      if (org) setOrganization(org);
+    }
+  }, [isSuperAdmin, superAdminOrgId, allOrganizations]);
+
+  const handleSuperAdminOrgChange = (id) => {
+    setSuperAdminOrgId(id);
+    localStorage.setItem('superAdminStatsOrgId', id);
+  };
+
   const { data: teams = [] } = useQuery({
     queryKey: ['teams', orgId],
     queryFn: () => base44.entities.Team.filter({ organization_id: orgId }),
@@ -666,6 +694,25 @@ Please provide:
                 </div>
               </div>
             </div>
+          ) : !orgId && isSuperAdmin ? (
+            <div className="p-6 lg:p-8 w-full">
+              <div className="max-w-3xl mx-auto text-center border border-border p-10 space-y-4">
+                <h1 className="font-heading text-2xl font-bold mb-2">Select an organization</h1>
+                <p className="text-muted-foreground mb-2 text-sm">
+                  As a super admin you can view statistics for any registered organization. Pick one to continue.
+                </p>
+                <select
+                  value={superAdminOrgId || ''}
+                  onChange={(e) => handleSuperAdminOrgChange(e.target.value)}
+                  className="bg-background border border-border text-foreground px-4 py-2 font-medium max-w-xs"
+                >
+                  <option value="" disabled>Choose an organization…</option>
+                  {allOrganizations.map(org => (
+                    <option key={org.id} value={org.id}>{org.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
           ) : !orgId ? (
             <div className="p-6 lg:p-8 w-full">
               <div className="max-w-3xl mx-auto text-center border border-border p-10">
@@ -761,6 +808,22 @@ Please provide:
                         {selectedSport !== 'all' && selectedDivision !== 'all' && ' • '}
                         {selectedDivision !== 'all' && selectedDivision}
                       </Badge>
+                    )}
+
+                    {isSuperAdmin && (
+                      <div className="flex items-center gap-2 ml-auto">
+                        <span className="text-sm font-heading font-bold text-muted-foreground uppercase tracking-wide">Org:</span>
+                        <select
+                          value={superAdminOrgId || ''}
+                          onChange={(e) => handleSuperAdminOrgChange(e.target.value)}
+                          className="bg-background border border-border text-foreground px-4 py-2 font-medium"
+                        >
+                          <option value="" disabled>Select…</option>
+                          {allOrganizations.map(org => (
+                            <option key={org.id} value={org.id}>{org.name}</option>
+                          ))}
+                        </select>
+                      </div>
                     )}
                   </div>
                 </CardContent>
