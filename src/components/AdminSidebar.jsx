@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles, Clock, UserPlus, UserCog, FileEdit, UserCheck, CreditCard, ChevronDown, ChevronRight, Layers, Gamepad2, UsersRound, FileText, Archive, CalendarCheck, Timer as TimerIcon } from "lucide-react";
+import { Home, BarChart3, Trophy, Users, Calendar, Shield, PlayCircle, Building2, LogOut, Settings, Database, Gauge, Award, MessageCircle, Sparkles, Clock, UserPlus, UserCog, FileEdit, UserCheck, CreditCard, ChevronDown, ChevronRight, Layers, Gamepad2, UsersRound, FileText, Archive, CalendarCheck, Timer as TimerIcon, Clipboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePermissions } from "@/components/hooks/usePermissions";
@@ -142,6 +142,11 @@ export default function AdminSidebar({
   // Surface Timekeeper for timekeeper-only (non-admin) users so they can reach /Timekeeper
   if (user?.is_timekeeper && !isAdmin && !isSuperAdmin && !navStructure.main.some((item) => item.title === "Timekeeper")) {
     navStructure.main.push({ title: "Timekeeper", url: createPageUrl("Timekeeper"), icon: TimerIcon });
+  }
+
+  // Surface My Games for scorekeeper-only (non-admin) users so they can reach /ScorekeeperDashboard
+  if (user?.is_scorekeeper && !isAdmin && !isSuperAdmin && !navStructure.main.some((item) => item.title === "My Games")) {
+    navStructure.main.push({ title: "My Games", url: createPageUrl("ScorekeeperDashboard"), icon: Clipboard });
   }
 
   return (
