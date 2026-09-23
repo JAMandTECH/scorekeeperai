@@ -408,6 +408,8 @@ export default function Games() {
                 stream_url: formData.get('stream_url') || null,
                 penalty_limit_per_quarter: parseInt(formData.get('penalty_limit_per_quarter')),
                 player_foul_limit: parseInt(formData.get('player_foul_limit')),
+                timeouts_per_quarter: parseInt(formData.get('timeouts_per_quarter')) || 1,
+                timeouts_per_ot: parseInt(formData.get('timeouts_per_ot')) || 1,
                 assigned_scorekeeper_emails: selectedScorekeeperEmails,
                 overall_scorekeeper_email: formData.get('overall_scorekeeper_email') || null,
                 home_statistician_email: formData.get('home_statistician_email') || null,
@@ -444,6 +446,8 @@ export default function Games() {
         form.court_number.value = game.court_number || '';
         form.penalty_limit_per_quarter.value = game.penalty_limit_per_quarter || 5;
         form.player_foul_limit.value = game.player_foul_limit || 5;
+        form.timeouts_per_quarter.value = game.timeouts_per_quarter ?? 1;
+        form.timeouts_per_ot.value = game.timeouts_per_ot ?? 1;
         form.overall_scorekeeper_email.value = game.overall_scorekeeper_email || '';
         form.home_statistician_email.value = game.home_statistician_email || '';
         form.away_statistician_email.value = game.away_statistician_email || '';
@@ -1534,6 +1538,35 @@ export default function Games() {
                           required
                           className="bg-background border border-border text-foreground font-medium"
                         />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="timeouts_per_quarter" className="font-heading font-bold text-foreground">Timeouts per Quarter</Label>
+                        <Input
+                          id="timeouts_per_quarter"
+                          name="timeouts_per_quarter"
+                          type="number"
+                          defaultValue="1"
+                          min="0"
+                          max="10"
+                          className="bg-background border border-border text-foreground font-medium"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Each team's timeouts reset to this every quarter.</p>
+                      </div>
+                      <div>
+                        <Label htmlFor="timeouts_per_ot" className="font-heading font-bold text-foreground">Timeouts per OT</Label>
+                        <Input
+                          id="timeouts_per_ot"
+                          name="timeouts_per_ot"
+                          type="number"
+                          defaultValue="1"
+                          min="0"
+                          max="10"
+                          className="bg-background border border-border text-foreground font-medium"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Timeouts reset to this for each overtime period.</p>
                       </div>
                     </div>
 

@@ -149,6 +149,16 @@
       "type": "number",
       "default": 5
     },
+    "timeouts_per_quarter": {
+      "type": "number",
+      "default": 1,
+      "description": "Timeouts each team gets per regulation quarter (reset each quarter)"
+    },
+    "timeouts_per_ot": {
+      "type": "number",
+      "default": 1,
+      "description": "Timeouts each team gets per overtime period (reset each OT)"
+    },
     "stream_url": {
       "type": "string"
     },
