@@ -299,16 +299,7 @@ export default function PublicGameView() {
               )}
 
               {/* Insights footer */}
-              <div className="border-t" style={{ background: '#0E0F11', borderColor: '#2A2D31' }}>
-                <ScoreboardInsights game={game} players={players} playerStats={playerStats} />
-              </div>
-
-              {/* Game info */}
-              <div className="flex justify-center gap-8 py-3 text-sm border-t flex-wrap" style={{ background: '#0E0F11', borderColor: '#2A2D31', color: '#9CA3AF' }}>
-                {game.location && <span>{game.location}</span>}
-                {game.court_number && <span>Court {game.court_number}</span>}
-                <span>{new Date(game.game_date).toLocaleDateString()}</span>
-              </div>
+              <ScoreboardInsights game={game} players={players} playerStats={playerStats} />
             </CardContent>
           </div>
         </Card>
