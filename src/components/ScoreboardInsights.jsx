@@ -77,16 +77,13 @@ export default function ScoreboardInsights({ game, players, playerStats }) {
       <InsightRow label="Team Fouls" left={homeFoulCell} right={awayFoulCell} />
       <InsightRow label="Top Scorer" left={leaderCell(home.topScorer, "points", " PTS")} right={leaderCell(away.topScorer, "points", " PTS")} />
       <InsightRow label="Foul Trouble" left={foulTroubleCell(home.foulTrouble)} right={foulTroubleCell(away.foulTrouble)} />
-      <InsightRow label="Top Rebounder" left={leaderCell(home.topRebounder, "rebounds", " REB")} right={leaderCell(away.topRebounder, "rebounds", " REB")} />
-      <InsightRow label="Top Assists" left={leaderCell(home.topAssist, "assists", " AST")} right={leaderCell(away.topAssist, "assists", " AST")} />
-      <InsightRow label="Top Steals" left={leaderCell(home.topSteal, "steals", " STL")} right={leaderCell(away.topSteal, "steals", " STL")} />
-      <InsightRow label="Top Blocks" left={leaderCell(home.topBlock, "blocks", " BLK")} right={leaderCell(away.topBlock, "blocks", " BLK")} />
-      <InsightRow label="Top 3PT" left={leaderCell(home.topThree, "three_pointers", " 3PM")} right={leaderCell(away.topThree, "three_pointers", " 3PM")} />
+      <InsightRow label="Remaining Timeouts" left={game.home_timeouts ?? 5} right={game.away_timeouts ?? 5} />
 
-      {/* Footer: court + date */}
-      <div className="flex items-center justify-between px-4 py-2 text-[10px] font-heading font-bold uppercase tracking-widest" style={{ color: "#9CA3AF" }}>
-        <span>{game.court_number ? `Court ${game.court_number}` : "—"}</span>
-        <span>{new Date(game.game_date).toLocaleDateString()}</span>
+      {/* Footer: court | venue | date */}
+      <div className="grid grid-cols-3 items-center px-4 py-2 text-[10px] font-heading font-bold uppercase tracking-widest" style={{ color: "#9CA3AF" }}>
+        <span className="text-left">{game.court_number ? `Court ${game.court_number}` : "—"}</span>
+        <span className="text-center truncate">{game.location || "—"}</span>
+        <span className="text-right">{new Date(game.game_date).toLocaleDateString()}</span>
       </div>
     </div>
   );
