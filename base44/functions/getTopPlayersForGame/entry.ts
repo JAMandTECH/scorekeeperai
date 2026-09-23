@@ -27,6 +27,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Game not found' }, { status: 404 });
     }
 
+    // Verify the game belongs to the caller's organization (super admins bypass).
+    const callerOrg = user.organization_id || user.active_organization_id ||
+      user.data?.organization_id || user.data?.active_organization_id;
+    if (!Boolean(user.is_super_admin) && callerOrg && game.organization_id !== callerOrg) {
+      return Response.json({ error: 'Forbidden: game does not belong to your organization' }, { status: 403 });
+    }
+
     // Fetch stats for this game
     const stats = await base44.entities.PlayerGameStats.filter({ game_id: gameId });
 

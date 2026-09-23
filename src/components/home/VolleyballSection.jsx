@@ -20,6 +20,8 @@ export default function VolleyballSection({
   allTeams,
   isAdmin,
   getTeamName,
+  excludeDraws = false,
+  excludeDefaults = false,
 }) {
   const leaderCards = [
     { title: 'Top 10 Scorers', icon: Target, data: topVolleyballScorers },
@@ -55,7 +57,7 @@ export default function VolleyballSection({
 
         <TabsContent value="standings">
           {volleyballStandings.map((divisionData, idx) => (
-            <StandingsTable key={idx} divisionData={divisionData} organization={organization} accent="blue" />
+            <StandingsTable key={idx} divisionData={divisionData} organization={organization} accent="blue" excludeDraws={excludeDraws} excludeDefaults={excludeDefaults} />
           ))}
         </TabsContent>
 

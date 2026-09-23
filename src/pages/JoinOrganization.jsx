@@ -64,10 +64,13 @@ export default function JoinOrganization() {
     base44.auth.logout(createPageUrl("Home"));
   };
 
-  // Fetch all organizations
+  // Fetch all active organizations (service-role bypasses Organization read RLS)
   const { data: organizations = [] } = useQuery({
     queryKey: ['all-organizations-join'],
-    queryFn: () => base44.entities.Organization.filter({ status: 'active' }),
+    queryFn: async () => {
+      const res = await base44.functions.invoke('getAllOrganizations', {});
+      return res?.data?.organizations || [];
+    },
     enabled: !!user,
   });
 
@@ -201,14 +204,14 @@ export default function JoinOrganization() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="arena-command min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="arena-command min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={currentOrganization}

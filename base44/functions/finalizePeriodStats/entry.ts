@@ -131,6 +131,7 @@ Deno.serve(async (req) => {
 
     const makeRecord = (player, teamId) => ({
       game_id: game.id,
+      organization_id: game.organization_id,
       player_id: player.id,
       team_id: teamId,
       quarter: periodNumber,

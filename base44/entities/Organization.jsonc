@@ -99,6 +99,16 @@
     "season_pin": {
       "type": "string",
       "description": "Security PIN required to open a new season (prevents accidental creation)"
+    },
+    "standings_exclude_draws": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, drawn games are excluded from the Win% calculation and the Draw column is hidden across all standings views."
+    },
+    "standings_exclude_defaults": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, defaulted/forfeited games are excluded from the Win% calculation and the DEFAULT column is hidden across all standings views."
     }
   },
   "required": [

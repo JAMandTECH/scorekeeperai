@@ -90,6 +90,7 @@ Deno.serve(async (req) => {
     } else {
       const base = {
         game_id,
+        organization_id: game.organization_id,
         player_id,
         team_id,
         quarter,

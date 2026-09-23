@@ -67,32 +67,12 @@ export default function VerifyAdminCode() {
 
   const verifyMutation = useMutation({
     mutationFn: async (enteredCode) => {
-      if (!approvedRequest) {
-        throw new Error('No approved request found for your account');
-      }
-
-      if (enteredCode.toUpperCase() !== approvedRequest.access_code.toUpperCase()) {
-        throw new Error('Invalid access code');
-      }
-
-      console.log("VerifyAdminCode: Code is valid, marking as used");
-
-      // Mark code as used
-      await base44.entities.AdminRequest.update(approvedRequest.id, {
-        code_used: true,
+      const response = await base44.functions.invoke('verifyAdminCode', {
+        code: enteredCode,
       });
-
-      console.log("VerifyAdminCode: Code marked as used");
-
-      // CRITICAL: Now mark onboarding as completed
-      // This allows the user to access the Dashboard
-      console.log("VerifyAdminCode: Setting onboarding_completed to true");
-      await base44.auth.updateMe({
-        onboarding_completed: true,
-      });
-      
-      console.log("VerifyAdminCode: User fully verified and onboarding complete");
-
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Verification failed');
+      }
       return true;
     },
     onSuccess: () => {

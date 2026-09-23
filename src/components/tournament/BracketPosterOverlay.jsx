@@ -19,42 +19,31 @@ export default function BracketPosterOverlay({ organization, tournament, manualM
     ? new Date(tournament.start_date).getFullYear()
     : null;
 
-  const shadow = "0 2px 8px rgba(0,0,0,0.6)";
-
   const HeaderContent = (
     <>
       {orgLogo && (
-        <Avatar className="w-10 h-10 md:w-12 md:h-12 border-2 border-white/20 shadow-lg shrink-0">
+        <Avatar className="w-10 h-10 md:w-12 md:h-12 border-2 border-border shadow-lg shrink-0">
           <AvatarImage src={orgLogo} className="object-cover" />
-          <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white font-black text-sm">
+          <AvatarFallback className="bg-primary text-primary-foreground font-black text-sm">
             {orgName?.substring(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
       )}
       <div className="min-w-0">
         {orgName && (
-          <h2
-            className="text-sm md:text-lg font-black text-white tracking-tight truncate max-w-[200px] md:max-w-none"
-            style={{ textShadow: shadow }}
-          >
+          <h2 className="text-sm md:text-lg font-heading font-bold text-foreground tracking-tight truncate max-w-[200px] md:max-w-none">
             {orgName}
           </h2>
         )}
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           {season && (
-            <span
-              className="text-[10px] md:text-xs font-bold text-white/90 flex items-center gap-1"
-              style={{ textShadow: shadow }}
-            >
+            <span className="text-xs font-heading font-bold text-muted-foreground flex items-center gap-1">
               <Calendar className="w-3 h-3" />
               {season} Season
             </span>
           )}
           {division && (
-            <span
-              className="text-[10px] md:text-xs font-bold text-white/90 flex items-center gap-1"
-              style={{ textShadow: shadow }}
-            >
+            <span className="text-xs font-heading font-bold text-muted-foreground flex items-center gap-1">
               <Layers className="w-3 h-3" />
               {division}
             </span>

@@ -19,40 +19,21 @@ import { createPageUrl } from "@/utils";
 export default function OrganizationSwitcher({ user, currentOrganization, onSwitch }) {
   const queryClient = useQueryClient();
 
-  // Fetch user's organization memberships using filter by user_id
-  const { data: memberships = [], isLoading: membershipsLoading } = useQuery({
-    queryKey: ['user-org-memberships', user?.id],
+  // Fetch all of the user's orgs + memberships via service-role backend function
+  // (Organization read RLS hides every org except the active one, so we must bypass it)
+  const { data, isLoading } = useQuery({
+    queryKey: ['user-organizations', user?.id],
     queryFn: async () => {
-      const userMemberships = await base44.entities.UserOrganization.filter({ 
-        user_id: user?.id 
-      });
-      // console.log('OrganizationSwitcher - User memberships:', userMemberships);
-      return userMemberships;
+      const res = await base44.functions.invoke('getUserOrganizations');
+      return res.data || { organizations: [], memberships: [] };
     },
     enabled: !!user?.id,
-    staleTime: 60000, // Cache for 1 minute to reduce API calls
+    staleTime: 60000,
     refetchInterval: 60000,
   });
 
-  // Fetch all organizations for the memberships
-  const { data: organizations = [], isLoading: orgsLoading } = useQuery({
-    queryKey: ['membership-organizations', memberships.map(m => m.organization_id), user?.organization_id, user?.active_organization_id],
-    queryFn: async () => {
-      const allOrgs = await base44.entities.Organization.list();
-      const orgIds = new Set(memberships.map(m => m.organization_id));
-      
-      // Include current org and active org if not in memberships
-      if (user?.organization_id) orgIds.add(user.organization_id);
-      if (user?.active_organization_id) orgIds.add(user.active_organization_id);
-      
-      const filtered = allOrgs.filter(org => orgIds.has(org.id));
-      // console.log('OrganizationSwitcher - Org IDs:', [...orgIds]);
-      // console.log('OrganizationSwitcher - Filtered orgs:', filtered.map(o => o.name));
-      
-      return filtered;
-    },
-    enabled: memberships.length > 0 || !!user?.organization_id || !!user?.active_organization_id,
-  });
+  const organizations = data?.organizations || [];
+  const memberships = data?.memberships || [];
 
   // Switch organization mutation
   const switchOrgMutation = useMutation({
@@ -86,9 +67,8 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
     switchOrgMutation.mutate(orgId);
   };
 
-  // Get membership role for an org
+  // Get the user's actual role within an org (from their UserOrganization membership)
   const getMembershipRole = (orgId) => {
-    if (orgId === user?.organization_id) return 'admin';
     const membership = memberships.find(m => m.organization_id === orgId);
     return membership?.role_in_org || 'member';
   };

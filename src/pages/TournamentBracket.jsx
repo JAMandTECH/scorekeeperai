@@ -260,6 +260,7 @@ export default function TournamentBracket() {
       for (let matchNum = 0; matchNum < matchesInRound; matchNum++) {
         allMatches.push({
           tournament_id: tournament.id,
+          organization_id: orgId,
           round_name: roundName,
           match_number: matchNum,
           required_wins: requiredWins,
@@ -400,14 +401,14 @@ export default function TournamentBracket() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="arena-command min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="arena-command min-h-screen bg-background text-foreground">
       <AdminHeader 
         user={user}
         organization={organization}

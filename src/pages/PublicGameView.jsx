@@ -61,14 +61,22 @@ export default function PublicGameView() {
     enabled: !!game,
   });
 
-  // Fetch player stats for this game via backend function (public-safe)
+  // Resolve the current viewer to gate player stats (org members only).
+  const { data: currentUser } = useQuery({
+    queryKey: ['public-game-viewer'],
+    queryFn: async () => {
+      try { return await base44.auth.me(); } catch { return null; }
+    },
+  });
+
+  // Fetch player stats for this game (auth + same-org enforced server-side).
   const { data: playerStats = [] } = useQuery({
     queryKey: ['public-game-stats', gameId],
     queryFn: async () => {
       const res = await base44.functions.invoke('getGamePlayerStats', { game_id: gameId });
       return res.data || [];
     },
-    enabled: !!gameId,
+    enabled: !!gameId && !!currentUser,
     refetchInterval: 5000,
   });
 
@@ -98,6 +106,15 @@ export default function PublicGameView() {
   
   const homePlayers = players.filter(p => p.team_id === game.home_team_id);
   const awayPlayers = players.filter(p => p.team_id === game.away_team_id);
+
+  // Player stats are restricted to authenticated members of the game's org.
+  const canViewStats = !!currentUser && !!game && (
+    Boolean(currentUser.is_super_admin) ||
+    currentUser.organization_id === game.organization_id ||
+    currentUser.active_organization_id === game.organization_id ||
+    currentUser.data?.organization_id === game.organization_id ||
+    currentUser.data?.active_organization_id === game.organization_id
+  );
 
   // Calculate player totals from stats
   const getPlayerTotals = (playerId) => {
@@ -231,7 +248,8 @@ export default function PublicGameView() {
           </Card>
         )}
 
-        {/* Player Stats */}
+        {/* Player Stats — gated to org members */}
+        {canViewStats ? (
         <div className="grid md:grid-cols-2 gap-6">
           {/* Home Team Stats */}
           <Card>
@@ -329,6 +347,14 @@ export default function PublicGameView() {
             </CardContent>
           </Card>
         </div>
+        ) : (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-muted-foreground font-medium mb-1">Player statistics are available to organization members only.</p>
+              <p className="text-muted-foreground text-sm">Sign in with the organization's account to view detailed stats.</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

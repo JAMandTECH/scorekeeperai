@@ -33,9 +33,13 @@
       "default": "pending",
       "description": "Request status"
     },
-    "access_code": {
+    "access_code_hash": {
       "type": "string",
-      "description": "Generated access code for approved requests"
+      "description": "Salted SHA-256 hash of the generated access code (plaintext never stored)"
+    },
+    "access_code_salt": {
+      "type": "string",
+      "description": "Per-request salt used when hashing the access code"
     },
     "code_used": {
       "type": "boolean",
@@ -54,9 +58,33 @@
     "phone_number"
   ],
   "rls": {
-    "create": true,
-    "read": true,
-    "update": true,
-    "delete": true
+    "create": {
+      "data.user_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "data.is_super_admin": true
+          }
+        },
+        {
+          "data.user_email": "{{user.email}}"
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin",
+        "data.is_super_admin": true
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin",
+        "data.is_super_admin": true
+      }
+    }
   }
 }
