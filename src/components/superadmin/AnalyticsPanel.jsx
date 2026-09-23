@@ -101,7 +101,20 @@ export default function AnalyticsPanel() {
           </div>
         )}
 
-        {!isLoading && !isError && data && (
+        {!isLoading && !isError && (!data || !data.totals) && (
+          <div className="flex items-start gap-3 p-4 border border-border bg-muted/30">
+            <AlertTriangle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-foreground">Analytics not configured.</p>
+              <p className="text-muted-foreground mt-1">
+                Site analytics requires a Base44 personal access token. Add it in Settings → Secrets as
+                <span className="font-mono"> BASE44_PERSONAL_ACCESS_TOKEN</span> to enable this widget.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {!isLoading && !isError && data && data.totals && (
           <>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatTile icon={Activity} label="Total Events" value={data.totals.totalEvents.toLocaleString()} sub={`${data.totals.eventTypes} event types`} />
