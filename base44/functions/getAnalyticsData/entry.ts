@@ -43,7 +43,7 @@ export default async function (req) {
     }
 
     const token = secrets.get('BASE44_PERSONAL_ACCESS_TOKEN');
-    const appId = secrets.get('BASE44_APP_ID');
+    const appId = Deno.env.get('BASE44_APP_ID');
     if (!token) {
       return Response.json(
         { error: 'BASE44_PERSONAL_ACCESS_TOKEN secret not set. Create a personal access token (Workspace → Settings → Secrets → Personal access tokens) and add it as that secret.' },

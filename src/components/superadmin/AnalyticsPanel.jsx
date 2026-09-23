@@ -46,6 +46,7 @@ export default function AnalyticsPanel() {
     queryKey: ['analytics-data', days],
     queryFn: async () => {
       const response = await base44.functions.invoke('getAnalyticsData', { days });
+      if (response?.data?.error) throw new Error(response.data.error);
       return response.data;
     },
   });
