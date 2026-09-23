@@ -1638,7 +1638,7 @@ export default function Games() {
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={() => deleteMutation.mutate(deletingGame.id)}
+                      onClick={() => deletingGame && deleteMutation.mutate(deletingGame.id)}
                       className="font-medium"
                     >
                       Delete Permanently
@@ -1671,7 +1671,7 @@ export default function Games() {
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={() => archiveMutation.mutate({ id: archivingGame.id })}
+                      onClick={() => archivingGame && archiveMutation.mutate({ id: archivingGame.id })}
                       className="font-medium"
                     >
                       Archive Game
@@ -1700,7 +1700,7 @@ export default function Games() {
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={() => restoreMutation.mutate({ id: restoringGame.id })}
+                      onClick={() => restoringGame && restoreMutation.mutate({ id: restoringGame.id })}
                       className="font-medium"
                     >
                       Restore Game
