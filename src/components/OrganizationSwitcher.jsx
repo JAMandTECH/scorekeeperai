@@ -67,9 +67,8 @@ export default function OrganizationSwitcher({ user, currentOrganization, onSwit
     switchOrgMutation.mutate(orgId);
   };
 
-  // Get membership role for an org
+  // Get the user's actual role within an org (from their UserOrganization membership)
   const getMembershipRole = (orgId) => {
-    if (orgId === user?.organization_id) return 'admin';
     const membership = memberships.find(m => m.organization_id === orgId);
     return membership?.role_in_org || 'member';
   };
