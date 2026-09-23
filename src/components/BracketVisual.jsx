@@ -319,7 +319,7 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
 
   const renderWinBox = (winCount) => (
     <div
-      className="ml-auto shrink-0 flex items-center justify-center rounded-md font-heading font-bold text-xs w-7 h-7 tabular-nums bg-primary/10 border border-primary/30 text-primary"
+      className="ml-auto shrink-0 flex items-center justify-center rounded-md font-heading font-bold text-xs w-7 h-7 tabular-nums bg-primary/10 border border-primary/30 text-foreground"
       title="Series wins"
     >
       {winCount}
@@ -382,7 +382,7 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
                   </Avatar>
                   {seedByTeamId[team.id] && (
                     <span
-                      className="shrink-0 flex items-center justify-center rounded-md font-heading font-bold text-[10px] w-5 h-5 tabular-nums bg-primary/15 text-primary border border-primary/30"
+                      className="shrink-0 flex items-center justify-center rounded-md font-heading font-bold text-[10px] w-5 h-5 tabular-nums bg-primary/15 text-foreground border border-primary/30"
                       title="Division seed"
                     >
                       {seedByTeamId[team.id]}
@@ -434,8 +434,8 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
           {renderTeamSlot(match, 'away', match.away_team_id, awayWins, match.id)}
         </div>
 
-        <div className="px-2 py-1.5 text-center bg-primary/5 border-t border-primary/20">
-          <span className="text-[10px] font-heading font-bold tracking-wider text-primary">
+        <div className="px-2 py-1.5 text-center bg-muted border-t border-border">
+          <span className="text-xs font-heading font-bold tracking-wider text-foreground">
             {match.required_wins > 1 ? `BEST OF ${(match.required_wins * 2) - 1}` : 'SINGLE GAME'}
           </span>
         </div>
@@ -443,7 +443,7 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
         {onLinkGame && match.home_team_id && match.away_team_id && (
           <button
             onClick={(e) => { e.stopPropagation(); onLinkGame(match); }}
-            className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 text-[10px] font-heading font-bold tracking-wider transition-colors text-primary border-t border-border"
+            className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-heading font-bold tracking-wider transition-colors text-foreground border-t border-border hover:text-primary"
             title="Link a scheduled game to auto-count wins"
           >
             <Link2 className="w-3 h-3" />
@@ -563,7 +563,7 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
                 <h2 className="text-xl md:text-2xl font-heading font-bold tracking-tight text-foreground">
                   {tournament.name}
                 </h2>
-                <p className="text-xs font-heading font-bold mt-1 tracking-wider text-primary">
+                <p className="text-xs font-heading font-bold mt-1 tracking-wider text-foreground">
                   {tournament.sport.toUpperCase()} • {tournament.num_teams} TEAMS
                 </p>
               </div>
@@ -577,7 +577,7 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
                 {manualMode ? 'Auto Mode' : 'Manual Mode'}
               </Button>
               <Badge
-                className="text-xs md:text-sm px-4 md:px-6 py-2 font-heading font-bold bg-primary/10 text-primary border border-primary/30"
+                className="text-xs md:text-sm px-4 md:px-6 py-2 font-heading font-bold bg-primary/10 text-foreground border border-primary/30"
               >
                 {manualMode ? 'MANUAL BUILDER' : 'TOURNAMENT BRACKET'}
               </Badge>
@@ -656,7 +656,7 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
                           onClick={() => handleAddSectionLabel(label)}
                           size="sm"
                           variant="outline"
-                          className="h-7 text-xs font-heading font-bold border-primary/40 text-primary"
+                          className="h-7 text-xs font-heading font-bold border-primary/40 text-foreground"
                         >
                           <Plus className="w-3 h-3 mr-1" />
                           {label}
@@ -783,13 +783,13 @@ export default function BracketVisual({ tournament, matches, teams, games = [], 
                         >
                           {/* ── Round marker (flat label + underline rule) ── */}
                           <div className="mb-8 text-center">
-                            <h3 className="text-xs font-heading font-bold uppercase tracking-widest text-primary">
+                            <h3 className="text-sm font-heading font-bold uppercase tracking-widest text-foreground">
                               {getRoundLabel(roundName)}
                             </h3>
-                            <p className="text-[10px] font-medium mt-0.5 text-muted-foreground">
+                            <p className="text-xs font-medium mt-0.5 text-muted-foreground">
                               {matchCount} {matchCount === 1 ? 'Match' : 'Matches'}
                             </p>
-                            <div className="mx-auto mt-2 h-px w-12 bg-primary/40" />
+                            <div className="mx-auto mt-2 h-0.5 w-12 bg-primary" />
                           </div>
 
                           <Droppable droppableId={`round-${roundName}`} type="MATCH">
@@ -988,7 +988,7 @@ function ManualMatchCard({ match, teams, getTeam, renderTeamSlot, onDrag, onSetR
           title="Drag to move this match card"
         >
           <GripVertical className="w-4 h-4 shrink-0 text-muted-foreground" />
-          <span className="text-[10px] font-heading font-bold uppercase tracking-wider text-muted-foreground">Move</span>
+          <span className="text-xs font-heading font-bold uppercase tracking-wider text-muted-foreground">Move</span>
         </div>
         <div className="absolute top-1.5 right-2 flex gap-1 z-10 action-button">
           <button
@@ -1017,13 +1017,13 @@ function ManualMatchCard({ match, teams, getTeam, renderTeamSlot, onDrag, onSetR
           {renderTeamSlot(match, 'home', match.home_team_id, match.winner_team_id && match.winner_team_id === match.home_team_id, match.id)}
           {renderTeamSlot(match, 'away', match.away_team_id, match.winner_team_id && match.winner_team_id === match.away_team_id, match.id)}
         </div>
-        <div className="px-2 py-1.5 text-center action-button bg-primary/5 border-t border-primary/20">
+        <div className="px-2 py-1.5 text-center action-button bg-muted border-t border-border">
           <select
             value={match.required_wins || 1}
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
             onChange={(e) => onSetRequiredWins(match.id, Number(e.target.value))}
-            className="w-full bg-transparent text-[10px] font-heading font-bold text-center cursor-pointer outline-none appearance-none text-primary"
+            className="w-full bg-transparent text-xs font-heading font-bold text-center cursor-pointer outline-none appearance-none text-foreground"
             title="Set number of games for this match"
           >
             {SERIES_OPTIONS.map((opt) => (
@@ -1084,12 +1084,12 @@ function SectionLabel({ label, onDrag, onDelete }) {
     >
       <div
         onMouseDown={handleMouseDown}
-        className="group inline-flex items-center gap-3 rounded-lg px-4 py-2.5 select-none bg-primary/10 border border-primary/30"
+        className="group inline-flex items-center gap-3 rounded-lg px-4 py-2.5 select-none bg-primary/10 border border-primary/40"
         style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
         title="Drag to move this section label"
       >
         <GripVertical className="w-4 h-4 shrink-0 text-primary/60" />
-        <h3 className="text-sm font-heading font-bold uppercase tracking-widest text-primary">
+        <h3 className="text-sm font-heading font-bold uppercase tracking-widest text-foreground">
           {label.text}
         </h3>
         <button
