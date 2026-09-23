@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 import ShareGameBar from "@/components/ShareGameBar";
 import ScoreboardInsights from "@/components/ScoreboardInsights";
+import ShotClockRing from "@/components/ShotClockRing";
 import { useFullscreen } from "@/lib/useFullscreen";
 import { useGameTimer } from "@/lib/useGameTimer";
 import { formatGameClock, formatShotClock } from "@/lib/timerLogic";
@@ -191,10 +192,10 @@ export default function PublicGameView() {
           <div style={scoreboardFullscreen ? { zoom: scoreboardScale, width: `${scoreboardDesignWidth}px`, margin: '0 auto' } : undefined}>
             <CardHeader className="py-4 border-b" style={{ background: '#14181C', borderColor: '#2A2D31' }}>
               <div className="flex items-center justify-between">
-                <Badge variant="outline" className="font-medium uppercase" style={{ borderColor: '#2A2D31', color: '#9CA3AF' }}>
+                <span className="px-3 py-1 text-[10px] font-heading font-bold uppercase tracking-widest border" style={{ borderColor: '#77DD77', color: '#77DD77', background: 'rgba(119,221,119,0.06)' }}>
                   {game.sport}
-                </Badge>
-                <span className="font-heading font-bold text-white">{quarterLabel}</span>
+                </span>
+                <span className="text-[11px] font-heading font-bold uppercase tracking-widest" style={{ color: '#9CA3AF' }}>{quarterLabel}</span>
                 <div className="flex items-center gap-2">
                   {isLive ? (
                     <span className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-heading font-bold uppercase tracking-widest" style={{ background: 'rgba(119,221,119,0.12)', color: '#77DD77' }}>
@@ -225,7 +226,7 @@ export default function PublicGameView() {
 
                 {/* Home half */}
                 <div className="relative flex flex-col items-center justify-center py-10 px-6" style={{ background: '#1A1C1E' }}>
-                  <Avatar className="w-20 h-20 mb-4" style={{ border: '1px solid rgba(255,255,255,0.10)' }}>
+                  <Avatar className="w-20 h-20 mb-4" style={{ border: '3px solid #FF8800' }}>
                     <AvatarImage src={homeTeam?.logo_url} />
                     <AvatarFallback className="text-2xl font-heading font-bold" style={{ background: '#2A2D31', color: '#fff' }}>
                       {homeTeam?.name?.substring(0, 2).toUpperCase()}
@@ -245,21 +246,22 @@ export default function PublicGameView() {
                 <div className="relative flex flex-col items-center justify-center px-4 py-8" style={{ background: '#0E0F11', borderLeft: '1px solid #77DD77', borderRight: '1px solid #77DD77' }}>
                   {timer ? (
                     <>
-                      <p className="text-[10px] font-heading font-bold uppercase tracking-widest mb-1" style={{ color: '#9CA3AF' }}>Game Clock</p>
+                      <p className="text-[10px] font-heading font-bold uppercase tracking-widest mb-3" style={{ color: '#9CA3AF' }}>
+                        {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
                       <div className={`font-heading font-bold tabular-nums leading-none mb-4 ${gameClockRunning ? 'text-primary' : 'text-white'}`} style={{ fontSize: '2.5rem' }}>
                         {formatGameClock(gameClockMs)}
                       </div>
                       <span className="px-3 py-1 text-[10px] font-heading font-bold uppercase tracking-widest mb-4 border" style={{ borderColor: '#77DD77', color: '#77DD77', background: 'rgba(119,221,119,0.08)' }}>
                         {quarterLabel}
                       </span>
-                      {(timer.shot_clock_length_seconds || 0) > 0 && (
-                        <>
-                          <p className="text-[10px] font-heading font-bold uppercase tracking-widest mb-1" style={{ color: '#9CA3AF' }}>Shot Clock</p>
-                          <div className={`font-heading font-bold tabular-nums leading-none ${shotClockRunning ? 'text-destructive' : 'text-white'}`} style={{ fontSize: '2rem' }}>
-                            {formatShotClock(shotClockMs)}
-                          </div>
-                        </>
-                      )}
+                      {(timer.shot_clock_length_seconds || 0) > 0 ? (
+                        <ShotClockRing
+                          shotClockMs={shotClockMs}
+                          shotClockLengthSeconds={timer.shot_clock_length_seconds}
+                          running={shotClockRunning}
+                        />
+                      ) : null}
                     </>
                   ) : (
                     <span className="px-3 py-1 text-[10px] font-heading font-bold uppercase tracking-widest border text-center" style={{ borderColor: '#77DD77', color: '#77DD77', background: 'rgba(119,221,119,0.08)' }}>
@@ -270,7 +272,7 @@ export default function PublicGameView() {
 
                 {/* Away half */}
                 <div className="relative flex flex-col items-center justify-center py-10 px-6" style={{ background: '#16191B' }}>
-                  <Avatar className="w-20 h-20 mb-4" style={{ border: '1px solid rgba(255,255,255,0.10)' }}>
+                  <Avatar className="w-20 h-20 mb-4" style={{ border: '3px solid #FFCC33' }}>
                     <AvatarImage src={awayTeam?.logo_url} />
                     <AvatarFallback className="text-2xl font-heading font-bold" style={{ background: '#2A2D31', color: '#fff' }}>
                       {awayTeam?.name?.substring(0, 2).toUpperCase()}
@@ -299,16 +301,7 @@ export default function PublicGameView() {
               )}
 
               {/* Insights footer */}
-              <div className="border-t" style={{ background: '#0E0F11', borderColor: '#2A2D31' }}>
-                <ScoreboardInsights game={game} players={players} playerStats={playerStats} />
-              </div>
-
-              {/* Game info */}
-              <div className="flex justify-center gap-8 py-3 text-sm border-t flex-wrap" style={{ background: '#0E0F11', borderColor: '#2A2D31', color: '#9CA3AF' }}>
-                {game.location && <span>{game.location}</span>}
-                {game.court_number && <span>Court {game.court_number}</span>}
-                <span>{new Date(game.game_date).toLocaleDateString()}</span>
-              </div>
+              <ScoreboardInsights game={game} players={players} playerStats={playerStats} />
             </CardContent>
           </div>
         </Card>

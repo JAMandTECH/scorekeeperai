@@ -334,7 +334,10 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
     setAwayTeamFouls(currentGame.away_team_fouls || 0);
     
     if (currentGame.status === 'scheduled') {
-      await updateGameByIdSafe(gameId, { status: 'in_progress' });
+      const q1Alloc = currentGame.timeouts_q1 ?? 1;
+      setHomeTimeouts(q1Alloc);
+      setAwayTimeouts(q1Alloc);
+      await updateGameByIdSafe(gameId, { status: 'in_progress', home_timeouts: q1Alloc, away_timeouts: q1Alloc });
     }
 
     const statsMap = await loadAllStatsPaginated(gameId);
@@ -856,10 +859,17 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
     const nextQuarter = currentQuarter + 1;
     const newOvertimeCount = nextQuarter > 4 ? (nextQuarter - 4) : 0;
 
+    // Reset each team's timeouts to the configured allocation for the new period
+    const timeoutAlloc = nextQuarter > 4
+      ? (game.timeouts_ot ?? 1)
+      : (game[`timeouts_q${nextQuarter}`] ?? 1);
+
     // Optimistic UI update
     setCurrentQuarter(nextQuarter);
     setShowQuarterEnd(false);
     setActionHistory([]);
+    setHomeTimeouts(timeoutAlloc);
+    setAwayTimeouts(timeoutAlloc);
 
     // Persist to server while showing saving overlay
     lastWriteTsRef.current = Date.now();
@@ -871,6 +881,8 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
         home_team_fouls: 0,
         away_team_fouls: 0,
         overtime_count: newOvertimeCount,
+        home_timeouts: timeoutAlloc,
+        away_timeouts: timeoutAlloc,
         home_score: homeScore,
         away_score: awayScore,
       });
