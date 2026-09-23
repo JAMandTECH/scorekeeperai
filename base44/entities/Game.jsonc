@@ -159,6 +159,31 @@
       "default": 1,
       "description": "Timeouts each team gets per overtime period (reset each OT)"
     },
+    "timeouts_q1": {
+      "type": "number",
+      "default": 1,
+      "description": "Timeouts each team gets in quarter 1 (resets to this when Q1 starts)"
+    },
+    "timeouts_q2": {
+      "type": "number",
+      "default": 1,
+      "description": "Timeouts each team gets in quarter 2"
+    },
+    "timeouts_q3": {
+      "type": "number",
+      "default": 1,
+      "description": "Timeouts each team gets in quarter 3"
+    },
+    "timeouts_q4": {
+      "type": "number",
+      "default": 1,
+      "description": "Timeouts each team gets in quarter 4"
+    },
+    "timeouts_ot": {
+      "type": "number",
+      "default": 1,
+      "description": "Timeouts each team gets per overtime period"
+    },
     "stream_url": {
       "type": "string"
     },

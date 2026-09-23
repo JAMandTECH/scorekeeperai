@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap, Edit, ChevronDown, ChevronUp, FileEdit, Link as LinkIcon } from "lucide-react";
+import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap, Edit, ChevronDown, ChevronUp, FileEdit, Link as LinkIcon, Trophy, ClipboardList, Shirt } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link, useNavigate } from "react-router-dom";
@@ -54,6 +55,16 @@ export default function Games() {
   const [expandedWeeks, setExpandedWeeks] = useState({});
   const [formDivision, setFormDivision] = useState('');
   const [formSport, setFormSport] = useState('');
+  const [activeSection, setActiveSection] = useState('game');
+  const [activeTimeoutSegment, setActiveTimeoutSegment] = useState('q1');
+  const sectionRefs = useRef({});
+  const formSections = [
+    { id: 'game', label: 'Game', icon: Trophy },
+    { id: 'officials', label: 'Officials', icon: Users },
+    { id: 'rules', label: 'Schedule & Rules', icon: ClipboardList },
+    { id: 'teams', label: 'Teams', icon: Shirt },
+    { id: 'venue', label: 'Venue', icon: MapPin },
+  ];
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { hasPermission, loading: permissionsLoading, isAdmin } = usePermissions();
@@ -394,6 +405,10 @@ export default function Games() {
     e.preventDefault();
     const formData = new FormData(e.target);
     const weekNumber = formData.get('week_number');
+    const parseTimeouts = (name) => {
+      const n = parseInt(formData.get(name));
+      return Number.isNaN(n) ? 1 : Math.max(0, n);
+    };
     const baseData = {
                 organization_id: user?.organization_id,
                 home_team_id: formData.get('home_team_id'),
@@ -408,8 +423,11 @@ export default function Games() {
                 stream_url: formData.get('stream_url') || null,
                 penalty_limit_per_quarter: parseInt(formData.get('penalty_limit_per_quarter')),
                 player_foul_limit: parseInt(formData.get('player_foul_limit')),
-                timeouts_per_quarter: parseInt(formData.get('timeouts_per_quarter')) || 1,
-                timeouts_per_ot: parseInt(formData.get('timeouts_per_ot')) || 1,
+                timeouts_q1: parseTimeouts('timeouts_q1'),
+                timeouts_q2: parseTimeouts('timeouts_q2'),
+                timeouts_q3: parseTimeouts('timeouts_q3'),
+                timeouts_q4: parseTimeouts('timeouts_q4'),
+                timeouts_ot: parseTimeouts('timeouts_ot'),
                 assigned_scorekeeper_emails: selectedScorekeeperEmails,
                 overall_scorekeeper_email: formData.get('overall_scorekeeper_email') || null,
                 home_statistician_email: formData.get('home_statistician_email') || null,
@@ -446,8 +464,11 @@ export default function Games() {
         form.court_number.value = game.court_number || '';
         form.penalty_limit_per_quarter.value = game.penalty_limit_per_quarter || 5;
         form.player_foul_limit.value = game.player_foul_limit || 5;
-        form.timeouts_per_quarter.value = game.timeouts_per_quarter ?? 1;
-        form.timeouts_per_ot.value = game.timeouts_per_ot ?? 1;
+        form.timeouts_q1.value = game.timeouts_q1 ?? 1;
+        form.timeouts_q2.value = game.timeouts_q2 ?? 1;
+        form.timeouts_q3.value = game.timeouts_q3 ?? 1;
+        form.timeouts_q4.value = game.timeouts_q4 ?? 1;
+        form.timeouts_ot.value = game.timeouts_ot ?? 1;
         form.overall_scorekeeper_email.value = game.overall_scorekeeper_email || '';
         form.home_statistician_email.value = game.home_statistician_email || '';
         form.away_statistician_email.value = game.away_statistician_email || '';
@@ -1340,14 +1361,47 @@ export default function Games() {
                   setEditingGame(null);
                 }
               }}>
-                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="text-2xl font-heading font-bold">
-                      {editingGame ? 'Edit Game' : 'Schedule New Game'}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <form id="game-form" onSubmit={handleSubmit} className="space-y-4">
-                    <div>
+                <DialogContent className="max-w-4xl max-h-[92vh] p-0 overflow-hidden gap-0">
+                  <div className="flex h-[82vh]">
+                    <aside className="w-48 shrink-0 border-r border-border bg-sidebar flex flex-col">
+                      <div className="px-4 py-5 border-b border-sidebar-border">
+                        <DialogTitle className="text-base font-heading font-bold text-sidebar-foreground">
+                          {editingGame ? 'Edit Game' : 'Schedule New Game'}
+                        </DialogTitle>
+                      </div>
+                      <nav className="flex-1 p-2 space-y-1">
+                        {formSections.map((s) => {
+                          const Icon = s.icon;
+                          return (
+                            <button
+                              key={s.id}
+                              type="button"
+                              onClick={() => {
+                                setActiveSection(s.id);
+                                sectionRefs.current[s.id]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }}
+                              className={cn(
+                                "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium transition-colors text-left",
+                                activeSection === s.id
+                                  ? "bg-primary/10 text-primary font-semibold"
+                                  : "text-sidebar-foreground hover:bg-sidebar-accent"
+                              )}
+                            >
+                              <Icon className="w-4 h-4 shrink-0" />
+                              <span>{s.label}</span>
+                            </button>
+                          );
+                        })}
+                      </nav>
+                    </aside>
+                    <div className="flex-1 flex flex-col min-h-0">
+                  <form id="game-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-8">
+                    <section ref={(el) => (sectionRefs.current.game = el)} className="scroll-mt-4 space-y-4">
+                      <div className="flex items-center gap-2 pb-1">
+                        <Trophy className="w-4 h-4 text-primary" />
+                        <h3 className="font-heading font-bold text-sm uppercase tracking-wide text-foreground">Game</h3>
+                      </div>
+                      <div>
                       <Label htmlFor="sport" className="font-heading font-bold text-foreground">Sport</Label>
                       <select
                         id="sport"
@@ -1394,13 +1448,14 @@ export default function Games() {
                         ))}
                       </select>
                     </div>
+                    </section>
 
-                    {/* Scorekeeper Role Assignments (Basketball Only) */}
-                    <div className="bg-muted/50 p-4 border border-border space-y-4">
-                      <h3 className="text-lg font-heading font-bold text-foreground flex items-center gap-2">
-                        <Users className="w-5 h-5 text-primary" />
-                        Scorekeeper & Statistician Assignments
-                      </h3>
+                    <section ref={(el) => (sectionRefs.current.officials = el)} className="scroll-mt-4 space-y-4">
+                      <div className="flex items-center gap-2 pb-1">
+                        <Users className="w-4 h-4 text-primary" />
+                        <h3 className="font-heading font-bold text-sm uppercase tracking-wide text-foreground">Officials</h3>
+                      </div>
+                    <div className="bg-muted/40 p-4 border border-border space-y-4">
                       <p className="text-sm text-muted-foreground">
                         For basketball: Assign specific roles. The Overall Scorekeeper handles points, fouls, timeouts, and game flow. Statisticians only record non-point stats for their assigned team.
                       </p>
@@ -1465,7 +1520,13 @@ export default function Games() {
                         <p className="text-xs text-muted-foreground mt-1">Runs the game and shot clocks from the Timekeeper page.</p>
                       </div>
                     </div>
+                    </section>
 
+                    <section ref={(el) => (sectionRefs.current.rules = el)} className="scroll-mt-4 space-y-4">
+                      <div className="flex items-center gap-2 pb-1">
+                        <ClipboardList className="w-4 h-4 text-primary" />
+                        <h3 className="font-heading font-bold text-sm uppercase tracking-wide text-foreground">Schedule & Rules</h3>
+                      </div>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <Label htmlFor="game_date" className="font-heading font-bold text-foreground">Date & Time *</Label>
@@ -1541,35 +1602,56 @@ export default function Games() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="timeouts_per_quarter" className="font-heading font-bold text-foreground">Timeouts per Quarter</Label>
-                        <Input
-                          id="timeouts_per_quarter"
-                          name="timeouts_per_quarter"
-                          type="number"
-                          defaultValue="1"
-                          min="0"
-                          max="10"
-                          className="bg-background border border-border text-foreground font-medium"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">Each team's timeouts reset to this every quarter.</p>
-                      </div>
-                      <div>
-                        <Label htmlFor="timeouts_per_ot" className="font-heading font-bold text-foreground">Timeouts per OT</Label>
-                        <Input
-                          id="timeouts_per_ot"
-                          name="timeouts_per_ot"
-                          type="number"
-                          defaultValue="1"
-                          min="0"
-                          max="10"
-                          className="bg-background border border-border text-foreground font-medium"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">Timeouts reset to this for each overtime period.</p>
+                    <div>
+                      <Label className="font-heading font-bold text-foreground">Timeouts per Period</Label>
+                      <p className="text-xs text-muted-foreground mt-1">Set how many timeouts each team gets for each period. Remaining timeouts reset to this value when the period advances on the live scoreboard.</p>
+                      <div className="grid grid-cols-5 gap-2 mt-2">
+                        {[
+                          { key: 'q1', label: 'Q1', name: 'timeouts_q1' },
+                          { key: 'q2', label: 'Q2', name: 'timeouts_q2' },
+                          { key: 'q3', label: 'Q3', name: 'timeouts_q3' },
+                          { key: 'q4', label: 'Q4', name: 'timeouts_q4' },
+                          { key: 'ot', label: 'OT', name: 'timeouts_ot' },
+                        ].map((seg) => (
+                          <div
+                            key={seg.key}
+                            className={cn(
+                              "rounded-md border p-2 text-center transition-colors",
+                              activeTimeoutSegment === seg.key
+                                ? "border-primary bg-primary/10"
+                                : "border-border bg-background"
+                            )}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setActiveTimeoutSegment(seg.key)}
+                              className={cn(
+                                "w-full text-xs font-heading font-bold uppercase tracking-wide mb-1",
+                                activeTimeoutSegment === seg.key ? "text-primary" : "text-muted-foreground"
+                              )}
+                            >
+                              {seg.label}
+                            </button>
+                            <input
+                              type="number"
+                              name={seg.name}
+                              defaultValue="1"
+                              min="0"
+                              max="10"
+                              onFocus={() => setActiveTimeoutSegment(seg.key)}
+                              className="w-full bg-transparent text-center text-lg font-heading font-bold tabular-nums text-foreground outline-none"
+                            />
+                          </div>
+                        ))}
                       </div>
                     </div>
+                    </section>
 
+                    <section ref={(el) => (sectionRefs.current.teams = el)} className="scroll-mt-4 space-y-4">
+                      <div className="flex items-center gap-2 pb-1">
+                        <Shirt className="w-4 h-4 text-primary" />
+                        <h3 className="font-heading font-bold text-sm uppercase tracking-wide text-foreground">Teams</h3>
+                      </div>
                     <div>
                       <Label htmlFor="home_team_id" className="font-heading font-bold text-foreground">Home Team</Label>
                       <select
@@ -1598,8 +1680,15 @@ export default function Games() {
                         ))}
                       </select>
                     </div>
+                    </section>
+
+                    <section ref={(el) => (sectionRefs.current.venue = el)} className="scroll-mt-4 space-y-4">
+                      <div className="flex items-center gap-2 pb-1">
+                        <MapPin className="w-4 h-4 text-primary" />
+                        <h3 className="font-heading font-bold text-sm uppercase tracking-wide text-foreground">Venue</h3>
+                      </div>
                     <div>
-                                                <Label htmlFor="location" className="font-heading font-bold text-foreground">Location</Label>
+                      <Label htmlFor="location" className="font-heading font-bold text-foreground">Location</Label>
                                                 <Input
                                                   id="location"
                                                   name="location"
@@ -1617,7 +1706,8 @@ export default function Games() {
                                                 />
                                                 <p className="text-xs text-muted-foreground mt-1">Paste a YouTube Live, Twitch, or other embed URL for live streaming.</p>
                                               </div>
-                    <div className="flex justify-end gap-3 pt-4">
+                    </section>
+                    <div className="flex justify-end gap-3 pt-4 border-t border-border">
                       <Button type="button" variant="outline" onClick={() => { 
                         setShowForm(false); 
                         setConflicts([]); 
@@ -1636,6 +1726,8 @@ export default function Games() {
                       </Button>
                     </div>
                   </form>
+                    </div>
+                  </div>
                 </DialogContent>
               </Dialog>
 
