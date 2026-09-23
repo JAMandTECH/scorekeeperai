@@ -66,7 +66,7 @@
         {
           "user_condition": {
             "role": "admin",
-            "is_super_admin": true
+            "data.is_super_admin": true
           }
         },
         {
@@ -77,13 +77,13 @@
     "update": {
       "user_condition": {
         "role": "admin",
-        "is_super_admin": true
+        "data.is_super_admin": true
       }
     },
     "delete": {
       "user_condition": {
         "role": "admin",
-        "is_super_admin": true
+        "data.is_super_admin": true
       }
     }
   }
