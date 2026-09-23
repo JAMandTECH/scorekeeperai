@@ -84,12 +84,6 @@ export default function Dashboard() {
         return;
       }
 
-      // Redirect scorekeepers to their dashboard
-      if (currentUser.is_scorekeeper && currentUser.role !== 'admin') {
-        navigate("/scorekeeperdashboard");
-        return;
-      }
-      
       // Admins and registered organization members can view the dashboard.
       // Users with no organization association are sent home.
       const belongsToOrg = user.active_organization_id || user.organization_id;
