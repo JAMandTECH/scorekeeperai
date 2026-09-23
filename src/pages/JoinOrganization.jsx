@@ -64,10 +64,13 @@ export default function JoinOrganization() {
     base44.auth.logout(createPageUrl("Home"));
   };
 
-  // Fetch all organizations
+  // Fetch all active organizations (service-role bypasses Organization read RLS)
   const { data: organizations = [] } = useQuery({
     queryKey: ['all-organizations-join'],
-    queryFn: () => base44.entities.Organization.filter({ status: 'active' }),
+    queryFn: async () => {
+      const res = await base44.functions.invoke('getAllOrganizations', {});
+      return res?.data?.organizations || [];
+    },
     enabled: !!user,
   });
 
