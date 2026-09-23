@@ -260,6 +260,7 @@ export default function TournamentBracket() {
       for (let matchNum = 0; matchNum < matchesInRound; matchNum++) {
         allMatches.push({
           tournament_id: tournament.id,
+          organization_id: orgId,
           round_name: roundName,
           match_number: matchNum,
           required_wins: requiredWins,

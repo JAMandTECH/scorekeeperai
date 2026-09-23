@@ -182,6 +182,7 @@ export default function TeamRegistration() {
         .map(player =>
           base44.entities.Player.create({
             team_id: team.id,
+            organization_id: organization.id,
             season_id: seasonId,
             jersey_number: player.jersey_number,
             first_name: player.first_name,

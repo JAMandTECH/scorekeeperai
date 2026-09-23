@@ -2,6 +2,10 @@
   "name": "PlayerGameStats",
   "type": "object",
   "properties": {
+    "organization_id": {
+      "type": "string",
+      "description": "Organization these stats belong to (org-scoped for RLS)"
+    },
     "game_id": {
       "type": "string"
     },
@@ -95,22 +99,47 @@
           }
         },
         {
-          "user_condition": {
-            "is_scorekeeper": true
-          }
+          "$and": [
+            {
+              "user_condition": {
+                "is_scorekeeper": true
+              }
+            },
+            {
+              "$or": [
+                {
+                  "data.organization_id": "{{user.data.organization_id}}"
+                },
+                {
+                  "data.organization_id": "{{user.data.active_organization_id}}"
+                }
+              ]
+            }
+          ]
         },
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "$or": [
+                {
+                  "data.organization_id": "{{user.data.organization_id}}"
+                },
+                {
+                  "data.organization_id": "{{user.data.active_organization_id}}"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
     "read": {
       "$or": [
-        {
-          "user_condition": {}
-        },
         {
           "user_condition": {
             "role": "admin",
@@ -118,14 +147,10 @@
           }
         },
         {
-          "user_condition": {
-            "is_scorekeeper": true
-          }
+          "data.organization_id": "{{user.data.organization_id}}"
         },
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "data.organization_id": "{{user.data.active_organization_id}}"
         }
       ]
     },
@@ -138,14 +163,42 @@
           }
         },
         {
-          "user_condition": {
-            "is_scorekeeper": true
-          }
+          "$and": [
+            {
+              "user_condition": {
+                "is_scorekeeper": true
+              }
+            },
+            {
+              "$or": [
+                {
+                  "data.organization_id": "{{user.data.organization_id}}"
+                },
+                {
+                  "data.organization_id": "{{user.data.active_organization_id}}"
+                }
+              ]
+            }
+          ]
         },
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "$or": [
+                {
+                  "data.organization_id": "{{user.data.organization_id}}"
+                },
+                {
+                  "data.organization_id": "{{user.data.active_organization_id}}"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -158,7 +211,23 @@
           }
         },
         {
-          "created_by": "{{user.email}}"
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "$or": [
+                {
+                  "data.organization_id": "{{user.data.organization_id}}"
+                },
+                {
+                  "data.organization_id": "{{user.data.active_organization_id}}"
+                }
+              ]
+            }
+          ]
         }
       ]
     }

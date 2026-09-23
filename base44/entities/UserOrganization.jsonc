@@ -36,8 +36,50 @@
     "organization_id"
   ],
   "rls": {
-    "create": true,
-    "read": true,
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
+        },
+        {
+          "data.user_id": "{{user.id}}"
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "data.organization_id": "{{user.data.organization_id}}"
+        },
+        {
+          "data.organization_id": "{{user.data.active_organization_id}}"
+        },
+        {
+          "data.user_id": "{{user.id}}"
+        }
+      ]
+    },
     "update": {
       "$or": [
         {

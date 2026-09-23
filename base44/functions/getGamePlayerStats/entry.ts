@@ -81,13 +81,27 @@ async function fetchInChunksOrPerGame(base44, gameIds, chunkSize = 100, perGameB
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    // Auth optional for read endpoints; ignore failures
-    try { await base44.auth.me(); } catch (_) {}
+    const user = await base44.auth.me().catch(() => null);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const callerOrg = user.organization_id || user.active_organization_id ||
+      user.data?.organization_id || user.data?.active_organization_id;
+    const isSuper = Boolean(user.is_super_admin);
 
     const { game_id, game_ids } = await req.json().catch(() => ({}));
 
     if (!game_id && (!Array.isArray(game_ids) || game_ids.length === 0)) {
       return Response.json({ error: 'Missing game_id or game_ids' }, { status: 400 });
+    }
+
+    // Verify the requested game(s) belong to the caller's organization.
+    const idsToCheck = game_id ? [game_id] : Array.from(new Set(game_ids.filter(Boolean)));
+    if (idsToCheck.length > 0 && callerOrg && !isSuper) {
+      const gameRecords = await base44.asServiceRole.entities.Game.filter({ id: { $in: idsToCheck } });
+      for (const g of gameRecords) {
+        if (g.organization_id !== callerOrg) {
+          return Response.json({ error: 'Forbidden: game does not belong to your organization' }, { status: 403 });
+        }
+      }
     }
 
     let stats = [];

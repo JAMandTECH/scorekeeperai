@@ -2,6 +2,10 @@
   "name": "BracketMatch",
   "type": "object",
   "properties": {
+    "organization_id": {
+      "type": "string",
+      "description": "Organization this match belongs to (org-scoped for RLS)"
+    },
     "tournament_id": {
       "type": "string",
       "description": "Tournament this match belongs to"
@@ -89,9 +93,23 @@
           }
         },
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "$or": [
+                {
+                  "data.organization_id": "{{user.data.organization_id}}"
+                },
+                {
+                  "data.organization_id": "{{user.data.active_organization_id}}"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -104,14 +122,42 @@
           }
         },
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "$or": [
+                {
+                  "data.organization_id": "{{user.data.organization_id}}"
+                },
+                {
+                  "data.organization_id": "{{user.data.active_organization_id}}"
+                }
+              ]
+            }
+          ]
         },
         {
-          "user_condition": {
-            "is_scorekeeper": true
-          }
+          "$and": [
+            {
+              "user_condition": {
+                "is_scorekeeper": true
+              }
+            },
+            {
+              "$or": [
+                {
+                  "data.organization_id": "{{user.data.organization_id}}"
+                },
+                {
+                  "data.organization_id": "{{user.data.active_organization_id}}"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -124,9 +170,23 @@
           }
         },
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "$or": [
+                {
+                  "data.organization_id": "{{user.data.organization_id}}"
+                },
+                {
+                  "data.organization_id": "{{user.data.active_organization_id}}"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -139,9 +199,23 @@
           }
         },
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "$or": [
+                {
+                  "data.organization_id": "{{user.data.organization_id}}"
+                },
+                {
+                  "data.organization_id": "{{user.data.active_organization_id}}"
+                }
+              ]
+            }
+          ]
         }
       ]
     }

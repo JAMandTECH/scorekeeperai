@@ -3,8 +3,15 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const callerOrg = user.organization_id || user.active_organization_id ||
+      user.data?.organization_id || user.data?.active_organization_id;
+    const isSuper = Boolean(user.is_super_admin);
     const payload = await req.json().catch(() => ({}));
-    const orgId = payload.orgId || payload.organization_id;
+    // Non-super-admins always use their own org (ignore client-supplied orgId).
+    // Super admins may specify any org for cross-org admin views.
+    const orgId = isSuper ? (payload.orgId || payload.organization_id || callerOrg) : callerOrg;
     const sport = (payload.sport || 'basketball').toLowerCase();
     const division = payload.division || '';
     const limit = Number(payload.limit || 200);

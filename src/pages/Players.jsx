@@ -289,7 +289,7 @@ export default function Players() {
         const res = await base44.functions.invoke('getActiveSeason', {});
         seasonId = res.data?.season?.id || null;
       } catch (_) {}
-      return base44.entities.Player.create({ ...data, season_id: seasonId });
+      return base44.entities.Player.create({ ...data, organization_id: user.organization_id, season_id: seasonId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['players']);
