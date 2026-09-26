@@ -25,7 +25,7 @@ export default async function(req: Request): Promise<Response> {
     });
 
     // Notify super admins by email + in-app Notification. Errors are logged, not swallowed.
-    await notifySuperAdmins({
+    const notifyResult = await notifySuperAdmins({
       base44,
       subject: `New Admin Access Request: ${organization_name}`,
       htmlBody: `

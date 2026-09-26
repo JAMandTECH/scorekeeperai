@@ -45,15 +45,26 @@ export async function notifySuperAdmins({
     notificationErrors: [],
   };
   try {
-    // Normalize the entity API. createClientFromRequest (user context) exposes
-    // .asServiceRole to escalate; createClient({ serviceRoleKey }) is already
-    // service-role and .asServiceRole throws on access. Resolve safely: try the
-    // escalation path, fall back to the base entities on any error.
+    // Resolve a service-role entity API so Notification.create bypasses RLS.
+    // createClientFromRequest (user context) may expose .asServiceRole; if it
+    // throws, fall back to a dedicated service-role client from the env secret.
     let entities: any;
     try {
       entities = base44.asServiceRole?.entities;
     } catch {
       entities = undefined;
+    }
+    if (!entities) {
+      try {
+        const { createClient } = await import('npm:@base44/sdk@0.8.49');
+        const serviceKey = Deno.env.get('BASE44_SERVICE_ROLE_KEY');
+        if (serviceKey) {
+          const srClient = createClient({ serviceRoleKey: serviceKey });
+          entities = srClient.entities;
+        }
+      } catch (srError) {
+        console.error('[superAdminNotify] Failed to init service-role client:', srError?.message || srError);
+      }
     }
     if (!entities) entities = base44.entities;
 
