@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@base44/sdk@0.8.4';
+import { notifySuperAdmins } from '../../shared/superAdminNotify.ts';
 
 async function getPayPalAccessToken() {
   const clientId = Deno.env.get("PAYPAL_CLIENT_ID");
@@ -90,7 +91,7 @@ Deno.serve(async (req) => {
     
     // Handle different webhook events
     switch (eventType) {
-      case 'BILLING.SUBSCRIPTION.ACTIVATED':
+      case 'BILLING.SUBSCRIPTION.ACTIVATED': {
         // Subscription activated after payment - NOW upgrade the tier
         const updateData = {
           subscription_status: 'active',
@@ -105,31 +106,41 @@ Deno.serve(async (req) => {
         await base44.entities.Organization.update(organizationId, updateData);
         console.log(`Subscription activated for org: ${organizationId}`);
 
-        // Send email notification to super admins
+        // Fetch org name for the notification
+        let orgName = organizationId;
         try {
-          const org = await base44.entities.Organization.filter({ id: organizationId });
-          const allUsers = await base44.entities.User.list();
-          const superAdmins = allUsers.filter(u => u.role === 'admin' && u.is_super_admin === true);
-
-          for (const superAdmin of superAdmins) {
-            await base44.integrations.Core.SendEmail({
-              to: superAdmin.email,
-              subject: `Organization Subscription Activated: ${org[0]?.name}`,
-              body: `
-                <h2>Organization Subscription Activated</h2>
-                <p>An organization has successfully subscribed:</p>
-                <ul>
-                  <li><strong>Organization:</strong> ${org[0]?.name}</li>
-                  <li><strong>Subscription Tier:</strong> ${tier || 'N/A'}</li>
-                  <li><strong>Subscription ID:</strong> ${resource.id}</li>
-                </ul>
-              `
-            });
-          }
-        } catch (emailError) {
-          console.error('Failed to send super admin notification:', emailError);
+          const org = await base44.entities.Organization.get(organizationId);
+          if (org?.name) orgName = org.name;
+        } catch (e) {
+          console.error('Failed to fetch org name for super-admin notification:', e?.message || e);
         }
+
+        // Notify super admins (email + in-app). Errors are logged inside the helper.
+        await notifySuperAdmins({
+          base44,
+          subject: `Organization Subscription Activated: ${orgName}`,
+          htmlBody: `
+            <h2>Organization Subscription Activated</h2>
+            <p>An organization has successfully subscribed via PayPal:</p>
+            <ul>
+              <li><strong>Organization:</strong> ${orgName}</li>
+              <li><strong>Subscription Tier:</strong> ${tier || 'N/A'}</li>
+              <li><strong>Subscription ID:</strong> ${resource.id}</li>
+            </ul>
+          `,
+          notificationType: 'subscription',
+          title: `Subscription activated: ${orgName}`,
+          message: `${orgName} subscribed at the ${tier || 'unknown'} tier via PayPal.`,
+          data: {
+            organization_id: organizationId,
+            organization_name: orgName,
+            tier,
+            subscription_id: resource.id,
+            provider: 'paypal',
+          },
+        });
         break;
+      }
         
       case 'BILLING.SUBSCRIPTION.CANCELLED':
       case 'BILLING.SUBSCRIPTION.SUSPENDED':

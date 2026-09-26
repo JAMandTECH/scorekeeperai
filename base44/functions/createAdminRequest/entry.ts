@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
+import { notifySuperAdmins } from '../../shared/superAdminNotify.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -23,30 +24,30 @@ export default async function(req: Request): Promise<Response> {
       status: 'pending',
     });
 
-    // Notify super admins (requires admin-level read of users).
-    try {
-      const allUsers = await base44.asServiceRole.entities.User.list();
-      const superAdmins = allUsers.filter((u: any) => u.role === 'admin' && u.is_super_admin === true);
-      for (const sa of superAdmins) {
-        await base44.integrations.Core.SendEmail({
-          to: sa.email,
-          subject: `New Admin Access Request: ${organization_name}`,
-          body: `
-            <h2>New Organization Admin Request</h2>
-            <p>A new admin access request has been submitted:</p>
-            <ul>
-              <li><strong>Organization Name:</strong> ${organization_name}</li>
-              <li><strong>Requested by:</strong> ${user.full_name || ''} (${user.email})</li>
-              <li><strong>Phone:</strong> ${phone_number}</li>
-              <li><strong>Reason:</strong> ${reason || ''}</li>
-            </ul>
-            <p>Please review this request in the Admin Approvals section of your dashboard.</p>
-          `,
-        });
-      }
-    } catch (emailError) {
-      // Non-critical — request is still created.
-    }
+    // Notify super admins by email + in-app Notification. Errors are logged, not swallowed.
+    await notifySuperAdmins({
+      base44,
+      subject: `New Admin Access Request: ${organization_name}`,
+      htmlBody: `
+        <h2>New Organization Admin Request</h2>
+        <p>A new admin access request has been submitted:</p>
+        <ul>
+          <li><strong>Organization Name:</strong> ${organization_name}</li>
+          <li><strong>Requested by:</strong> ${user.full_name || ''} (${user.email})</li>
+          <li><strong>Phone:</strong> ${phone_number}</li>
+          <li><strong>Reason:</strong> ${reason || ''}</li>
+        </ul>
+        <p>Please review this request in the Admin Approvals section of your dashboard.</p>
+      `,
+      notificationType: 'admin_request',
+      title: `Admin access request: ${organization_name}`,
+      message: `${user.full_name || user.email} requested admin access for ${organization_name}.`,
+      data: {
+        request_id: request.id,
+        requester_email: user.email,
+        organization_name,
+      },
+    });
 
     return Response.json({ success: true, request });
   } catch (error) {
