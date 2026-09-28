@@ -143,11 +143,11 @@ export default function Players() {
       for (let i = 0; i < gameIds.length; i += 10) {
         const chunk = gameIds.slice(i, i + 10);
         try {
-          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
+          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } }, undefined, 2000);
           results.push(...part);
         } catch (_) {
           const per = await Promise.all(
-            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
+            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }, undefined, 2000).catch(() => []))
           );
           results.push(...per.flat());
         }
