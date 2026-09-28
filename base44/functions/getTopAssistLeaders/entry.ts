@@ -61,11 +61,14 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.Game.filter({ organization_id: organizationId, status: 'completed' })
     );
     const eligibleGameIds = [];
+    const teamGamesPlayed = new Map();
     (completedGames || []).forEach((g) => {
       if (sport && String(g.sport || '').toLowerCase() !== sport) return;
       const homeEligible = eligibleTeamIds.has(g.home_team_id);
       const awayEligible = eligibleTeamIds.has(g.away_team_id);
       if (homeEligible || awayEligible) eligibleGameIds.push(g.id);
+      if (homeEligible) teamGamesPlayed.set(g.home_team_id, (teamGamesPlayed.get(g.home_team_id) || 0) + 1);
+      if (awayEligible) teamGamesPlayed.set(g.away_team_id, (teamGamesPlayed.get(g.away_team_id) || 0) + 1);
     });
 
     if (eligibleGameIds.length === 0) {
@@ -116,7 +119,7 @@ Deno.serve(async (req) => {
         const teamId = player.team_id || playerTeam.get(playerId);
         const team = teamMap.get(teamId) || {};
         const totalAssists = Number(assistTotals.get(playerId) || 0);
-        const gamesPlayed = (playerGameIds.get(playerId) || new Set()).size;
+        const gamesPlayed = teamGamesPlayed.get(teamId) || 0;
         const apg = gamesPlayed > 0 ? Number((totalAssists / gamesPlayed).toFixed(1)) : 0;
         return {
           player_id: playerId,

@@ -283,6 +283,27 @@ export default function Statistics() {
     return true;
   });
 
+  // Team games-played divisor — how many eligible completed games each team
+  // played (home or away). Averages divide by the TEAM's game count.
+  const teamGamesPlayedMap = (() => {
+    const m = new Map();
+    completedGames.forEach(g => {
+      if (selectedSport !== 'all') {
+        const homeTeam = teamById.get(g.home_team_id);
+        const awayTeam = teamById.get(g.away_team_id);
+        if ((homeTeam?.sport || '') !== selectedSport && (awayTeam?.sport || '') !== selectedSport) return;
+      }
+      if (selectedDivision !== 'all') {
+        const homeDiv = teamById.get(g.home_team_id)?.division || 'No Division';
+        const awayDiv = teamById.get(g.away_team_id)?.division || 'No Division';
+        if (homeDiv !== selectedDivision && awayDiv !== selectedDivision) return;
+      }
+      if (g.home_team_id) m.set(g.home_team_id, (m.get(g.home_team_id) || 0) + 1);
+      if (g.away_team_id) m.set(g.away_team_id, (m.get(g.away_team_id) || 0) + 1);
+    });
+    return m;
+  })();
+
   // Team players filter
   const teamPlayersFilteredByTeam = selectedTeamForPlayers === 'all' 
     ? filteredPlayers 
@@ -295,7 +316,8 @@ export default function Statistics() {
   // Individual player statistics with detailed, sport-aware metrics per game
   const getDetailedPlayerStats = (playerId) => {
     const playerStats = relevantPlayerGameStats.filter(s => s.player_id === playerId);
-    const gamesPlayed = [...new Set(playerStats.map(s => s.game_id))].length;
+    const teamId = playerStats[0]?.team_id;
+    const gamesPlayed = teamId ? (teamGamesPlayedMap.get(teamId) || 0) : 0;
 
     // Sum core counting stats
     const totals = {
@@ -478,7 +500,7 @@ export default function Statistics() {
         const player = playersByIdOrg.get(playerId);
         const team = teamsById.get(team_id);
         const name = player ? `${player.first_name} ${player.last_name}` : `Player ${String(playerId).slice(-4)}`;
-        const gp = games.size;
+        const gp = teamGamesPlayedMap.get(team_id) || 0;
         const avgNum = gp > 0 ? total / gp : 0;
         return {
           name,
@@ -578,9 +600,18 @@ Please provide:
       allStats.push(...(chunkStats || []));
     }
 
+    const allTeamGamesPlayed = (() => {
+      const m = new Map();
+      games.filter(g => g.status === 'completed').forEach(g => {
+        if (g.home_team_id) m.set(g.home_team_id, (m.get(g.home_team_id) || 0) + 1);
+        if (g.away_team_id) m.set(g.away_team_id, (m.get(g.away_team_id) || 0) + 1);
+      });
+      return m;
+    })();
     const computeStats = (playerId) => {
       const ps = allStats.filter(s => s.player_id === playerId);
-      const gamesPlayed = [...new Set(ps.map(s => s.game_id))].length;
+      const teamId = ps[0]?.team_id;
+      const gamesPlayed = teamId ? (allTeamGamesPlayed.get(teamId) || 0) : 0;
       const sum = (key) => ps.reduce((acc, s) => acc + (Number(s[key]) || 0), 0);
       const points = ps.reduce((acc, s) => {
         const game = gameById.get(s.game_id);

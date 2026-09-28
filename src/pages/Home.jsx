@@ -237,6 +237,14 @@ export default function Home() {
     });
     const eligibleGameIds = new Set(eligibleGames.map((g) => g.id));
 
+    // Team games-played divisor — how many eligible completed games each team
+    // played (home or away). Averages divide by the TEAM's game count.
+    const teamGamesPlayed = new Map();
+    eligibleGames.forEach((g) => {
+      if (g.home_team_id) teamGamesPlayed.set(g.home_team_id, (teamGamesPlayed.get(g.home_team_id) || 0) + 1);
+      if (g.away_team_id) teamGamesPlayed.set(g.away_team_id, (teamGamesPlayed.get(g.away_team_id) || 0) + 1);
+    });
+
     const totals = new Map(); // player_id -> { total, team_id, gameIds:Set }
     playerStats.forEach((s) => {
       if (!eligibleGameIds.has(s.game_id)) return;
@@ -300,7 +308,7 @@ export default function Home() {
       .map(([playerId, { total, team_id, gameIds }]) => {
         const player = playersByIdOrg.get(playerId);
         const team = teamsById.get(team_id);
-        const gamesPlayed = gameIds.size;
+        const gamesPlayed = teamGamesPlayed.get(team_id) || 0;
         const avgNum = gamesPlayed > 0 ? total / gamesPlayed : 0;
         return {
           ...(player || { id: playerId, first_name: 'Player', last_name: String(playerId).slice(-4) }),
