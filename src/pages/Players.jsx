@@ -199,18 +199,6 @@ export default function Players() {
   // Only include stats from eligible completed games
   const completedGameIds = new Set(eligibleCompletedGames.map(g => g.id));
 
-  // Team games-played divisor — how many eligible completed games each team played
-  // (home or away). Mirrors the Dashboard/Home/Statistics leaderboards so "games
-  // played" matches everywhere.
-  const teamGamesPlayedMap = (() => {
-    const m = new Map();
-    eligibleCompletedGames.forEach((g) => {
-      if (g.home_team_id) m.set(g.home_team_id, (m.get(g.home_team_id) || 0) + 1);
-      if (g.away_team_id) m.set(g.away_team_id, (m.get(g.away_team_id) || 0) + 1);
-    });
-    return m;
-  })();
-
   const players = allPlayers.filter(p => {
     const playerTeam = teams.find(t => t.id === p.team_id);
     if (!playerTeam) return false;
@@ -232,8 +220,8 @@ export default function Players() {
   }).map(player => {
     const playerStatsList = playerGameStats.filter(s => s.player_id === player.id && completedGameIds.has(s.game_id));
     const sport = getTeamSport(player.team_id);
-    // Use the team's completed-games count as the divisor (synced with Dashboard/Home/Statistics)
-    const gamesPlayed = teamGamesPlayedMap.get(player.team_id) || 0;
+    // Games the player actually appeared in (distinct game_ids with at least one stat row)
+    const gamesPlayed = new Set(playerStatsList.map(s => s.game_id)).size;
     
     if (sport === 'volleyball') {
       const attacks = playerStatsList.reduce((sum, s) => sum + (s.attacks || 0), 0);

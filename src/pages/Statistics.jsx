@@ -436,16 +436,6 @@ export default function Statistics() {
   });
 
   // Player leaderboards aggregated from finished-game stats (no dependency on player list)
-  // How many filtered completed games each team played (home or away) — average divisor.
-  const teamGamesPlayedMap = (() => {
-    const m = new Map();
-    completedGames.forEach((g) => {
-      if (g.home_team_id) m.set(g.home_team_id, (m.get(g.home_team_id) || 0) + 1);
-      if (g.away_team_id) m.set(g.away_team_id, (m.get(g.away_team_id) || 0) + 1);
-    });
-    return m;
-  })();
-
   const createPlayerLeaderboard = (statKey, _label) => {
     const teamsById = new Map(teams.map(t => [t.id, t]));
     const playersByIdOrg = new Map(players.map(p => [p.id, p]));
@@ -488,7 +478,7 @@ export default function Statistics() {
         const player = playersByIdOrg.get(playerId);
         const team = teamsById.get(team_id);
         const name = player ? `${player.first_name} ${player.last_name}` : `Player ${String(playerId).slice(-4)}`;
-        const gp = teamGamesPlayedMap.get(team_id) || 0;
+        const gp = games.size;
         const avgNum = gp > 0 ? total / gp : 0;
         return {
           name,

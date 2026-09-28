@@ -60,14 +60,11 @@ Deno.serve(async (req) => {
     const completedGames = await fetchWithRetry(() =>
       base44.asServiceRole.entities.Game.filter({ organization_id: organizationId, status: 'completed' })
     );
-    const teamGamesPlayed = new Map();
     const eligibleGameIds = [];
     (completedGames || []).forEach((g) => {
       if (sport && String(g.sport || '').toLowerCase() !== sport) return;
       const homeEligible = eligibleTeamIds.has(g.home_team_id);
       const awayEligible = eligibleTeamIds.has(g.away_team_id);
-      if (g.home_team_id) teamGamesPlayed.set(g.home_team_id, (teamGamesPlayed.get(g.home_team_id) || 0) + 1);
-      if (g.away_team_id) teamGamesPlayed.set(g.away_team_id, (teamGamesPlayed.get(g.away_team_id) || 0) + 1);
       if (homeEligible || awayEligible) eligibleGameIds.push(g.id);
     });
 
@@ -81,6 +78,7 @@ Deno.serve(async (req) => {
     const eligibleGameIdSet = new Set(eligibleGameIds);
     const assistTotals = new Map(); // player_id -> total assists
     const playerTeam = new Map();   // player_id -> team_id (from the stat rows)
+    const playerGameIds = new Map(); // player_id -> Set of distinct game_ids they appeared in
     const teamIdList = Array.from(eligibleTeamIds);
     for (let i = 0; i < teamIdList.length; i += 5) {
       const chunk = teamIdList.slice(i, i + 5);
@@ -92,6 +90,9 @@ Deno.serve(async (req) => {
         if (!eligibleGameIdSet.has(s.game_id)) return;
         assistTotals.set(s.player_id, (assistTotals.get(s.player_id) || 0) + Number(s.assists || 0));
         if (!playerTeam.has(s.player_id)) playerTeam.set(s.player_id, s.team_id);
+        let gids = playerGameIds.get(s.player_id);
+        if (!gids) { gids = new Set(); playerGameIds.set(s.player_id, gids); }
+        gids.add(s.game_id);
       });
       if (i + 5 < teamIdList.length) await sleep(300);
     }
@@ -115,7 +116,7 @@ Deno.serve(async (req) => {
         const teamId = player.team_id || playerTeam.get(playerId);
         const team = teamMap.get(teamId) || {};
         const totalAssists = Number(assistTotals.get(playerId) || 0);
-        const gamesPlayed = Number(teamGamesPlayed.get(teamId) || 0);
+        const gamesPlayed = (playerGameIds.get(playerId) || new Set()).size;
         const apg = gamesPlayed > 0 ? Number((totalAssists / gamesPlayed).toFixed(1)) : 0;
         return {
           player_id: playerId,
