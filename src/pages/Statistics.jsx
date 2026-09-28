@@ -151,24 +151,11 @@ export default function Statistics() {
     queryKey: ['players', orgId, teams.map(t => t.id).join(',')],
     queryFn: async () => {
       if (!orgId) return [];
-      const teamIds = teams.map(t => t.id).filter(Boolean);
+      const teamIds = teams.map(t => t.id);
       if (teamIds.length === 0) return [];
-      const chunkSize = 50;
-      const out = [];
-      for (let i = 0; i < teamIds.length; i += chunkSize) {
-        const chunk = teamIds.slice(i, i + chunkSize);
-        try {
-          const part = await base44.entities.Player.filter({ team_id: { $in: chunk } }, '-created_date', 2000);
-          out.push(...part);
-        } catch (_) {
-          const per = await Promise.all(
-            chunk.map((id) => base44.entities.Player.filter({ team_id: id }, '-created_date', 2000).catch(() => []))
-          );
-          out.push(...per.flat());
-        }
-      }
+      const results = await Promise.all(teamIds.map(id => base44.entities.Player.filter({ team_id: id })));
       const merged = new Map();
-      out.forEach(p => { if (!merged.has(p.id)) merged.set(p.id, p); });
+      results.flat().forEach(p => { if (!merged.has(p.id)) merged.set(p.id, p); });
       return Array.from(merged.values());
     },
     enabled: teams.length > 0 && !!orgId && !isSuperAdmin,
@@ -221,11 +208,11 @@ export default function Statistics() {
       for (let i = 0; i < gameIdsForStats.length; i += 10) {
         const chunk = gameIdsForStats.slice(i, i + 10);
         try {
-          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } }, undefined, 2000);
+          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
           results.push(...part);
         } catch (_) {
           const per = await Promise.all(
-            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }, undefined, 2000).catch(() => []))
+            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
           );
           results.push(...per.flat());
         }
@@ -283,27 +270,6 @@ export default function Statistics() {
     return true;
   });
 
-  // Team games-played divisor — how many eligible completed games each team
-  // played (home or away). Averages divide by the TEAM's game count.
-  const teamGamesPlayedMap = (() => {
-    const m = new Map();
-    completedGames.forEach(g => {
-      if (selectedSport !== 'all') {
-        const homeTeam = teamById.get(g.home_team_id);
-        const awayTeam = teamById.get(g.away_team_id);
-        if ((homeTeam?.sport || '') !== selectedSport && (awayTeam?.sport || '') !== selectedSport) return;
-      }
-      if (selectedDivision !== 'all') {
-        const homeDiv = teamById.get(g.home_team_id)?.division || 'No Division';
-        const awayDiv = teamById.get(g.away_team_id)?.division || 'No Division';
-        if (homeDiv !== selectedDivision && awayDiv !== selectedDivision) return;
-      }
-      if (g.home_team_id) m.set(g.home_team_id, (m.get(g.home_team_id) || 0) + 1);
-      if (g.away_team_id) m.set(g.away_team_id, (m.get(g.away_team_id) || 0) + 1);
-    });
-    return m;
-  })();
-
   // Team players filter
   const teamPlayersFilteredByTeam = selectedTeamForPlayers === 'all' 
     ? filteredPlayers 
@@ -316,8 +282,7 @@ export default function Statistics() {
   // Individual player statistics with detailed, sport-aware metrics per game
   const getDetailedPlayerStats = (playerId) => {
     const playerStats = relevantPlayerGameStats.filter(s => s.player_id === playerId);
-    const teamId = playerStats[0]?.team_id;
-    const gamesPlayed = teamId ? (teamGamesPlayedMap.get(teamId) || 0) : 0;
+    const gamesPlayed = [...new Set(playerStats.map(s => s.game_id))].length;
 
     // Sum core counting stats
     const totals = {
@@ -458,6 +423,16 @@ export default function Statistics() {
   });
 
   // Player leaderboards aggregated from finished-game stats (no dependency on player list)
+  // How many filtered completed games each team played (home or away) — average divisor.
+  const teamGamesPlayedMap = (() => {
+    const m = new Map();
+    completedGames.forEach((g) => {
+      if (g.home_team_id) m.set(g.home_team_id, (m.get(g.home_team_id) || 0) + 1);
+      if (g.away_team_id) m.set(g.away_team_id, (m.get(g.away_team_id) || 0) + 1);
+    });
+    return m;
+  })();
+
   const createPlayerLeaderboard = (statKey, _label) => {
     const teamsById = new Map(teams.map(t => [t.id, t]));
     const playersByIdOrg = new Map(players.map(p => [p.id, p]));
@@ -594,24 +569,15 @@ Please provide:
       } catch (_) {}
       if (!chunkStats || chunkStats.length === 0) {
         try {
-          chunkStats = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } }, undefined, 2000);
+          chunkStats = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
         } catch (_) {}
       }
       allStats.push(...(chunkStats || []));
     }
 
-    const allTeamGamesPlayed = (() => {
-      const m = new Map();
-      games.filter(g => g.status === 'completed').forEach(g => {
-        if (g.home_team_id) m.set(g.home_team_id, (m.get(g.home_team_id) || 0) + 1);
-        if (g.away_team_id) m.set(g.away_team_id, (m.get(g.away_team_id) || 0) + 1);
-      });
-      return m;
-    })();
     const computeStats = (playerId) => {
       const ps = allStats.filter(s => s.player_id === playerId);
-      const teamId = ps[0]?.team_id;
-      const gamesPlayed = teamId ? (allTeamGamesPlayed.get(teamId) || 0) : 0;
+      const gamesPlayed = [...new Set(ps.map(s => s.game_id))].length;
       const sum = (key) => ps.reduce((acc, s) => acc + (Number(s[key]) || 0), 0);
       const points = ps.reduce((acc, s) => {
         const game = gameById.get(s.game_id);

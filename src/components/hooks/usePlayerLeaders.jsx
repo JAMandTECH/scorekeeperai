@@ -13,8 +13,7 @@ const keepPrevious = (prev) => prev;
  * NOT the pre-aggregated PlayerSeasonStats table (which can drift when stale).
  *
  * Points are recomputed per-game from that game's actual sport, and averages divide
- * the player's total by the number of games the player actually appeared in
- * (distinct game_ids with at least one stat row).
+ * the player's total by the number of completed games their team played.
  */
 export function usePlayerLeaders(organizationId, teams = []) {
   const { autoRefreshStats, refreshIntervalMs } = useStatsRefresh();
@@ -46,11 +45,11 @@ export function usePlayerLeaders(organizationId, teams = []) {
       for (let i = 0; i < completedGameIds.length; i += 10) {
         const chunk = completedGameIds.slice(i, i + 10);
         try {
-          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } }, undefined, 2000);
+          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
           results.push(...part);
         } catch (_) {
           const per = await Promise.all(
-            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }, undefined, 2000).catch(() => []))
+            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
           );
           results.push(...per.flat());
         }
@@ -105,9 +104,6 @@ export function buildLeaderboard({
   });
   const eligibleGameIds = new Set(eligibleGames.map((g) => g.id));
 
-  // Team games-played divisor — how many eligible completed games each team
-  // played (home or away). Averages divide by the TEAM's game count, not the
-  // individual player's appearances.
   const teamGamesPlayed = new Map();
   eligibleGames.forEach((g) => {
     if (g.home_team_id) teamGamesPlayed.set(g.home_team_id, (teamGamesPlayed.get(g.home_team_id) || 0) + 1);
@@ -144,15 +140,14 @@ export function buildLeaderboard({
       add = Number(s[statType] || 0);
     }
 
-    const prev = totals.get(s.player_id) || { total: 0, team_id: s.team_id, gameIds: new Set() };
+    const prev = totals.get(s.player_id) || { total: 0, team_id: s.team_id };
     prev.total += add;
     prev.team_id = prev.team_id || s.team_id;
-    prev.gameIds.add(s.game_id);
     totals.set(s.player_id, prev);
   });
 
   return Array.from(totals.entries())
-    .map(([playerId, { total, team_id, gameIds }]) => {
+    .map(([playerId, { total, team_id }]) => {
       const player = playersById.get(playerId);
       const team = teamsById.get(team_id);
       const gamesPlayed = teamGamesPlayed.get(team_id) || 0;

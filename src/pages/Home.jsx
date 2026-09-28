@@ -193,11 +193,11 @@ export default function Home() {
       for (let i = 0; i < completedGameIds.length; i += 10) {
         const chunk = completedGameIds.slice(i, i + 10);
         try {
-          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } }, undefined, 2000);
+          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
           results.push(...part);
         } catch (_) {
           const per = await Promise.all(
-            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }, undefined, 2000).catch(() => []))
+            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
           );
           results.push(...per.flat());
         }
@@ -237,8 +237,7 @@ export default function Home() {
     });
     const eligibleGameIds = new Set(eligibleGames.map((g) => g.id));
 
-    // Team games-played divisor — how many eligible completed games each team
-    // played (home or away). Averages divide by the TEAM's game count.
+    // How many eligible completed games each team played (home or away) — used as the average divisor.
     const teamGamesPlayed = new Map();
     eligibleGames.forEach((g) => {
       if (g.home_team_id) teamGamesPlayed.set(g.home_team_id, (teamGamesPlayed.get(g.home_team_id) || 0) + 1);

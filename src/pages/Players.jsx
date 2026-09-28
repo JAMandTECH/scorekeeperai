@@ -143,11 +143,11 @@ export default function Players() {
       for (let i = 0; i < gameIds.length; i += 10) {
         const chunk = gameIds.slice(i, i + 10);
         try {
-          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } }, undefined, 2000);
+          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
           results.push(...part);
         } catch (_) {
           const per = await Promise.all(
-            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }, undefined, 2000).catch(() => []))
+            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
           );
           results.push(...per.flat());
         }
@@ -199,8 +199,9 @@ export default function Players() {
   // Only include stats from eligible completed games
   const completedGameIds = new Set(eligibleCompletedGames.map(g => g.id));
 
-  // Team games-played divisor — how many eligible completed games each team
-  // played (home or away). Averages divide by the TEAM's game count.
+  // Team games-played divisor — how many eligible completed games each team played
+  // (home or away). Mirrors the Dashboard/Home/Statistics leaderboards so "games
+  // played" matches everywhere.
   const teamGamesPlayedMap = (() => {
     const m = new Map();
     eligibleCompletedGames.forEach((g) => {

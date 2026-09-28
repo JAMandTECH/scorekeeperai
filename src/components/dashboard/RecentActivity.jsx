@@ -46,7 +46,7 @@ export default function RecentActivity({ organizationId, teams = [], players = [
 
   const { data: gameStats = [] } = useQuery({
     queryKey: ['recent-activity-stats', completedGameIds],
-    queryFn: () => base44.entities.PlayerGameStats.filter({ game_id: { $in: completedGameIds } }, undefined, 2000),
+    queryFn: () => base44.entities.PlayerGameStats.filter({ game_id: { $in: completedGameIds } }),
     enabled: completedGameIds.length > 0,
     refetchInterval: 15000,
   });
