@@ -11,7 +11,13 @@
         "new_post",
         "game_completed",
         "team_approved",
-        "team_rejected"
+        "team_rejected",
+        "join_request",
+        "join_approved",
+        "join_rejected",
+        "admin_request",
+        "signup",
+        "subscription"
       ]
     },
     "title": {
@@ -51,25 +57,49 @@
     "read": {
       "$or": [
         {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
           "data.organization_id": "{{user.data.organization_id}}"
         },
         {
           "data.organization_id": "{{user.data.active_organization_id}}"
+        },
+        {
+          "data.user_id": "{{user.id}}"
         }
       ]
     },
     "update": {
       "$or": [
         {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
           "data.organization_id": "{{user.data.organization_id}}"
         },
         {
           "data.organization_id": "{{user.data.active_organization_id}}"
+        },
+        {
+          "data.user_id": "{{user.id}}"
         }
       ]
     },
     "delete": {
       "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
         {
           "data.organization_id": "{{user.data.organization_id}}"
         },

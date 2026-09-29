@@ -1,0 +1,42 @@
+{
+  "name": "On User Signup",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "on_user_signup",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "notify_signup": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "notifySuperAdminSignup",
+            "args": {
+              "user_id": "${ .trigger.user_id }",
+              "email": "${ .trigger.email }",
+              "auth_method": "${ .trigger.auth_method }",
+              "full_name": "${ .trigger.full_name }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Notify super admins of signup",
+            "description": "Email + in-app alert to super admins"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "app_user_auth",
+      "events": [
+        "signup"
+      ]
+    }
+  },
+  "description": "Notifies super admins by email and in-app Notification whenever a new user signs up."
+}

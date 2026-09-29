@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@base44/sdk@0.8.23';
 import Stripe from 'npm:stripe@14.23.0';
+import { notifySuperAdmins } from '../../shared/superAdminNotify.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -64,6 +65,43 @@ Deno.serve(async (req) => {
       } catch (e) {
         console.error('Failed to update admin user subscription on checkout complete:', e?.message || e);
       }
+
+      // Notify super admins of the paid subscription (email + in-app).
+      let orgName = organizationId;
+      try {
+        const org = await base44.entities.Organization.get(organizationId);
+        if (org?.name) orgName = org.name;
+      } catch (e) {
+        console.error('Failed to fetch org name for super-admin notification:', e?.message || e);
+      }
+
+      const amount = data.amount_total != null ? (data.amount_total / 100).toFixed(2) : 'N/A';
+      const currency = (data.currency || 'usd').toUpperCase();
+      await notifySuperAdmins({
+        base44,
+        subject: `Paid Subscription Activated: ${orgName}`,
+        htmlBody: `
+          <h2>Paid Subscription Activated</h2>
+          <p>A new paid subscription has been activated via Stripe:</p>
+          <ul>
+            <li><strong>Organization:</strong> ${orgName}</li>
+            <li><strong>Tier:</strong> ${tier || 'N/A'}</li>
+            <li><strong>Amount:</strong> ${currency} ${amount}</li>
+            <li><strong>Organization ID:</strong> ${organizationId}</li>
+          </ul>
+        `,
+        notificationType: 'subscription',
+        title: `Subscription activated: ${orgName}`,
+        message: `${orgName} subscribed at the ${tier || 'unknown'} tier (${currency} ${amount}).`,
+        data: {
+          organization_id: organizationId,
+          organization_name: orgName,
+          tier,
+          amount,
+          currency,
+          provider: 'stripe',
+        },
+      });
     }
 
     if (type === 'invoice.paid') {

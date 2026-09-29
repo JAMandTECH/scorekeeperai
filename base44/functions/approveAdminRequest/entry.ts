@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
 import { generateAccessCode, generateSalt, hashAccessCode } from "../../shared/adminCode.ts";
+import { notifySuperAdmins } from '../../shared/superAdminNotify.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -56,43 +57,90 @@ export default async function(req: Request): Promise<Response> {
     });
 
     // Email the plaintext code to the requester.
-    const verifyUrl = `${new URL(req.url).origin}${req.headers.get('x-forwarded-path') || ''}`.replace('/functions/approveAdminRequest', '');
+    const requestorEmailSubject = "Admin Access Approved - Enter Your Code!";
+    const requestorEmailBody = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px;">
+          Your Admin Access Has Been Approved!
+        </h2>
+        <p style="font-size: 16px; color: #1f2937;">Hello ${request.user_name},</p>
+        <p style="font-size: 16px; color: #1f2937;">
+          Great news! Your request for admin access has been approved.
+        </p>
+        <div style="background: #dcfce7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a;">
+          <h3 style="margin-top: 0; color: #15803d;">Your Request is Approved!</h3>
+          <p style="color: #166534;"><strong>Organization:</strong> ${request.organization_name}</p>
+        </div>
+        <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="margin-top: 0; color: #1f2937;">Your Confirmation Code:</h3>
+          <p style="font-size: 32px; font-weight: bold; color: #2563eb; letter-spacing: 5px; text-align: center; margin: 15px 0; font-family: monospace;">
+            ${code}
+          </p>
+          <p style="color: #6b7280; font-size: 14px; text-align: center;">
+            Enter this code to confirm your account when you log in.
+          </p>
+        </div>
+        <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+          <p style="margin: 0; color: #92400e; font-size: 14px;">
+            <strong>Important:</strong> This code is valid for one-time use only. Keep it secure!
+          </p>
+        </div>
+      </div>
+    `;
+    let requestorEmailSent = true;
     try {
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: request.user_email,
-        subject: "Admin Access Approved - Enter Your Code!",
-        body: `
+        subject: requestorEmailSubject,
+        body: requestorEmailBody,
+      });
+    } catch (emailError) {
+      requestorEmailSent = false;
+      console.error('approveAdminRequest: failed to email requestor their access code:', emailError?.message || emailError);
+    }
+
+    // Notify super admins that the approval went through, including a copy of
+    // the approval email that was sent to the requestor.
+    try {
+      await notifySuperAdmins({
+        base44,
+        subject: `Admin Request Approved: ${request.organization_name}`,
+        htmlBody: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px;">
-              Your Admin Access Has Been Approved!
+              Admin Request Approved
             </h2>
-            <p style="font-size: 16px; color: #1f2937;">Hello ${request.user_name},</p>
             <p style="font-size: 16px; color: #1f2937;">
-              Great news! Your request for admin access has been approved.
+              An admin access request has been approved by a super admin.
             </p>
-            <div style="background: #dcfce7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a;">
-              <h3 style="margin-top: 0; color: #15803d;">Your Request is Approved!</h3>
-              <p style="color: #166534;"><strong>Organization:</strong> ${request.organization_name}</p>
-            </div>
-            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="margin-top: 0; color: #1f2937;">Your Confirmation Code:</h3>
-              <p style="font-size: 32px; font-weight: bold; color: #2563eb; letter-spacing: 5px; text-align: center; margin: 15px 0; font-family: monospace;">
-                ${code}
-              </p>
-              <p style="color: #6b7280; font-size: 14px; text-align: center;">
-                Enter this code to confirm your account when you log in.
-              </p>
-            </div>
-            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-              <p style="margin: 0; color: #92400e; font-size: 14px;">
-                <strong>Important:</strong> This code is valid for one-time use only. Keep it secure!
-              </p>
+            <ul style="font-size: 16px; color: #1f2937; line-height: 1.6;">
+              <li><strong>Requestor:</strong> ${request.user_name} (${request.user_email})</li>
+              <li><strong>Organization:</strong> ${request.organization_name}</li>
+              <li><strong>Approved At:</strong> ${new Date().toISOString()}</li>
+              <li><strong>Requestor Email Delivered:</strong> ${requestorEmailSent ? 'Yes' : 'No (see logs)'}</li>
+            </ul>
+            <hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;" />
+            <h3 style="color: #1f2937;">Copy of the approval email sent to the requestor:</h3>
+            <p style="color: #6b7280; font-size: 13px;">Subject: ${requestorEmailSubject}</p>
+            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; background: #fafafa;">
+              ${requestorEmailBody}
             </div>
           </div>
         `,
+        notificationType: 'admin_request',
+        title: `Admin request approved: ${request.user_name}`,
+        message: `${request.user_name} (${request.user_email}) was approved for ${request.organization_name}.`,
+        data: {
+          request_id,
+          user_email: request.user_email,
+          user_name: request.user_name,
+          organization_name: request.organization_name,
+          organization_id: newOrg.id,
+          approved_at: new Date().toISOString(),
+        },
       });
-    } catch (emailError) {
-      // Code is stored as hash; user can still verify if email fails, but flag it.
+    } catch (notifyError) {
+      console.error('approveAdminRequest: failed to notify super admins of approval:', notifyError?.message || notifyError);
     }
 
     return Response.json({ success: true, organization_id: newOrg.id });

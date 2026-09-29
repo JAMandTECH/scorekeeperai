@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Bell, Trophy, MessageCircle, CheckCircle, X, UserPlus, UserCheck } from "lucide-react";
+import { Bell, Trophy, MessageCircle, CheckCircle, X, UserPlus, UserCheck, ShieldAlert, CreditCard, UserRoundPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -101,6 +101,12 @@ export default function NotificationBell({ user, organizationId }) {
         return <UserCheck className="w-4 h-4 text-green-500" />;
       case 'join_rejected':
         return <X className="w-4 h-4 text-red-500" />;
+      case 'admin_request':
+        return <ShieldAlert className="w-4 h-4 text-amber-500" />;
+      case 'signup':
+        return <UserRoundPlus className="w-4 h-4 text-emerald-500" />;
+      case 'subscription':
+        return <CreditCard className="w-4 h-4 text-indigo-500" />;
       default:
         return <Bell className="w-4 h-4 text-gray-500" />;
     }
@@ -120,6 +126,12 @@ export default function NotificationBell({ user, organizationId }) {
         return 'bg-red-100 dark:bg-red-950 border-red-200 dark:border-red-800';
       case 'join_request':
         return 'bg-purple-100 dark:bg-purple-950 border-purple-200 dark:border-purple-800';
+      case 'admin_request':
+        return 'bg-amber-100 dark:bg-amber-950 border-amber-200 dark:border-amber-800';
+      case 'signup':
+        return 'bg-emerald-100 dark:bg-emerald-950 border-emerald-200 dark:border-emerald-800';
+      case 'subscription':
+        return 'bg-indigo-100 dark:bg-indigo-950 border-indigo-200 dark:border-indigo-800';
       default:
         return 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700';
     }
