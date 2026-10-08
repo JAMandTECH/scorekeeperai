@@ -18,6 +18,10 @@ import PastSeasons from './pages/PastSeasons';
 import SeasonManagerPage from './pages/SeasonManager';
 import TimekeeperPage from './pages/Timekeeper';
 import TimekeepersPage from './pages/Timekeepers';
+import PlayerProfiles from './pages/PlayerProfiles';
+import PlayerProfileView from './pages/PlayerProfileView';
+import ClaimPlayer from './pages/ClaimPlayer';
+import PlayerClaimReview from './pages/PlayerClaimReview';
 import { StatsRefreshProvider } from '@/lib/StatsRefreshContext';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -69,6 +73,10 @@ const AuthenticatedApp = () => {
         <Route path="/SeasonManager" element={<SeasonManagerPage />} />
         <Route path="/Timekeeper" element={<TimekeeperPage />} />
         <Route path="/Timekeepers" element={<TimekeepersPage />} />
+        <Route path="/PlayerProfiles" element={<PlayerProfiles />} />
+        <Route path="/PlayerProfileView" element={<PlayerProfileView />} />
+        <Route path="/ClaimPlayer" element={<ClaimPlayer />} />
+        <Route path="/PlayerClaimReview" element={<PlayerClaimReview />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </LayoutWrapper>

@@ -44,6 +44,7 @@ export default function AdminSidebar({
       { title: "Dashboard", url: createPageUrl("Dashboard"), icon: BarChart3 },
       { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3 },
       { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle, permission: "manage_social" },
+      { title: "Player Profiles", url: createPageUrl("PlayerProfiles"), icon: Users },
     ],
     groups: [
       {
@@ -86,6 +87,7 @@ export default function AdminSidebar({
           { title: "Manual Game Entry", url: createPageUrl("ManualGameEntry"), icon: FileEdit, permission: "manage_games" },
           { title: "Roles & Permissions", url: createPageUrl("RolesPermissions"), icon: UserCog, permission: "manage_roles" },
           { title: "Join Requests", url: createPageUrl("OrganizationJoinRequests"), icon: UserCheck, permission: "manage_members" },
+          { title: "Claim Review", url: createPageUrl("PlayerClaimReview"), icon: UserCheck, permission: "manage_members" },
           { title: "Tournament Brackets", url: createPageUrl("TournamentBracket"), icon: Award, permission: "manage_tournaments" },
           { title: "Data Backup", url: createPageUrl("DataBackup"), icon: Database, permission: "data_backup" },
           { title: "Season Manager", url: "/SeasonManager", icon: CalendarCheck },
@@ -114,6 +116,7 @@ export default function AdminSidebar({
       { title: "Register Team", url: createPageUrl("TeamRegistration"), icon: UserPlus },
       { title: "Join Organization", url: createPageUrl("JoinOrganization"), icon: Building2 },
       { title: "Social Feed", url: createPageUrl("SocialFeed"), icon: MessageCircle },
+      { title: "Player Profiles", url: createPageUrl("PlayerProfiles"), icon: Users },
     ],
     groups: []
   };

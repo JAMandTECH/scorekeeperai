@@ -1,0 +1,143 @@
+{
+  "name": "PlayerPost",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "profile_id": {
+      "type": "string",
+      "description": "PlayerProfile this post belongs to"
+    },
+    "player_id": {
+      "type": "string",
+      "description": "Player record id for convenience"
+    },
+    "author_user_id": {
+      "type": "string",
+      "description": "User who wrote the post"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_photo_url": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "media_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "media_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "likes_count": {
+      "type": "number",
+      "default": 0
+    },
+    "comments_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "organization_id",
+    "profile_id",
+    "author_user_id",
+    "author_name"
+  ],
+  "rls": {
+    "create": {
+      "data.author_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.active_organization_id}}"
+            }
+          ]
+        },
+        {
+          "data.organization_id": "{{user.data.organization_id}}"
+        },
+        {
+          "data.organization_id": "{{user.data.active_organization_id}}"
+        }
+      ]
+    },
+    "update": {
+      "data.author_user_id": "{{user.id}}"
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.author_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin",
+            "is_super_admin": true
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.active_organization_id}}"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
