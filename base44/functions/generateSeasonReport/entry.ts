@@ -94,6 +94,83 @@ export default async function(req) {
       if (i + 10 < completedGameIds.length) await sleep(100);
     }
 
+    // Fetch tournaments and bracket matches to determine division champions
+    const tournamentQuery = { organization_id: orgId };
+    if (seasonId) tournamentQuery.season_id = seasonId;
+
+    const tournaments = await fetchWithRetry(() =>
+      sr.entities.Tournament.filter(tournamentQuery, undefined, 500)
+    );
+
+    let archivedTournaments = [];
+    try {
+      archivedTournaments = await fetchWithRetry(() =>
+        sr.entities.ArchivedTournament.filter(tournamentQuery, undefined, 500)
+      );
+    } catch (_) {}
+
+    const allTournamentIds = [
+      ...(tournaments || []).map((t) => t.id),
+      ...(archivedTournaments || []).map((t) => t.original_id),
+    ].filter(Boolean);
+
+    let bracketMatches = [];
+    let archivedBracketMatches = [];
+    for (let i = 0; i < allTournamentIds.length; i += 50) {
+      const chunk = allTournamentIds.slice(i, i + 50);
+      if (chunk.length === 0) continue;
+      try {
+        const part = await fetchWithRetry(() =>
+          sr.entities.BracketMatch.filter({ tournament_id: { $in: chunk } }, undefined, 2000)
+        );
+        bracketMatches.push(...(part || []));
+      } catch (_) {}
+      try {
+        const apart = await fetchWithRetry(() =>
+          sr.entities.ArchivedBracketMatch.filter({ tournament_id: { $in: chunk } }, undefined, 2000)
+        );
+        archivedBracketMatches.push(...(apart || []));
+      } catch (_) {}
+      if (i + 50 < allTournamentIds.length) await sleep(100);
+    }
+
+    // Build division champion map from tournament bracket finals
+    const divisionChampionMap = new Map();
+    const buildChampion = (teamId, tournamentName) => {
+      const champTeam = teamMap.get(teamId);
+      return { team_id: teamId, team_name: champTeam?.name || '', tournament_name: tournamentName || '' };
+    };
+    for (const t of (tournaments || [])) {
+      if (!t.division) continue;
+      const fm = (bracketMatches || []).find((m) =>
+        m.tournament_id === t.id && m.round_name === 'finals' && m.status === 'completed' && m.winner_team_id
+      );
+      if (fm) { divisionChampionMap.set(t.division, buildChampion(fm.winner_team_id, t.name)); continue; }
+      if (t.is_manual_bracket && Array.isArray(t.manual_matches)) {
+        const mf = t.manual_matches.find((m) => m.round_name === 'finals' && m.winner_team_id);
+        if (mf) divisionChampionMap.set(t.division, buildChampion(mf.winner_team_id, t.name));
+      }
+    }
+    for (const t of (archivedTournaments || [])) {
+      if (!t.division || divisionChampionMap.has(t.division)) continue;
+      const fm = (archivedBracketMatches || []).find((m) =>
+        m.tournament_id === t.original_id && m.round_name === 'finals' && m.winner_team_id
+      );
+      if (fm) { divisionChampionMap.set(t.division, buildChampion(fm.winner_team_id, t.name)); continue; }
+      if (t.is_manual_bracket && Array.isArray(t.manual_matches)) {
+        const mf = t.manual_matches.find((m) => m.round_name === 'finals' && m.winner_team_id);
+        if (mf) divisionChampionMap.set(t.division, buildChampion(mf.winner_team_id, t.name));
+      }
+    }
+    const findChampion = (divName) => {
+      if (divisionChampionMap.has(divName)) return divisionChampionMap.get(divName);
+      const lower = String(divName).toLowerCase();
+      for (const [key, val] of divisionChampionMap) {
+        if (String(key).toLowerCase() === lower) return val;
+      }
+      return null;
+    };
+
     // Determine sport from org, games, or teams
     const sport = organization.selected_sport ||
       (games?.[0]?.sport) ||
@@ -182,20 +259,14 @@ export default async function(req) {
       playerList.sort((a, b) => b._score - a._score);
       const topPerformers = playerList.slice(0, 10).map(({ _score, ...rest }) => rest);
 
-      // Determine finals champion for basketball divisions
+      // Determine division champion from tournament bracket finals
       let finalsChampionTeamId = null;
       let finalsChampionTeamName = '';
       if (divData.sport === 'basketball') {
-        const finalsGames = (games || []).filter((g) =>
-          g.game_type === 'finals' &&
-          g.status === 'completed' &&
-          (divTeamIds.has(g.home_team_id) || divTeamIds.has(g.away_team_id)) &&
-          g.winning_team_id
-        );
-        if (finalsGames.length > 0) {
-          finalsChampionTeamId = finalsGames[0].winning_team_id;
-          const champTeam = teamMap.get(finalsChampionTeamId);
-          finalsChampionTeamName = champTeam?.name || '';
+        const champ = findChampion(divName);
+        if (champ) {
+          finalsChampionTeamId = champ.team_id;
+          finalsChampionTeamName = champ.team_name;
         }
       }
 
@@ -324,7 +395,7 @@ async function callAI(base44, orgStats, divisions, organization, season) {
       return `${base} | AcesPG:${p.acpg} AttacksPG:${p.atpg} ErrorsPG:${p.repg} PPG:${p.ppg} | Totals: Aces:${p.total_aces} Attacks:${p.total_attacks} Errors:${p.total_rally_errors} Points:${p.total_points} | ID:${p.player_id}`;
     }).join('\n');
     const championLine = isBball && div.finals_champion_team_id
-      ? `\nFinals Champion Team: ${div.finals_champion_team_name} (team_id: ${div.finals_champion_team_id}) — Final MVP candidates MUST come from this team's roster only.`
+      ? `\nTournament Bracket Champion: ${div.finals_champion_team_name} (team_id: ${div.finals_champion_team_id}) — Final MVP candidates MUST come from this team's roster only.`
       : '';
     return `Division: ${div.name} (${div.sport}, ${div.team_count} teams)${championLine}\nTop Performers:\n${players}`;
   }).join('\n\n');
@@ -354,7 +425,7 @@ Based on the statistics above, provide:
 
 3. For EACH division, provide:
    a. "season_mvp_candidates": Top 10 candidates for Season MVP (best overall player across the entire regular season). Each needs "player_id" (exact ID from data) and "reasoning" (2-3 sentences).
-   b. "final_mvp_candidates": Top 3 candidates for Final MVP (best performer in finals/championship games). For basketball divisions, ONLY select players from the Finals Champion Team's roster (use the exact player_id values from that team shown above). For volleyball, select the top 3 performers overall. Each needs "player_id" and "reasoning".
+   b. "final_mvp_candidates": Top 3 candidates for Final MVP (best performer in finals/championship games). For basketball divisions, ONLY select players from the Tournament Bracket Champion Team's roster (use the exact player_id values from that team shown above). For volleyball, select the top 3 performers overall. Each needs "player_id" and "reasoning".
    c. "mythical_candidates": Top 10 candidates for the ${mythicalLabel}. Each needs "player_id", "position", and "reasoning".
 
 IMPORTANT: Only use player_id values that appear in the data above. Match division_name exactly to the division names in the data.`;
