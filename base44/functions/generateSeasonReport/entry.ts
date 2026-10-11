@@ -29,8 +29,11 @@ export default async function(req) {
     const sr = base44.asServiceRole;
 
     // Fetch season
-    const seasons = await fetchWithRetry(() => sr.entities.Season.filter({ id: seasonId }));
-    const season = seasons?.[0];
+    let season = null;
+    try {
+      const seasons = await fetchWithRetry(() => sr.entities.Season.filter({ id: seasonId }));
+      season = seasons?.[0] || null;
+    } catch (_) {}
     if (!season) return Response.json({ error: 'Season not found' }, { status: 404 });
 
     // Resolve org — non-super admins must own the season
