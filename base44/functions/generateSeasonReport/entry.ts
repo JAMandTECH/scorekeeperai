@@ -187,6 +187,16 @@ export default async function(req) {
       divisionMap.get(div).teamIds.add(team.id);
     }
 
+    // Refine sport per division from completed games (games have a required sport field)
+    for (const [, divData] of divisionMap) {
+      const divTeamIds = divData.teamIds;
+      const divGames = (games || []).filter((g) => divTeamIds.has(g.home_team_id) || divTeamIds.has(g.away_team_id));
+      const bballCount = divGames.filter((g) => g.sport === 'basketball').length;
+      const vballCount = divGames.filter((g) => g.sport === 'volleyball').length;
+      if (bballCount > vballCount) divData.sport = 'basketball';
+      else if (vballCount > bballCount) divData.sport = 'volleyball';
+    }
+
     // Aggregate player stats per division
     const divisions = [];
     for (const [divName, divData] of divisionMap) {
