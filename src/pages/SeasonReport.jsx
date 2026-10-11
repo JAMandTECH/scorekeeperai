@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Printer, Sparkles, Loader2, FileText, AlertCircle, Calendar } from "lucide-react";
 import AdminHeader from "@/components/AdminHeader";
@@ -45,20 +44,16 @@ export default function SeasonReport() {
 
   const loadSeasons = async (orgId, org) => {
     try {
-      // The app may not use Season entity records — the "current season" is the org's tournament_name
       const currentSeason = {
         id: 'current',
         name: org?.tournament_name || 'Current Season',
         status: 'active',
       };
-
-      // Also load archived seasons if any exist
       let archived = [];
       try {
         const archivedRes = await base44.functions.invoke('getArchivedSeasons', { organization_id: orgId });
         archived = archivedRes?.data?.seasons || [];
       } catch {}
-
       const all = [currentSeason, ...archived];
       setSeasons(all);
       if (!selectedSeasonId) setSelectedSeasonId('current');
@@ -89,9 +84,7 @@ export default function SeasonReport() {
   };
 
   const handlePrint = () => window.print();
-
   const handleLogout = () => base44.auth.logout(createPageUrl("PublicLanding"));
-
   const toggleDarkMode = () => {
     const next = !darkMode;
     setDarkMode(next);
@@ -122,129 +115,134 @@ export default function SeasonReport() {
       </div>
 
       <main className="pt-16 lg:ml-72 min-h-screen">
-        <div className="p-6 md:p-8 max-w-6xl mx-auto">
-          {/* Controls — hidden in print */}
-          <div className="print:hidden mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <FileText className="w-7 h-7 text-primary" />
-              <h1 className="text-3xl font-heading font-bold text-foreground">Season Report</h1>
-            </div>
+        <div className="broadcast-brief bg-[#101713] text-[#F5F7F4] min-h-[calc(100vh-4rem)]">
+          {/* Masthead */}
+          <header className="bg-[#0b100d] border-b-[3px] border-[#25DA67] px-6 md:px-12 py-8 flex flex-col gap-7 bb-rise">
+            <h1 className="text-4xl md:text-[68px] font-extrabold uppercase tracking-[0.02em] leading-[1.1] text-[#F5F7F4] flex items-center gap-4">
+              <FileText className="w-10 h-10 md:w-12 md:h-12 text-[#25DA67] flex-none" strokeWidth={2.5} />
+              Season Report
+            </h1>
 
-            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end">
-              <div className="flex-1 space-y-1.5">
-                <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Select Season</label>
+            <div className="flex flex-wrap gap-4 items-end">
+              <div className="flex-1 min-w-[260px] flex flex-col gap-2">
+                <span className="text-xs uppercase tracking-[0.16em] font-bold text-[#9fb0a5]">Select Season</span>
                 <Select value={selectedSeasonId} onValueChange={setSelectedSeasonId}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="h-11 w-full bg-[#354139] border border-[#4a594f] text-[#F5F7F4] hover:border-[#25DA67] focus:border-[#25DA67] rounded-none [&>svg]:text-[#9fb0a5]">
                     <SelectValue placeholder="Choose a season..." />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-[#17201a] border border-[#354139] text-[#F5F7F4] rounded-none">
                     {seasons.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
+                      <SelectItem key={s.id} value={s.id} className="text-[#F5F7F4] focus:bg-[#354139] focus:text-[#25DA67] rounded-none">
                         <span className="flex items-center gap-2">
                           <Calendar className="w-3.5 h-3.5" />
                           {s.name}
-                          <span className="text-xs text-muted-foreground capitalize ml-1">({s.status})</span>
+                          <span className="text-xs text-[#9fb0a5] capitalize ml-1">({s.status})</span>
                         </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              <Button
+
+              <button
                 onClick={generateReport}
                 disabled={!selectedSeasonId || loading}
-                className="h-10"
+                className="h-11 px-6 inline-flex items-center gap-2.5 text-sm font-extrabold uppercase tracking-[0.1em] cursor-pointer border-2 border-[#25DA67] bg-[#25DA67] text-[#101713] transition-all duration-200 hover:shadow-[0_0_0_3px_rgba(37,218,103,0.3)] active:bg-[#1db455] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F5F7F4] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
               >
                 {loading ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</>
                 ) : (
-                  <><Sparkles className="w-4 h-4 mr-2" /> Generate Report</>
+                  <><Sparkles className="w-4 h-4" /> Generate Report</>
                 )}
-              </Button>
+              </button>
+
               {report && !loading && (
-                <Button onClick={handlePrint} variant="outline" className="h-10">
-                  <Printer className="w-4 h-4 mr-2" /> Print / Save PDF
-                </Button>
+                <button
+                  onClick={handlePrint}
+                  className="h-11 px-6 inline-flex items-center gap-2.5 text-sm font-extrabold uppercase tracking-[0.1em] cursor-pointer border-2 border-[#25DA67] bg-transparent text-[#25DA67] transition-all duration-200 hover:bg-[rgba(37,218,103,0.14)] active:bg-[rgba(37,218,103,0.25)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F5F7F4] bb-no-print"
+                >
+                  <Printer className="w-4 h-4" /> Print / Save PDF
+                </button>
               )}
             </div>
-          </div>
+          </header>
 
-          {/* Loading state */}
-          {loading && (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
-              <p className="text-sm text-muted-foreground">Gathering season data and generating AI insights...</p>
-              <p className="text-xs text-muted-foreground mt-1">This may take 15-30 seconds</p>
-            </div>
-          )}
+          {/* Body */}
+          <div className="px-6 md:px-12 py-10 md:py-12 flex flex-col gap-11">
+            {/* Loading state */}
+            {loading && (
+              <div className="border border-[#354139] bg-[#17201a] p-10 flex flex-col gap-3 items-center text-center min-h-[210px] justify-center bb-rise">
+                <Loader2 className="w-9 h-9 text-[#25DA67] animate-spin" />
+                <p className="text-[#9fb0a5] text-sm leading-relaxed">Gathering season data and generating AI insights...</p>
+                <p className="text-[#9fb0a5] text-sm">This may take 15-30 seconds</p>
+              </div>
+            )}
 
-          {/* Error state */}
-          {error && !loading && (
-            <div className="border border-destructive/30 bg-destructive/5 p-6 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-foreground">Failed to generate report</p>
-                <p className="text-sm text-muted-foreground mt-1">{error}</p>
-                <Button onClick={generateReport} variant="outline" size="sm" className="mt-3">
+            {/* Error state */}
+            {error && !loading && (
+              <div className="border border-[rgba(255,92,92,0.5)] bg-[#17201a] p-8 flex flex-col gap-3 items-start text-left min-h-[210px] justify-center bb-rise">
+                <AlertCircle className="w-9 h-9 text-[#ff6b6b]" />
+                <p className="text-[#F5F7F4] text-base font-bold">Failed to generate report</p>
+                <p className="text-[#9fb0a5] text-sm leading-relaxed">{error}</p>
+                <button
+                  onClick={generateReport}
+                  className="h-9 px-5 mt-1 inline-flex items-center gap-2 text-sm font-extrabold uppercase tracking-[0.1em] cursor-pointer border-2 border-[#25DA67] bg-transparent text-[#25DA67] hover:bg-[rgba(37,218,103,0.14)] active:bg-[rgba(37,218,103,0.25)] transition-all duration-200"
+                >
                   Try Again
-                </Button>
+                </button>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Empty state */}
-          {!loading && !report && !error && (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <FileText className="w-12 h-12 text-muted-foreground/40 mb-4" />
-              <p className="text-base font-medium text-foreground">No report generated yet</p>
-              <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                Select a season above and click Generate Report to view season statistics, top performers, and AI-powered award recommendations.
-              </p>
-            </div>
-          )}
-
-          {/* Report content */}
-          {report && !loading && (
-            <div className="space-y-10">
-              {/* Print-only header */}
-              <div className="hidden print:block border-b border-border pb-4 mb-6">
-                <h1 className="text-2xl font-bold">{report.organization?.name} - Season Report</h1>
-                <p className="text-sm text-gray-600">{report.season?.name} ({report.season?.sport}) - Generated {new Date(report.generated_at).toLocaleDateString()}</p>
+            {/* Empty state */}
+            {!loading && !report && !error && (
+              <div className="border border-[#354139] bg-[#17201a] p-10 flex flex-col gap-3 items-center text-center min-h-[210px] justify-center bb-rise">
+                <FileText className="w-9 h-9 text-[#25DA67] opacity-50" />
+                <p className="text-[#F5F7F4] text-base font-bold">No report generated yet</p>
+                <p className="text-[#9fb0a5] text-sm leading-relaxed max-w-sm">
+                  Select a season above and click Generate Report to view season statistics, top performers, and AI-powered award recommendations.
+                </p>
               </div>
+            )}
 
-              {/* Report header (screen only) */}
-              <div className="print:hidden border-b border-border pb-6">
-                <div className="flex items-center justify-between flex-wrap gap-4">
+            {/* Report content */}
+            {report && !loading && (
+              <div className="flex flex-col gap-11">
+                {/* Print-only header */}
+                <div className="hidden print:block border-b border-gray-400 pb-4 mb-6">
+                  <h1 className="text-2xl font-bold text-black">{report.organization?.name} — Season Report</h1>
+                  <p className="text-sm text-gray-600">{report.season?.name} ({report.season?.sport}) — Generated {new Date(report.generated_at).toLocaleDateString()}</p>
+                </div>
+
+                {/* Screen-only report header */}
+                <div className="print:hidden flex justify-between items-end border-b border-[#354139] pb-5 bb-rise-1">
                   <div>
-                    <h2 className="text-2xl font-heading font-bold text-foreground">{report.organization?.name}</h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {report.season?.name} - <span className="capitalize">{report.season?.sport}</span>
+                    <h2 className="text-3xl md:text-[38px] font-extrabold uppercase tracking-[0.02em] text-[#F5F7F4]">{report.organization?.name}</h2>
+                    <p className="text-[#9fb0a5] text-sm mt-1.5">
+                      {report.season?.name} — <span className="capitalize">{report.season?.sport}</span>
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-[#9fb0a5]">
                     Generated {new Date(report.generated_at).toLocaleString()}
                   </p>
                 </div>
-              </div>
 
-              {/* Organization Summary */}
-              <ReportOrgSummary report={report} />
+                {/* Organization Summary */}
+                <ReportOrgSummary report={report} />
 
-              {/* Division Sections */}
-              {report.divisions.map((div) => (
-                <ReportDivisionSection key={div.name} division={div} />
-              ))}
+                {/* Division Sections */}
+                {report.divisions.map((div) => (
+                  <ReportDivisionSection key={div.name} division={div} />
+                ))}
 
-              {/* No data state */}
-              {report.divisions.length === 0 && (
-                <div className="border border-border bg-muted/30 p-8 text-center">
-                  <p className="text-sm text-muted-foreground">
+                {/* No data state */}
+                {report.divisions.length === 0 && (
+                  <div className="border border-dashed border-[#354139] p-6 text-center text-[#9fb0a5] text-sm">
                     No division data found for this season. Ensure teams and games are assigned to this season.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </main>
     </div>

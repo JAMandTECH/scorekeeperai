@@ -1,43 +1,73 @@
 import React from "react";
-import { Trophy, Award, Star } from "lucide-react";
+import { Trophy } from "lucide-react";
 
-function PlayerName({ player }) {
-  return (
-    <span className="font-medium text-foreground">
-      {player.first_name} {player.last_name}
-      {player.jersey_number && (
-        <span className="text-muted-foreground ml-1.5">#{player.jersey_number}</span>
-      )}
-    </span>
-  );
-}
-
-function StatBadge({ label, value }) {
-  return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-muted text-xs font-medium text-muted-foreground tabular-nums">
-      {label} {value}
-    </span>
-  );
-}
-
-function PlayerStats({ player, sport }) {
+function StatChips({ player, sport }) {
   if (sport === 'basketball') {
+    const stats = [
+      { label: 'PPG', value: player.ppg },
+      { label: 'RPG', value: player.rpg },
+      { label: 'APG', value: player.apg },
+      { label: 'SPG', value: player.spg },
+      { label: 'BPG', value: player.bpg },
+    ];
     return (
       <div className="flex flex-wrap gap-1.5">
-        <StatBadge label="PPG" value={player.ppg} />
-        <StatBadge label="RPG" value={player.rpg} />
-        <StatBadge label="APG" value={player.apg} />
-        <StatBadge label="SPG" value={player.spg} />
-        <StatBadge label="BPG" value={player.bpg} />
+        {stats.map((s) => (
+          <span key={s.label} className="bg-[#354139] px-2 py-0.5 text-xs font-bold text-[#F5F7F4] tabular-nums">
+            {s.label}<em className="not-italic text-[#25DA67] ml-1">{s.value}</em>
+          </span>
+        ))}
       </div>
     );
   }
+  const stats = [
+    { label: 'Aces/G', value: player.acpg },
+    { label: 'Att/G', value: player.atpg },
+    { label: 'Err/G', value: player.repg },
+    { label: 'PPG', value: player.ppg },
+  ];
   return (
     <div className="flex flex-wrap gap-1.5">
-      <StatBadge label="Aces/G" value={player.acpg} />
-      <StatBadge label="Att/G" value={player.atpg} />
-      <StatBadge label="Err/G" value={player.repg} />
-      <StatBadge label="PPG" value={player.ppg} />
+      {stats.map((s) => (
+        <span key={s.label} className="bg-[#354139] px-2 py-0.5 text-xs font-bold text-[#F5F7F4] tabular-nums">
+          {s.label}<em className="not-italic text-[#25DA67] ml-1">{s.value}</em>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function CandidateCard({ candidate, rank, sport, showPosition }) {
+  const isOutline = showPosition;
+  return (
+    <div className="border border-[#354139] bg-[#17201a] p-4.5 flex gap-3.5 mb-3">
+      <span
+        className={`flex-none w-8 h-8 text-center font-extrabold text-base ${
+          isOutline
+            ? 'bg-transparent border-2 border-[#25DA67] text-[#25DA67] leading-[28px]'
+            : 'bg-[#25DA67] text-[#101713] leading-8'
+        }`}
+      >
+        {rank}
+      </span>
+      <div className="flex-1 flex flex-col gap-2.5">
+        <div className="flex justify-between items-center text-[#9fb0a5] text-[13px]">
+          <b className="text-[#F5F7F4] text-base font-bold">
+            {candidate.first_name} {candidate.last_name}
+            {candidate.jersey_number && ` #${candidate.jersey_number}`}
+            {showPosition && candidate.position && (
+              <span className="inline-block bg-[rgba(37,218,103,0.14)] text-[#25DA67] border border-[rgba(37,218,103,0.4)] px-2 py-0.5 text-xs ml-2 align-middle">
+                {candidate.position}
+              </span>
+            )}
+          </b>
+          <span>{candidate.team_name}</span>
+        </div>
+        <StatChips player={candidate} sport={sport} />
+        {candidate.reasoning && (
+          <p className="text-[#c5d0c9] text-sm leading-relaxed m-0">{candidate.reasoning}</p>
+        )}
+      </div>
     </div>
   );
 }
@@ -59,51 +89,52 @@ export default function ReportDivisionSection({ division }) {
   };
 
   return (
-    <section className="report-section report-division space-y-8">
+    <section className="bg-[#131b16] border border-[#354139] p-7 md:p-8 flex flex-col gap-7 bb-rise-3">
       {/* Division header */}
-      <div className="border-b border-border pb-4">
-        <div className="flex items-center gap-3">
-          <Trophy className="w-6 h-6 text-primary" />
-          <div>
-            <h2 className="text-2xl font-heading font-bold text-foreground">{division.name}</h2>
-            <p className="text-sm text-muted-foreground capitalize">{division.sport} - {division.team_count} teams</p>
-          </div>
+      <div className="flex gap-3.5 items-center border-b border-[#354139] pb-4.5">
+        <Trophy className="w-7 h-7 text-[#25DA67] flex-none" strokeWidth={2} />
+        <div>
+          <h2 className="text-2xl md:text-[30px] font-extrabold uppercase tracking-[0.02em] text-[#F5F7F4]">{division.name}</h2>
+          <p className="text-[#9fb0a5] text-sm capitalize mt-1">{division.sport} — {division.team_count} teams</p>
         </div>
       </div>
 
       {/* Top 10 Performers */}
-      <div className="report-card">
-        <h3 className="text-lg font-heading font-bold text-foreground mb-4 flex items-center gap-2">
-          <Trophy className="w-4 h-4 text-primary" />
-          Top 10 Performers
-        </h3>
+      <div>
+        <h3 className="text-xl font-extrabold uppercase tracking-[0.02em] text-[#F5F7F4] mb-3.5">Top 10 Performers</h3>
         {division.top_performers.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">No player stats recorded for this division yet.</p>
+          <p className="border border-dashed border-[#354139] p-6 text-center text-[#9fb0a5] text-sm">
+            No player stats recorded for this division yet.
+          </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="report-table w-full text-sm">
+            <table className="w-full border-collapse text-sm">
               <thead>
-                <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                  <th className="py-2 pr-4 font-medium">#</th>
-                  <th className="py-2 pr-4 font-medium">Player</th>
-                  <th className="py-2 pr-4 font-medium">Team</th>
-                  <th className="py-2 pr-4 font-medium text-center">GP</th>
+                <tr>
+                  <th className="text-left text-xs uppercase tracking-[0.14em] font-bold text-[#9fb0a5] py-2.5 px-2 border-b border-[#354139]">#</th>
+                  <th className="text-left text-xs uppercase tracking-[0.14em] font-bold text-[#9fb0a5] py-2.5 px-2 border-b border-[#354139]">Player</th>
+                  <th className="text-left text-xs uppercase tracking-[0.14em] font-bold text-[#9fb0a5] py-2.5 px-2 border-b border-[#354139]">Team</th>
+                  <th className="text-center text-xs uppercase tracking-[0.14em] font-bold text-[#9fb0a5] py-2.5 px-2 border-b border-[#354139]">GP</th>
                   {headers.map((h) => (
-                    <th key={h} className="py-2 px-2 font-medium text-center">{h}</th>
+                    <th key={h} className="text-center text-xs uppercase tracking-[0.14em] font-bold text-[#9fb0a5] py-2.5 px-2 border-b border-[#354139]">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {division.top_performers.map((p, i) => (
-                  <tr key={p.player_id} className="border-b border-border/50 hover:bg-muted/30">
-                    <td className="py-2.5 pr-4 font-heading font-bold text-muted-foreground tabular-nums">{i + 1}</td>
-                    <td className="py-2.5 pr-4">
-                      <PlayerName player={p} />
+                  <tr key={p.player_id} className="transition-colors hover:bg-[#1b261f]">
+                    <td className="py-3 px-2 border-b border-[#243028] text-[#25DA67] font-extrabold tabular-nums">{i + 1}</td>
+                    <td className="py-3 px-2 border-b border-[#243028] text-[#F5F7F4]">
+                      <b className="font-bold">{p.first_name} {p.last_name}</b>
+                      {p.jersey_number && <span className="text-[#9fb0a5] ml-1.5">#{p.jersey_number}</span>}
                     </td>
-                    <td className="py-2.5 pr-4 text-muted-foreground">{p.team_name}</td>
-                    <td className="py-2.5 pr-4 text-center text-muted-foreground tabular-nums">{p.games_played}</td>
-                    {headers.map((h) => (
-                      <td key={h} className="py-2.5 px-2 text-center tabular-nums font-medium text-foreground">
+                    <td className="py-3 px-2 border-b border-[#243028] text-[#9fb0a5]">{p.team_name}</td>
+                    <td className="py-3 px-2 border-b border-[#243028] text-center text-[#9fb0a5] tabular-nums">{p.games_played}</td>
+                    {headers.map((h, hi) => (
+                      <td
+                        key={h}
+                        className={`py-3 px-2 border-b border-[#243028] text-center tabular-nums ${hi === 0 ? 'text-[#25DA67] font-extrabold' : 'text-[#F5F7F4] font-medium'}`}
+                      >
                         {getStatValue(p, h)}
                       </td>
                     ))}
@@ -115,97 +146,36 @@ export default function ReportDivisionSection({ division }) {
         )}
       </div>
 
-      {/* Season MVP Candidates */}
-      {division.season_mvp_candidates.length > 0 && (
-        <div className="report-card">
-          <h3 className="text-lg font-heading font-bold text-foreground mb-4 flex items-center gap-2">
-            <Award className="w-4 h-4 text-primary" />
-            Season MVP Candidates
-          </h3>
-          <div className="space-y-3">
+      {/* Award candidates — two column */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Season MVP Candidates */}
+        {division.season_mvp_candidates.length > 0 && (
+          <div>
+            <h3 className="text-xl font-extrabold uppercase tracking-[0.02em] text-[#25DA67] mb-3.5">Season MVP Candidates</h3>
             {division.season_mvp_candidates.map((c, i) => (
-              <div key={c.player_id || i} className="border border-border p-4">
-                <div className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-7 h-7 bg-primary text-primary-foreground text-sm font-heading font-bold flex items-center justify-center">
-                    {i + 1}
-                  </span>
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <PlayerName player={c} />
-                      <span className="text-xs text-muted-foreground">{c.team_name}</span>
-                    </div>
-                    <PlayerStats player={c} sport={division.sport} />
-                    <p className="text-sm text-muted-foreground leading-relaxed">{c.reasoning}</p>
-                  </div>
-                </div>
-              </div>
+              <CandidateCard key={c.player_id || i} candidate={c} rank={i + 1} sport={division.sport} />
             ))}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Final MVP Candidates */}
-      {division.final_mvp_candidates.length > 0 && (
-        <div className="report-card">
-          <h3 className="text-lg font-heading font-bold text-foreground mb-4 flex items-center gap-2">
-            <Award className="w-4 h-4 text-primary" />
-            Final MVP Candidates
-          </h3>
-          <div className="space-y-3">
+        {/* Final MVP Candidates */}
+        {division.final_mvp_candidates.length > 0 && (
+          <div>
+            <h3 className="text-xl font-extrabold uppercase tracking-[0.02em] text-[#25DA67] mb-3.5">Final MVP Candidates</h3>
             {division.final_mvp_candidates.map((c, i) => (
-              <div key={c.player_id || i} className="border border-border p-4">
-                <div className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-7 h-7 bg-primary text-primary-foreground text-sm font-heading font-bold flex items-center justify-center">
-                    {i + 1}
-                  </span>
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <PlayerName player={c} />
-                      <span className="text-xs text-muted-foreground">{c.team_name}</span>
-                    </div>
-                    <PlayerStats player={c} sport={division.sport} />
-                    <p className="text-sm text-muted-foreground leading-relaxed">{c.reasoning}</p>
-                  </div>
-                </div>
-              </div>
+              <CandidateCard key={c.player_id || i} candidate={c} rank={i + 1} sport={division.sport} />
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Mythical 5/6 Candidates */}
+      {/* Mythical Candidates */}
       {division.mythical_candidates.length > 0 && (
-        <div className="report-card">
-          <h3 className="text-lg font-heading font-bold text-foreground mb-4 flex items-center gap-2">
-            <Star className="w-4 h-4 text-primary" />
-            {mythicalLabel} Candidates
-          </h3>
-          <div className="space-y-3">
-            {division.mythical_candidates.map((c, i) => (
-              <div key={c.player_id || i} className="border border-border p-4">
-                <div className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-7 h-7 border border-primary text-primary text-sm font-heading font-bold flex items-center justify-center">
-                    {i + 1}
-                  </span>
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-2">
-                        <PlayerName player={c} />
-                        {c.position && (
-                          <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium border border-primary/20">
-                            {c.position}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-xs text-muted-foreground">{c.team_name}</span>
-                    </div>
-                    <PlayerStats player={c} sport={division.sport} />
-                    <p className="text-sm text-muted-foreground leading-relaxed">{c.reasoning}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div>
+          <h3 className="text-xl font-extrabold uppercase tracking-[0.02em] text-[#25DA67] mb-3.5">{mythicalLabel} Candidates</h3>
+          {division.mythical_candidates.map((c, i) => (
+            <CandidateCard key={c.player_id || i} candidate={c} rank={i + 1} sport={division.sport} showPosition />
+          ))}
         </div>
       )}
     </section>

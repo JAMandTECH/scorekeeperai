@@ -125,3 +125,55 @@
   background: hsl(var(--primary));
   box-shadow: 0 0 8px hsl(var(--primary));
 }
+
+/* ============================================================
+   BROADCAST BRIEF — Season Report dark broadcast palette
+   ============================================================ */
+.broadcast-brief {
+  font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+}
+
+.bb-rise { animation: bbRise 0.7s ease-out both; }
+.bb-rise-1 { animation: bbRise 0.7s 0.1s ease-out both; }
+.bb-rise-2 { animation: bbRise 0.7s 0.2s ease-out both; }
+.bb-rise-3 { animation: bbRise 0.7s 0.3s ease-out both; }
+
+@keyframes bbRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Print: convert dark broadcast surfaces to legible paper */
+@media print {
+  .broadcast-brief {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .broadcast-brief .bb-no-print { display: none !important; }
+  .broadcast-brief header,
+  .broadcast-brief section,
+  .broadcast-brief div {
+    background: #fff !important;
+    border-color: #999 !important;
+  }
+  .broadcast-brief h1,
+  .broadcast-brief h2,
+  .broadcast-brief h3,
+  .broadcast-brief b {
+    color: #000 !important;
+  }
+  .broadcast-brief .text-\[\#25DA67\],
+  .broadcast-brief [class*="text-[#25DA67]"] {
+    color: #0a7a35 !important;
+  }
+  .broadcast-brief table th {
+    color: #555 !important;
+  }
+  .broadcast-brief table td {
+    color: #000 !important;
+    border-color: #ccc !important;
+  }
+  .broadcast-brief tr:hover td {
+    background: #fff !important;
+  }
+}

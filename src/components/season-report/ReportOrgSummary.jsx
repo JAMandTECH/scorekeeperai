@@ -1,86 +1,91 @@
 import React from "react";
-import { Building2, Users, Calendar, Layers, TrendingUp, Sparkles } from "lucide-react";
+import { Calendar, Layers, Sparkles, TrendingUp } from "lucide-react";
 
 export default function ReportOrgSummary({ report }) {
   const { org_stats: stats, ai_summary: ai } = report;
 
   const tiles = [
-    { label: "Registered Teams", value: stats.total_teams, icon: Building2 },
-    { label: "Registered Players", value: stats.total_players, icon: Users },
-    { label: "Total Games", value: stats.total_games, icon: Calendar },
-    { label: "Divisions", value: stats.total_divisions, icon: Layers },
+    { label: "Registered Teams", value: stats.total_teams },
+    { label: "Registered Players", value: stats.total_players },
+    { label: "Total Games", value: stats.total_games },
+    { label: "Divisions", value: stats.total_divisions },
   ];
 
   return (
-    <section className="report-section space-y-6">
-      <div>
-        <h2 className="text-2xl font-heading font-bold text-foreground">Organization Summary</h2>
-        <p className="text-sm text-muted-foreground mt-1">Season statistics at a glance</p>
+    <section className="flex flex-col gap-11">
+      {/* Section header */}
+      <div className="print:hidden flex justify-between items-end border-b border-[#354139] pb-5 bb-rise-1">
+        <div>
+          <h2 className="text-3xl md:text-[38px] font-extrabold uppercase tracking-[0.02em] text-[#F5F7F4]">Organization Summary</h2>
+          <p className="text-[#9fb0a5] text-sm mt-1.5">Season statistics at a glance</p>
+        </div>
       </div>
 
-      {/* Stats tiles */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {tiles.map((tile) => (
-          <div key={tile.label} className="border border-border bg-card p-5">
-            <div className="flex items-center gap-2 text-muted-foreground mb-2">
-              <tile.icon className="w-4 h-4" />
-              <span className="text-xs font-medium uppercase tracking-wider">{tile.label}</span>
-            </div>
-            <p className="text-3xl font-heading font-bold text-foreground tabular-nums">{tile.value}</p>
+      {/* Metric strip */}
+      <div className="grid grid-cols-2 md:grid-cols-4 border border-[#354139] bg-[#17201a] bb-rise-2">
+        {tiles.map((tile, i) => (
+          <div
+            key={tile.label}
+            className={`p-6 flex flex-col gap-2.5 ${i < tiles.length - 1 ? "md:border-r border-[#354139]" : ""} ${i < 2 ? "border-b md:border-b-0 border-[#354139]" : ""}`}
+          >
+            <span className="text-xs uppercase tracking-[0.16em] font-bold text-[#9fb0a5]">{tile.label}</span>
+            <b className="text-4xl md:text-[60px] leading-none text-[#25DA67] font-extrabold tabular-nums">{tile.value}</b>
           </div>
         ))}
       </div>
 
-      {/* Completed games + division names */}
-      <div className="flex flex-wrap gap-3">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-border text-xs font-medium text-muted-foreground">
-          <Calendar className="w-3.5 h-3.5" />
+      {/* Chips: completed games + division names */}
+      <div className="flex flex-wrap gap-2.5">
+        <span className="px-3.5 py-2 border border-[#354139] bg-[#17201a] text-xs uppercase tracking-[0.12em] font-bold text-[#c5d0c9] inline-flex items-center gap-2">
+          <Calendar className="w-4 h-4" />
           {stats.completed_games} completed games
         </span>
         {stats.division_names.map((d) => (
-          <span key={d} className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-border text-xs font-medium text-muted-foreground">
-            <Layers className="w-3.5 h-3.5" />
+          <span key={d} className="px-3.5 py-2 border border-[#354139] bg-[#17201a] text-xs uppercase tracking-[0.12em] font-bold text-[#c5d0c9] inline-flex items-center gap-2">
+            <Layers className="w-4 h-4" />
             {d}
           </span>
         ))}
       </div>
 
-      {/* AI performance summary */}
-      {ai?.performance_summary && (
-        <div className="border border-border bg-card p-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-heading font-bold text-foreground">Season Performance Analysis</h3>
+      {/* AI cards — two column */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Performance Analysis */}
+        {ai?.performance_summary && (
+          <div className="bg-[#17201a] border border-[#354139] border-t-[3px] border-t-[#25DA67] p-7">
+            <h3 className="text-xl font-extrabold uppercase tracking-[0.02em] text-[#F5F7F4] flex items-center gap-2.5 mb-4">
+              <Sparkles className="w-5 h-5 text-[#25DA67]" />
+              Season Performance Analysis
+            </h3>
+            <p className="text-[#c5d0c9] text-sm leading-relaxed whitespace-pre-line">{ai.performance_summary}</p>
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{ai.performance_summary}</p>
-        </div>
-      )}
+        )}
 
-      {/* AI improvement suggestions */}
-      {ai?.improvement_suggestions?.length > 0 && (
-        <div className="border border-border bg-card p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-heading font-bold text-foreground">Improvement Suggestions for Next Season</h3>
+        {/* Improvement Suggestions */}
+        {ai?.improvement_suggestions?.length > 0 && (
+          <div className="bg-[#17201a] border border-[#354139] border-t-[3px] border-t-[#25DA67] p-7">
+            <h3 className="text-xl font-extrabold uppercase tracking-[0.02em] text-[#F5F7F4] flex items-center gap-2.5 mb-4">
+              <TrendingUp className="w-5 h-5 text-[#25DA67]" />
+              Improvement Suggestions for Next Season
+            </h3>
+            <div className="flex flex-col gap-3.5">
+              {ai.improvement_suggestions.map((suggestion, i) => (
+                <div key={i} className="flex gap-3.5">
+                  <i className="flex-none w-7 h-7 border-2 border-[#25DA67] text-[#25DA67] text-sm font-extrabold flex items-center justify-center not-italic">
+                    {i + 1}
+                  </i>
+                  <p className="text-[#c5d0c9] text-sm leading-relaxed pt-0.5">{suggestion}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          <ol className="space-y-3">
-            {ai.improvement_suggestions.map((suggestion, i) => (
-              <li key={i} className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 border border-primary text-primary text-xs font-heading font-bold flex items-center justify-center">
-                  {i + 1}
-                </span>
-                <p className="text-sm text-muted-foreground leading-relaxed pt-0.5">{suggestion}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
+        )}
+      </div>
 
+      {/* AI unavailable notice */}
       {!ai && (
-        <div className="border border-border bg-muted/30 p-6 text-center">
-          <p className="text-sm text-muted-foreground">
-            AI analysis unavailable. Statistical rankings are still shown below.
-          </p>
+        <div className="border border-[#354139] p-5 text-center text-[#9fb0a5] text-sm">
+          AI analysis unavailable. Statistical rankings are still shown below.
         </div>
       )}
     </section>
