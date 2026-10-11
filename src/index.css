@@ -129,3 +129,12 @@
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+/* Print styles for season report */
+@media print {
+  .report-section { page-break-inside: avoid; }
+  .report-table { page-break-inside: avoid; }
+  .report-card { page-break-inside: avoid; }
+  .report-division { page-break-before: auto; }
+  body { background: white !important; }
+}

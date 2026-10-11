@@ -99,6 +99,7 @@ export default function AdminSidebar({
         items: [
          { title: "Statistics", url: createPageUrl("Statistics"), icon: BarChart3, permission: "view_statistics" },
          { title: "Weekly Summary", url: createPageUrl("WeeklySummary"), icon: Sparkles, permission: "view_statistics" },
+         { title: "Season Report", url: "/SeasonReport", icon: FileText, permission: "view_statistics" },
          { title: "Poster Generator", url: createPageUrl("PosterGenerator"), icon: Sparkles, permission: "view_statistics" },
         ]
       },
