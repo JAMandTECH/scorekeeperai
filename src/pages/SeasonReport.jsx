@@ -6,6 +6,7 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import ReportOrgSummary from "@/components/season-report/ReportOrgSummary";
 import ReportDivisionSection from "@/components/season-report/ReportDivisionSection";
+import DivisionChampionSelector from "@/components/season-report/DivisionChampionSelector";
 import { createPageUrl } from "@/utils";
 
 export default function SeasonReport() {
@@ -18,6 +19,9 @@ export default function SeasonReport() {
   const [error, setError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [divisions, setDivisions] = useState([]);
+  const [champions, setChampions] = useState({});
+  const [loadingDivisions, setLoadingDivisions] = useState(false);
 
   useEffect(() => {
     loadUser();
@@ -42,6 +46,59 @@ export default function SeasonReport() {
     }
   };
 
+  const loadDivisions = async (orgId, seasonId) => {
+    if (!orgId || !seasonId) return;
+    setLoadingDivisions(true);
+    setDivisions([]);
+    setChampions({});
+    try {
+      let teams = [];
+      if (seasonId === 'current') {
+        const res = await base44.entities.Team.filter({ organization_id: orgId }, { limit: 2000 });
+        teams = res?.items || res || [];
+      } else {
+        const res = await base44.entities.ArchivedTeam.filter(
+          { organization_id: orgId, season_id: seasonId },
+          { limit: 2000 }
+        );
+        teams = (res?.items || res || []).map((t) => ({ ...t, id: t.original_id || t.id }));
+      }
+
+      const divMap = new Map();
+      for (const team of teams) {
+        const div = team.division || 'Default Division';
+        if (!divMap.has(div)) {
+          divMap.set(div, { name: div, sport: team.sport || 'basketball', teams: [] });
+        }
+        divMap.get(div).teams.push({ id: team.id, name: team.name });
+      }
+
+      const autoChampions = {};
+      for (const [, divData] of divMap) {
+        if (divData.teams.length === 1) {
+          autoChampions[divData.name] = divData.teams[0].id;
+        }
+      }
+
+      setDivisions(Array.from(divMap.values()));
+      setChampions(autoChampions);
+    } catch (err) {
+      console.error('Failed to load divisions:', err);
+    } finally {
+      setLoadingDivisions(false);
+    }
+  };
+
+  useEffect(() => {
+    if (organization?.id && selectedSeasonId) {
+      loadDivisions(organization.id, selectedSeasonId);
+    }
+  }, [organization?.id, selectedSeasonId]);
+
+  const handleChampionChange = (divName, teamId) => {
+    setChampions((prev) => ({ ...prev, [divName]: teamId }));
+  };
+
   const loadSeasons = async (orgId, org) => {
     try {
       const currentSeason = {
@@ -64,12 +121,19 @@ export default function SeasonReport() {
 
   const generateReport = async () => {
     if (!selectedSeasonId) return;
+    const divisionsWithTeams = divisions.filter((d) => d.teams.length > 0);
+    const allChampionsSelected = divisionsWithTeams.every((d) => champions[d.name]);
+    if (divisionsWithTeams.length > 0 && !allChampionsSelected) {
+      setError('Please select a champion for all divisions before generating the report.');
+      return;
+    }
     setLoading(true);
     setError(null);
     setReport(null);
     try {
       const payload = { organization_id: organization?.id };
       if (selectedSeasonId !== 'current') payload.season_id = selectedSeasonId;
+      if (Object.keys(champions).length > 0) payload.division_champions = champions;
       const res = await base44.functions.invoke('generateSeasonReport', payload);
       if (res?.data?.error) {
         setError(res.data.error);
@@ -146,7 +210,7 @@ export default function SeasonReport() {
 
               <button
                 onClick={generateReport}
-                disabled={!selectedSeasonId || loading}
+                disabled={!selectedSeasonId || loading || loadingDivisions || (divisions.filter((d) => d.teams.length > 0).length > 0 && !divisions.filter((d) => d.teams.length > 0).every((d) => champions[d.name]))}
                 className="h-11 px-6 inline-flex items-center gap-2.5 text-sm font-extrabold uppercase tracking-[0.1em] cursor-pointer border-2 border-[#25DA67] bg-[#25DA67] text-[#101713] transition-all duration-200 hover:shadow-[0_0_0_3px_rgba(37,218,103,0.3)] active:bg-[#1db455] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F5F7F4] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
               >
                 {loading ? (
@@ -169,6 +233,16 @@ export default function SeasonReport() {
 
           {/* Body */}
           <div className="px-6 md:px-12 py-10 md:py-12 flex flex-col gap-11">
+            {/* Division champion questionnaire — shown after season selection, before report */}
+            {!loading && !report && selectedSeasonId && (
+              <DivisionChampionSelector
+                divisions={divisions}
+                champions={champions}
+                onChange={handleChampionChange}
+                loading={loadingDivisions}
+              />
+            )}
+
             {/* Loading state */}
             {loading && (
               <div className="border border-[#354139] bg-[#17201a] p-10 flex flex-col gap-3 items-center text-center min-h-[210px] justify-center bb-rise">

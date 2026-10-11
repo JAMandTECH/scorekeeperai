@@ -22,6 +22,7 @@ export default async function(req) {
     const body = await req.json().catch(() => ({}));
     const seasonId = body.season_id || null;
     const organizationId = body.organization_id;
+    const userChampions = body.division_champions || null;
 
     const isSuper = Boolean(user.is_super_admin);
     const callerOrg = user.organization_id || user.active_organization_id ||
@@ -170,6 +171,22 @@ export default async function(req) {
       }
       return null;
     };
+
+    // Override with user-provided division champions (authoritative from questionnaire)
+    if (userChampions && typeof userChampions === 'object') {
+      for (const [divName, teamId] of Object.entries(userChampions)) {
+        if (!teamId) continue;
+        const team = teamMap.get(teamId);
+        const teamDiv = team?.division ? String(team.division).toLowerCase() : null;
+        if (team && (!teamDiv || teamDiv === String(divName).toLowerCase())) {
+          divisionChampionMap.set(divName, {
+            team_id: teamId,
+            team_name: team.name || '',
+            tournament_name: 'Selected champion',
+          });
+        }
+      }
+    }
 
     // Determine sport from org, games, or teams
     const sport = organization.selected_sport ||
