@@ -20,27 +20,18 @@ export default async function(req) {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const seasonId = body.season_id;
-    if (!seasonId) return Response.json({ error: 'season_id is required' }, { status: 400 });
+    const seasonId = body.season_id || null;
+    const organizationId = body.organization_id;
 
     const isSuper = Boolean(user.is_super_admin);
     const callerOrg = user.organization_id || user.active_organization_id ||
       user.data?.organization_id || user.data?.active_organization_id;
+
     const sr = base44.asServiceRole;
 
-    // Fetch season
-    let season = null;
-    try {
-      const seasons = await fetchWithRetry(() => sr.entities.Season.filter({ id: seasonId }));
-      season = seasons?.[0] || null;
-    } catch (_) {}
-    if (!season) return Response.json({ error: 'Season not found' }, { status: 404 });
-
-    // Resolve org — non-super admins must own the season
-    const orgId = isSuper ? (season.organization_id || callerOrg) : callerOrg;
-    if (!isSuper && season.organization_id !== orgId) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    // Resolve organization: prefer explicit org_id (super admin), else caller's org
+    const orgId = isSuper ? (organizationId || callerOrg) : callerOrg;
+    if (!orgId) return Response.json({ error: 'No organization found' }, { status: 400 });
 
     // Fetch org details
     let organization = null;
@@ -48,10 +39,28 @@ export default async function(req) {
       const orgs = await fetchWithRetry(() => sr.entities.Organization.filter({ id: orgId }));
       organization = orgs?.[0] || null;
     } catch (_) {}
+    if (!organization) return Response.json({ error: 'Organization not found' }, { status: 404 });
 
-    // Fetch teams for this season
+    // Fetch season (optional — app may not use Season records)
+    let season = null;
+    if (seasonId) {
+      try {
+        const seasons = await fetchWithRetry(() => sr.entities.Season.filter({ id: seasonId }));
+        season = seasons?.[0] || null;
+      } catch (_) {}
+    }
+
+    // Build query filters — use season_id when available, otherwise org-level
+    const teamQuery = { organization_id: orgId };
+    const gameQuery = { organization_id: orgId, status: 'completed' };
+    if (seasonId) {
+      teamQuery.season_id = seasonId;
+      gameQuery.season_id = seasonId;
+    }
+
+    // Fetch teams
     const teams = await fetchWithRetry(() =>
-      sr.entities.Team.filter({ organization_id: orgId, season_id: seasonId }, undefined, 2000)
+      sr.entities.Team.filter(teamQuery, undefined, 2000)
     );
     const teamIds = (teams || []).map((t) => t.id).filter(Boolean);
     const teamMap = new Map((teams || []).map((t) => [t.id, t]));
@@ -68,9 +77,9 @@ export default async function(req) {
     }
     const playerMap = new Map(players.map((p) => [p.id, p]));
 
-    // Fetch completed games for this season
+    // Fetch completed games
     const games = await fetchWithRetry(() =>
-      sr.entities.Game.filter({ organization_id: orgId, season_id: seasonId, status: 'completed' }, '-game_date', 2000)
+      sr.entities.Game.filter(gameQuery, '-game_date', 2000)
     );
     const completedGameIds = (games || []).map((g) => g.id).filter(Boolean);
 
@@ -85,12 +94,18 @@ export default async function(req) {
       if (i + 10 < completedGameIds.length) await sleep(100);
     }
 
+    // Determine sport from org, games, or teams
+    const sport = organization.selected_sport ||
+      (games?.[0]?.sport) ||
+      (teams?.[0]?.sport) ||
+      'basketball';
+
     // Group teams by division
     const divisionMap = new Map();
     for (const team of teams || []) {
       const div = team.division || 'Default Division';
       if (!divisionMap.has(div)) {
-        divisionMap.set(div, { name: div, sport: team.sport || season.sport, teamIds: new Set() });
+        divisionMap.set(div, { name: div, sport: team.sport || sport, teamIds: new Set() });
       }
       divisionMap.get(div).teamIds.add(team.id);
     }
@@ -185,11 +200,20 @@ export default async function(req) {
       division_names: Array.from(divisionMap.keys()),
     };
 
+    // Season display info — use Season record if available, else org tournament_name
+    const seasonInfo = season ? {
+      id: season.id, name: season.name, sport: season.sport || sport,
+      start_date: season.start_date, end_date: season.end_date, status: season.status,
+    } : {
+      id: null, name: organization.tournament_name || 'Current Season',
+      sport, start_date: null, end_date: null, status: 'active',
+    };
+
     // Call AI for recommendations
     let aiResult = null;
     if (divisions.length > 0 && divisions.some((d) => d.ai_candidates.length > 0)) {
       try {
-        aiResult = await callAI(base44, orgStats, divisions, organization, season);
+        aiResult = await callAI(base44, orgStats, divisions, organization, seasonInfo);
       } catch (err) {
         console.error('generateSeasonReport: AI call failed:', err?.message || err);
       }
@@ -227,15 +251,12 @@ export default async function(req) {
     });
 
     return Response.json({
-      organization: organization ? {
+      organization: {
         id: organization.id, name: organization.name,
         logo_url: organization.logo_url || '',
         tournament_name: organization.tournament_name || '',
-      } : { id: orgId, name: 'Unknown' },
-      season: {
-        id: season.id, name: season.name, sport: season.sport,
-        start_date: season.start_date, end_date: season.end_date, status: season.status,
       },
+      season: seasonInfo,
       org_stats: orgStats,
       ai_summary: aiResult ? {
         performance_summary: aiResult.performance_summary || '',

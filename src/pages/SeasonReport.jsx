@@ -33,26 +33,35 @@ export default function SeasonReport() {
       setUser(currentUser);
       try {
         const res = await base44.functions.invoke('getUserOrganization', {});
-        setOrganization(res?.data?.organization || null);
-        const orgId = res?.data?.organization?.id;
-        if (orgId) await loadSeasons(orgId);
+        const org = res?.data?.organization || null;
+        setOrganization(org);
+        const orgId = org?.id;
+        if (orgId) await loadSeasons(orgId, org);
       } catch { setOrganization(null); }
     } catch {
       base44.auth.redirectToLogin(createPageUrl("SeasonReport"));
     }
   };
 
-  const loadSeasons = async (orgId) => {
+  const loadSeasons = async (orgId, org) => {
     try {
-      const [activeRes, archivedRes] = await Promise.all([
-        base44.functions.invoke('getActiveSeason', { organization_id: orgId }),
-        base44.functions.invoke('getArchivedSeasons', { organization_id: orgId }),
-      ]);
-      const active = activeRes?.data?.season ? [activeRes.data.season] : [];
-      const archived = archivedRes?.data?.seasons || [];
-      const all = [...active, ...archived];
+      // The app may not use Season entity records — the "current season" is the org's tournament_name
+      const currentSeason = {
+        id: 'current',
+        name: org?.tournament_name || 'Current Season',
+        status: 'active',
+      };
+
+      // Also load archived seasons if any exist
+      let archived = [];
+      try {
+        const archivedRes = await base44.functions.invoke('getArchivedSeasons', { organization_id: orgId });
+        archived = archivedRes?.data?.seasons || [];
+      } catch {}
+
+      const all = [currentSeason, ...archived];
       setSeasons(all);
-      if (all.length > 0 && !selectedSeasonId) setSelectedSeasonId(all[0].id);
+      if (!selectedSeasonId) setSelectedSeasonId('current');
     } catch (err) {
       console.error('Failed to load seasons:', err);
     }
@@ -64,7 +73,9 @@ export default function SeasonReport() {
     setError(null);
     setReport(null);
     try {
-      const res = await base44.functions.invoke('generateSeasonReport', { season_id: selectedSeasonId });
+      const payload = { organization_id: organization?.id };
+      if (selectedSeasonId !== 'current') payload.season_id = selectedSeasonId;
+      const res = await base44.functions.invoke('generateSeasonReport', payload);
       if (res?.data?.error) {
         setError(res.data.error);
       } else {
