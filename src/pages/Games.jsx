@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap, Edit, ChevronDown, ChevronUp, FileEdit, Link as LinkIcon, Trophy, ClipboardList, Shirt } from "lucide-react";
+import { Plus, Calendar, PlayCircle, CheckCircle, Clock, MapPin, AlertTriangle, Trash2, Archive, ArchiveRestore, Users, Zap, Edit, ChevronDown, ChevronUp, FileEdit, Link as LinkIcon, Trophy, ClipboardList, Shirt, Lock, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import AIScheduleGenerator from "@/components/AIScheduleGenerator";
 import AIAssistant from "@/components/AIAssistant";
 import { usePermissions } from "@/components/hooks/usePermissions";
 import { useToast } from "@/components/ui/use-toast";
+import { isTrialOrg, DEMO_GAMES, DEMO_TEAMS } from "@/lib/trialDemo";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -144,6 +145,8 @@ export default function Games() {
     },
     enabled: !!user?.organization_id,
   });
+
+  const trialMode = isTrialOrg(organization);
 
   const { data: teams = [] } = useQuery({
     queryKey: ['teams', user?.organization_id],
@@ -626,7 +629,13 @@ export default function Games() {
 
   const getTeamName = (teamId) => {
     const team = teams.find(t => t.id === teamId);
-    return team?.name || 'Unknown';
+    if (team) return team.name;
+    for (const sportKey of Object.keys(DEMO_TEAMS)) {
+      for (const side of ['home', 'away']) {
+        if (DEMO_TEAMS[sportKey][side].id === teamId) return DEMO_TEAMS[sportKey][side].name;
+      }
+    }
+    return 'Unknown';
   };
 
   const toggleScorekeeperSelection = (email) => {
@@ -642,7 +651,8 @@ export default function Games() {
   }));
   };
 
-  const scheduledGames = games.filter(g => g.status === 'scheduled' && !g.archived);
+  const demoGamesToShow = trialMode ? DEMO_GAMES : [];
+  const scheduledGames = [...demoGamesToShow, ...games.filter(g => g.status === 'scheduled' && !g.archived)];
   const inProgressGames = games.filter(g => g.status === 'in_progress' && !g.archived);
   const completedGames = games.filter(g => g.status === 'completed' && !g.archived);
   const archivedGames = games.filter(g => g.archived === true);
@@ -692,6 +702,11 @@ export default function Games() {
                 {game.status === 'completed' && <CheckCircle className="w-3 h-3 mr-1" />}
                 {game.status ? game.status.replace('_', ' ').toUpperCase() : 'SCHEDULED'}
               </Badge>
+              {game.is_demo && (
+                <Badge className="bg-amber-500 text-black font-heading font-bold uppercase tracking-wide text-[10px] mb-2 ml-1">
+                  <Sparkles className="w-2.5 h-2.5 mr-0.5" /> Demo
+                </Badge>
+              )}
               <p className="text-muted-foreground text-sm font-medium flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
                 {new Date(game.game_date).toLocaleDateString()} at {new Date(game.game_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
@@ -715,7 +730,7 @@ export default function Games() {
               <Badge variant="outline" className="border-border text-foreground font-heading font-bold uppercase tracking-wide text-xs">
                 {game.sport}
               </Badge>
-              {showActions && game.status === 'scheduled' && !game.archived && (
+              {showActions && !game.is_demo && game.status === 'scheduled' && !game.archived && (
                 <div className="flex gap-1">
                   <Button 
                     variant="ghost" 
@@ -768,7 +783,15 @@ export default function Games() {
             </p>
           )}
           
-          {game.status === 'scheduled' && !game.archived && hasPermission('live_scoring') && (
+          {game.is_demo && game.status === 'scheduled' && (
+            <Link to={createPageUrl('DemoLiveScoring') + `?sport=${game.sport}`}>
+              <Button className="w-full font-medium">
+                <PlayCircle className="w-4 h-4 mr-2" />
+                Try Demo Scoring
+              </Button>
+            </Link>
+          )}
+          {!game.is_demo && game.status === 'scheduled' && !game.archived && hasPermission('live_scoring') && !trialMode && (
             <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}`}>
               <Button className="w-full font-medium">
                 <PlayCircle className="w-4 h-4 mr-2" />
@@ -776,14 +799,26 @@ export default function Games() {
               </Button>
             </Link>
           )}
-          {game.status === 'in_progress' && !game.archived && hasPermission('live_scoring') && (
+          {!game.is_demo && game.status === 'scheduled' && !game.archived && trialMode && (
+            <Button disabled className="w-full font-medium opacity-60 cursor-not-allowed" title="Subscribe to score live games">
+              <Lock className="w-4 h-4 mr-2" />
+              Subscribe to Score
+            </Button>
+          )}
+          {!game.is_demo && game.status === 'in_progress' && !game.archived && hasPermission('live_scoring') && !trialMode && (
             <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}`}>
               <Button variant="outline" className="w-full font-medium">
                 Continue Scoring
               </Button>
             </Link>
           )}
-          {['scheduled', 'in_progress'].includes(game.status) && !game.archived && (
+          {!game.is_demo && game.status === 'in_progress' && !game.archived && trialMode && (
+            <Button disabled className="w-full font-medium opacity-60 cursor-not-allowed" title="Subscribe to score live games">
+              <Lock className="w-4 h-4 mr-2" />
+              Subscribe to Score
+            </Button>
+          )}
+          {!game.is_demo && ['scheduled', 'in_progress'].includes(game.status) && !game.archived && (
             <Button
               variant="ghost"
               size="sm"
@@ -894,6 +929,21 @@ export default function Games() {
         <main className="flex-1 min-w-0">
           <div className="p-6 lg:p-8">
             <div className="max-w-7xl mx-auto space-y-8">
+              {trialMode && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-sm p-4 flex items-center gap-3">
+                  <Sparkles className="w-5 h-5 text-amber-600 shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm text-foreground font-medium">
+                      <span className="font-heading font-bold">Trial Demo Mode</span> — Try live scoring with the demo games below. Real game scoring unlocks when you subscribe.
+                    </p>
+                  </div>
+                  <Link to={createPageUrl("SubscriptionManagement")}>
+                    <Button size="sm" className="font-medium whitespace-nowrap">
+                      <Lock className="w-4 h-4 mr-1" /> Subscribe
+                    </Button>
+                  </Link>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <div>
                   <h1 className="font-heading text-3xl font-bold tracking-tight">Games</h1>

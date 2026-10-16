@@ -542,7 +542,7 @@ export default function DemoLiveScoring() {
             </div>
             <div className="flex gap-3">
               <Button onClick={endPeriod} className="flex-1 font-heading font-bold">
-                {currentPeriod < maxPeriod ? `PROCEED TO ${periodLabel(currentPeriod + 1)}` : "END GAME"}
+                {currentPeriod < maxPeriods ? `PROCEED TO ${periodLabel(currentPeriod + 1)}` : "END GAME"}
               </Button>
               <Button onClick={() => setShowEndPeriod(false)} variant="outline" className="flex-1 font-medium">CANCEL</Button>
             </div>
