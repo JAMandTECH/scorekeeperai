@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Printer, FileDown, Loader2 } from "lucide-react";
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 
 /**
  * Builds the full report (all candidates, all award categories) from the
