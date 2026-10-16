@@ -102,12 +102,12 @@ export default function AwardCandidateCard({ candidate, award, rank, highlight, 
         ))}
       </div>
 
-      {/* Score — per-game average of the composite score */}
+      {/* Points per game */}
       <div className="shrink-0 sm:ml-2">
         <div className="text-right">
-          <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Score / G</div>
+          <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">PPG</div>
           <div className={`text-xl font-heading font-bold tabular-nums ${highlight ? 'text-primary' : 'text-foreground'}`}>
-            {gp > 0 ? (score / gp).toFixed(1) : '0.0'}
+            {gp > 0 ? ((stats?.points || 0) / gp).toFixed(1) : '0.0'}
           </div>
         </div>
       </div>
