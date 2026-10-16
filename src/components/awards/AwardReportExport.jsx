@@ -8,7 +8,7 @@ import { jsPDF } from "jspdf";
  * unfiltered candidate set returned by getAwardCandidates. Each section is
  * { title, subtitle, columns: [{key,label}], rows: [{...}] }.
  */
-function buildReportSections(candidates, organization) {
+function buildReportSections(candidates, organization, award) {
   const byScore = (key) => (a, b) => (b[key] || 0) - (a[key] || 0);
 
   const bbCols = [
@@ -81,20 +81,23 @@ function buildReportSections(candidates, organization) {
   const colsFor = (rows) =>
     rows.length && rows[0]._isVb ? vbCols : bbCols;
 
-  return [
+  const all = [
     {
+      award: "season_mvp",
       title: "Season MVP",
       subtitle: "All players ranked by composite season score across completed games.",
       columns: colsFor(seasonRows),
       rows: seasonRows,
     },
     {
+      award: "finals_mvp",
       title: "Finals MVP",
       subtitle: "Players from finals games only, ranked by composite finals score.",
       columns: finalsRows.length && colsFor(finalsRows),
       rows: finalsRows,
     },
     {
+      award: "mythical",
       title: "Mythical Team",
       subtitle: "Full candidate pool. Suggested lineup: top 5 (basketball) / top 6 (volleyball) by score.",
       columns: colsFor(mythicalRows),
@@ -102,6 +105,8 @@ function buildReportSections(candidates, organization) {
       mythical: true,
     },
   ].filter((s) => s.rows.length > 0);
+
+  return award ? all.filter((s) => s.award === award) : all;
 }
 
 const ORG = "ScorekeeperAI";
@@ -297,14 +302,14 @@ function truncate(doc, str, maxW) {
 
 /* ---------------- Component ---------------- */
 
-export default function AwardReportExport({ candidates, organization, disabled }) {
+export default function AwardReportExport({ candidates, organization, award, disabled }) {
   const [busy, setBusy] = React.useState(null);
 
   const run = async (mode) => {
     if (!candidates || candidates.length === 0) return;
     setBusy(mode);
     try {
-      const sections = buildReportSections(candidates, organization);
+      const sections = buildReportSections(candidates, organization, award);
       const meta = reportMeta(organization);
       if (mode === "print") openPrintWindow(sections, meta);
       else downloadPdf(sections, meta);

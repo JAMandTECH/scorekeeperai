@@ -219,7 +219,7 @@ export default function AwardCandidates() {
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-3">
-                  <AwardReportExport candidates={reportCandidates} organization={organization} disabled={isFetching} />
+                  <AwardReportExport candidates={reportCandidates} organization={organization} award={award} disabled={isFetching} />
                   {isSuperAdmin && (
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-heading font-bold text-muted-foreground uppercase tracking-wide">Org:</span>
