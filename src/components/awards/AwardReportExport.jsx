@@ -272,7 +272,16 @@ function downloadPdf(sections, meta) {
   }
 
   const safe = (meta.orgName || "award-candidates").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
-  doc.save(`${safe}-award-candidates.pdf`);
+  const blobUrl = doc.output("bloburl");
+  // Open in a new top-level tab so the browser download isn't blocked by the
+  // builder preview iframe. Fallback to save() when no new tab is available.
+  const win = window.open("", "_blank");
+  if (win) {
+    win.opener = null;
+    win.location.replace(blobUrl);
+  } else {
+    doc.save(`${safe}-award-candidates.pdf`);
+  }
 }
 
 function truncate(doc, str, maxW) {
