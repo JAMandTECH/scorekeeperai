@@ -137,6 +137,16 @@ export default function AwardCandidates() {
       .slice(0, AWARD_LIMITS[award]);
   }, [filtered, award]);
 
+  // Full candidate list for the report: respect the current sport/division
+  // filter but do NOT cap at the on-screen top-10/20 shortlist.
+  const reportCandidates = useMemo(() => {
+    return candidates.filter((c) => {
+      if (selectedSport !== 'all' && c.sport !== selectedSport) return false;
+      if (selectedDivision !== 'all' && c.division !== selectedDivision) return false;
+      return true;
+    });
+  }, [candidates, selectedSport, selectedDivision]);
+
   // Mythical lineup size: basketball 5, volleyball 6
   const mythicalSize = selectedSport === 'volleyball' ? 6 : 5;
   const mythicalLineupIds = useMemo(() => {
@@ -209,7 +219,7 @@ export default function AwardCandidates() {
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-3">
-                  <AwardReportExport candidates={candidates} organization={organization} disabled={isFetching} />
+                  <AwardReportExport candidates={reportCandidates} organization={organization} disabled={isFetching} />
                   {isSuperAdmin && (
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-heading font-bold text-muted-foreground uppercase tracking-wide">Org:</span>
