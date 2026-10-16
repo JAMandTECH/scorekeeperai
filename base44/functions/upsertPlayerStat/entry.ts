@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { isOrgBlockedFromLiveScoring } from "../../shared/trialGuard.ts";
 
 // Retry a Base44 SDK call on transient "Rate limit exceeded" errors with
 // exponential backoff. Scoring bursts can briefly trip the account rate limit;
@@ -59,6 +60,15 @@ Deno.serve(async (req) => {
 
     if (!(isSuperAdmin || (sameOrg && (isAdmin || isScorekeeper || isGameAssigned)))) {
       return Response.json({ error: 'Forbidden: insufficient permissions' }, { status: 403 });
+    }
+
+    // Trial guard: block live-scoring writes for trial/expired/cancelled orgs
+    const isTrialBlocked = await isOrgBlockedFromLiveScoring(base44, game.organization_id);
+    if (isTrialBlocked) {
+      return Response.json({
+        error: 'Live scoring is unavailable during your trial. Subscribe to score live games.',
+        trial_blocked: true,
+      }, { status: 403 });
     }
 
     // Find existing stat for this (game, player, quarter)
