@@ -127,10 +127,13 @@ export default function AwardCandidates() {
     });
   }, [candidates, selectedSport, selectedDivision, award]);
 
-  // Sort by the relevant score
+  // Sort by the relevant score, then cap the shortlist per award type
+  const AWARD_LIMITS = { season_mvp: 10, finals_mvp: 10, mythical: 20 };
   const sorted = useMemo(() => {
     const scoreKey = award === 'finals_mvp' ? 'finals_score' : 'season_score';
-    return [...filtered].sort((a, b) => (b[scoreKey] || 0) - (a[scoreKey] || 0));
+    return [...filtered]
+      .sort((a, b) => (b[scoreKey] || 0) - (a[scoreKey] || 0))
+      .slice(0, AWARD_LIMITS[award]);
   }, [filtered, award]);
 
   // Mythical lineup size: basketball 5, volleyball 6
