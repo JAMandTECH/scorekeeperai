@@ -8,6 +8,7 @@ import { Award, Trophy, Star, Loader2, Filter, Crown, Users } from "lucide-react
 import AdminHeader from "@/components/AdminHeader";
 import AdminSidebar from "@/components/AdminSidebar";
 import AwardCandidateCard from "@/components/awards/AwardCandidateCard";
+import AwardReportExport from "@/components/awards/AwardReportExport";
 import { createPageUrl } from "@/utils";
 
 const AWARD_CONFIG = {
@@ -207,21 +208,24 @@ export default function AwardCandidates() {
                     {organization?.name || 'Organization'} · {config.description}
                   </p>
                 </div>
-                {isSuperAdmin && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-heading font-bold text-muted-foreground uppercase tracking-wide">Org:</span>
-                    <select
-                      value={superAdminOrgId || ''}
-                      onChange={(e) => handleSuperAdminOrgChange(e.target.value)}
-                      className="bg-background border border-border text-foreground px-4 py-2 font-medium"
-                    >
-                      <option value="" disabled>Select…</option>
-                      {allOrganizations.map((org) => (
-                        <option key={org.id} value={org.id}>{org.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                <div className="flex flex-col items-end gap-3">
+                  <AwardReportExport candidates={candidates} organization={organization} disabled={isFetching} />
+                  {isSuperAdmin && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-heading font-bold text-muted-foreground uppercase tracking-wide">Org:</span>
+                      <select
+                        value={superAdminOrgId || ''}
+                        onChange={(e) => handleSuperAdminOrgChange(e.target.value)}
+                        className="bg-background border border-border text-foreground px-4 py-2 font-medium"
+                      >
+                        <option value="" disabled>Select…</option>
+                        {allOrganizations.map((org) => (
+                          <option key={org.id} value={org.id}>{org.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Award tabs */}
