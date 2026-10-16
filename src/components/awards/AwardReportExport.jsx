@@ -10,6 +10,7 @@ import { jsPDF } from "jspdf";
  */
 function buildReportSections(candidates, organization, award) {
   const byScore = (key) => (a, b) => (b[key] || 0) - (a[key] || 0);
+  const LIMITS = { season_mvp: 10, finals_mvp: 10, mythical: 20 };
 
   const bbCols = [
     { key: "gp", label: "GP" },
@@ -59,6 +60,7 @@ function buildReportSections(candidates, organization, award) {
   // Season MVP — all players by season score
   const seasonRows = [...candidates]
     .sort(byScore("season_score"))
+    .slice(0, LIMITS.season_mvp)
     .map((c, i) => rowFrom(c, c.season_stats, c.season_score))
     .map((r, i) => ({ ...r, rank: i + 1 }));
 
@@ -66,12 +68,14 @@ function buildReportSections(candidates, organization, award) {
   const finalsRows = candidates
     .filter((c) => c.finals_stats)
     .sort(byScore("finals_score"))
+    .slice(0, LIMITS.finals_mvp)
     .map((c, i) => rowFrom(c, c.finals_stats, c.finals_score))
     .map((r, i) => ({ ...r, rank: i + 1 }));
 
   // Mythical — full pool by season score, suggested lineup flagged
   const mythicalRows = [...candidates]
     .sort(byScore("season_score"))
+    .slice(0, LIMITS.mythical)
     .map((c, i) => {
       const r = rowFrom(c, c.season_stats, c.season_score);
       r.rank = i + 1;
@@ -302,14 +306,14 @@ function truncate(doc, str, maxW) {
 
 /* ---------------- Component ---------------- */
 
-export default function AwardReportExport({ candidates, organization, award, disabled }) {
+export default function AwardReportExport({ candidates, organization, disabled }) {
   const [busy, setBusy] = React.useState(null);
 
   const run = async (mode) => {
     if (!candidates || candidates.length === 0) return;
     setBusy(mode);
     try {
-      const sections = buildReportSections(candidates, organization, award);
+      const sections = buildReportSections(candidates, organization);
       const meta = reportMeta(organization);
       if (mode === "print") openPrintWindow(sections, meta);
       else downloadPdf(sections, meta);
