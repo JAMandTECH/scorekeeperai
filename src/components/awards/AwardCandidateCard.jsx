@@ -21,12 +21,14 @@ export default function AwardCandidateCard({ candidate, award, rank, highlight, 
 
   const statCells = isVolleyball
     ? [
+        { label: 'GP', value: gp },
         { label: 'PTS', value: stats?.points || 0 },
         { label: 'ACES', value: stats?.aces || 0 },
         { label: 'ATT', value: stats?.attacks || 0 },
         { label: 'BLK', value: stats?.blocks || 0 },
       ]
     : [
+        { label: 'GP', value: gp },
         { label: 'PTS', value: stats?.points || 0 },
         { label: 'REB', value: stats?.rebounds || 0 },
         { label: 'AST', value: stats?.assists || 0 },
@@ -86,9 +88,6 @@ export default function AwardCandidateCard({ candidate, award, rank, highlight, 
             <Badge variant="outline" className="border-border text-muted-foreground text-[10px] font-medium uppercase">
               {candidate.division}
             </Badge>
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
-              {gp} GP
-            </span>
           </div>
         </div>
       </div>
