@@ -806,6 +806,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
     const blocks = getPlayerStat(player.id, 'blocks');
     const aces = getPlayerStat(player.id, 'aces');
     const points = attacks + blocks + aces;
+    const plusMinus = getPlayerStat(player.id, 'plus_minus');
 
     const isSelected = selectedPlayer?.id === player.id;
 
@@ -848,6 +849,10 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
             <div className="text-center">
               <div className="text-xl font-black">{aces}</div>
               <div className={`text-[9px] font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>ACE</div>
+            </div>
+            <div className="text-center">
+              <div className={`text-xl font-black ${plusMinus > 0 ? 'text-green-400' : plusMinus < 0 ? 'text-red-400' : ''}`}>{plusMinus > 0 ? `+${plusMinus}` : plusMinus}</div>
+              <div className={`text-[9px] font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>+/-</div>
             </div>
           </div>
         </div>

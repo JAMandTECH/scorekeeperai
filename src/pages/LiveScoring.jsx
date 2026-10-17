@@ -1185,6 +1185,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
     const assists = getPlayerStat(player.id, 'assists');
     const steals = getPlayerStat(player.id, 'steals');
     const blocks = getPlayerStat(player.id, 'blocks');
+    const plusMinus = getPlayerStat(player.id, 'plus_minus');
     const isFouledOut = totalFouls >= game.player_foul_limit;
     const isSelected = selectedPlayer?.id === player.id;
 
@@ -1269,6 +1270,10 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
               <div className="text-center">
                 <div className={`text-xl font-heading font-bold tabular-nums ${totalFouls >= game.player_foul_limit - 1 ? 'text-destructive' : ''}`}>{totalFouls}</div>
                 <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>FL</div>
+              </div>
+              <div className="text-center">
+                <div className={`text-xl font-heading font-bold tabular-nums ${plusMinus > 0 ? 'text-primary' : plusMinus < 0 ? 'text-destructive' : ''}`}>{plusMinus > 0 ? `+${plusMinus}` : plusMinus}</div>
+                <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>+/-</div>
               </div>
             </div>
             {isFouledOut && (
@@ -1383,7 +1388,8 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
     const steals = getPlayerStat(playerId, 'steals');
     const blocks = getPlayerStat(playerId, 'blocks');
     const fouls = getTotalPlayerFouls(playerId);
-    return `${playerId}_${points}_${rebounds}_${assists}_${steals}_${blocks}_${fouls}_${currentQuarter}`;
+    const plusMinus = getPlayerStat(playerId, 'plus_minus');
+    return `${playerId}_${points}_${rebounds}_${assists}_${steals}_${blocks}_${fouls}_${plusMinus}_${currentQuarter}`;
   };
 
   return (

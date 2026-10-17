@@ -127,6 +127,7 @@ export default function PublicGameView() {
       steals: stats.reduce((sum, s) => sum + (s.steals || 0), 0),
       blocks: stats.reduce((sum, s) => sum + (s.blocks || 0), 0),
       fouls: stats.reduce((sum, s) => sum + (s.fouls || 0), 0),
+      plus_minus: stats.reduce((sum, s) => sum + (s.plus_minus || 0), 0),
     };
   };
 
@@ -354,6 +355,7 @@ export default function PublicGameView() {
                       <th className="text-center py-3 px-2 font-heading font-bold">AST</th>
                       <th className="text-center py-3 px-2 font-heading font-bold">STL</th>
                       <th className="text-center py-3 px-2 font-heading font-bold">BLK</th>
+                      <th className="text-center py-3 px-2 font-heading font-bold">+/-</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -368,6 +370,7 @@ export default function PublicGameView() {
                           <td className="text-center py-3 px-2 text-foreground tabular-nums">{totals.assists}</td>
                           <td className="text-center py-3 px-2 text-foreground tabular-nums">{totals.steals}</td>
                           <td className="text-center py-3 px-2 text-foreground tabular-nums">{totals.blocks}</td>
+                          <td className={`text-center py-3 px-2 tabular-nums font-medium ${totals.plus_minus > 0 ? 'text-primary' : totals.plus_minus < 0 ? 'text-destructive' : 'text-foreground'}`}>{totals.plus_minus > 0 ? `+${totals.plus_minus}` : totals.plus_minus}</td>
                         </tr>
                       );
                     })}
@@ -402,6 +405,7 @@ export default function PublicGameView() {
                       <th className="text-center py-3 px-2 font-heading font-bold">AST</th>
                       <th className="text-center py-3 px-2 font-heading font-bold">STL</th>
                       <th className="text-center py-3 px-2 font-heading font-bold">BLK</th>
+                      <th className="text-center py-3 px-2 font-heading font-bold">+/-</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -416,6 +420,7 @@ export default function PublicGameView() {
                           <td className="text-center py-3 px-2 text-foreground tabular-nums">{totals.assists}</td>
                           <td className="text-center py-3 px-2 text-foreground tabular-nums">{totals.steals}</td>
                           <td className="text-center py-3 px-2 text-foreground tabular-nums">{totals.blocks}</td>
+                          <td className={`text-center py-3 px-2 tabular-nums font-medium ${totals.plus_minus > 0 ? 'text-primary' : totals.plus_minus < 0 ? 'text-destructive' : 'text-foreground'}`}>{totals.plus_minus > 0 ? `+${totals.plus_minus}` : totals.plus_minus}</td>
                         </tr>
                       );
                     })}

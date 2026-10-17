@@ -175,13 +175,14 @@ export default function GameHistory({
         totalsByPlayer[pid] = {
           player_id: pid, team_id: teamId,
           points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, fouls: 0,
-          attacks: 0, aces: 0, rally_errors: 0
+          attacks: 0, aces: 0, rally_errors: 0, plus_minus: 0
         };
       }
       const t = totalsByPlayer[pid];
       t.points += s.points || 0; t.rebounds += s.rebounds || 0; t.assists += s.assists || 0;
       t.steals += s.steals || 0; t.blocks += s.blocks || 0; t.fouls += s.fouls || 0;
       t.attacks += s.attacks || 0; t.aces += s.aces || 0; t.rally_errors += s.rally_errors || 0;
+      t.plus_minus += s.plus_minus || 0;
     }
 
     const values = Object.values(totalsByPlayer);
@@ -212,13 +213,14 @@ export default function GameHistory({
           totals[pid] = {
             player_id: pid, team_id: teamId,
             points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, fouls: 0,
-            attacks: 0, aces: 0, rally_errors: 0,
+            attacks: 0, aces: 0, rally_errors: 0, plus_minus: 0,
           };
         }
         const t = totals[pid];
         t.points += s.points || 0; t.rebounds += s.rebounds || 0; t.assists += s.assists || 0;
         t.steals += s.steals || 0; t.blocks += s.blocks || 0; t.fouls += s.fouls || 0;
         t.attacks += s.attacks || 0; t.aces += s.aces || 0; t.rally_errors += s.rally_errors || 0;
+        t.plus_minus += s.plus_minus || 0;
       });
       return Object.values(totals).map(stat => ({ ...stat, player: playerById[stat.player_id] || null }));
     };
@@ -227,7 +229,7 @@ export default function GameHistory({
   };
 
   const statLine = (stat, sport) => sport === 'basketball'
-    ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.steals || 0} STL • ${stat.blocks || 0} BLK • ${stat.fouls || 0} FLS`
+    ? `${stat.points || 0} PTS • ${stat.rebounds || 0} REB • ${stat.assists || 0} AST • ${stat.steals || 0} STL • ${stat.blocks || 0} BLK • ${stat.fouls || 0} FLS • ${stat.plus_minus > 0 ? '+' : ''}${stat.plus_minus || 0} +/-`
     : `${stat.attacks || 0} ATK • ${stat.blocks || 0} BLK • ${stat.aces || 0} ACE • ${stat.rally_errors || 0} ERR`;
 
   const bestPlayerLine = (stats, sport) => sport === 'basketball'

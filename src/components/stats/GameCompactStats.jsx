@@ -8,7 +8,7 @@ function aggregateStats(statsForGame, teamId, sport) {
   teamStats.forEach((s) => {
     const id = s.player_id;
     if (!byPlayer.has(id)) {
-      byPlayer.set(id, { points: 0, rebounds: 0, assists: 0, blocks: 0, attacks: 0, aces: 0 });
+      byPlayer.set(id, { points: 0, rebounds: 0, assists: 0, blocks: 0, attacks: 0, aces: 0, plus_minus: 0 });
     }
     const agg = byPlayer.get(id);
 
@@ -33,6 +33,7 @@ function aggregateStats(statsForGame, teamId, sport) {
     // Track volleyball components explicitly for display
     agg.attacks += vbAttacks;
     agg.aces += vbAces;
+    agg.plus_minus += Number(s.plus_minus) || 0;
   });
 
   return Array.from(byPlayer.entries()).map(([player_id, vals]) => ({ player_id, ...vals }));
@@ -76,6 +77,7 @@ export default function GameCompactStats({ game, allPlayerStats = [], allPlayers
               </>
             )}
             <th className="py-2 px-2 text-center font-semibold">BLK</th>
+            <th className="py-2 px-2 text-center font-semibold">+/-</th>
           </tr>
         </thead>
         <tbody>
@@ -107,6 +109,7 @@ export default function GameCompactStats({ game, allPlayerStats = [], allPlayers
                 </>
               )}
               <td className="py-2 px-2 text-center font-semibold text-gray-800 dark:text-gray-200">{r.blocks}</td>
+              <td className={`py-2 px-2 text-center font-semibold tabular-nums ${r.plus_minus > 0 ? 'text-green-600 dark:text-green-400' : r.plus_minus < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-800 dark:text-gray-200'}`}>{r.plus_minus > 0 ? `+${r.plus_minus}` : r.plus_minus}</td>
             </tr>
           ))}
         </tbody>

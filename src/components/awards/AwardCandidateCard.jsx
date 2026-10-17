@@ -19,6 +19,10 @@ export default function AwardCandidateCard({ candidate, award, rank, highlight, 
 
   const gp = stats?.gamesPlayed || 0;
 
+  const plusMinus = stats?.plus_minus || 0;
+  const plusMinusAvg = gp > 0 ? plusMinus / gp : 0;
+  const plusMinusDisplay = plusMinusAvg > 0 ? `+${plusMinusAvg.toFixed(1)}` : plusMinusAvg.toFixed(1);
+
   const statCells = isVolleyball
     ? [
         { label: 'GP', value: gp },
@@ -100,6 +104,16 @@ export default function AwardCandidateCard({ candidate, award, rank, highlight, 
             <div className="text-sm font-bold text-foreground tabular-nums">{c.value}</div>
           </div>
         ))}
+      </div>
+
+      {/* Plus/minus per game average */}
+      <div className="shrink-0 sm:ml-2">
+        <div className="text-right">
+          <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">AVG +/-</div>
+          <div className={`text-xl font-heading font-bold tabular-nums ${highlight ? 'text-primary' : plusMinusAvg > 0 ? 'text-primary' : plusMinusAvg < 0 ? 'text-destructive' : 'text-foreground'}`}>
+            {gp > 0 ? plusMinusDisplay : '—'}
+          </div>
+        </div>
       </div>
 
       {/* Points per game */}
