@@ -248,14 +248,15 @@ export default function Home() {
     playerStats.forEach((s) => {
       if (!eligibleGameIds.has(s.game_id)) return;
 
-      // Same fallback as Statistics: team?.sport || selectedSport
+      // Mirror Statistics' relevantPlayerGameStats filter: reject stat rows whose
+      // team sport doesn't match the selected sport (guards against cross-sport
+      // leakage in mixed games).
       const team = teamsById.get(s.team_id);
       const statSport = (team?.sport || sport || '').toLowerCase();
+      if (sport && statSport !== sport.toLowerCase()) return;
 
       // Cross-division safety: in a game involving both an Open and a Veterans team,
       // only the team(s) actually in the selected division should contribute stats.
-      // Without this, e.g. FOCUS (Open) playing a Veterans team would leak FOCUS players
-      // (like Nicho Robinson) into the Veterans leaderboard.
       if (division) {
         const statDiv = team?.division || 'No Division';
         if (statDiv !== division) return;
@@ -321,7 +322,9 @@ export default function Home() {
         };
       })
       .filter((p) => p.total > 0)
-      .sort((a, b) => b.avgNum - a.avgNum)
+      // Deterministic tie-breaking: avg desc, then total desc, then player id asc
+      // — identical to Statistics' createPlayerLeaderboard sort.
+      .sort((a, b) => b.avgNum - a.avgNum || b.total - a.total || (a.id < b.id ? -1 : 1))
       .slice(0, limit);
   };
 
