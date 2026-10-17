@@ -26,6 +26,7 @@ import BroadcastOverlayDialog from "@/components/BroadcastOverlayDialog";
 import { Radio } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import StartingLineupGate from "@/components/StartingLineupGate";
 
 export default function LiveScoring() {
   const [game, setGame] = useState(null);
@@ -298,6 +299,25 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
     }
   }, [user, game]);
 
+  // Transition a scheduled basketball game to in_progress only after both
+  // teams have confirmed their starting five. The game stays "scheduled"
+  // during lineup setup so no stats can be recorded until active lineups exist.
+  useEffect(() => {
+    if (!game?.id || editMode) return;
+    if (game.sport !== 'basketball') return;
+    if (game.status !== 'scheduled') return;
+    const homeSet = (game.active_lineup?.home?.length || 0) === 5;
+    const awaySet = (game.active_lineup?.away?.length || 0) === 5;
+    if (homeSet && awaySet) {
+      const q1Alloc = game.timeouts_q1 ?? 1;
+      updateGameByIdSafe(game.id, {
+        status: 'in_progress',
+        home_timeouts: q1Alloc,
+        away_timeouts: q1Alloc,
+      });
+    }
+  }, [game?.id, game?.status, game?.active_lineup?.home, game?.active_lineup?.away, editMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const loadGame = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const gameId = urlParams.get('game_id');
@@ -341,7 +361,6 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
       const q1Alloc = currentGame.timeouts_q1 ?? 1;
       setHomeTimeouts(q1Alloc);
       setAwayTimeouts(q1Alloc);
-      await updateGameByIdSafe(gameId, { status: 'in_progress', home_timeouts: q1Alloc, away_timeouts: q1Alloc });
     }
 
     const statsMap = await loadAllStatsPaginated(gameId);
@@ -1166,6 +1185,9 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
     );
   }
 
+  const showLineupGate = game?.sport === 'basketball' && !editMode &&
+    ((game?.active_lineup?.home?.length || 0) < 5 || (game?.active_lineup?.away?.length || 0) < 5);
+
   const quarterLabel = currentQuarter <= 4 ? `Q${currentQuarter}` : `OT${currentQuarter - 4}`;
   const inPenalty = (team) => {
     return (team === 'home' ? homeTeamFouls : awayTeamFouls) >= game.penalty_limit_per_quarter;
@@ -1499,6 +1521,18 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
         </div>
       )}
 
+      {showLineupGate && (
+        <StartingLineupGate
+          game={game}
+          homeTeam={homeTeam}
+          awayTeam={awayTeam}
+          homePlayers={homePlayers}
+          awayPlayers={awayPlayers}
+          onSetStarters={openSetStarters}
+        />
+      )}
+      {!showLineupGate && (
+        <>
       {/* Live Stream Embed (YouTube) — hidden automatically when stream_url is empty or toggled off */}
       {game.stream_url && game.stream_url.trim().length > 0 && !hideLiveStream && (
         <div className="max-w-7xl mx-auto px-4 mt-4">
@@ -2030,6 +2064,8 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
           </div>
         </div>
       </div>
+      </>
+      )}
 
       {/* Declare Default Dialog */}
       <Dialog open={showDefaultDialog} onOpenChange={setShowDefaultDialog}>
@@ -2344,10 +2380,10 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Users className="w-5 h-5" />
-              Set Starting Lineup
+              Set Active Starting Five
             </DialogTitle>
             <DialogDescription>
-              Select exactly {LINEUP_SIZE} players to start.
+              Select exactly {LINEUP_SIZE} players to be the active on-court lineup.
             </DialogDescription>
           </DialogHeader>
           <div className="flex items-center justify-between mb-2">
