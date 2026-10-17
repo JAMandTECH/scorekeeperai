@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
 import { notifySuperAdmins } from '../../shared/superAdminNotify.ts';
+import { escapeHtml } from '../../shared/orgAuth.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -32,10 +33,10 @@ export default async function(req: Request): Promise<Response> {
         <h2>New Organization Admin Request</h2>
         <p>A new admin access request has been submitted:</p>
         <ul>
-          <li><strong>Organization Name:</strong> ${organization_name}</li>
-          <li><strong>Requested by:</strong> ${user.full_name || ''} (${user.email})</li>
-          <li><strong>Phone:</strong> ${phone_number}</li>
-          <li><strong>Reason:</strong> ${reason || ''}</li>
+          <li><strong>Organization Name:</strong> ${escapeHtml(organization_name)}</li>
+          <li><strong>Requested by:</strong> ${escapeHtml(user.full_name || '')} (${escapeHtml(user.email)})</li>
+          <li><strong>Phone:</strong> ${escapeHtml(phone_number)}</li>
+          <li><strong>Reason:</strong> ${escapeHtml(reason || '')}</li>
         </ul>
         <p>Please review this request in the Admin Approvals section of your dashboard.</p>
       `,

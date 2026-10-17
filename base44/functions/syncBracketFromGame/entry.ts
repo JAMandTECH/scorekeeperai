@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { isSuperAdmin, resolveCallerOrg } from '../../shared/orgAuth.ts';
 
 // Playoff game types that map directly to bracket round names.
 const PLAYOFF_ROUND_TYPES = ['play_in', 'quarter_finals', 'semi_finals', 'finals'];
@@ -58,6 +59,18 @@ Deno.serve(async (req) => {
     const gameId = body.game_id || body?.event?.entity_id;
     if (!gameId) return Response.json({ error: 'game_id is required' }, { status: 400 });
 
+    // Entity automation calls carry an event object from the platform.
+    // Direct HTTP calls must be authenticated and org-scoped.
+    const isEntityAutomation = Boolean(body?.event && body?.event?.entity_name);
+    let authUser = null;
+    if (!isEntityAutomation) {
+      authUser = await base44.auth.me().catch(() => null);
+      if (!authUser) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      if (!isSuperAdmin(authUser) && authUser.role !== 'admin') {
+        return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      }
+    }
+
     // Load the triggering game.
     const gameResult = await base44.asServiceRole.entities.Game.filter({ id: gameId });
     const game = gameResult && gameResult[0];
@@ -66,6 +79,14 @@ Deno.serve(async (req) => {
     // Only process completed games — ignore scheduled / in-progress updates.
     if (game.status !== 'completed') {
       return Response.json({ success: true, updated: 0, message: 'game not completed' });
+    }
+
+    // For direct (non-automation) calls, verify the caller's org matches.
+    if (!isEntityAutomation) {
+      const callerOrg = resolveCallerOrg(authUser);
+      if (!isSuperAdmin(authUser) && game.organization_id !== callerOrg) {
+        return Response.json({ error: 'Forbidden: game does not belong to your organization' }, { status: 403 });
+      }
     }
 
     // Load all organization games once — used to recompute each match's series

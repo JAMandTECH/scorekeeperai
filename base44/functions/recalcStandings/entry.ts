@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { resolveAuthorizedOrg } from '../../shared/orgAuth.ts';
 
 function getSetWinnersForVolleyball(game) {
   let homeSets = 0;
@@ -21,7 +22,8 @@ Deno.serve(async (req) => {
     if (user.role !== 'admin') return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
 
     const body = await req.json().catch(() => ({}));
-    const organizationId = body.organization_id || user.organization_id || user.active_organization_id;
+    const { orgId: organizationId, error } = resolveAuthorizedOrg(user, body.organization_id, { requireAdmin: true });
+    if (error) return error;
     if (!organizationId) return Response.json({ error: 'organization_id is required' }, { status: 400 });
 
     // Fetch teams in org

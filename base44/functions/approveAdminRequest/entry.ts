@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
 import { generateAccessCode, generateSalt, hashAccessCode } from "../../shared/adminCode.ts";
 import { notifySuperAdmins } from '../../shared/superAdminNotify.ts';
+import { escapeHtml } from '../../shared/orgAuth.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -63,13 +64,13 @@ export default async function(req: Request): Promise<Response> {
         <h2 style="color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px;">
           Your Admin Access Has Been Approved!
         </h2>
-        <p style="font-size: 16px; color: #1f2937;">Hello ${request.user_name},</p>
+        <p style="font-size: 16px; color: #1f2937;">Hello ${escapeHtml(request.user_name)},</p>
         <p style="font-size: 16px; color: #1f2937;">
           Great news! Your request for admin access has been approved.
         </p>
         <div style="background: #dcfce7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a;">
           <h3 style="margin-top: 0; color: #15803d;">Your Request is Approved!</h3>
-          <p style="color: #166534;"><strong>Organization:</strong> ${request.organization_name}</p>
+          <p style="color: #166534;"><strong>Organization:</strong> ${escapeHtml(request.organization_name)}</p>
         </div>
         <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="margin-top: 0; color: #1f2937;">Your Confirmation Code:</h3>
@@ -114,8 +115,8 @@ export default async function(req: Request): Promise<Response> {
               An admin access request has been approved by a super admin.
             </p>
             <ul style="font-size: 16px; color: #1f2937; line-height: 1.6;">
-              <li><strong>Requestor:</strong> ${request.user_name} (${request.user_email})</li>
-              <li><strong>Organization:</strong> ${request.organization_name}</li>
+              <li><strong>Requestor:</strong> ${escapeHtml(request.user_name)} (${escapeHtml(request.user_email)})</li>
+              <li><strong>Organization:</strong> ${escapeHtml(request.organization_name)}</li>
               <li><strong>Approved At:</strong> ${new Date().toISOString()}</li>
               <li><strong>Requestor Email Delivered:</strong> ${requestorEmailSent ? 'Yes' : 'No (see logs)'}</li>
             </ul>

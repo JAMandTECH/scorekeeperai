@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { resolveAuthorizedOrg } from '../../shared/orgAuth.ts';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -27,7 +28,8 @@ export default async function(req) {
     if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     const body = await req.json().catch(() => ({}));
-    const organizationId = body.organization_id || user.organization_id || user.active_organization_id;
+    const { orgId: organizationId, error } = resolveAuthorizedOrg(user, body.organization_id, { requireAdmin: true });
+    if (error) return error;
     if (!organizationId) {
       return Response.json({ error: 'organization_id is required' }, { status: 400 });
     }

@@ -1,6 +1,13 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
+import { isSuperAdmin } from '../../shared/orgAuth.ts';
+
 Deno.serve(async (req) => {
   try {
-    // Public app support: no auth required to use this helper
+    // Require authentication to prevent anonymous credit drain.
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { imageUrl } = await req.json();
     if (!imageUrl) {
       return Response.json({ error: 'imageUrl is required' }, { status: 400 });

@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { resolveAuthorizedOrg } from '../../shared/orgAuth.ts';
 
 // Diagnose PlayerGameStats coverage for completed basketball games within an org
 // - Per game: linked stats count, unique players, and stray stats per team (stats for team but linked to different game)
@@ -16,9 +17,10 @@ Deno.serve(async (req) => {
       try { return await req.json(); } catch { return {}; }
     })();
 
-    const orgId = bodyOrgId || user.organization_id || user.active_organization_id || null;
+    const { orgId, error } = resolveAuthorizedOrg(user, bodyOrgId, { requireAdmin: true });
+    if (error) return error;
 
-    // Load completed basketball games in org
+    // Load completed basketball games in org (never platform-wide for regular admins)
     const gameFilter = { sport: 'basketball', status: 'completed' };
     if (orgId) Object.assign(gameFilter, { organization_id: orgId });
     const games = await base44.asServiceRole.entities.Game.filter(gameFilter);

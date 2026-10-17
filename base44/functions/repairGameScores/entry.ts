@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { resolveAuthorizedOrg } from '../../shared/orgAuth.ts';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -22,11 +23,13 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { organization_id, dry_run = false, max_games = 60 } = body || {};
+    const { dry_run = false, max_games = 60 } = body || {};
+
+    const { orgId: organization_id, error } = resolveAuthorizedOrg(user, body?.organization_id, { requireAdmin: true });
+    if (error) return error;
 
     // Only basketball games have point-based scores derived from player stats
-    const query = { sport: 'basketball' };
-    if (organization_id) query.organization_id = organization_id;
+    const query = { sport: 'basketball', organization_id };
 
     const games = await base44.asServiceRole.entities.Game.filter(query, undefined, max_games);
 

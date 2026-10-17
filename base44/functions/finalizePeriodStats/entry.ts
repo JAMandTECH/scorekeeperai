@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { isSuperAdmin } from '../../shared/orgAuth.ts';
 
 // finalizePeriodStats
 // Purpose: When a game period (basketball quarter or volleyball set) completes, ensure a PlayerGameStats
@@ -66,11 +67,12 @@ Deno.serve(async (req) => {
     // Permission check for direct calls (skip for automations)
     if (!isEntityAutomation) {
       if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-      const isAdmin = user.role === 'admin' || user.is_super_admin;
-      const sameOrg = user.organization_id && user.organization_id === game.organization_id;
-      // Heuristic: allow admins or scorekeepers (flag stored on user)
+      const superAdmin = isSuperAdmin(user);
+      const sameOrg = user.organization_id === game.organization_id ||
+        user.active_organization_id === game.organization_id;
+      const isAdmin = user.role === 'admin';
       const isScorekeeper = !!user.is_scorekeeper;
-      if (!(isAdmin || (sameOrg && isScorekeeper))) {
+      if (!(superAdmin || ((isAdmin || isScorekeeper) && sameOrg))) {
         return Response.json({ error: 'Forbidden' }, { status: 403 });
       }
     }

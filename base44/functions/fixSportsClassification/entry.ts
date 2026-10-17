@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { resolveAuthorizedOrg } from '../../shared/orgAuth.ts';
 
 // Admin-only utility to fix mixed-up sports on completed games and affected teams,
 // then re-run the basketball stats migration.
@@ -17,7 +18,8 @@ Deno.serve(async (req) => {
     }
 
     const body = await (async () => { try { return await req.json(); } catch { return {}; } })();
-    const orgId = body.organization_id || user.organization_id || user.active_organization_id || null;
+    const { orgId, error } = resolveAuthorizedOrg(user, body.organization_id, { requireAdmin: true });
+    if (error) return error;
     if (!orgId) return Response.json({ error: 'No organization scope provided' }, { status: 400 });
 
     const volleyballIds = new Set(Array.isArray(body.volleyball_game_ids) ? body.volleyball_game_ids : []);

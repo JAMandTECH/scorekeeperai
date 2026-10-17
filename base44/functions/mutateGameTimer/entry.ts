@@ -1,5 +1,32 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 
+// Whitelist of fields a timekeeper/admin may update on a GameTimer.
+// Identity fields (game_id, organization_id, season_id, timekeeper_email)
+// are never accepted from the client patch.
+const TIMER_UPDATABLE_FIELDS = new Set([
+  'period_length_seconds',
+  'period_count',
+  'period_structure',
+  'shot_clock_length_seconds',
+  'current_period',
+  'game_clock_remaining_ms',
+  'game_clock_running',
+  'game_clock_end_iso',
+  'shot_clock_remaining_ms',
+  'shot_clock_running',
+  'shot_clock_end_iso',
+  'possession',
+]);
+
+function sanitizeTimerPatch(patch) {
+  if (!patch || typeof patch !== 'object') return {};
+  const clean = {};
+  for (const key of Object.keys(patch)) {
+    if (TIMER_UPDATABLE_FIELDS.has(key)) clean[key] = patch[key];
+  }
+  return clean;
+}
+
 // Handles GameTimer create + update for timekeeper users.
 // RLS user_condition cannot match custom user flags (is_timekeeper), so the
 // service role performs the write after we verify the caller is the assigned
@@ -33,9 +60,11 @@ export default async function(req: Request): Promise<Response> {
       return Response.json({ error: 'Not the assigned timekeeper for this game' }, { status: 403 });
     }
 
+    const safePatch = sanitizeTimerPatch(patch);
+
     if (action === 'create') {
       const created = await base44.asServiceRole.entities.GameTimer.create({
-        ...patch,
+        ...safePatch,
         game_id: game.id,
         organization_id: game.organization_id,
         season_id: game.season_id,
@@ -47,7 +76,7 @@ export default async function(req: Request): Promise<Response> {
 
     if (action === 'update') {
       const updated = await base44.asServiceRole.entities.GameTimer.update(timer_id, {
-        ...patch,
+        ...safePatch,
         last_updated_by: user.email,
       });
       return Response.json(updated);

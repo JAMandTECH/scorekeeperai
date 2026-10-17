@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { isSuperAdmin } from '../../shared/orgAuth.ts';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -7,6 +8,19 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+
+    // Allow either an authenticated super admin or a valid cron secret header.
+    const cronSecret = Deno.env.get('CRON_SECRET');
+    const headerSecret = req.headers.get('X-Cron-Secret');
+    const hasCronSecret = cronSecret && headerSecret && headerSecret === cronSecret;
+
+    let user = null;
+    try { user = await base44.auth.me(); } catch (_) {}
+
+    if (!hasCronSecret) {
+      if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      if (!isSuperAdmin(user)) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const orgs = await base44.asServiceRole.entities.Organization.list();
     const summary = [];

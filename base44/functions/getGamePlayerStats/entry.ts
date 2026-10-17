@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { isSuperAdmin, resolveCallerOrg } from '../../shared/orgAuth.ts';
 
 // Small delay helper
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -83,9 +84,8 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me().catch(() => null);
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    const callerOrg = user.organization_id || user.active_organization_id ||
-      user.data?.organization_id || user.data?.active_organization_id;
-    const isSuper = Boolean(user.is_super_admin);
+    const callerOrg = resolveCallerOrg(user);
+    const isSuper = isSuperAdmin(user);
 
     const { game_id, game_ids } = await req.json().catch(() => ({}));
 
@@ -94,12 +94,25 @@ Deno.serve(async (req) => {
     }
 
     // Verify the requested game(s) belong to the caller's organization.
+    // Fail closed: non-super-admins with no resolvable org get 403.
     const idsToCheck = game_id ? [game_id] : Array.from(new Set(game_ids.filter(Boolean)));
-    if (idsToCheck.length > 0 && callerOrg && !isSuper) {
-      const gameRecords = await base44.asServiceRole.entities.Game.filter({ id: { $in: idsToCheck } });
-      for (const g of gameRecords) {
-        if (g.organization_id !== callerOrg) {
-          return Response.json({ error: 'Forbidden: game does not belong to your organization' }, { status: 403 });
+    if (!isSuper) {
+      if (!callerOrg) {
+        return Response.json({ error: 'Forbidden: no organization context' }, { status: 403 });
+      }
+      if (idsToCheck.length > 0) {
+        const gameRecords = await base44.asServiceRole.entities.Game.filter({ id: { $in: idsToCheck } });
+        const foundIds = new Set((gameRecords || []).map((g) => g.id));
+        // Reject any requested ID that doesn't exist or belongs to another org.
+        for (const id of idsToCheck) {
+          if (!foundIds.has(id)) {
+            return Response.json({ error: 'Forbidden: game not found' }, { status: 403 });
+          }
+        }
+        for (const g of gameRecords) {
+          if (g.organization_id !== callerOrg) {
+            return Response.json({ error: 'Forbidden: game does not belong to your organization' }, { status: 403 });
+          }
         }
       }
     }

@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import { resolveAuthorizedOrg } from '../../shared/orgAuth.ts';
 
 // getAwardCandidates
 // Returns award candidate lists for an organization's active season:
@@ -66,12 +67,8 @@ export default async function (req) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const organization_id =
-      body?.organization_id ||
-      user.active_organization_id ||
-      user.organization_id ||
-      user.data?.active_organization_id ||
-      user.data?.organization_id;
+    const { orgId: organization_id, error } = resolveAuthorizedOrg(user, body?.organization_id, { requireAdmin: true });
+    if (error) return error;
     if (!organization_id) {
       return Response.json({ error: 'No organization context' }, { status: 400 });
     }

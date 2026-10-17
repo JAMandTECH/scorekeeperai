@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { resolveAuthorizedOrg } from '../../shared/orgAuth.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -9,10 +10,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    // Preload players and games
+    const body = await req.json().catch(() => ({}));
+    const { orgId, error } = resolveAuthorizedOrg(user, body.organization_id, { requireAdmin: true });
+    if (error) return error;
+    if (!orgId) return Response.json({ error: 'organization_id is required' }, { status: 400 });
+
+    // Preload players and games scoped to the authorized org
     const [allPlayers, allGames] = await Promise.all([
-      base44.asServiceRole.entities.Player.list(),
-      base44.asServiceRole.entities.Game.list(),
+      base44.asServiceRole.entities.Player.filter({ organization_id: orgId }, undefined, 5000),
+      base44.asServiceRole.entities.Game.filter({ organization_id: orgId }, undefined, 5000),
     ]);
 
     const playerMap = new Map((allPlayers || []).map(p => [p.id, p]));

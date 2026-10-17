@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { resolveAuthorizedOrg } from '../../shared/orgAuth.ts';
 
 export default async function(req) {
   try {
@@ -7,11 +8,8 @@ export default async function(req) {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const orgId = body.organization_id
-      || user.active_organization_id
-      || user.organization_id
-      || user.data?.active_organization_id
-      || user.data?.organization_id;
+    const { orgId, error } = resolveAuthorizedOrg(user, body.organization_id);
+    if (error) return error;
     if (!orgId) return Response.json({ seasons: [] });
 
     const seasons = await base44.asServiceRole.entities.Season.filter({

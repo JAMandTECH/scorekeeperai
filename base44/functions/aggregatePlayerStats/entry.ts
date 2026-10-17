@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { resolveAuthorizedOrg } from '../../shared/orgAuth.ts';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -52,7 +53,8 @@ Deno.serve(async (req) => {
     let payload = {};
     try { payload = await req.json(); } catch (_) { payload = {}; }
 
-    const organizationId = payload.organization_id || user.organization_id || user.active_organization_id || null;
+    const { orgId: organizationId, error } = resolveAuthorizedOrg(user, payload.organization_id, { requireAdmin: true, allowScorekeeper: true });
+    if (error) return error;
     // Optional: only process specific games (used by the automation). If omitted, process ALL completed games (backfill).
     const targetGameIds = Array.isArray(payload.game_ids) ? payload.game_ids.filter(Boolean) : null;
     // Optional cap for resumable backfills: only process up to N not-yet-counted games per call.

@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { resolveAuthorizedOrg } from '../../shared/orgAuth.ts';
 
 export default async function (req) {
   try {
@@ -7,10 +8,8 @@ export default async function (req) {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const organization_id = body?.organization_id;
-    if (!organization_id) {
-      return Response.json({ error: 'organization_id is required' }, { status: 400 });
-    }
+    const { orgId: organization_id, error } = resolveAuthorizedOrg(user, body?.organization_id);
+    if (error) return error;
 
     const sr = base44.asServiceRole;
 

@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { isSuperAdmin, resolveCallerOrg } from '../../shared/orgAuth.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -28,9 +29,8 @@ Deno.serve(async (req) => {
     }
 
     // Verify the game belongs to the caller's organization (super admins bypass).
-    const callerOrg = user.organization_id || user.active_organization_id ||
-      user.data?.organization_id || user.data?.active_organization_id;
-    if (!Boolean(user.is_super_admin) && callerOrg && game.organization_id !== callerOrg) {
+    const callerOrg = resolveCallerOrg(user);
+    if (!isSuperAdmin(user) && game.organization_id !== callerOrg) {
       return Response.json({ error: 'Forbidden: game does not belong to your organization' }, { status: 403 });
     }
 

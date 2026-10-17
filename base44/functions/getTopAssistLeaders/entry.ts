@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { isSuperAdmin, resolveCallerOrg } from '../../shared/orgAuth.ts';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -20,12 +21,21 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    try { await base44.auth.me(); } catch (_) {}
+    const user = await base44.auth.me().catch(() => null);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     let payload = {};
     try { payload = await req.json(); } catch (_) { payload = {}; }
 
-    const organizationId = payload.organization_id || null;
+    // Scope to the caller's org; only super admins may target another org.
+    const callerOrg = resolveCallerOrg(user);
+    const requestedOrg = payload.organization_id || null;
+    const organizationId = isSuperAdmin(user)
+      ? (requestedOrg || callerOrg || null)
+      : callerOrg;
+    if (!isSuperAdmin(user) && requestedOrg && callerOrg && requestedOrg !== callerOrg) {
+      return Response.json({ error: 'Forbidden: cannot access another organization' }, { status: 403 });
+    }
     const limit = Math.max(1, Math.min(Number(payload.limit) || 10, 50));
     const sport = String(payload.sport || 'basketball').toLowerCase();
     const division = payload.division != null ? String(payload.division).toLowerCase() : null;

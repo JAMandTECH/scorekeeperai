@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { resolveAuthorizedOrg } from '../../shared/orgAuth.ts';
 
 // Migration: Repair PlayerGameStats for completed basketball games within an organization
 // - Recompute points from (FGM/3PM/FTM) when missing/incorrect
@@ -17,11 +18,11 @@ Deno.serve(async (req) => {
       try { return await req.json(); } catch { return {}; }
     })();
 
-    const orgId = bodyOrgId || user.organization_id || user.active_organization_id || null;
+    const { orgId, error } = resolveAuthorizedOrg(user, bodyOrgId, { requireAdmin: true });
+    if (error) return error;
 
-    // Load completed basketball games in org
-    const gameFilter = { sport: 'basketball', status: 'completed' };
-    if (orgId) Object.assign(gameFilter, { organization_id: orgId });
+    // Load completed basketball games in org (never platform-wide for regular admins)
+    const gameFilter = { sport: 'basketball', status: 'completed', organization_id: orgId };
     const games = await base44.asServiceRole.entities.Game.filter(gameFilter);
 
     if (!games?.length) {

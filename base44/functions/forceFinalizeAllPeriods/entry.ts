@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { isSuperAdmin, resolveCallerOrg } from '../../shared/orgAuth.ts';
 
 // Force-finalize all periods for a target basketball/volleyball game
 // Usage payload options:
@@ -15,12 +16,13 @@ Deno.serve(async (req) => {
     const { game_id, home_name, away_name, division } = body || {};
 
     // Resolve organization
-    const orgId = user.organization_id || user.active_organization_id || null;
+    const orgId = resolveCallerOrg(user);
+    const superAdmin = isSuperAdmin(user);
 
-    // Permission: admin or same-org scorekeeper
-    const isAdmin = user.role === 'admin' || !!user.is_super_admin;
+    // Permission: super admin, or same-org admin/scorekeeper
+    const isAdmin = user.role === 'admin';
     const isScorekeeper = !!user.is_scorekeeper;
-    if (!(isAdmin || (isScorekeeper && orgId))) {
+    if (!(superAdmin || ((isAdmin || isScorekeeper) && orgId))) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -37,7 +39,7 @@ Deno.serve(async (req) => {
     if (game_id) {
       game = await base44.asServiceRole.entities.Game.get(game_id);
       if (!game) return Response.json({ error: 'Game not found' }, { status: 404 });
-      if (orgId && game.organization_id !== orgId && !isAdmin) {
+      if (game.organization_id !== orgId && !superAdmin) {
         return Response.json({ error: 'Game belongs to a different organization' }, { status: 403 });
       }
     } else {

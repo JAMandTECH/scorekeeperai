@@ -2,6 +2,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 const DEFAULT_MODEL = 'gemini-1.5-flash';
+// Allowlist of permitted models — prevents callers from selecting costly models.
+const ALLOWED_MODELS = new Set(['gemini-1.5-flash', 'gemini-1.5-flash-8b']);
+const MAX_PROMPT_CHARS = 8000;
 
 Deno.serve(async (req) => {
   try {
@@ -20,10 +23,17 @@ Deno.serve(async (req) => {
     const prompt = body?.prompt ?? '';
     const system = body?.system ?? '';
     const responseSchema = body?.response_json_schema ?? null;
-    const model = body?.model || DEFAULT_MODEL;
+    // Ignore client-supplied model unless it's in the allowlist of cheap models.
+    const requestedModel = body?.model;
+    const model = (typeof requestedModel === 'string' && ALLOWED_MODELS.has(requestedModel))
+      ? requestedModel
+      : DEFAULT_MODEL;
 
     if (!prompt) {
       return Response.json({ error: 'Missing prompt' }, { status: 400 });
+    }
+    if (prompt.length > MAX_PROMPT_CHARS) {
+      return Response.json({ error: 'Prompt too long' }, { status: 400 });
     }
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
