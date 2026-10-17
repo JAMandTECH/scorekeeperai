@@ -1383,7 +1383,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
   };
 
   const confirmSubstitute = async (inPlayerId) => {
-    if (!subOutPlayer || !inPlayerId) return;
+    if (!subOutPlayer?.player?.id || !inPlayerId) return;
     setLineupSaving(true);
     try {
       const resp = await base44.functions.invoke("manageLineup", {
@@ -2442,7 +2442,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
               Substitute
             </DialogTitle>
             <DialogDescription>
-              <span className="font-bold text-foreground">{subOutPlayer?.player.first_name} {subOutPlayer?.player.last_name}</span> (#{subOutPlayer?.player.jersey_number}) going out. Select incoming player.
+              <span className="font-bold text-foreground">{subOutPlayer?.player?.first_name} {subOutPlayer?.player?.last_name}</span> (#{subOutPlayer?.player?.jersey_number}) going out. Select incoming player.
             </DialogDescription>
           </DialogHeader>
           {(() => {

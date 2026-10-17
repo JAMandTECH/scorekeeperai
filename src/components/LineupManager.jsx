@@ -88,7 +88,7 @@ export default function LineupManager({
   };
 
   const handleSubstitute = async (inPlayerId) => {
-    if (!subDialog || !inPlayerId) return;
+    if (!subDialog?.outPlayer?.id || !inPlayerId) return;
     setSaving(true);
     try {
       const resp = await base44.functions.invoke("manageLineup", {
@@ -308,9 +308,9 @@ export default function LineupManager({
             </DialogTitle>
             <DialogDescription>
               <span className="font-bold text-foreground">
-                {subDialog.outPlayer.first_name} {subDialog.outPlayer.last_name}
+                {subDialog?.outPlayer?.first_name} {subDialog?.outPlayer?.last_name}
               </span>{" "}
-              (#{subDialog.outPlayer.jersey_number}) going out. Select incoming player.
+              (#{subDialog?.outPlayer?.jersey_number}) going out. Select incoming player.
             </DialogDescription>
           </DialogHeader>
 
