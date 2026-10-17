@@ -7,7 +7,7 @@ export default function TopAssistLeaders({
   organizationId = null,
   sport = "basketball",
   limit = 10,
-  title = "Top 10 Assist Leaders",
+  title = "Top Assist Leaders",
   orgName = null,
   orgLogoUrl = null,
   division = null,
