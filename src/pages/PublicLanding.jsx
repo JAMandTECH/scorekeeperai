@@ -4,7 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { 
   Calendar, Target, Zap, Shield, ArrowRight, Sun, Moon, 
   PlayCircle, Users, BarChart3, Trophy, CheckCircle, Globe, LogOut, LayoutGrid, Sparkles, Mic, Brain, Menu, X, Radio,
-  ClipboardList, CalendarClock, Calculator, Eye, MessageSquare, DollarSign
+  ClipboardList, CalendarClock, Calculator, Eye, MessageSquare, DollarSign,
+  Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AIAssistant from "@/components/AIAssistant";
@@ -68,11 +69,14 @@ export default function PublicLanding() {
   };
 
   const features = [
-    { icon: PlayCircle, title: "Live Scoring", description: "Real-time game scoring with instant updates. Track every point, foul, and statistic as it happens." },
-    { icon: Users, title: "Team Management", description: "Organize teams, players, and divisions effortlessly. Upload photos, track rosters, and manage everything in one place." },
-    { icon: BarChart3, title: "Advanced Analytics", description: "Comprehensive statistics and performance metrics. Player rankings, team standings, and historical data at your fingertips." },
-    { icon: Calendar, title: "Game Scheduling", description: "Schedule games, set locations, and manage tournaments. Automated standings updates and playoff brackets." },
-    { icon: Trophy, title: "Multi-Sport Support", description: "Built for basketball and volleyball with sport-specific features. Customizable rules and scoring systems." },
+    { icon: PlayCircle, title: "Live Scoring", description: "Real-time game scoring with instant updates. Track every point, foul, timeout and statistic as it happens — with undo and edit." },
+    { icon: Activity, title: "Player Plus/Minus", description: "Track the score differential for every individual player while they're on court. See who truly impacts the game beyond the box score." },
+    { icon: Users, title: "Team & Roster Management", description: "Organize teams, players, divisions and seasons. Upload photos, track rosters, and manage everything in one place." },
+    { icon: BarChart3, title: "Advanced Analytics", description: "Comprehensive statistics, player rankings, team standings, and historical season archives — all updated automatically." },
+    { icon: Calendar, title: "AI Schedule Generator", description: "Generate full round-robin schedules in seconds. Set game times, courts and scorekeepers, then fine-tune as needed." },
+    { icon: Trophy, title: "Tournament Brackets", description: "Generate playoff brackets, seed teams, and track tournament progress from first round to championship game." },
+    { icon: Radio, title: "Stream Overlay", description: "Embed live streams with a real-time score overlay. Share the broadcast link so fans never miss a moment." },
+    { icon: Sparkles, title: "AI Posters & Insights", description: "Auto-generate highlight posters, game summaries, and weekly recaps your community will actually love." },
     { icon: Globe, title: "Public Access", description: "Share standings, schedules, and stats publicly. Fans can follow their favorite teams and players in real-time." }
   ];
 
@@ -465,6 +469,80 @@ export default function PublicLanding() {
                 <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-primary" /> Key moment highlights</li>
                 <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-primary" /> Player performance notes</li>
               </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Player Plus/Minus Highlight ── */}
+      <section className="border-b border-border bg-secondary/30">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Activity className="w-5 h-5 text-primary" />
+                <span className="text-xs font-semibold tracking-wide uppercase text-primary">New · Individual Player Impact</span>
+              </div>
+              <h2 className="font-heading text-3xl md:text-4xl font-bold tracking-tight mb-6">
+                Every player's <span className="text-primary">+/−</span> tracked in real time
+              </h2>
+              <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+                Go beyond the box score. ScorekeeperAI tracks the score differential for each individual player while they're on court — so you can see who truly drives the game, quarter by quarter.
+              </p>
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium mb-1">Per-quarter plus/minus</p>
+                    <p className="text-sm text-muted-foreground">See the score swing for every player in each quarter, not just the final tally.</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium mb-1">Lineup-aware tracking</p>
+                    <p className="text-sm text-muted-foreground">Plus/minus updates automatically for all five active players the moment a basket drops.</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium mb-1">Works for volleyball too</p>
+                    <p className="text-sm text-muted-foreground">Rally-point differentials apply to all on-court players, so every rotation is measured.</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div className="bg-card border border-border">
+              <div className="flex items-center justify-between p-6 border-b border-border">
+                <div>
+                  <h3 className="font-heading text-lg font-bold">Player Plus/Minus</h3>
+                  <p className="text-xs text-muted-foreground">Q3 · Thunder Hawks vs Storm Eagles</p>
+                </div>
+                <span className="flex items-center gap-1.5 text-xs font-medium text-destructive">
+                  <span className="live-dot" /> LIVE
+                </span>
+              </div>
+              <div className="divide-y divide-border">
+                {[
+                  { num: "23", name: "Marcus Chen", pm: "+12", pos: true },
+                  { num: "15", name: "David Kim", pm: "+8", pos: true },
+                  { num: "07", name: "Chris Santos", pm: "+3", pos: true },
+                  { num: "11", name: "Mike Torres", pm: "−2", pos: false },
+                  { num: "34", name: "James Rivera", pm: "−7", pos: false },
+                ].map((p) => (
+                  <div key={p.num} className="flex items-center gap-4 px-6 py-4">
+                    <span className="font-heading text-sm font-bold tabular-nums text-muted-foreground w-10">#{p.num}</span>
+                    <span className="flex-1 text-sm font-medium">{p.name}</span>
+                    <span className={`font-heading text-lg font-bold tabular-nums ${p.pos ? "text-primary" : "text-destructive"}`}>
+                      {p.pm}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="px-6 py-4 border-t border-border bg-secondary/30">
+                <p className="text-xs text-muted-foreground">Updated automatically with every scored basket</p>
+              </div>
             </div>
           </div>
         </div>
