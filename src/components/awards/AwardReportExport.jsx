@@ -152,7 +152,7 @@ function openPrintWindow(sections, meta) {
       s.columns.map((c) => `<th class="num">${c.label}</th>`).join("") + `</tr>`;
     const body = s.rows.map((r) => {
       const cls = s.mythical && r.rank <= (r._isVb ? 6 : 5) ? ' class="mythical"' : "";
-      const cells = `<td>${r.rank}</td><td>${escapeHtml(r.player)} ${r.jersey ? `<span style="color:#888">${r.jersey}</span>` : ""}</td><td>${escapeHtml(r.team)}</td><td>${escapeHtml(r.division)}</td>` +
+      const cells = `<td>${r.rank}</td><td>${escapeHtml(r.player)} ${r.jersey ? `<span style="color:#888">${escapeHtml(r.jersey)}</span>` : ""}</td><td>${escapeHtml(r.team)}</td><td>${escapeHtml(r.division)}</td>` +
         s.columns.map((c) => `<td class="num">${r[c.key]}</td>`).join("");
       return `<tr${cls}>${cells}</tr>`;
     }).join("");

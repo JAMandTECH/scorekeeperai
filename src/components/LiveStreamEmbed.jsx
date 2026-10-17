@@ -12,6 +12,18 @@ export default function LiveStreamEmbed({ streamUrl, gameTitle, game, showScoreO
 
   if (!streamUrl) return null;
 
+  // Reject non-http(s) schemes to prevent XSS via javascript: URIs in iframe src or window.open
+  const isSafeUrl = (url) => {
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
+  if (!isSafeUrl(streamUrl)) return null;
+
   // Convert various stream URLs to embeddable format
   const getEmbedUrl = (url) => {
     try {
@@ -54,11 +66,11 @@ export default function LiveStreamEmbed({ streamUrl, gameTitle, game, showScoreO
         return url;
       }
       
-      // Return original URL if we can't convert it
+      // Return original URL if we can't convert it (already validated as http(s))
       return url;
     } catch (error) {
       console.error('Error parsing stream URL:', error);
-      return url;
+      return null;
     }
   };
 

@@ -87,6 +87,14 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Validate stream_url scheme to prevent XSS via javascript: URIs rendered in iframe src
+    if ('stream_url' in safePatch) {
+      const streamUrl = String(safePatch.stream_url || '');
+      if (streamUrl && !/^https?:\/\//i.test(streamUrl)) {
+        return Response.json({ error: 'stream_url must be an http(s) URL' }, { status: 400 });
+      }
+    }
+
     if (Object.keys(safePatch).length === 0) {
       return Response.json({ error: 'No allowed fields in patch' }, { status: 400 });
     }

@@ -87,32 +87,38 @@ export default function SubscriptionCheckout() {
     setSelectedTier(tier);
     setProcessingPayment(true);
 
+    // Open checkout tab synchronously when framed so popup blockers preserve user activation
+    const isFramed = window.self !== window.top;
+    const checkoutTab = isFramed ? window.open("", "_blank") : null;
+    if (isFramed && !checkoutTab) {
+      alert("Allow popups to continue to checkout.");
+      setProcessingPayment(false);
+      return;
+    }
+    if (checkoutTab) checkoutTab.opener = null;
+
     try {
-      const isIframe = window.top !== window.self;
-      if (isIframe) {
-        alert('Checkout must be opened from a published app (not inside the editor). Please open your app in a new tab.');
-        setProcessingPayment(false);
-        return;
-      }
-      const response = await base44.functions.invoke('stripeCheckout', {
-        organization_id: organization.id,
+      // Step 1: obtain a signed checkout token (requires admin auth, binds org_id server-side)
+      const intent = await base44.functions.invoke('createCheckoutIntent', {
         tier,
         selected_sport: tier === 'basic' ? selectedSport : null,
       });
 
-      // Redirect to Stripe Checkout
-      window.location.href = response.data.url;
+      // Step 2: create the Stripe Checkout session with the verified token
+      const response = await base44.functions.invoke('stripeCheckout', {
+        token: intent.data.token,
+      });
+
+      const { url } = response.data;
+      if (checkoutTab) {
+        checkoutTab.location.replace(url);
+      } else {
+        window.location.assign(url);
+      }
     } catch (error) {
-      console.error('=== SUBSCRIPTION ERROR ===');
-      console.error('Full error object:', error);
-      console.error('Error response:', error.response);
-      console.error('Error response data:', error.response?.data);
-      console.error('Error message:', error.message);
-
-      const errorDetails = error.response?.data || {};
-      const errorMsg = JSON.stringify(errorDetails, null, 2) || error.message;
-
-      alert(`Failed to create subscription:\n\n${errorMsg}\n\nCheck the browser console for full error details and Dashboard → Code → Functions → createPayPalSubscription logs for backend errors.`);
+      checkoutTab?.close();
+      console.error('Subscription error:', error);
+      alert(`Failed to create subscription: ${error?.message || 'Unknown error'}`);
       setProcessingPayment(false);
     }
   };

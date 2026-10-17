@@ -80,10 +80,20 @@ Deno.serve(async (req) => {
 
     const existing = existingList && existingList[0] ? existingList[0] : null;
 
+    // Allowlist of stat fields that may be incremented — prevents overwriting
+    // identity/linkage fields (game_id, player_id, team_id, organization_id, etc.)
+    const ALLOWED_STAT_KEYS = new Set([
+      'points', 'rebounds', 'assists', 'steals', 'blocks', 'fouls',
+      'three_pointers', 'field_goals_made', 'field_goals_attempted',
+      'free_throws_made', 'free_throws_attempted',
+      'attacks', 'aces', 'rally_errors',
+    ]);
+
     const applyUpdates = (obj) => {
       const updated = { ...obj };
       for (const u of updates) {
         const key = u.statType;
+        if (!ALLOWED_STAT_KEYS.has(key)) continue; // silently skip unknown keys
         const val = Number(u.value) || 0;
         const current = Number(updated[key] || 0);
         const next = Math.max(0, current + val);
