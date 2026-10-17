@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@base44/sdk@0.8.23';
 import Stripe from 'npm:stripe@14.23.0';
 import { notifySuperAdmins } from '../../shared/superAdminNotify.ts';
+import { escapeHtml } from '../../shared/orgAuth.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -77,6 +78,7 @@ Deno.serve(async (req) => {
 
       const amount = data.amount_total != null ? (data.amount_total / 100).toFixed(2) : 'N/A';
       const currency = (data.currency || 'usd').toUpperCase();
+      const safeOrgName = escapeHtml(orgName);
       await notifySuperAdmins({
         base44,
         subject: `Paid Subscription Activated: ${orgName}`,
@@ -84,15 +86,15 @@ Deno.serve(async (req) => {
           <h2>Paid Subscription Activated</h2>
           <p>A new paid subscription has been activated via Stripe:</p>
           <ul>
-            <li><strong>Organization:</strong> ${orgName}</li>
+            <li><strong>Organization:</strong> ${safeOrgName}</li>
             <li><strong>Tier:</strong> ${tier || 'N/A'}</li>
             <li><strong>Amount:</strong> ${currency} ${amount}</li>
             <li><strong>Organization ID:</strong> ${organizationId}</li>
           </ul>
         `,
         notificationType: 'subscription',
-        title: `Subscription activated: ${orgName}`,
-        message: `${orgName} subscribed at the ${tier || 'unknown'} tier (${currency} ${amount}).`,
+        title: `Subscription activated: ${safeOrgName}`,
+        message: `${safeOrgName} subscribed at the ${tier || 'unknown'} tier (${currency} ${amount}).`,
         data: {
           organization_id: organizationId,
           organization_name: orgName,

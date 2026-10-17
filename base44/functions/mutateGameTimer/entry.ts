@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { isSuperAdmin, resolveCallerOrg } from '../../shared/orgAuth.ts';
 
 // Whitelist of fields a timekeeper/admin may update on a GameTimer.
 // Identity fields (game_id, organization_id, season_id, timekeeper_email)
@@ -56,8 +57,10 @@ export default async function(req: Request): Promise<Response> {
     }
 
     if (!game) return Response.json({ error: 'Game not found' }, { status: 404 });
-    if ((game.timekeeper_email || '').toLowerCase() !== email && user.role !== 'admin') {
-      return Response.json({ error: 'Not the assigned timekeeper for this game' }, { status: 403 });
+    const isAssignedTimekeeper = (game.timekeeper_email || '').toLowerCase() === email;
+    const sameOrg = game.organization_id === resolveCallerOrg(user);
+    if (!isAssignedTimekeeper && !isSuperAdmin(user) && !(user.role === 'admin' && sameOrg)) {
+      return Response.json({ error: 'Not authorized for this game' }, { status: 403 });
     }
 
     const safePatch = sanitizeTimerPatch(patch);

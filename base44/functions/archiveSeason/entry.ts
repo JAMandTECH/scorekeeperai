@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { isSuperAdmin, resolveCallerOrg } from '../../shared/orgAuth.ts';
 
 export default async function(req) {
   try {
@@ -14,6 +15,9 @@ export default async function(req) {
     const sr = base44.asServiceRole;
     const season = await sr.entities.Season.get(seasonId);
     if (!season) return Response.json({ error: 'Season not found' }, { status: 404 });
+    if (!isSuperAdmin(user) && season.organization_id !== resolveCallerOrg(user)) {
+      return Response.json({ error: 'Forbidden: cannot archive another organization\'s season' }, { status: 403 });
+    }
     if (season.status !== 'active') return Response.json({ error: 'Season is not active' }, { status: 400 });
 
     const orgId = season.organization_id;

@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@base44/sdk@0.8.4';
 import { notifySuperAdmins } from '../../shared/superAdminNotify.ts';
+import { escapeHtml } from '../../shared/orgAuth.ts';
 
 async function getPayPalAccessToken() {
   const clientId = Deno.env.get("PAYPAL_CLIENT_ID");
@@ -116,6 +117,7 @@ Deno.serve(async (req) => {
         }
 
         // Notify super admins (email + in-app). Errors are logged inside the helper.
+        const safeOrgName = escapeHtml(orgName);
         await notifySuperAdmins({
           base44,
           subject: `Organization Subscription Activated: ${orgName}`,
@@ -123,14 +125,14 @@ Deno.serve(async (req) => {
             <h2>Organization Subscription Activated</h2>
             <p>An organization has successfully subscribed via PayPal:</p>
             <ul>
-              <li><strong>Organization:</strong> ${orgName}</li>
+              <li><strong>Organization:</strong> ${safeOrgName}</li>
               <li><strong>Subscription Tier:</strong> ${tier || 'N/A'}</li>
               <li><strong>Subscription ID:</strong> ${resource.id}</li>
             </ul>
           `,
           notificationType: 'subscription',
-          title: `Subscription activated: ${orgName}`,
-          message: `${orgName} subscribed at the ${tier || 'unknown'} tier via PayPal.`,
+          title: `Subscription activated: ${safeOrgName}`,
+          message: `${safeOrgName} subscribed at the ${tier || 'unknown'} tier via PayPal.`,
           data: {
             organization_id: organizationId,
             organization_name: orgName,
