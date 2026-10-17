@@ -1,5 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
 import { isSuperAdmin } from '../../shared/orgAuth.ts';
+import { checkRateLimit } from '../../shared/rateLimit.ts';
+
+const RATE_LIMIT = { maxCalls: 10, windowMs: 60 * 60 * 1000 }; // 10/hour per user
+const ALLOWED_IMAGE_ORIGINS = ['https://media.base44.com', 'https://base44.app'];
+
+function isValidImageOrigin(url: string): boolean {
+  if (!url) return false;
+  if (url.startsWith('data:image/')) return true;
+  try {
+    const parsed = new URL(url);
+    return ALLOWED_IMAGE_ORIGINS.some((origin) => parsed.origin === origin);
+  } catch {
+    return false;
+  }
+}
 
 Deno.serve(async (req) => {
   try {
@@ -11,6 +26,17 @@ Deno.serve(async (req) => {
     const { imageUrl } = await req.json();
     if (!imageUrl) {
       return Response.json({ error: 'imageUrl is required' }, { status: 400 });
+    }
+
+    // Validate image URL origin — restrict to app's storage origins.
+    if (!isValidImageOrigin(imageUrl)) {
+      return Response.json({ error: 'Image URL must originate from the app storage' }, { status: 400 });
+    }
+
+    // Per-user rate limit — prevents uncontrolled API spending.
+    const rl = checkRateLimit(user.id, 'removeBg', RATE_LIMIT);
+    if (!rl.allowed) {
+      return Response.json({ error: 'Rate limit exceeded. Try again later.' }, { status: 429 });
     }
 
     const apiKey = Deno.env.get('REMOVEBG_API_KEY');
@@ -35,12 +61,8 @@ Deno.serve(async (req) => {
 
     if (!resp.ok) {
       const text = await resp.text();
-      console.error('remove.bg error', resp.status, text);
-      let body = null;
-      try { body = JSON.parse(text); } catch (_) {}
-      const msg = body?.errors?.[0]?.title || 'Background removal failed';
-      const code = body?.errors?.[0]?.code || undefined;
-      return Response.json({ error: msg, code, details: body || text }, { status: resp.status });
+      console.error('remove.bg error', resp.status, text?.slice(0, 200));
+      return Response.json({ error: 'Background removal failed' }, { status: resp.status });
     }
 
     const arrayBuf = await resp.arrayBuffer();
@@ -58,7 +80,7 @@ Deno.serve(async (req) => {
 
     return Response.json({ dataUrl });
   } catch (err) {
-    console.error('removeBg exception', err);
-    return Response.json({ error: err.message || 'Unknown error' }, { status: 500 });
+    console.error('removeBg exception', err?.message || err);
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

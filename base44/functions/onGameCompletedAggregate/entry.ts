@@ -14,15 +14,12 @@ Deno.serve(async (req) => {
     const data = body.data || null;
     const entityId = event.entity_id || (data && data.id) || null;
 
-    // Entity automation calls carry an event object from the platform.
-    // Direct HTTP calls must be authenticated and org-scoped.
-    const isEntityAutomation = Boolean(event && event.entity_name);
-    if (!isEntityAutomation) {
-      const user = await base44.auth.me().catch(() => null);
-      if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-      if (!isSuperAdmin(user) && user.role !== 'admin') {
-        return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-      }
+    // Always authenticate — no body-marker bypass. Workflow invocations
+    // carry platform auth; direct calls require an authenticated admin.
+    const user = await base44.auth.me().catch(() => null);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!isSuperAdmin(user) && user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
     // Always fetch the game from the database — never trust client-supplied data.
@@ -40,9 +37,8 @@ Deno.serve(async (req) => {
       return Response.json({ ok: true, skipped: 'not_completed' });
     }
 
-    // For direct (non-automation) calls, verify the caller's org matches.
-    if (!isEntityAutomation) {
-      const user = await base44.auth.me().catch(() => null);
+    // Verify the caller's org matches (super admins bypass).
+    {
       const callerOrg = resolveCallerOrg(user);
       if (!isSuperAdmin(user) && game.organization_id !== callerOrg) {
         return Response.json({ error: 'Forbidden: game does not belong to your organization' }, { status: 403 });
@@ -57,6 +53,6 @@ Deno.serve(async (req) => {
     return Response.json({ ok: true, game_id: game.id, result: res?.data ?? res ?? null });
   } catch (error) {
     console.error('onGameCompletedAggregate error:', error?.message || error);
-    return Response.json({ error: error?.message || 'Internal Server Error' }, { status: 500 });
+    return Response.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 });

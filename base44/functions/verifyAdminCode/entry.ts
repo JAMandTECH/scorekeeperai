@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
 import { hashAccessCode } from "../../shared/adminCode.ts";
 import { notifySuperAdmins } from '../../shared/superAdminNotify.ts';
+import { escapeHtml } from '../../shared/orgAuth.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -44,20 +45,20 @@ export default async function(req: Request): Promise<Response> {
     try {
       await notifySuperAdmins({
         base44,
-        subject: `Admin Sign-Up Completed: ${matched.organization_name}`,
+        subject: `Admin Sign-Up Completed: ${escapeHtml(matched.organization_name || '')}`,
         htmlBody: `
           <h2>Admin Sign-Up Completed</h2>
           <p>A requestor has successfully completed their admin sign-up by verifying their access code.</p>
           <ul>
-            <li><strong>Name:</strong> ${matched.user_name || '—'}</li>
-            <li><strong>Email:</strong> ${matched.user_email}</li>
-            <li><strong>Organization:</strong> ${matched.organization_name}</li>
+            <li><strong>Name:</strong> ${escapeHtml(matched.user_name || '—')}</li>
+            <li><strong>Email:</strong> ${escapeHtml(matched.user_email || '')}</li>
+            <li><strong>Organization:</strong> ${escapeHtml(matched.organization_name || '')}</li>
             <li><strong>Completed At:</strong> ${new Date().toISOString()}</li>
           </ul>
         `,
         notificationType: 'signup',
-        title: `Sign-up completed: ${matched.user_name || matched.user_email}`,
-        message: `${matched.user_name || matched.user_email} completed admin sign-up for ${matched.organization_name}.`,
+        title: `Sign-up completed: ${escapeHtml(matched.user_name || matched.user_email || '')}`,
+        message: `${escapeHtml(matched.user_name || matched.user_email || '')} completed admin sign-up for ${escapeHtml(matched.organization_name || '')}.`,
         data: {
           user_email: matched.user_email,
           user_name: matched.user_name,
@@ -71,6 +72,7 @@ export default async function(req: Request): Promise<Response> {
 
     return Response.json({ success: true, organization_name: matched.organization_name });
   } catch (error) {
-    return Response.json({ error: (error as Error).message }, { status: 500 });
+    console.error('verifyAdminCode error:', error?.message || error);
+    return Response.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

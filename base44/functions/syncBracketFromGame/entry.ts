@@ -59,16 +59,12 @@ Deno.serve(async (req) => {
     const gameId = body.game_id || body?.event?.entity_id;
     if (!gameId) return Response.json({ error: 'game_id is required' }, { status: 400 });
 
-    // Entity automation calls carry an event object from the platform.
-    // Direct HTTP calls must be authenticated and org-scoped.
-    const isEntityAutomation = Boolean(body?.event && body?.event?.entity_name);
-    let authUser = null;
-    if (!isEntityAutomation) {
-      authUser = await base44.auth.me().catch(() => null);
-      if (!authUser) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-      if (!isSuperAdmin(authUser) && authUser.role !== 'admin') {
-        return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-      }
+    // Always authenticate — no body-marker bypass. Workflow invocations
+    // carry platform auth; direct calls require an authenticated admin.
+    const authUser = await base44.auth.me().catch(() => null);
+    if (!authUser) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!isSuperAdmin(authUser) && authUser.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
     // Load the triggering game.
@@ -81,8 +77,8 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, updated: 0, message: 'game not completed' });
     }
 
-    // For direct (non-automation) calls, verify the caller's org matches.
-    if (!isEntityAutomation) {
+    // Verify the caller's org matches (super admins bypass).
+    {
       const callerOrg = resolveCallerOrg(authUser);
       if (!isSuperAdmin(authUser) && game.organization_id !== callerOrg) {
         return Response.json({ error: 'Forbidden: game does not belong to your organization' }, { status: 403 });
@@ -276,7 +272,7 @@ Deno.serve(async (req) => {
     return Response.json({ success: true, updated });
   } catch (error) {
     console.error('syncBracketFromGame error:', error?.message || error);
-    return Response.json({ error: error?.message || String(error) }, { status: 500 });
+    return Response.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 });
 

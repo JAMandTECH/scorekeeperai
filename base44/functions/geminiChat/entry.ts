@@ -1,6 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { checkRateLimit } from '../../shared/rateLimit.ts';
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+const RATE_LIMIT = { maxCalls: 20, windowMs: 60 * 60 * 1000 }; // 20/hour per user
 const DEFAULT_MODEL = 'gemini-1.5-flash';
 // Allowlist of permitted models — prevents callers from selecting costly models.
 const ALLOWED_MODELS = new Set(['gemini-1.5-flash', 'gemini-1.5-flash-8b']);
@@ -17,6 +19,12 @@ Deno.serve(async (req) => {
 
     if (!GEMINI_API_KEY) {
       return Response.json({ error: 'GEMINI_API_KEY not set' }, { status: 500 });
+    }
+
+    // Per-user rate limit — prevents uncontrolled API spending.
+    const rl = checkRateLimit(user.id, 'geminiChat', RATE_LIMIT);
+    if (!rl.allowed) {
+      return Response.json({ error: 'Rate limit exceeded. Try again later.' }, { status: 429 });
     }
 
     const body = await req.json();
@@ -65,7 +73,8 @@ Deno.serve(async (req) => {
 
     if (!resp.ok) {
       const errTxt = await resp.text();
-      return Response.json({ error: 'Gemini API error', details: errTxt }, { status: 502 });
+      console.error('Gemini API error:', resp.status, errTxt?.slice(0, 200));
+      return Response.json({ error: 'Gemini API error' }, { status: 502 });
     }
 
     const data = await resp.json();
@@ -92,6 +101,7 @@ Deno.serve(async (req) => {
 
     return Response.json({ output });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('geminiChat error:', error?.message || error);
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 });

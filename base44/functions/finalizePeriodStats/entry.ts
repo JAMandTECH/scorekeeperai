@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
-import { isSuperAdmin } from '../../shared/orgAuth.ts';
+import { isSuperAdmin, resolveCallerOrg } from '../../shared/orgAuth.ts';
 
 // finalizePeriodStats
 // Purpose: When a game period (basketball quarter or volleyball set) completes, ensure a PlayerGameStats
@@ -16,8 +16,9 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Try to authenticate. Automations may not have a user; in that case we'll operate as service role.
+    // Always authenticate — no body-marker bypass. Workflow invocations carry platform auth.
     const user = await base44.auth.me().catch(() => null);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
 
@@ -28,13 +29,14 @@ Deno.serve(async (req) => {
       return g;
     };
 
-    // Detect invocation source
-    const isEntityAutomation = body?.event && body?.data;
+    // Detect period-completion from platform trigger data (workflow invocations).
+    // This is data extraction only — never used for authorization.
+    const hasTriggerData = Boolean(body?.event && body?.data);
 
     let gameId = body.game_id || null;
     let periodNumber = body.period_number || null;
 
-    if (isEntityAutomation && body.event.entity_name === 'Game' && body.event.type === 'update') {
+    if (hasTriggerData && body.event.entity_name === 'Game' && body.event.type === 'update') {
       gameId = body.event.entity_id;
       const newData = body.data || {};
       const oldData = body.old_data || {};
@@ -64,14 +66,13 @@ Deno.serve(async (req) => {
 
     const game = await getGame(gameId);
 
-    // Permission check for direct calls (skip for automations)
-    if (!isEntityAutomation) {
-      if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Permission check — always enforced. Body markers cannot bypass auth.
+    {
       const superAdmin = isSuperAdmin(user);
-      const sameOrg = user.organization_id === game.organization_id ||
-        user.active_organization_id === game.organization_id;
+      const callerOrg = resolveCallerOrg(user);
+      const sameOrg = callerOrg === game.organization_id;
       const isAdmin = user.role === 'admin';
-      const isScorekeeper = !!user.is_scorekeeper;
+      const isScorekeeper = !!(user.is_scorekeeper || user.data?.is_scorekeeper);
       if (!(superAdmin || ((isAdmin || isScorekeeper) && sameOrg))) {
         return Response.json({ error: 'Forbidden' }, { status: 403 });
       }
@@ -178,6 +179,7 @@ Deno.serve(async (req) => {
       sport,
     });
   } catch (error) {
-    return Response.json({ error: error.message || String(error) }, { status: 500 });
+    console.error('finalizePeriodStats error:', error?.message || error);
+    return Response.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 });

@@ -68,6 +68,13 @@ Deno.serve(async (req) => {
     
     console.log('Using plan ID:', planIds[tier]);
 
+    // Build return URLs from the server-set app URL header — never from req.url.
+    const appUrl = req.headers.get('X-Base44-App-Url');
+    if (!appUrl) {
+      console.error('createPayPalSubscription: missing X-Base44-App-Url header');
+      return Response.json({ error: 'Unable to determine app URL' }, { status: 500 });
+    }
+
     const accessToken = await getPayPalAccessToken();
 
     // Verify plan status before creating subscription
@@ -85,12 +92,8 @@ Deno.serve(async (req) => {
     console.log('Plan status:', planDetails.status);
 
     if (planDetails.status !== 'ACTIVE') {
-      console.error('Plan is not active! Current status:', planDetails.status);
-      return Response.json({ 
-        error: 'Plan is not active in PayPal', 
-        plan_status: planDetails.status,
-        plan_id: planIds[tier]
-      }, { status: 400 });
+      console.error('Plan is not active in PayPal. Status:', planDetails.status, 'Plan ID:', planIds[tier]);
+      return Response.json({ error: 'Subscription plan is currently unavailable. Please contact support.' }, { status: 400 });
     }
     
     const subscriptionPayload = {
@@ -101,8 +104,8 @@ Deno.serve(async (req) => {
         locale: 'en-AU',
         shipping_preference: 'NO_SHIPPING',
         user_action: 'SUBSCRIBE_NOW',
-        return_url: `${new URL(req.url).origin}/SubscriptionSuccess`,
-        cancel_url: `${new URL(req.url).origin}/SubscriptionCancelled`,
+        return_url: `${appUrl}/SubscriptionSuccess`,
+        cancel_url: `${appUrl}/SubscriptionCancelled`,
       },
     };
     
@@ -121,14 +124,8 @@ Deno.serve(async (req) => {
     const subscription = await subscriptionResponse.json();
     
     if (!subscriptionResponse.ok) {
-      console.error('=== PayPal API Error ===');
-      console.error('Status:', subscriptionResponse.status);
-      console.error('Error details:', JSON.stringify(subscription, null, 2));
-      return Response.json({ 
-        error: 'Failed to create subscription', 
-        details: subscription,
-        status: subscriptionResponse.status 
-      }, { status: 500 });
+      console.error('PayPal subscription API error:', subscriptionResponse.status, JSON.stringify(subscription));
+      return Response.json({ error: 'Failed to create subscription. Please try again.' }, { status: 502 });
     }
     
     console.log('Subscription created successfully:', subscription.id);
@@ -159,10 +156,7 @@ Deno.serve(async (req) => {
     });
     
   } catch (error) {
-    console.error('=== Fatal Error ===');
-    console.error('Error type:', error.constructor.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    return Response.json({ error: error.message, stack: error.stack }, { status: 500 });
+    console.error('createPayPalSubscription error:', error?.message || error, error?.stack || '');
+    return Response.json({ error: 'Failed to create subscription. Please try again.' }, { status: 500 });
   }
 });
