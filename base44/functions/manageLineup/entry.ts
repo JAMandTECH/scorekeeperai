@@ -19,7 +19,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid team: must be "home" or "away"' }, { status: 400 });
     }
 
-    const game = await base44.asServiceRole.entities.Game.get(game_id);
+    let game;
+    try {
+      game = await base44.asServiceRole.entities.Game.get(game_id);
+    } catch (e) {
+      const msg = String(e?.message || e || '');
+      if (/not found/i.test(msg)) {
+        return Response.json({ error: 'Game not found' }, { status: 404 });
+      }
+      throw e; // re-throw unexpected errors to the outer catch
+    }
     if (!game) {
       return Response.json({ error: 'Game not found' }, { status: 404 });
     }
@@ -97,7 +106,11 @@ Deno.serve(async (req) => {
 
     return Response.json({ error: 'Unknown action' }, { status: 400 });
   } catch (error) {
-    console.error('manageLineup error:', error?.message || error);
-    return Response.json({ error: 'Internal Server Error' }, { status: 500 });
+    const msg = String(error?.message || error || 'Unknown error');
+    console.error('manageLineup error:', msg, error?.stack || '');
+    // Return the actionable message so the client can show it instead of a
+    // generic "Internal Server Error" alert. Branch-write restrictions, RLS
+    // denials, and transient SDK errors all carry useful context here.
+    return Response.json({ error: msg }, { status: 500 });
   }
 });
