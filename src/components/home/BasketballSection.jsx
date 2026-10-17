@@ -81,7 +81,7 @@ export default function BasketballSection({
                 organizationId={orgId}
                 sport="basketball"
                 division={bbDivTab === 'open' ? 'Open Division' : 'Veterans Division'}
-                title={`Top Assist Leaders — ${bbDivTab === 'open' ? 'Open' : 'Veterans'}`}
+                title="Top Assist Leaders"
                 orgName={organization?.name}
                 orgLogoUrl={organization?.logo_url}
               />
