@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User, Eye, EyeOff, Flag, Sun, Moon, Loader2, Trash2 } from "lucide-react";
+import { CheckCircle, PlayCircle, AlertTriangle, ChevronRight, Clock, TrendingUp, Target, Zap, Shield, RotateCcw, User, Eye, EyeOff, Flag, Sun, Moon, Loader2, Trash2, ArrowLeftRight, Users, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -23,7 +23,6 @@ import SyncStatusBadge from "@/components/SyncStatusBadge";
 import { enqueueStatWrite, enqueueGameWrite, startStatSync } from "@/lib/statSyncQueue";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 import BroadcastOverlayDialog from "@/components/BroadcastOverlayDialog";
-import LineupManager from "@/components/LineupManager";
 import { Radio } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -54,6 +53,10 @@ export default function LiveScoring() {
   const [activeTimeout, setActiveTimeout] = useState(null); // 'home' | 'away' | null
   const [voiceFeedback, setVoiceFeedback] = useState(null); // {text, status}
   const [undoInProgress, setUndoInProgress] = useState(false);
+  const [setStartersTeam, setSetStartersTeam] = useState(null); // 'home' | 'away' | null
+  const [starterSelection, setStarterSelection] = useState([]); // player ids
+  const [subOutPlayer, setSubOutPlayer] = useState(null); // { player, team }
+  const [lineupSaving, setLineupSaving] = useState(false);
   const undoLockRef = useRef(false);
   const lastUndoTsRef = useRef(0);
   const lastCommandRef = useRef({ key: '', ts: 0 });
@@ -1271,6 +1274,22 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
             {isFouledOut && (
               <Badge className="bg-destructive text-destructive-foreground text-[10px] font-heading font-bold px-1.5 py-0.5">FOULED OUT</Badge>
             )}
+            {isActive && !isDisabled && !isFouledOut && (
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openSubstitute(player, team);
+                }}
+                variant="outline"
+                size="sm"
+                className={`h-7 px-2 text-[10px] font-heading font-bold border-border flex-shrink-0 ${
+                  isSelected ? 'border-primary-foreground/40 text-primary-foreground hover:bg-primary-foreground/10' : 'text-foreground hover:bg-muted'
+                }`}
+                title="Substitute out"
+              >
+                <ArrowLeftRight className="w-3 h-3" />
+              </Button>
+            )}
           </div>
         </div>
       </button>
@@ -1284,6 +1303,77 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
 
   const handleLineupChange = (updatedGame) => {
     setGame(updatedGame);
+  };
+
+  const LINEUP_SIZE = 5;
+  const sortedRoster = (list) =>
+    [...list].sort((a, b) => {
+      const an = parseInt(a.jersey_number || '0', 10);
+      const bn = parseInt(b.jersey_number || '0', 10);
+      if (!isNaN(an) && !isNaN(bn) && an !== bn) return an - bn;
+      return String(a.jersey_number || '').localeCompare(String(b.jersey_number || ''));
+    });
+
+  const openSetStarters = (team) => {
+    const existing = game?.active_lineup?.[team] || [];
+    setStarterSelection(existing);
+    setSetStartersTeam(team);
+  };
+
+  const toggleStarter = (playerId) => {
+    setStarterSelection((prev) =>
+      prev.includes(playerId)
+        ? prev.filter((id) => id !== playerId)
+        : prev.length < LINEUP_SIZE
+          ? [...prev, playerId]
+          : prev
+    );
+  };
+
+  const confirmStarters = async () => {
+    if (starterSelection.length !== LINEUP_SIZE || !setStartersTeam) return;
+    setLineupSaving(true);
+    try {
+      const resp = await base44.functions.invoke("manageLineup", {
+        game_id: game.id,
+        action: "set_starters",
+        team: setStartersTeam,
+        player_ids: starterSelection,
+      });
+      if (resp?.data?.game) handleLineupChange(resp.data.game);
+      setSetStartersTeam(null);
+      setStarterSelection([]);
+    } catch (e) {
+      console.error("Failed to set starters:", e);
+      alert(e?.response?.data?.error || "Failed to set starting lineup.");
+    } finally {
+      setLineupSaving(false);
+    }
+  };
+
+  const openSubstitute = (player, team) => {
+    setSubOutPlayer({ player, team });
+  };
+
+  const confirmSubstitute = async (inPlayerId) => {
+    if (!subOutPlayer || !inPlayerId) return;
+    setLineupSaving(true);
+    try {
+      const resp = await base44.functions.invoke("manageLineup", {
+        game_id: game.id,
+        action: "substitute",
+        team: subOutPlayer.team,
+        out_player_id: subOutPlayer.player.id,
+        in_player_id: inPlayerId,
+      });
+      if (resp?.data?.game) handleLineupChange(resp.data.game);
+      setSubOutPlayer(null);
+    } catch (e) {
+      console.error("Failed to substitute:", e);
+      alert(e?.response?.data?.error || "Failed to substitute.");
+    } finally {
+      setLineupSaving(false);
+    }
   };
 
   const getPlayerRenderKey = (playerId) => {
@@ -1848,26 +1938,28 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                 <h2 className="text-xl font-heading font-bold text-foreground">
                   {homeTeam.name} - HOME
                 </h2>
-                <Button
-                  onClick={() => handleTimeout('home')}
-                  disabled={undoInProgress || homeTimeouts === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
-                  className="font-medium text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
-                >
-                  <Clock className="w-3 h-3 mr-1" />
-                  TO ({homeTimeouts})
-                </Button>
+                <div className="flex items-center gap-2">
+                  {(!game?.active_lineup?.home || game.active_lineup.home.length === 0) && (
+                    <Button
+                      onClick={() => openSetStarters('home')}
+                      variant="outline"
+                      size="sm"
+                      className="font-medium text-xs px-3 py-1.5 whitespace-nowrap"
+                    >
+                      <Users className="w-3 h-3 mr-1" />
+                      Set Starters
+                    </Button>
+                  )}
+                  <Button
+                    onClick={() => handleTimeout('home')}
+                    disabled={undoInProgress || homeTimeouts === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
+                    className="font-medium text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
+                  >
+                    <Clock className="w-3 h-3 mr-1" />
+                    TO ({homeTimeouts})
+                  </Button>
+                </div>
               </div>
-            </div>
-            <div className="flex-shrink-0 p-3 pb-0">
-              <LineupManager
-                game={game}
-                team="home"
-                players={homePlayers}
-                sport="basketball"
-                playerStats={playerStats}
-                currentPeriod={currentQuarter}
-                onLineupChange={handleLineupChange}
-              />
             </div>
             <div className="flex-1 overflow-y-auto p-3">
               {[...homePlayers].sort((a, b) => {
@@ -1888,26 +1980,28 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                 <h2 className="text-xl font-heading font-bold text-foreground">
                   {awayTeam.name} - AWAY
                 </h2>
-                <Button
-                  onClick={() => handleTimeout('away')}
-                  disabled={undoInProgress || awayTimeouts === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
-                  className="font-medium text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
-                >
-                  <Clock className="w-3 h-3 mr-1" />
-                  TO ({awayTimeouts})
-                </Button>
+                <div className="flex items-center gap-2">
+                  {(!game?.active_lineup?.away || game.active_lineup.away.length === 0) && (
+                    <Button
+                      onClick={() => openSetStarters('away')}
+                      variant="outline"
+                      size="sm"
+                      className="font-medium text-xs px-3 py-1.5 whitespace-nowrap"
+                    >
+                      <Users className="w-3 h-3 mr-1" />
+                      Set Starters
+                    </Button>
+                  )}
+                  <Button
+                    onClick={() => handleTimeout('away')}
+                    disabled={undoInProgress || awayTimeouts === 0 || (game.sport === 'basketball' && userRole !== 'overall')}
+                    className="font-medium text-xs px-3 py-1.5 disabled:opacity-50 whitespace-nowrap"
+                  >
+                    <Clock className="w-3 h-3 mr-1" />
+                    TO ({awayTimeouts})
+                  </Button>
+                </div>
               </div>
-            </div>
-            <div className="flex-shrink-0 p-3 pb-0">
-              <LineupManager
-                game={game}
-                team="away"
-                players={awayPlayers}
-                sport="basketball"
-                playerStats={playerStats}
-                currentPeriod={currentQuarter}
-                onLineupChange={handleLineupChange}
-              />
             </div>
             <div className="flex-1 overflow-y-auto p-3">
               {[...awayPlayers].sort((a, b) => {
@@ -2229,6 +2323,112 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
       )}
 
       <BroadcastOverlayDialog open={showBroadcastDialog} onOpenChange={setShowBroadcastDialog} game={game} />
+
+      {/* Set Starting Lineup Dialog */}
+      <Dialog open={!!setStartersTeam} onOpenChange={(open) => !open && (setSetStartersTeam(null), setStarterSelection([]))}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Set Starting Lineup
+            </DialogTitle>
+            <DialogDescription>
+              Select exactly {LINEUP_SIZE} players to start.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center justify-between mb-2">
+            <Badge variant={starterSelection.length === LINEUP_SIZE ? "default" : "outline"} className="font-heading font-bold">
+              {starterSelection.length} / {LINEUP_SIZE} Selected
+            </Badge>
+            {starterSelection.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={() => setStarterSelection([])} className="text-xs">Clear</Button>
+            )}
+          </div>
+          <div className="space-y-1.5 max-h-[50vh] overflow-y-auto">
+            {sortedRoster(setStartersTeam === 'home' ? homePlayers : awayPlayers).map((player) => {
+              const isSel = starterSelection.includes(player.id);
+              const isFull = starterSelection.length >= LINEUP_SIZE && !isSel;
+              return (
+                <button
+                  key={player.id}
+                  onClick={() => toggleStarter(player.id)}
+                  disabled={isFull}
+                  className={`w-full flex items-center gap-3 p-2.5 border rounded-sm transition-all ${
+                    isSel ? "bg-primary border-primary text-primary-foreground"
+                      : isFull ? "bg-muted/30 border-border opacity-50 cursor-not-allowed"
+                      : "bg-card border-border hover:border-foreground/30"
+                  }`}
+                >
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isSel ? "bg-primary-foreground border-primary-foreground" : "border-border"}`}>
+                    {isSel && <Check className="w-3 h-3 text-primary" />}
+                  </div>
+                  <Avatar className="w-9 h-9 border border-border">
+                    <AvatarImage src={player.photo_url} />
+                    <AvatarFallback className={`text-xs font-heading font-bold ${isSel ? "bg-primary-foreground text-primary" : "bg-secondary text-foreground"}`}>{player.jersey_number}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 text-left min-w-0">
+                    <p className={`text-sm font-heading font-bold truncate ${isSel ? "text-primary-foreground" : "text-foreground"}`}>{player.first_name} {player.last_name}</p>
+                    {player.position && <p className={`text-xs ${isSel ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{player.position}</p>}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" onClick={() => { setSetStartersTeam(null); setStarterSelection([]); }} disabled={lineupSaving} className="flex-1">Cancel</Button>
+            <Button onClick={confirmStarters} disabled={starterSelection.length !== LINEUP_SIZE || lineupSaving} className="flex-1 font-heading font-bold">
+              {lineupSaving ? "Saving..." : "Confirm Starters"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Substitute Dialog */}
+      <Dialog open={!!subOutPlayer} onOpenChange={(open) => !open && setSubOutPlayer(null)}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowLeftRight className="w-5 h-5" />
+              Substitute
+            </DialogTitle>
+            <DialogDescription>
+              <span className="font-bold text-foreground">{subOutPlayer?.player.first_name} {subOutPlayer?.player.last_name}</span> (#{subOutPlayer?.player.jersey_number}) going out. Select incoming player.
+            </DialogDescription>
+          </DialogHeader>
+          {(() => {
+            if (!subOutPlayer) return null;
+            const roster = sortedRoster(subOutPlayer.team === 'home' ? homePlayers : awayPlayers);
+            const activeIds = game?.active_lineup?.[subOutPlayer.team] || [];
+            const bench = roster.filter((p) => !activeIds.includes(p.id));
+            if (bench.length === 0) {
+              return <p className="text-center py-6 text-sm text-muted-foreground font-medium">No bench players available.</p>;
+            }
+            return (
+              <div className="space-y-1.5 max-h-[50vh] overflow-y-auto">
+                {bench.map((player) => (
+                  <button
+                    key={player.id}
+                    onClick={() => confirmSubstitute(player.id)}
+                    disabled={lineupSaving}
+                    className="w-full flex items-center gap-3 p-2.5 border border-border bg-card hover:border-foreground/30 rounded-sm transition-all disabled:opacity-50"
+                  >
+                    <Avatar className="w-9 h-9 border border-border">
+                      <AvatarImage src={player.photo_url} />
+                      <AvatarFallback className="text-xs font-heading font-bold bg-secondary text-foreground">{player.jersey_number}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 text-left min-w-0">
+                      <p className="text-sm font-heading font-bold truncate text-foreground">{player.first_name} {player.last_name}</p>
+                      {player.position && <p className="text-xs text-muted-foreground">{player.position}</p>}
+                    </div>
+                    <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
+          <Button variant="outline" onClick={() => setSubOutPlayer(null)} disabled={lineupSaving}>Cancel</Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
