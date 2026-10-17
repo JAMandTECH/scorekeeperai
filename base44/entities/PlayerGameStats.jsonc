@@ -81,6 +81,11 @@
       "type": "number",
       "default": 0,
       "description": "Volleyball: rally-ending errors (gives opponent a point)"
+    },
+    "plus_minus": {
+      "type": "number",
+      "default": 0,
+      "description": "Plus/minus: cumulative score differential while this player was on court (per quarter)"
     }
   },
   "required": [

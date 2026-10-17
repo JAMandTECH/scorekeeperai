@@ -23,6 +23,7 @@ import SyncStatusBadge from "@/components/SyncStatusBadge";
 import { enqueueStatWrite, enqueueGameWrite, startStatSync } from "@/lib/statSyncQueue";
 import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 import BroadcastOverlayDialog from "@/components/BroadcastOverlayDialog";
+import LineupManager from "@/components/LineupManager";
 import { Radio } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -425,7 +426,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
     return totalFouls;
   };
 
-  const updatePlayerStats = async (playerId, teamId, statUpdates, quarter = currentQuarter) => {
+  const updatePlayerStats = async (playerId, teamId, statUpdates, quarter = currentQuarter, lineupContext = null) => {
     if (!game?.id) {
       console.warn('Game not loaded yet for updatePlayerStats');
       return;
@@ -464,6 +465,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
             team_id: teamId,
             quarter,
             updates: statUpdates,
+            ...(lineupContext ? { lineup_context: lineupContext } : {}),
           });
           lastErr = null;
           break;
@@ -494,6 +496,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
         team_id: teamId,
         quarter,
         updates: statUpdates,
+        ...(lineupContext ? { lineup_context: lineupContext } : {}),
       });
     }
   };
@@ -562,6 +565,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
       oldAwayScore: oldAwayScore,
       statUpdates: statUpdates,
       snapshot,
+      lineupSnapshot: game.active_lineup || { home: [], away: [] },
     };
     setActionHistory(prev => [...prev, historyEntry]);
 
@@ -754,7 +758,9 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
 
       // Reverse the player stat on the server (retries internally). The backend
       // also decrements the game score by the same delta, so both stay in sync.
-      await updatePlayerStats(lastAction.playerId, teamId, reverseUpdates, lastAction.quarter);
+      // Pass the lineup snapshot from when the score happened so +/- is reversed
+      // for the players who were on court at that moment, not the current lineup.
+      await updatePlayerStats(lastAction.playerId, teamId, reverseUpdates, lastAction.quarter, lastAction.lineupSnapshot);
       lastGameUpdateAtRef.current = Date.now();
 
     } else if (lastAction.type === 'foul') {
@@ -1255,6 +1261,10 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
   const handlePlayerSelect = (player, team) => {
     setSelectedPlayer(player);
     setSelectedTeam(team);
+  };
+
+  const handleLineupChange = (updatedGame) => {
+    setGame(updatedGame);
   };
 
   const getPlayerRenderKey = (playerId) => {
@@ -1829,6 +1839,17 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                 </Button>
               </div>
             </div>
+            <div className="flex-shrink-0 p-3 pb-0">
+              <LineupManager
+                game={game}
+                team="home"
+                players={homePlayers}
+                sport="basketball"
+                playerStats={playerStats}
+                currentPeriod={currentQuarter}
+                onLineupChange={handleLineupChange}
+              />
+            </div>
             <div className="flex-1 overflow-y-auto p-3">
               {[...homePlayers].sort((a, b) => {
                 const an = parseInt(a.jersey_number || '0', 10);
@@ -1857,6 +1878,17 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                   TO ({awayTimeouts})
                 </Button>
               </div>
+            </div>
+            <div className="flex-shrink-0 p-3 pb-0">
+              <LineupManager
+                game={game}
+                team="away"
+                players={awayPlayers}
+                sport="basketball"
+                playerStats={playerStats}
+                currentPeriod={currentQuarter}
+                onLineupChange={handleLineupChange}
+              />
             </div>
             <div className="flex-1 overflow-y-auto p-3">
               {[...awayPlayers].sort((a, b) => {

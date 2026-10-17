@@ -30,10 +30,19 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { game_id, player_id, team_id, quarter, updates } = body || {};
+    const { game_id, player_id, team_id, quarter, updates, lineup_context, pm_delta } = body || {};
 
-    if (!game_id || !player_id || !team_id || !quarter || !Array.isArray(updates)) {
+    const hasStatUpdates = Array.isArray(updates) && updates.length > 0;
+    const hasPmDelta = typeof pm_delta === 'number' && pm_delta !== 0;
+
+    if (!game_id || !quarter || (!hasStatUpdates && !hasPmDelta)) {
       return Response.json({ error: 'Invalid payload' }, { status: 400 });
+    }
+    if (hasStatUpdates && (!player_id || !team_id)) {
+      return Response.json({ error: 'Invalid payload: player_id and team_id required with updates' }, { status: 400 });
+    }
+    if (hasPmDelta && !team_id) {
+      return Response.json({ error: 'Invalid payload: team_id required with pm_delta' }, { status: 400 });
     }
 
     // Fetch game to verify org and permissions
@@ -71,22 +80,13 @@ Deno.serve(async (req) => {
       }, { status: 403 });
     }
 
-    // Find existing stat for this (game, player, quarter)
-    const existingList = await withRetry(() => base44.asServiceRole.entities.PlayerGameStats.filter({
-      game_id,
-      player_id,
-      quarter,
-    }));
-
-    const existing = existingList && existingList[0] ? existingList[0] : null;
-
     // Allowlist of stat fields that may be incremented — prevents overwriting
     // identity/linkage fields (game_id, player_id, team_id, organization_id, etc.)
     const ALLOWED_STAT_KEYS = new Set([
       'points', 'rebounds', 'assists', 'steals', 'blocks', 'fouls',
       'three_pointers', 'field_goals_made', 'field_goals_attempted',
       'free_throws_made', 'free_throws_attempted',
-      'attacks', 'aces', 'rally_errors',
+      'attacks', 'aces', 'rally_errors', 'plus_minus',
     ]);
 
     const applyUpdates = (obj) => {
@@ -102,53 +102,128 @@ Deno.serve(async (req) => {
       return updated;
     };
 
-    let saved;
-    if (existing) {
-      const patch = applyUpdates(existing);
-      if (existing.team_id !== team_id) { patch.team_id = team_id; }
-      saved = await withRetry(() => base44.asServiceRole.entities.PlayerGameStats.update(existing.id, patch));
-    } else {
-      const base = {
+    let saved = null;
+    let existing = null;
+
+    if (hasStatUpdates) {
+      // Find existing stat for this (game, player, quarter)
+      const existingList = await withRetry(() => base44.asServiceRole.entities.PlayerGameStats.filter({
         game_id,
-        organization_id: game.organization_id,
         player_id,
-        team_id,
         quarter,
-        points: 0,
-        rebounds: 0,
-        assists: 0,
-        steals: 0,
-        blocks: 0,
-        three_pointers: 0,
-        field_goals_made: 0,
-        field_goals_attempted: 0,
-        free_throws_made: 0,
-        free_throws_attempted: 0,
-        // Volleyball fields
-        attacks: 0,
-        aces: 0,
-        rally_errors: 0,
-      };
-      const doc = applyUpdates(base);
-      saved = await withRetry(() => base44.asServiceRole.entities.PlayerGameStats.create(doc));
+      }));
+      existing = existingList && existingList[0] ? existingList[0] : null;
+
+      if (existing) {
+        const patch = applyUpdates(existing);
+        if (existing.team_id !== team_id) { patch.team_id = team_id; }
+        saved = await withRetry(() => base44.asServiceRole.entities.PlayerGameStats.update(existing.id, patch));
+      } else {
+        const base = {
+          game_id,
+          organization_id: game.organization_id,
+          player_id,
+          team_id,
+          quarter,
+          points: 0,
+          rebounds: 0,
+          assists: 0,
+          steals: 0,
+          blocks: 0,
+          three_pointers: 0,
+          field_goals_made: 0,
+          field_goals_attempted: 0,
+          free_throws_made: 0,
+          free_throws_attempted: 0,
+          attacks: 0,
+          aces: 0,
+          rally_errors: 0,
+        };
+        const doc = applyUpdates(base);
+        saved = await withRetry(() => base44.asServiceRole.entities.PlayerGameStats.create(doc));
+      }
     }
 
     // If points were involved, adjust the game score by the delta only.
-    // Applying the delta (instead of refetching ALL player stats every time)
-    // keeps this to a single lightweight write and avoids rate limits during
-    // rapid scoring. The stored stat above is already the source of truth.
-    const pointsDelta = updates
-      .filter(u => u.statType === 'points')
-      .reduce((sum, u) => sum + (Number(u.value) || 0), 0);
+    const pointsDelta = hasStatUpdates
+      ? updates.filter(u => u.statType === 'points').reduce((sum, u) => sum + (Number(u.value) || 0), 0)
+      : 0;
 
-    // Clamp the applied delta so the stored stat never goes negative — mirror
-    // the same Math.max(0, ...) rule used per-stat above.
+    // Clamp the applied delta so the stored stat never goes negative.
     let effectiveDelta = pointsDelta;
     if (pointsDelta < 0 && existing) {
       const prevPoints = Number(existing.points || 0);
       effectiveDelta = Math.max(-prevPoints, pointsDelta);
     } else if (pointsDelta < 0 && !existing) {
       effectiveDelta = 0;
+    }
+
+    // For plus/minus: use pm_delta when provided (volleyball rally points where
+    // no individual player stat changes but the score differential applies to
+    // all on-court players), otherwise use the points effectiveDelta.
+    const pmEffectiveDelta = hasPmDelta ? pm_delta : effectiveDelta;
+
+    // Plus/minus: update the plus_minus for all players currently on court.
+    // Uses lineup_context if provided (for undo accuracy), otherwise falls
+    // back to the game's persisted active_lineup.
+    if (pmEffectiveDelta !== 0) {
+      try {
+        const lineup = lineup_context || game.active_lineup || { home: [], away: [] };
+        const homeActive = Array.isArray(lineup.home) ? lineup.home : [];
+        const awayActive = Array.isArray(lineup.away) ? lineup.away : [];
+        const scoringTeamIsHome = team_id === game.home_team_id;
+
+        const allActive = [
+          ...homeActive.map((pid: string) => ({ pid, teamIsHome: true })),
+          ...awayActive.map((pid: string) => ({ pid, teamIsHome: false })),
+        ];
+
+        if (allActive.length > 0) {
+          const quarterStats = await withRetry(() =>
+            base44.asServiceRole.entities.PlayerGameStats.filter({ game_id, quarter })
+          );
+          const statByPlayer = new Map<string, any>();
+          for (const s of quarterStats || []) {
+            statByPlayer.set(s.player_id, s);
+          }
+
+          const toUpdate: any[] = [];
+          const toCreate: any[] = [];
+
+          for (const { pid, teamIsHome } of allActive) {
+            const playerPmDelta = scoringTeamIsHome === teamIsHome ? pmEffectiveDelta : -pmEffectiveDelta;
+            const existingStat = statByPlayer.get(pid);
+            if (existingStat) {
+              const newPm = (Number(existingStat.plus_minus) || 0) + playerPmDelta;
+              toUpdate.push({ id: existingStat.id, plus_minus: newPm });
+            } else {
+              const playerTeamId = teamIsHome ? game.home_team_id : game.away_team_id;
+              toCreate.push({
+                game_id,
+                organization_id: game.organization_id,
+                player_id: pid,
+                team_id: playerTeamId,
+                quarter,
+                points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0,
+                fouls: 0, three_pointers: 0,
+                field_goals_made: 0, field_goals_attempted: 0,
+                free_throws_made: 0, free_throws_attempted: 0,
+                attacks: 0, aces: 0, rally_errors: 0,
+                plus_minus: playerPmDelta,
+              });
+            }
+          }
+
+          if (toUpdate.length > 0) {
+            await withRetry(() => base44.asServiceRole.entities.PlayerGameStats.bulkUpdate(toUpdate));
+          }
+          if (toCreate.length > 0) {
+            await withRetry(() => base44.asServiceRole.entities.PlayerGameStats.bulkCreate(toCreate));
+          }
+        }
+      } catch (pmErr) {
+        console.error('Plus/minus update failed (stat still saved):', pmErr?.message || pmErr);
+      }
     }
 
     // The player stat above is the source of truth and is already saved. The
