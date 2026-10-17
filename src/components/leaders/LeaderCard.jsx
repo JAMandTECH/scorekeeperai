@@ -1,14 +1,30 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export default function LeaderCard({ title, icon: Icon, organization, data = [], emptyText = "No data available." }) {
+export default function LeaderCard({ title, icon: Icon, organization, division = null, data = [], emptyText = "No data available." }) {
   return (
     <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">
       <CardHeader className="border-b border-border">
-        <CardTitle className="text-xl font-heading font-bold print:text-lg flex items-center gap-2">
-          {Icon && <Icon className="w-5 h-5 text-primary" />}
-          {title}
-        </CardTitle>
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="text-xl font-heading font-bold print:text-lg flex items-center gap-2">
+            {Icon && <Icon className="w-5 h-5 text-primary" />}
+            {title}
+          </CardTitle>
+          <div className="flex items-center gap-2 shrink-0">
+            {division && (
+              <span className="text-xs text-muted-foreground font-medium hidden sm:inline truncate max-w-[160px]">{division}</span>
+            )}
+            {organization?.logo_url && (
+              <Avatar className="w-8 h-8 border border-border">
+                <AvatarImage src={organization.logo_url} />
+                <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-[10px]">
+                  {(organization.name || "").substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="p-6 print:p-4">
         <div className="space-y-2">

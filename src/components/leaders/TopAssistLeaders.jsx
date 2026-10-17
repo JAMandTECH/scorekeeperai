@@ -2,6 +2,7 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function TopAssistLeaders({
   organizationId = null,
@@ -41,9 +42,24 @@ export default function TopAssistLeaders({
   return (
     <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">
       <CardHeader className="border-b border-border">
-        <CardTitle className="text-xl font-heading font-bold print:text-lg">
-          🏀 {title}
-        </CardTitle>
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="text-xl font-heading font-bold print:text-lg flex items-center gap-2">
+            🏀 {title}
+          </CardTitle>
+          <div className="flex items-center gap-2 shrink-0">
+            {division && (
+              <span className="text-xs text-muted-foreground font-medium hidden sm:inline truncate max-w-[160px]">{division}</span>
+            )}
+            {orgLogoUrl && (
+              <Avatar className="w-8 h-8 border border-border">
+                <AvatarImage src={orgLogoUrl} />
+                <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-[10px]">
+                  {(orgName || "").substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="p-6 print:p-4">
         <div className="space-y-2">

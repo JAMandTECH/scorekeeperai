@@ -24,10 +24,10 @@ export default function VolleyballSection({
   excludeDefaults = false,
 }) {
   const leaderCards = [
-    { title: 'Top 10 Scorers', icon: Target, data: topVolleyballScorers },
-    { title: 'Top 10 Attackers', icon: Zap, data: topVolleyballAttackers },
-    { title: 'Top 10 Blockers', icon: Shield, data: topVolleyballBlockers },
-    { title: 'Top 10 Ace Leaders', icon: Zap, data: topVolleyballAces },
+    { title: 'Top Scorers', icon: Target, data: topVolleyballScorers },
+    { title: 'Top Attackers', icon: Zap, data: topVolleyballAttackers },
+    { title: 'Top Blockers', icon: Shield, data: topVolleyballBlockers },
+    { title: 'Top Ace Leaders', icon: Zap, data: topVolleyballAces },
   ];
 
   return (

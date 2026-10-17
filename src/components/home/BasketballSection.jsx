@@ -73,20 +73,20 @@ export default function BasketballSection({
 
         <TabsContent value="leaders">
           <div className="grid md:grid-cols-2 gap-6">
-            <LeaderCard title="Top 10 Scorers" icon={Target} organization={organization} data={bbDivTab === 'open' ? topScorersOpen : topScorersVeterans} />
-            <LeaderCard title="Top 10 Rebounders" icon={TrendingUp} organization={organization} data={bbDivTab === 'open' ? topReboundersOpen : topReboundersVeterans} />
-            <LeaderCard title="Top 10 Blockers" icon={Shield} organization={organization} data={bbDivTab === 'open' ? topBlockersOpen : topBlockersVeterans} />
+            <LeaderCard title="Top Scorers" icon={Target} organization={organization} division={bbDivTab === 'open' ? 'Open Division' : 'Veterans Division'} data={bbDivTab === 'open' ? topScorersOpen : topScorersVeterans} />
+            <LeaderCard title="Top Rebounders" icon={TrendingUp} organization={organization} division={bbDivTab === 'open' ? 'Open Division' : 'Veterans Division'} data={bbDivTab === 'open' ? topReboundersOpen : topReboundersVeterans} />
+            <LeaderCard title="Top Blockers" icon={Shield} organization={organization} division={bbDivTab === 'open' ? 'Open Division' : 'Veterans Division'} data={bbDivTab === 'open' ? topBlockersOpen : topBlockersVeterans} />
             {orgId ? (
               <TopAssistLeaders
                 organizationId={orgId}
                 sport="basketball"
                 division={bbDivTab === 'open' ? 'Open Division' : 'Veterans Division'}
-                title={`Top 10 Assist Leaders — ${bbDivTab === 'open' ? 'Open' : 'Veterans'}`}
+                title={`Top Assist Leaders — ${bbDivTab === 'open' ? 'Open' : 'Veterans'}`}
                 orgName={organization?.name}
                 orgLogoUrl={organization?.logo_url}
               />
             ) : null}
-            <LeaderCard title="Top 10 3-Pointer Leaders" icon={Zap} organization={organization} data={bbDivTab === 'open' ? top3PointersOpen : top3PointersVeterans} />
+            <LeaderCard title="Top 3-Pointer Leaders" icon={Zap} organization={organization} division={bbDivTab === 'open' ? 'Open Division' : 'Veterans Division'} data={bbDivTab === 'open' ? top3PointersOpen : top3PointersVeterans} />
           </div>
         </TabsContent>
 
