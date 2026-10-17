@@ -86,7 +86,7 @@
         {
           "user_condition": {
             "role": "admin",
-            "is_super_admin": true
+            "data.is_super_admin": true
           }
         },
         {
@@ -108,7 +108,7 @@
         {
           "user_condition": {
             "role": "admin",
-            "is_super_admin": true
+            "data.is_super_admin": true
           }
         },
         {
@@ -124,7 +124,7 @@
         {
           "user_condition": {
             "role": "admin",
-            "is_super_admin": true
+            "data.is_super_admin": true
           }
         },
         {
@@ -146,7 +146,7 @@
         {
           "user_condition": {
             "role": "admin",
-            "is_super_admin": true
+            "data.is_super_admin": true
           }
         },
         {

@@ -63,13 +63,15 @@
     "sport"
   ],
   "rls": {
-    "create": true,
+    "create": {
+      "data.submitted_by": "{{user.email}}"
+    },
     "read": {
       "$or": [
         {
           "user_condition": {
             "role": "admin",
-            "is_super_admin": true
+            "data.is_super_admin": true
           }
         },
         {
@@ -88,7 +90,7 @@
         {
           "user_condition": {
             "role": "admin",
-            "is_super_admin": true
+            "data.is_super_admin": true
           }
         },
         {
@@ -110,7 +112,7 @@
         {
           "user_condition": {
             "role": "admin",
-            "is_super_admin": true
+            "data.is_super_admin": true
           }
         },
         {

@@ -210,14 +210,33 @@
   ],
   "rls": {
     "create": {
-      "created_by": "{{user.email}}"
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin",
+            "data.is_super_admin": true
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            }
+          ]
+        }
+      ]
     },
     "read": {
       "$or": [
         {
           "user_condition": {
             "role": "admin",
-            "is_super_admin": true
+            "data.is_super_admin": true
           }
         },
         {
@@ -228,7 +247,7 @@
         },
         {
           "user_condition": {
-            "is_scorekeeper": true
+            "data.is_scorekeeper": true
           }
         }
       ]
@@ -238,7 +257,7 @@
         {
           "user_condition": {
             "role": "admin",
-            "is_super_admin": true
+            "data.is_super_admin": true
           }
         },
         {
@@ -254,9 +273,23 @@
           ]
         },
         {
-          "user_condition": {
-            "is_scorekeeper": true
-          }
+          "$and": [
+            {
+              "user_condition": {
+                "data.is_scorekeeper": true
+              }
+            },
+            {
+              "$or": [
+                {
+                  "data.organization_id": "{{user.data.organization_id}}"
+                },
+                {
+                  "data.organization_id": "{{user.data.active_organization_id}}"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -265,7 +298,7 @@
         {
           "user_condition": {
             "role": "admin",
-            "is_super_admin": true
+            "data.is_super_admin": true
           }
         },
         {

@@ -52,8 +52,10 @@
     "image_url"
   ],
   "rls": {
-    "create": true,
-    "read": true,
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": null,
     "update": {
       "created_by": "{{user.email}}"
     },

@@ -99,7 +99,7 @@
         {
           "user_condition": {
             "role": "admin",
-            "is_super_admin": true
+            "data.is_super_admin": true
           }
         },
         {
@@ -125,7 +125,7 @@
           "$and": [
             {
               "user_condition": {
-                "is_timekeeper": true
+                "data.is_timekeeper": true
               }
             },
             {
@@ -142,13 +142,13 @@
         }
       ]
     },
-    "read": true,
+    "read": null,
     "update": {
       "$or": [
         {
           "user_condition": {
             "role": "admin",
-            "is_super_admin": true
+            "data.is_super_admin": true
           }
         },
         {
@@ -174,7 +174,7 @@
           "$and": [
             {
               "user_condition": {
-                "is_timekeeper": true
+                "data.is_timekeeper": true
               }
             },
             {
@@ -189,7 +189,7 @@
         {
           "user_condition": {
             "role": "admin",
-            "is_super_admin": true
+            "data.is_super_admin": true
           }
         },
         {
