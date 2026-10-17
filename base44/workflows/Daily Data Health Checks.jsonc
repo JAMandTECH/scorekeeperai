@@ -1,0 +1,50 @@
+{
+  "description": "Runs the existing runDataHealthChecks backend function every day at 2am (Australia/Perth) to detect data integrity issues across organizations.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 2 * * *",
+      "one_time_date": null,
+      "timezone": "Australia/Perth",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "name": "Daily Data Health Checks",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "daily_data_health_checks",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_checks": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "runDataHealthChecks",
+            "args": {
+              "scope": "all",
+              "mode": "quick",
+              "limit": 5,
+              "offset": 0
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Run data health checks",
+            "description": "Scans organizations for integrity issues"
+          }
+        }
+      }
+    ]
+  }
+}
