@@ -124,7 +124,7 @@ export default function VolleyballGameResults({
                   <details className="mt-3">
                     <summary className="cursor-pointer text-sm font-medium text-primary hover:underline">Player Stats</summary>
                     <div className="mt-2">
-                      <GameCompactStats game={game} allPlayerStats={allPlayerStats} allPlayers={allPlayers} sport="volleyball" />
+                      <GameCompactStats game={game} allPlayerStats={allPlayerStats} allPlayers={allPlayers} sport="volleyball" homeTeamName={getTeamName(game.home_team_id)} awayTeamName={getTeamName(game.away_team_id)} />
                     </div>
                   </details>
                   {isAdmin && homeTeamData && awayTeamData && topPlayersForAI.length > 0 && (

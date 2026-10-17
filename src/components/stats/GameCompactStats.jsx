@@ -39,7 +39,7 @@ function aggregateStats(statsForGame, teamId, sport) {
   return Array.from(byPlayer.entries()).map(([player_id, vals]) => ({ player_id, ...vals }));
 }
 
-export default function GameCompactStats({ game, allPlayerStats = [], allPlayers = [], sport = "basketball" }) {
+export default function GameCompactStats({ game, allPlayerStats = [], allPlayers = [], sport = "basketball", homeTeamName, awayTeamName }) {
   const statsForGame = Array.isArray(allPlayerStats)
     ? allPlayerStats.filter((s) => s.game_id === game.id)
     : [];
@@ -118,21 +118,30 @@ export default function GameCompactStats({ game, allPlayerStats = [], allPlayers
   );
 
   const noData = home.length === 0 && away.length === 0;
+  const homeLabel = homeTeamName || "Home Team";
+  const awayLabel = awayTeamName || "Away Team";
+
+  const renderColumn = (label, rows) => (
+    <div className="min-w-0">
+      <div className="mb-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="text-xs font-bold text-gray-700 dark:text-gray-300 truncate">{label}</div>
+      </div>
+      {rows.length === 0 ? (
+        <div className="text-xs text-gray-500 dark:text-gray-400 py-4 text-center">No stats</div>
+      ) : (
+        renderTable(rows)
+      )}
+    </div>
+  );
 
   return (
     <div className="bg-white/60 dark:bg-gray-900/60 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
       {noData ? (
         <div className="text-xs text-gray-500 dark:text-gray-400">No player statistics recorded for this game.</div>
       ) : (
-        <div className="space-y-4">
-          <div>
-            <div className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Home Team</div>
-            {renderTable(home)}
-          </div>
-          <div>
-            <div className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Away Team</div>
-            {renderTable(away)}
-          </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          {renderColumn(homeLabel, home)}
+          {renderColumn(awayLabel, away)}
         </div>
       )}
     </div>
