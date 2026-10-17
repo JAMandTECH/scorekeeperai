@@ -167,6 +167,8 @@ export function buildLeaderboard({
       };
     })
     .filter((p) => p.total > 0)
-    .sort((a, b) => b.avgNum - a.avgNum)
+    // Deterministic: avg desc, then total desc, then player id asc so identical
+    // data always produces identical rankings across refreshes.
+    .sort((a, b) => b.avgNum - a.avgNum || b.total - a.total || (a.id < b.id ? -1 : 1))
     .slice(0, limit);
 }

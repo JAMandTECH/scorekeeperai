@@ -478,6 +478,7 @@ export default function Statistics() {
         const gp = teamGamesPlayedMap.get(team_id) || 0;
         const avgNum = gp > 0 ? total / gp : 0;
         return {
+          id: playerId,
           name,
           team: team?.name || 'Unknown',
           value: total,
@@ -488,7 +489,9 @@ export default function Statistics() {
         };
       })
       .filter(p => p.value > 0)
-      .sort((a, b) => b.avgNum - a.avgNum)
+      // Deterministic: avg desc, then total desc, then player id asc so identical
+      // data always produces identical rankings across refreshes.
+      .sort((a, b) => b.avgNum - a.avgNum || b.value - a.value || (a.id < b.id ? -1 : 1))
       .slice(0, 10);
   };
 

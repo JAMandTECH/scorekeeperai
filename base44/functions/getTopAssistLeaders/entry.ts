@@ -38,72 +38,71 @@ Deno.serve(async (req) => {
     }
     const limit = Math.max(1, Math.min(Number(payload.limit) || 10, 50));
     const sport = String(payload.sport || 'basketball').toLowerCase();
-    const division = payload.division != null ? String(payload.division).toLowerCase() : null;
+    // Exact-match division (case-sensitive), mirroring buildLeaderboard which
+    // compares against `team.division || "No Division"` with === .
+    const division = payload.division != null ? String(payload.division) : null;
 
     if (!organizationId) {
       return Response.json({ leaders: [], count: 0, sport, division, organization_id: organizationId });
     }
 
-    // Teams (names/logos/division)
+    // Teams (names/logos/division) — canonical source mirrors buildLeaderboard.
     const teamsRaw = await fetchWithRetry(() =>
       base44.asServiceRole.entities.Team.filter({ organization_id: organizationId })
     );
     const teamMap = new Map((teamsRaw || []).map((t) => [t.id, t]));
 
-    // Teams that belong to this sport + optional division
-    const eligibleTeamIds = new Set(
-      (teamsRaw || [])
-        .filter((t) => {
-          if (sport && String(t.sport || '').toLowerCase() !== sport) return false;
-          if (division && !String(t.division || '').toLowerCase().includes(division)) return false;
-          return true;
-        })
-        .map((t) => t.id)
-    );
-
-    if (eligibleTeamIds.size === 0) {
-      return Response.json({ leaders: [], count: 0, sport, division, organization_id: organizationId });
-    }
-
-    // Completed games for this sport. Count games played per team (average divisor)
-    // and collect the game IDs those eligible teams participated in.
+    // Eligible games: completed, matching sport, and matching division at the
+    // GAME level (either home or away team's division equals the target), exactly
+    // like buildLeaderboard. This determines both the stat rows counted and the
+    // per-team games-played divisor.
     const completedGames = await fetchWithRetry(() =>
       base44.asServiceRole.entities.Game.filter({ organization_id: organizationId, status: 'completed' })
     );
-    const teamGamesPlayed = new Map();
-    const eligibleGameIds = [];
-    (completedGames || []).forEach((g) => {
-      if (sport && String(g.sport || '').toLowerCase() !== sport) return;
-      const homeEligible = eligibleTeamIds.has(g.home_team_id);
-      const awayEligible = eligibleTeamIds.has(g.away_team_id);
-      if (g.home_team_id) teamGamesPlayed.set(g.home_team_id, (teamGamesPlayed.get(g.home_team_id) || 0) + 1);
-      if (g.away_team_id) teamGamesPlayed.set(g.away_team_id, (teamGamesPlayed.get(g.away_team_id) || 0) + 1);
-      if (homeEligible || awayEligible) eligibleGameIds.push(g.id);
+    const eligibleGames = (completedGames || []).filter((g) => {
+      if (sport && String(g.sport || '').toLowerCase() !== sport.toLowerCase()) return false;
+      if (division) {
+        const homeDiv = teamMap.get(g.home_team_id)?.division || 'No Division';
+        const awayDiv = teamMap.get(g.away_team_id)?.division || 'No Division';
+        if (homeDiv !== division && awayDiv !== division) return false;
+      }
+      return true;
     });
+    const eligibleGameIdSet = new Set(eligibleGames.map((g) => g.id));
 
-    if (eligibleGameIds.length === 0) {
+    if (eligibleGameIdSet.size === 0) {
       return Response.json({ leaders: [], count: 0, sport, division, organization_id: organizationId });
     }
 
-    // Aggregate assists from RAW PlayerGameStats (source of truth).
-    // Query by the small set of eligible team IDs (few teams) rather than by
-    // the large set of game IDs — far fewer DB calls, avoids rate limits.
-    const eligibleGameIdSet = new Set(eligibleGameIds);
+    // Games played per team — divisor matches buildLeaderboard (eligible games only).
+    const teamGamesPlayed = new Map();
+    eligibleGames.forEach((g) => {
+      if (g.home_team_id) teamGamesPlayed.set(g.home_team_id, (teamGamesPlayed.get(g.home_team_id) || 0) + 1);
+      if (g.away_team_id) teamGamesPlayed.set(g.away_team_id, (teamGamesPlayed.get(g.away_team_id) || 0) + 1);
+    });
+
+    // Aggregate assists from RAW PlayerGameStats (source of truth), querying by
+    // the eligible game IDs in chunks. Team attribution uses the stat row's
+    // team_id (first row wins), matching buildLeaderboard — NOT Player.team_id.
     const assistTotals = new Map(); // player_id -> total assists
     const playerTeam = new Map();   // player_id -> team_id (from the stat rows)
-    const teamIdList = Array.from(eligibleTeamIds);
-    for (let i = 0; i < teamIdList.length; i += 5) {
-      const chunk = teamIdList.slice(i, i + 5);
+    const gameIdList = Array.from(eligibleGameIdSet);
+    for (let i = 0; i < gameIdList.length; i += 10) {
+      const chunk = gameIdList.slice(i, i + 10);
       const stats = await fetchWithRetry(() =>
-        base44.asServiceRole.entities.PlayerGameStats.filter({ team_id: { $in: chunk } })
+        base44.asServiceRole.entities.PlayerGameStats.filter({ game_id: { $in: chunk } })
       );
       (stats || []).forEach((s) => {
-        // Only count stats from completed games in this sport+division.
-        if (!eligibleGameIdSet.has(s.game_id)) return;
+        // Division filter at the stat-row level, matching buildLeaderboard.
+        const statTeam = teamMap.get(s.team_id);
+        if (division) {
+          const statDiv = statTeam?.division || 'No Division';
+          if (statDiv !== division) return;
+        }
         assistTotals.set(s.player_id, (assistTotals.get(s.player_id) || 0) + Number(s.assists || 0));
         if (!playerTeam.has(s.player_id)) playerTeam.set(s.player_id, s.team_id);
       });
-      if (i + 5 < teamIdList.length) await sleep(300);
+      if (i + 10 < gameIdList.length) await sleep(300);
     }
 
     // Load player details for the players who actually have stats
@@ -122,7 +121,9 @@ Deno.serve(async (req) => {
     const leaders = playerIds
       .map((playerId) => {
         const player = playerMap.get(playerId) || {};
-        const teamId = player.team_id || playerTeam.get(playerId);
+        // Use the stat row's team_id (first row wins), NOT player.team_id —
+        // matches buildLeaderboard so a transfer never shifts attribution.
+        const teamId = playerTeam.get(playerId);
         const team = teamMap.get(teamId) || {};
         const totalAssists = Number(assistTotals.get(playerId) || 0);
         const gamesPlayed = Number(teamGamesPlayed.get(teamId) || 0);
@@ -143,7 +144,9 @@ Deno.serve(async (req) => {
         };
       })
       .filter((p) => p.total_assists > 0)
-      .sort((a, b) => b.apg - a.apg || b.total_assists - a.total_assists)
+      // Deterministic ordering: APG desc, then total desc, then player_id asc
+      // so identical data always produces identical rankings across refreshes.
+      .sort((a, b) => b.apg - a.apg || b.total_assists - a.total_assists || (a.player_id < b.player_id ? -1 : 1))
       .slice(0, limit);
 
     return Response.json({ leaders, count: leaders.length, sport, division, organization_id: organizationId });
