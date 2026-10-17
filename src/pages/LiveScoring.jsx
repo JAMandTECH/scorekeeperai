@@ -1184,42 +1184,61 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
     const blocks = getPlayerStat(player.id, 'blocks');
     const isFouledOut = totalFouls >= game.player_foul_limit;
     const isSelected = selectedPlayer?.id === player.id;
-    
+
+    // Active lineup restriction: only on-court players can be selected for stats.
+    // Bench players remain visible but read-only until substituted in.
+    const activeLineup = game?.active_lineup?.[team] || [];
+    const hasLineup = activeLineup.length > 0;
+    const isActive = !hasLineup || activeLineup.includes(player.id);
+
     // Determine if player can be selected based on role
     const isHomePlayer = teamId === game.home_team_id;
-    const canSelectPlayer = game.sport !== 'basketball' || 
-      userRole === 'overall' || 
-      (userRole === 'home_stat' && isHomePlayer) || 
+    const canSelectPlayer = game.sport !== 'basketball' ||
+      userRole === 'overall' ||
+      (userRole === 'home_stat' && isHomePlayer) ||
       (userRole === 'away_stat' && !isHomePlayer);
     const isDisabledByRole = !canSelectPlayer;
+    const isBench = hasLineup && !isActive;
+    const isDisabled = isFouledOut || isDisabledByRole || isBench;
 
     return (
       <button
         onClick={() => {
-          if (isFouledOut || isDisabledByRole) return;
+          if (isDisabled) return;
           onSelect(player, team);
         }}
         className={`w-full text-left border rounded-sm p-3 mb-2 transition-colors ${
-          isFouledOut || isDisabledByRole
-            ? 'bg-muted opacity-50 cursor-not-allowed border-border' 
+          isDisabled
+            ? isBench
+              ? 'bg-muted/30 opacity-60 cursor-not-allowed border-dashed border-border'
+              : 'bg-muted opacity-50 cursor-not-allowed border-border'
             : isSelected
               ? 'bg-primary border-primary text-primary-foreground'
-              : 'bg-card border-border hover:border-foreground/30'
+              : isActive
+                ? 'bg-card border-primary/40 hover:border-primary hover:bg-primary/5'
+                : 'bg-card border-border hover:border-foreground/30'
         }`}
-        disabled={isFouledOut || isDisabledByRole}
+        disabled={isDisabled}
+        title={isBench ? 'On bench — substitute in to record stats' : undefined}
       >
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <Avatar className="w-10 h-10 border border-border">
+            <Avatar className={`w-10 h-10 border ${isActive && !isDisabled ? 'border-primary/50' : 'border-border'} ${isBench ? 'grayscale opacity-70' : ''}`}>
               <AvatarImage src={player.photo_url} />
               <AvatarFallback className={`text-sm font-heading font-bold ${isSelected ? 'bg-background text-foreground' : 'bg-secondary text-foreground'}`}>
                 {player.jersey_number}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className={`text-sm font-heading font-bold truncate ${isSelected ? 'text-primary-foreground' : 'text-foreground'}`}>
+              <p className={`text-sm font-heading font-bold truncate ${isSelected ? 'text-primary-foreground' : isBench ? 'text-muted-foreground' : 'text-foreground'}`}>
                 {player.first_name} {player.last_name}
               </p>
+              {isBench && (
+                <span className="text-[10px] font-heading font-bold text-muted-foreground uppercase tracking-wider">Bench</span>
+              )}
+              {isActive && !isSelected && !isFouledOut && (
+                <span className="text-[10px] font-heading font-bold text-primary uppercase tracking-wider">On Court</span>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
