@@ -1963,6 +1963,10 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
             </div>
             <div className="flex-1 overflow-y-auto p-3">
               {[...homePlayers].sort((a, b) => {
+                const activeHome = game?.active_lineup?.home || [];
+                const aActive = activeHome.includes(a.id) ? 0 : 1;
+                const bActive = activeHome.includes(b.id) ? 0 : 1;
+                if (aActive !== bActive) return aActive - bActive;
                 const an = parseInt(a.jersey_number || '0', 10);
                 const bn = parseInt(b.jersey_number || '0', 10);
                 if (!isNaN(an) && !isNaN(bn) && an !== bn) return an - bn;
@@ -2005,6 +2009,10 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
             </div>
             <div className="flex-1 overflow-y-auto p-3">
               {[...awayPlayers].sort((a, b) => {
+                const activeAway = game?.active_lineup?.away || [];
+                const aActive = activeAway.includes(a.id) ? 0 : 1;
+                const bActive = activeAway.includes(b.id) ? 0 : 1;
+                if (aActive !== bActive) return aActive - bActive;
                 const an = parseInt(a.jersey_number || '0', 10);
                 const bn = parseInt(b.jersey_number || '0', 10);
                 if (!isNaN(an) && !isNaN(bn) && an !== bn) return an - bn;
