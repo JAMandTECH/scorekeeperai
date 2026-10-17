@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useStatsRefresh } from "@/lib/StatsRefreshContext";
+import { fetchPlayerGameStatsByGames } from "@/lib/playerStatsFetch";
 
 // Keep the last successful result on screen while a refetch runs (v5-safe, no named import).
 const keepPrevious = (prev) => prev;
@@ -17,7 +18,7 @@ const keepPrevious = (prev) => prev;
  */
 export function usePlayerLeaders(organizationId, teams = []) {
   const { autoRefreshStats, refreshIntervalMs } = useStatsRefresh();
-  const { data: games = [], isLoading: isGamesLoading, isFetching: isGamesFetching } = useQuery({
+  const { data: games = [], isLoading: isGamesLoading, isFetching: isGamesFetching, isError: isGamesError } = useQuery({
     queryKey: ["player-leaders-games", organizationId],
     // Sort + explicit high limit so the FULL completed-game set always loads.
     // Without this, the default page cap can return a different subset than Home,
@@ -37,30 +38,16 @@ export function usePlayerLeaders(organizationId, teams = []) {
   // wipes the whole result set.
   const completedGameIds = completedGames.map((g) => g.id).filter(Boolean).sort();
 
-  const { data: playerStats = [], isLoading: isStatsLoading, isFetching: isStatsFetching } = useQuery({
+  const { data: playerStats = [], isLoading: isStatsLoading, isFetching: isStatsFetching, isError: isStatsError } = useQuery({
     queryKey: ["player-leaders-stats", organizationId, completedGameIds.join(",")],
-    queryFn: async () => {
-      if (completedGameIds.length === 0) return [];
-      const results = [];
-      for (let i = 0; i < completedGameIds.length; i += 10) {
-        const chunk = completedGameIds.slice(i, i + 10);
-        try {
-          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
-          results.push(...part);
-        } catch (_) {
-          const per = await Promise.all(
-            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
-          );
-          results.push(...per.flat());
-        }
-      }
-      return results;
-    },
+    queryFn: () => fetchPlayerGameStatsByGames(completedGameIds),
     enabled: !!organizationId && completedGameIds.length > 0,
     staleTime: 60000,
     gcTime: 10 * 60 * 1000,
     refetchInterval: autoRefreshStats ? refreshIntervalMs : false,
     placeholderData: keepPrevious,
+    // Keep the last complete dataset visible when a refetch errors.
+    retry: false,
   });
 
   // isLoading = first load with no data yet (show skeleton/empty state).
@@ -72,6 +59,7 @@ export function usePlayerLeaders(organizationId, teams = []) {
     playerStats,
     isLoading: isGamesLoading || isStatsLoading,
     isFetching: isGamesFetching || isStatsFetching,
+    isError: isStatsError || isGamesError,
   };
 }
 

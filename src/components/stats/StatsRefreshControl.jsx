@@ -1,5 +1,5 @@
 import React from "react";
-import { BarChart3, RefreshCw } from "lucide-react";
+import { BarChart3, RefreshCw, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -9,40 +9,64 @@ import { useStatsRefresh } from "@/lib/StatsRefreshContext";
  * Shared refresh control for player statistics surfaces.
  * Reads the global auto-refresh toggle and manual-refresh action from
  * StatsRefreshContext so Home, Dashboard, and Statistics stay in sync.
+ * Surfaces a refresh-failure banner with retry when a coordinated fetch errors.
  */
 export default function StatsRefreshControl() {
-  const { autoRefreshStats, toggleAutoRefresh, refreshAllStats, isFetching } = useStatsRefresh();
+  const { autoRefreshStats, toggleAutoRefresh, refreshAllStats, isFetching, refreshError } = useStatsRefresh();
 
   return (
-    <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-xl bg-white/60 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 backdrop-blur-sm">
-      <div className="flex items-center gap-2">
-        <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-        <div>
-          <h3 className="text-sm font-bold text-gray-900 dark:text-white">Player Statistics Refresh</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Auto-refreshes every 3 minutes when enabled</p>
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
+    <div className="mb-6 flex flex-col gap-3 p-4 rounded-xl bg-white/60 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 backdrop-blur-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Label htmlFor="toggle-auto-refresh-stats" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
-            Auto (3 min)
-          </Label>
-          <Switch
-            id="toggle-auto-refresh-stats"
-            checked={autoRefreshStats}
-            onCheckedChange={toggleAutoRefresh}
-          />
+          <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          <div>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Statistics Refresh</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Syncs stats &amp; standings across Dashboard, Statistics, and Home every 3 minutes when enabled</p>
+          </div>
         </div>
-        <Button
-          onClick={refreshAllStats}
-          disabled={isFetching}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-          size="sm"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} />
-          {isFetching ? "Refreshing…" : "Refresh Now"}
-        </Button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Label htmlFor="toggle-auto-refresh-stats" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+              Auto (3 min)
+            </Label>
+            <Switch
+              id="toggle-auto-refresh-stats"
+              checked={autoRefreshStats}
+              onCheckedChange={toggleAutoRefresh}
+            />
+          </div>
+          <Button
+            onClick={refreshAllStats}
+            disabled={isFetching}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            size="sm"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} />
+            {isFetching ? "Refreshing…" : "Refresh Now"}
+          </Button>
+        </div>
       </div>
+
+      {refreshError && !isFetching && (
+        <div
+          role="alert"
+          className="flex items-center justify-between gap-3 rounded-lg border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/40 px-3 py-2"
+        >
+          <div className="flex items-center gap-2 text-sm font-semibold text-red-700 dark:text-red-300">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>Refresh didn't complete. Showing the last saved stats — try again.</span>
+          </div>
+          <Button
+            onClick={refreshAllStats}
+            variant="outline"
+            size="sm"
+            className="border-red-400 text-red-700 hover:bg-red-100 dark:text-red-300 dark:border-red-700 dark:hover:bg-red-900/40"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

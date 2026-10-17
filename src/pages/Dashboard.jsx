@@ -18,6 +18,7 @@ import FeaturedMatch from "@/components/dashboard/FeaturedMatch";
 import DivisionStandings from "@/components/dashboard/DivisionStandings";
 import TimerPanel from "@/components/TimerPanel";
 import KpiTile from "@/components/dashboard/KpiTile";
+import StatsRefreshControl from "@/components/stats/StatsRefreshControl";
 
 function ResultLine({ game, homeTeam, awayTeam, label }) {
   if (!game) return null;
@@ -262,6 +263,11 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
+
+              {/* Shared stats & standings refresh (coordinated with Statistics and Home) */}
+              {organization && (
+                <StatsRefreshControl />
+              )}
 
               {/* Setup card */}
               {!organization && !isSuperAdmin && (

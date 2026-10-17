@@ -17,6 +17,7 @@ import { useStatsRefresh } from "@/lib/StatsRefreshContext";
 import { createPageUrl } from "@/utils";
 import { computeTeamRecords, orgStandingsFlags, standingsColumns } from "@/lib/standings";
 import StandingsControls from "@/components/standings/StandingsControls";
+import { fetchPlayerGameStatsByGames } from "@/lib/playerStatsFetch";
 
 export default function Statistics() {
   const [user, setUser] = useState(null);
@@ -36,7 +37,7 @@ export default function Statistics() {
   );
   const isAdmin = user?.role === 'admin';
   const isSuperAdmin = user?.role === 'admin' && user?.is_super_admin === true;
-  const { autoRefreshStats, refreshIntervalMs } = useStatsRefresh();
+  const { autoRefreshStats, refreshIntervalMs, refreshAllStats } = useStatsRefresh();
 
   useEffect(() => {
     loadUser();
@@ -200,33 +201,21 @@ export default function Statistics() {
   // backend function can return partial data on rate-limit/timeout, which made
   // the Statistics leaderboard diverge from the Dashboard. Matching the
   // Dashboard's approach guarantees identical numbers on both surfaces.
-  const { data: playerGameStatsData = [], isFetching: isStatsFetchingDirect } = useQuery({
+  const { data: playerGameStatsData = [], isFetching: isStatsFetchingDirect, isError: isStatsErrorDirect } = useQuery({
     queryKey: ['playerGameStats', orgId, JSON.stringify(gameIdsForStats)],
-    queryFn: async () => {
-      if (gameIdsForStats.length === 0) return [];
-      const results = [];
-      for (let i = 0; i < gameIdsForStats.length; i += 10) {
-        const chunk = gameIdsForStats.slice(i, i + 10);
-        try {
-          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
-          results.push(...part);
-        } catch (_) {
-          const per = await Promise.all(
-            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
-          );
-          results.push(...per.flat());
-        }
-      }
-      return results;
-    },
+    queryFn: () => fetchPlayerGameStatsByGames(gameIdsForStats),
     enabled: gameIdsForStats.length > 0 && !isSuperAdmin,
     staleTime: 30000,
     gcTime: 5 * 60 * 1000,
     refetchInterval: autoRefreshStats ? refreshIntervalMs : false,
+    // Keep the last complete dataset when a refetch errors (no partial totals).
+    placeholderData: (prev) => prev,
+    retry: false,
   });
 
   const playerGameStats = isSuperAdmin ? (superAdminStatsData?.playerGameStats || []) : playerGameStatsData;
   const isStatsFetching = isSuperAdmin ? isSuperAdminStatsFetching : isStatsFetchingDirect;
+  const isStatsError = isSuperAdmin ? false : isStatsErrorDirect;
 
 
 
@@ -1015,7 +1004,12 @@ Please provide:
 
                 {/* PLAYER LEADERS TAB */}
                 <TabsContent value="players" className="space-y-6">
-                  <StatsFetchingIndicator fetching={isStatsFetching} label="Refreshing leaderboards…">
+                  <StatsFetchingIndicator
+                    fetching={isStatsFetching}
+                    error={isStatsError}
+                    onRetry={refreshAllStats}
+                    label="Refreshing leaderboards…"
+                  >
                   <div className="grid lg:grid-cols-2 gap-6 print:grid-cols-2 print:gap-4">
                     {/* Top Scorers */}
                     <Card className="border border-border bg-card print:shadow-none print:break-inside-avoid">

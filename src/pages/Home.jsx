@@ -19,6 +19,7 @@ import StatsRefreshControl from "@/components/stats/StatsRefreshControl";
 import { useStatsRefresh } from "@/lib/StatsRefreshContext";
 import { computeTeamRecords, orgStandingsFlags } from "@/lib/standings";
 import StandingsControls from "@/components/standings/StandingsControls";
+import { fetchPlayerGameStatsByGames } from "@/lib/playerStatsFetch";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -28,7 +29,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [bbDivTab, setBbDivTab] = useState('open');
-  const { autoRefreshStats, refreshIntervalMs } = useStatsRefresh();
+  const { autoRefreshStats, refreshIntervalMs, refreshAllStats } = useStatsRefresh();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -183,27 +184,9 @@ export default function Home() {
   const teamIds = teams.map(t => t.id);
   const completedGameIds = completedGames.map(g => g.id).filter(Boolean);
 
-  const { data: allPlayerStats = [], isFetching: isStatsFetching } = useQuery({
+  const { data: allPlayerStats = [], isFetching: isStatsFetching, isError: isStatsError } = useQuery({
     queryKey: ['all-player-stats-home', completedGameIds.join(',')],
-    queryFn: async () => {
-      if (completedGameIds.length === 0) return [];
-      // Chunk by game_id (proven Statistics-page path); isolate each chunk so
-      // one failure never wipes the whole result set.
-      const results = [];
-      for (let i = 0; i < completedGameIds.length; i += 10) {
-        const chunk = completedGameIds.slice(i, i + 10);
-        try {
-          const part = await base44.entities.PlayerGameStats.filter({ game_id: { $in: chunk } });
-          results.push(...part);
-        } catch (_) {
-          const per = await Promise.all(
-            chunk.map((id) => base44.entities.PlayerGameStats.filter({ game_id: id }).catch(() => []))
-          );
-          results.push(...per.flat());
-        }
-      }
-      return results;
-    },
+    queryFn: () => fetchPlayerGameStatsByGames(completedGameIds),
     enabled: isAuthenticated === true && completedGameIds.length > 0,
     staleTime: 60000,
     gcTime: 10 * 60 * 1000,
@@ -211,6 +194,8 @@ export default function Home() {
     refetchInterval: autoRefreshStats ? refreshIntervalMs : false,
     // Keep previous stats visible during background refetches so the UI never blanks out.
     placeholderData: (prev) => prev,
+    // Keep the last complete dataset when a refetch errors (no partial totals).
+    retry: false,
   });
 
   const players = allPlayers.filter(p => teamIds.includes(p.team_id));
@@ -452,11 +437,14 @@ export default function Home() {
 
               <StatsRefreshControl />
 
-              {isStatsFetching && (
-                <div className="mb-4">
-                  <StatsFetchingIndicator fetching={isStatsFetching} label="Refreshing live stats…" />
-                </div>
-              )}
+              <div className="mb-4">
+                <StatsFetchingIndicator
+                  fetching={isStatsFetching}
+                  error={isStatsError}
+                  onRetry={refreshAllStats}
+                  label="Refreshing live stats…"
+                />
+              </div>
               <BasketballSection bbDivTab={bbDivTab} setBbDivTab={setBbDivTab} organization={organization} basketballStandingsOpen={basketballStandingsOpen} basketballStandingsVeterans={basketballStandingsVeterans} topScorersOpen={topScorersOpen} topScorersVeterans={topScorersVeterans} topReboundersOpen={topReboundersOpen} topReboundersVeterans={topReboundersVeterans} topBlockersOpen={topBlockersOpen} topBlockersVeterans={topBlockersVeterans} top3PointersOpen={top3PointersOpen} top3PointersVeterans={top3PointersVeterans} upcomingBasketballGamesOpen={upcomingBasketballGamesOpen} upcomingBasketballGamesVeterans={upcomingBasketballGamesVeterans} completedBasketballGamesOpen={completedBasketballGamesOpen} completedBasketballGamesVeterans={completedBasketballGamesVeterans} allPlayerStats={allPlayerStats} allPlayers={allPlayers} allTeams={allTeams} isAdmin={isAdmin} orgId={orgId} getTeamName={getTeamName} excludeDraws={standingsFlags.excludeDraws} excludeDefaults={standingsFlags.excludeDefaults} />
 
               <VolleyballSection organization={organization} volleyballStandings={volleyballStandings} topVolleyballScorers={topVolleyballScorers} topVolleyballAttackers={topVolleyballAttackers} topVolleyballBlockers={topVolleyballBlockers} topVolleyballAces={topVolleyballAces} upcomingVolleyballGames={upcomingVolleyballGames} completedVolleyballGames={completedVolleyballGames} allPlayerStats={allPlayerStats} allPlayers={allPlayers} allTeams={allTeams} isAdmin={isAdmin} getTeamName={getTeamName} excludeDraws={standingsFlags.excludeDraws} excludeDefaults={standingsFlags.excludeDefaults} />
