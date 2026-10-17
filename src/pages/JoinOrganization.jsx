@@ -13,6 +13,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search, Building2, Users, Send, Clock, CheckCircle, XCircle, Trophy } from "lucide-react";
 import AdminHeader from "@/components/AdminHeader";
+
+const escapeHtml = (v) => v == null ? '' : String(v)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 import AdminSidebar from "@/components/AdminSidebar";
 
 export default function JoinOrganization() {
@@ -132,11 +136,11 @@ export default function JoinOrganization() {
               <h2>New Join Request</h2>
               <p>A user has requested to join your organization:</p>
               <ul>
-                <li><strong>Name:</strong> ${data.user_name || 'N/A'}</li>
-                <li><strong>Email:</strong> ${data.user_email}</li>
-                <li><strong>Requested Role:</strong> ${data.requested_role_in_org}</li>
-                <li><strong>Organization:</strong> ${data.organization_name}</li>
-                ${data.message ? `<li><strong>Message:</strong> ${data.message}</li>` : ''}
+                <li><strong>Name:</strong> ${escapeHtml(data.user_name || 'N/A')}</li>
+                <li><strong>Email:</strong> ${escapeHtml(data.user_email)}</li>
+                <li><strong>Requested Role:</strong> ${escapeHtml(data.requested_role_in_org)}</li>
+                <li><strong>Organization:</strong> ${escapeHtml(data.organization_name)}</li>
+                ${data.message ? `<li><strong>Message:</strong> ${escapeHtml(data.message)}</li>` : ''}
               </ul>
               <p>Please review this request in the Join Requests section of your admin dashboard.</p>
             `
