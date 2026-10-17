@@ -199,6 +199,30 @@
     },
     "winning_team_id": {
       "type": "string"
+    },
+    "active_lineup": {
+      "type": "object",
+      "properties": {
+        "home": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "away": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      },
+      "default": {
+        "home": [],
+        "away": []
+      },
+      "description": "Currently active on-court players per team (player IDs). Set by scorekeeper before game start; updated on substitutions."
     }
   },
   "required": [

@@ -53,7 +53,7 @@ function emptyTotals() {
     points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, fouls: 0,
     three_pointers: 0, field_goals_made: 0, field_goals_attempted: 0,
     free_throws_made: 0, free_throws_attempted: 0,
-    aces: 0, attacks: 0, rally_errors: 0,
+    aces: 0, attacks: 0, rally_errors: 0, plus_minus: 0,
   };
 }
 
@@ -160,6 +160,7 @@ export default async function (req) {
       seas.aces += Number(s.aces) || 0;
       seas.attacks += Number(s.attacks) || 0;
       seas.rally_errors += Number(s.rally_errors) || 0;
+      seas.plus_minus += Number(s.plus_minus) || 0;
 
       // Finals totals
       if (finalsGameIds.has(s.game_id)) {
@@ -180,6 +181,7 @@ export default async function (req) {
         fin.aces += Number(s.aces) || 0;
         fin.attacks += Number(s.attacks) || 0;
         fin.rally_errors += Number(s.rally_errors) || 0;
+        fin.plus_minus += Number(s.plus_minus) || 0;
       }
     }
 
@@ -208,6 +210,7 @@ export default async function (req) {
         aces: seasTotals.aces,
         attacks: seasTotals.attacks,
         rally_errors: seasTotals.rally_errors,
+        plus_minus: seasTotals.plus_minus,
         fg_pct: seasTotals.field_goals_attempted > 0
           ? Math.round((seasTotals.field_goals_made / seasTotals.field_goals_attempted) * 1000) / 10
           : 0,
@@ -237,6 +240,7 @@ export default async function (req) {
           aces: finTotals.aces,
           attacks: finTotals.attacks,
           rally_errors: finTotals.rally_errors,
+          plus_minus: finTotals.plus_minus,
         };
         finalsScore = Math.round(compositeScore({
           points: finTotals.points, rebounds: finTotals.rebounds, assists: finTotals.assists,

@@ -27,6 +27,7 @@ import LiveStreamEmbed from "@/components/LiveStreamEmbed";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { enqueueStatWrite, enqueueGameWrite, startStatSync } from "@/lib/statSyncQueue";
+import LineupManager from "@/components/LineupManager";
 
 
 export default function LiveScoringVolleyball() {
@@ -249,7 +250,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
     await updateGameById(game.id, patch);
   };
 
-  const updatePlayerStats = async (playerId, teamId, statUpdates) => {
+  const updatePlayerStats = async (playerId, teamId, statUpdates, lineupContext = null) => {
     const key = getPlayerStatKey(playerId);
     
     setPlayerStats(prev => {
@@ -279,6 +280,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
         team_id: teamId,
         quarter: currentSet,
         updates: statUpdates,
+        ...(lineupContext ? { lineup_context: lineupContext } : {}),
       });
       const saved = resp?.data?.stat;
       if (saved?.id) {
@@ -298,6 +300,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
         team_id: teamId,
         quarter: currentSet,
         updates: statUpdates,
+        ...(lineupContext ? { lineup_context: lineupContext } : {}),
       });
     }
   };
@@ -325,11 +328,12 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
       previousHomeScore: homeScore,
       previousAwayScore: awayScore,
       previousStatValue: currentStatValue,
+      lineupSnapshot: game.active_lineup || { home: [], away: [] },
     };
     setActionHistory(prev => [...prev, action]);
 
-    // Update player stat
-    await updatePlayerStats(selectedPlayer.id, teamId, [{ statType, value: 1 }]);
+    // Update player stat (with lineup context for +/-)
+    await updatePlayerStats(selectedPlayer.id, teamId, [{ statType, value: 1 }], action.lineupSnapshot);
 
     // Update score
     setHomeScore(newHomeScore);
@@ -343,12 +347,16 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
     const newHomeScore = selectedTeam === 'home' ? homeScore + 1 : homeScore;
     const newAwayScore = selectedTeam === 'away' ? awayScore + 1 : awayScore;
 
+    const lineupSnapshot = game.active_lineup || { home: [], away: [] };
+    const teamId = selectedTeam === 'home' ? game.home_team_id : game.away_team_id;
+
     const action = {
       type: 'score_only',
       team: selectedTeam,
       quarter: currentSet,
       previousHomeScore: homeScore,
       previousAwayScore: awayScore,
+      lineupSnapshot,
     };
     setActionHistory(prev => [...prev, action]);
 
@@ -356,6 +364,19 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
     setAwayScore(newAwayScore);
 
     await updateGame(selectedTeam === 'home' ? { home_score_delta: 1 } : { away_score_delta: 1 });
+
+    // Update +/- for all on-court players (rally point — no individual stat change)
+    try {
+      await base44.functions.invoke('upsertPlayerStat', {
+        game_id: game.id,
+        team_id: teamId,
+        quarter: currentSet,
+        pm_delta: 1,
+        lineup_context: lineupSnapshot,
+      });
+    } catch (e) {
+      console.error('Plus/minus update failed for rally point:', e);
+    }
   };
 
   const handleUndo = async () => {
@@ -380,7 +401,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
       await updatePlayerStats(lastAction.playerId, lastAction.teamId, [{ 
         statType: lastAction.statType, 
         value: -lastAction.value 
-      }]);
+      }], lastAction.lineupSnapshot);
     } else if (lastAction.type === 'score_only') {
       // Undo only score
       const newHomeScore = lastAction.previousHomeScore;
@@ -388,6 +409,19 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
       setHomeScore(newHomeScore);
       setAwayScore(newAwayScore);
       await updateGame(lastAction.team === 'home' ? { home_score_delta: -1 } : { away_score_delta: -1 });
+      // Reverse +/- for on-court players
+      try {
+        const teamId = lastAction.team === 'home' ? game.home_team_id : game.away_team_id;
+        await base44.functions.invoke('upsertPlayerStat', {
+          game_id: game.id,
+          team_id: teamId,
+          quarter: lastAction.quarter,
+          pm_delta: -1,
+          lineup_context: lastAction.lineupSnapshot,
+        });
+      } catch (e) {
+        console.error('Plus/minus undo failed for rally point:', e);
+      }
     } else if (lastAction.type === 'timeout') {
       if (lastAction.team === 'home') {
         const newTimeouts = homeTimeouts + 1;
@@ -772,6 +806,7 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
     const blocks = getPlayerStat(player.id, 'blocks');
     const aces = getPlayerStat(player.id, 'aces');
     const points = attacks + blocks + aces;
+    const plusMinus = getPlayerStat(player.id, 'plus_minus');
 
     const isSelected = selectedPlayer?.id === player.id;
 
@@ -815,6 +850,10 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
               <div className="text-xl font-black">{aces}</div>
               <div className={`text-[9px] font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>ACE</div>
             </div>
+            <div className="text-center">
+              <div className={`text-xl font-black ${plusMinus > 0 ? 'text-green-400' : plusMinus < 0 ? 'text-red-400' : ''}`}>{plusMinus > 0 ? `+${plusMinus}` : plusMinus}</div>
+              <div className={`text-[9px] font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>+/-</div>
+            </div>
           </div>
         </div>
       </button>
@@ -824,6 +863,10 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
   const handlePlayerSelect = (player, team) => {
     setSelectedPlayer(player);
     setSelectedTeam(team);
+  };
+
+  const handleLineupChange = (updatedGame) => {
+    setGame(updatedGame);
   };
 
   return (
@@ -1241,6 +1284,17 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                 </Button>
               </div>
             </div>
+            <div className="flex-shrink-0 p-3 pb-0">
+              <LineupManager
+                game={game}
+                team="home"
+                players={homePlayers}
+                sport="volleyball"
+                playerStats={playerStats}
+                currentPeriod={currentSet}
+                onLineupChange={handleLineupChange}
+              />
+            </div>
             <div className="flex-1 overflow-y-auto p-3">
               {[...homePlayers].sort((a, b) => {
                 const an = parseInt(a.jersey_number || '0', 10);
@@ -1268,6 +1322,17 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
                   TO ({awayTimeouts})
                 </Button>
               </div>
+            </div>
+            <div className="flex-shrink-0 p-3 pb-0">
+              <LineupManager
+                game={game}
+                team="away"
+                players={awayPlayers}
+                sport="volleyball"
+                playerStats={playerStats}
+                currentPeriod={currentSet}
+                onLineupChange={handleLineupChange}
+              />
             </div>
             <div className="flex-1 overflow-y-auto p-3">
               {[...awayPlayers].sort((a, b) => {
