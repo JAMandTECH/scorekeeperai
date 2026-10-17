@@ -5,7 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TopAssistLeaders from "@/components/leaders/TopAssistLeaders";
 import LeaderCard from "@/components/leaders/LeaderCard";
 import StandingsTable from "@/components/home/StandingsTable";
-import BasketballSchedule from "@/components/home/BasketballSchedule";
+import BasketballUpcomingSchedule from "@/components/home/BasketballUpcomingSchedule";
+import BasketballGameResults from "@/components/home/BasketballGameResults";
 
 export default function BasketballSection({
   bbDivTab,
@@ -55,7 +56,8 @@ export default function BasketballSection({
           <TabsList>
             <TabsTrigger value="standings">Standings</TabsTrigger>
             <TabsTrigger value="leaders">Player Leaders</TabsTrigger>
-            <TabsTrigger value="schedule">Schedule & Results</TabsTrigger>
+            <TabsTrigger value="schedule">Schedule</TabsTrigger>
+            <TabsTrigger value="results">Game Results</TabsTrigger>
           </TabsList>
           <div className="flex gap-2">
             <Button type="button" variant={bbDivTab === 'open' ? 'default' : 'outline'} size="sm" onClick={() => setBbDivTab('open')}>Open</Button>
@@ -89,8 +91,15 @@ export default function BasketballSection({
         </TabsContent>
 
         <TabsContent value="schedule">
-          <BasketballSchedule
+          <BasketballUpcomingSchedule
             upcomingGames={bbDivTab === 'open' ? upcomingBasketballGamesOpen : upcomingBasketballGamesVeterans}
+            getTeamName={getTeamName}
+            allTeams={allTeams}
+          />
+        </TabsContent>
+
+        <TabsContent value="results">
+          <BasketballGameResults
             completedGames={bbDivTab === 'open' ? completedBasketballGamesOpen : completedBasketballGamesVeterans}
             allPlayerStats={allPlayerStats}
             allPlayers={allPlayers}

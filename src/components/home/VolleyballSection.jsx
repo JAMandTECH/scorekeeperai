@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StandingsTable from "@/components/home/StandingsTable";
-import VolleyballSchedule from "@/components/home/VolleyballSchedule";
+import VolleyballUpcomingSchedule from "@/components/home/VolleyballUpcomingSchedule";
+import VolleyballGameResults from "@/components/home/VolleyballGameResults";
 
 export default function VolleyballSection({
   organization,
@@ -52,7 +53,8 @@ export default function VolleyballSection({
         <TabsList>
           <TabsTrigger value="standings">Standings</TabsTrigger>
           <TabsTrigger value="leaders">Player Leaders</TabsTrigger>
-          <TabsTrigger value="schedule">Schedule & Results</TabsTrigger>
+          <TabsTrigger value="schedule">Schedule</TabsTrigger>
+          <TabsTrigger value="results">Game Results</TabsTrigger>
         </TabsList>
 
         <TabsContent value="standings">
@@ -125,8 +127,15 @@ export default function VolleyballSection({
         </TabsContent>
 
         <TabsContent value="schedule">
-          <VolleyballSchedule
+          <VolleyballUpcomingSchedule
             upcomingGames={upcomingVolleyballGames}
+            getTeamName={getTeamName}
+            allTeams={allTeams}
+          />
+        </TabsContent>
+
+        <TabsContent value="results">
+          <VolleyballGameResults
             completedGames={completedVolleyballGames}
             allPlayerStats={allPlayerStats}
             allPlayers={allPlayers}
