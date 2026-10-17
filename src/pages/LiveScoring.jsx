@@ -58,6 +58,7 @@ export default function LiveScoring() {
   const [starterSelection, setStarterSelection] = useState([]); // player ids
   const [subOutPlayer, setSubOutPlayer] = useState(null); // { player, team }
   const [lineupSaving, setLineupSaving] = useState(false);
+  const [lineupError, setLineupError] = useState(null);
   const undoLockRef = useRef(false);
   const lastUndoTsRef = useRef(0);
   const lastCommandRef = useRef({ key: '', ts: 0 });
@@ -1345,6 +1346,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
     const existing = game?.active_lineup?.[team] || [];
     setStarterSelection(existing);
     setSetStartersTeam(team);
+    setLineupError(null);
   };
 
   const toggleStarter = (playerId) => {
@@ -1360,6 +1362,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
   const confirmStarters = async () => {
     if (starterSelection.length !== LINEUP_SIZE || !setStartersTeam) return;
     setLineupSaving(true);
+    setLineupError(null);
     try {
       const resp = await base44.functions.invoke("manageLineup", {
         game_id: game.id,
@@ -1372,7 +1375,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
       setStarterSelection([]);
     } catch (e) {
       console.error("Failed to set starters:", e);
-      alert(e?.response?.data?.error || "Failed to set starting lineup.");
+      setLineupError(e?.response?.data?.error || e?.data?.error || "Failed to set starting lineup.");
     } finally {
       setLineupSaving(false);
     }
@@ -2424,6 +2427,14 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
               );
             })}
           </div>
+          {lineupError && (
+            <Alert className="bg-destructive/10 border border-destructive/30">
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              <AlertDescription className="text-destructive font-medium text-sm">
+                {lineupError}
+              </AlertDescription>
+            </Alert>
+          )}
           <div className="flex gap-2 pt-2">
             <Button variant="outline" onClick={() => { setSetStartersTeam(null); setStarterSelection([]); }} disabled={lineupSaving} className="flex-1">Cancel</Button>
             <Button onClick={confirmStarters} disabled={starterSelection.length !== LINEUP_SIZE || lineupSaving} className="flex-1 font-heading font-bold">

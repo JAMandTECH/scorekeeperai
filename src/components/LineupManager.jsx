@@ -27,6 +27,7 @@ export default function LineupManager({
   const [selectedIds, setSelectedIds] = useState([]);
   const [subDialog, setSubDialog] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [lineupError, setLineupError] = useState(null);
 
   const lineupSize = LINEUP_SIZES[sport] || 5;
   const lineup = game?.active_lineup || { home: [], away: [] };
@@ -54,6 +55,7 @@ export default function LineupManager({
   const handleOpenSelect = () => {
     setSelectedIds(activeIds);
     setSelecting(true);
+    setLineupError(null);
   };
 
   const handleToggle = (playerId) => {
@@ -69,6 +71,7 @@ export default function LineupManager({
   const handleConfirm = async () => {
     if (selectedIds.length !== lineupSize) return;
     setSaving(true);
+    setLineupError(null);
     try {
       const resp = await base44.functions.invoke("manageLineup", {
         game_id: game.id,
@@ -81,7 +84,7 @@ export default function LineupManager({
       setSelectedIds([]);
     } catch (e) {
       console.error("Failed to set starters:", e);
-      alert(e?.response?.data?.error || "Failed to set starting lineup.");
+      setLineupError(e?.response?.data?.error || e?.data?.error || "Failed to set starting lineup.");
     } finally {
       setSaving(false);
     }
@@ -276,6 +279,12 @@ export default function LineupManager({
             </div>
           )}
 
+          {lineupError && (
+            <div className="flex items-start gap-2 p-3 border border-destructive/30 bg-destructive/10 rounded-sm">
+              <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-destructive font-medium">{lineupError}</p>
+            </div>
+          )}
           <div className="flex gap-2 pt-2">
             <Button variant="outline" onClick={() => setSelecting(false)} disabled={saving} className="flex-1">
               Cancel
