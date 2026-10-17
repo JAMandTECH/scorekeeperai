@@ -12,6 +12,7 @@ export default function TopAssistLeaders({
   orgName = null,
   orgLogoUrl = null,
   division = null,
+  showHeaderMeta = true,
 }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["top-assist-leaders", organizationId, sport, division, limit],
@@ -46,19 +47,21 @@ export default function TopAssistLeaders({
           <CardTitle className="text-xl font-heading font-bold print:text-lg flex items-center gap-2">
             🏀 {title}
           </CardTitle>
-          <div className="flex items-center gap-2 shrink-0">
-            {division && (
-              <span className="text-xs text-muted-foreground font-medium hidden sm:inline truncate max-w-[160px]">{division}</span>
-            )}
-            {orgLogoUrl && (
-              <Avatar className="w-8 h-8 border border-border">
-                <AvatarImage src={orgLogoUrl} />
-                <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-[10px]">
-                  {(orgName || "").substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            )}
-          </div>
+          {showHeaderMeta && (
+            <div className="flex items-center gap-2 shrink-0">
+              {division && (
+                <span className="text-xs text-muted-foreground font-medium hidden sm:inline truncate max-w-[160px]">{division}</span>
+              )}
+              {orgLogoUrl && (
+                <Avatar className="w-8 h-8 border border-border">
+                  <AvatarImage src={orgLogoUrl} />
+                  <AvatarFallback className="bg-secondary text-foreground font-heading font-bold text-[10px]">
+                    {(orgName || "").substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              )}
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent className="p-6 print:p-4">

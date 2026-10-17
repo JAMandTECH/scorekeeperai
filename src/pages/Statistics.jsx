@@ -1090,6 +1090,7 @@ Please provide:
                         division={selectedDivision === 'all' ? null : selectedDivision}
                         orgName={organization?.name}
                         orgLogoUrl={organization?.logo_url}
+                        showHeaderMeta={false}
                       />
                     )}
 
