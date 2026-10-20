@@ -786,7 +786,7 @@ export default function Games() {
             </p>
           )}
           
-          {game.is_demo && game.status === 'scheduled' && (
+          {game.is_demo && game.status === 'scheduled' && (isAdmin || user?.is_scorekeeper) && (
             <Link to={createPageUrl('DemoLiveScoring') + `?sport=${game.sport}`}>
               <Button className="w-full font-medium">
                 <PlayCircle className="w-4 h-4 mr-2" />
