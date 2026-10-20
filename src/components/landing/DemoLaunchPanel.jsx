@@ -28,10 +28,10 @@ export default function DemoLaunchPanel() {
       <div className="bg-card p-8">
         <p className="text-xs font-semibold tracking-wide uppercase text-primary mb-4">Take the controls</p>
         <h3 className="font-heading text-2xl font-bold tracking-tight mb-4">
-          Score a full game yourself
+          Everything your scorekeeper taps
         </h3>
         <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-          The panel above runs on its own. Launch the real interface, loaded with sample rosters and teams, and use the exact scoring screen your scorekeepers see on game day.
+          This is the real scoring screen, not a mock-up. Pick a sport, then run a full game with sample teams and rosters — every button behaves exactly as it does on game day.
         </p>
         <ul className="space-y-3 mb-6">
           {capabilities.map((item) => (
