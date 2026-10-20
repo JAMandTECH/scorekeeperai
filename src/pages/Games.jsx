@@ -20,7 +20,8 @@ import AIScheduleGenerator from "@/components/AIScheduleGenerator";
 import AIAssistant from "@/components/AIAssistant";
 import { usePermissions } from "@/components/hooks/usePermissions";
 import { useToast } from "@/components/ui/use-toast";
-import { isTrialOrg, DEMO_GAMES, DEMO_TEAMS } from "@/lib/trialDemo";
+import { DEMO_GAMES, DEMO_TEAMS } from "@/lib/trialDemo";
+import { isSubscriptionEntitled } from "@/lib/subscriptionAccess";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -146,7 +147,9 @@ export default function Games() {
     enabled: !!user?.organization_id,
   });
 
-  const trialMode = isTrialOrg(organization);
+  // Active subscription or a trial still inside its window can score real
+  // games; only organizations past their trial fall back to demo mode.
+  const accessLocked = !isSubscriptionEntitled(organization);
 
   const { data: teams = [] } = useQuery({
     queryKey: ['teams', user?.organization_id],
@@ -651,7 +654,7 @@ export default function Games() {
   }));
   };
 
-  const demoGamesToShow = trialMode ? DEMO_GAMES : [];
+  const demoGamesToShow = accessLocked ? DEMO_GAMES : [];
   const scheduledGames = [...demoGamesToShow, ...games.filter(g => g.status === 'scheduled' && !g.archived)];
   const inProgressGames = games.filter(g => g.status === 'in_progress' && !g.archived);
   const completedGames = games.filter(g => g.status === 'completed' && !g.archived);
@@ -791,7 +794,7 @@ export default function Games() {
               </Button>
             </Link>
           )}
-          {!game.is_demo && game.status === 'scheduled' && !game.archived && hasPermission('live_scoring') && !trialMode && (
+          {!game.is_demo && game.status === 'scheduled' && !game.archived && hasPermission('live_scoring') && !accessLocked && (
             <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}`}>
               <Button className="w-full font-medium">
                 <PlayCircle className="w-4 h-4 mr-2" />
@@ -799,20 +802,20 @@ export default function Games() {
               </Button>
             </Link>
           )}
-          {!game.is_demo && game.status === 'scheduled' && !game.archived && trialMode && (
+          {!game.is_demo && game.status === 'scheduled' && !game.archived && accessLocked && (
             <Button disabled className="w-full font-medium opacity-60 cursor-not-allowed" title="Subscribe to score live games">
               <Lock className="w-4 h-4 mr-2" />
               Subscribe to Score
             </Button>
           )}
-          {!game.is_demo && game.status === 'in_progress' && !game.archived && hasPermission('live_scoring') && !trialMode && (
+          {!game.is_demo && game.status === 'in_progress' && !game.archived && hasPermission('live_scoring') && !accessLocked && (
             <Link to={createPageUrl(game.sport === 'volleyball' ? 'LiveScoringVolleyball' : 'LiveScoring') + `?game_id=${game.id}`}>
               <Button variant="outline" className="w-full font-medium">
                 Continue Scoring
               </Button>
             </Link>
           )}
-          {!game.is_demo && game.status === 'in_progress' && !game.archived && trialMode && (
+          {!game.is_demo && game.status === 'in_progress' && !game.archived && accessLocked && (
             <Button disabled className="w-full font-medium opacity-60 cursor-not-allowed" title="Subscribe to score live games">
               <Lock className="w-4 h-4 mr-2" />
               Subscribe to Score
@@ -929,15 +932,15 @@ export default function Games() {
         <main className="flex-1 min-w-0">
           <div className="p-6 lg:p-8">
             <div className="max-w-7xl mx-auto space-y-8">
-              {trialMode && (
+              {accessLocked && (
                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-sm p-4 flex items-center gap-3">
                   <Sparkles className="w-5 h-5 text-amber-600 shrink-0" />
                   <div className="flex-1">
                     <p className="text-sm text-foreground font-medium">
-                      <span className="font-heading font-bold">Trial Demo Mode</span> — Try live scoring with the demo games below. Real game scoring unlocks when you subscribe.
+                      <span className="font-heading font-bold">Demo Mode</span> — Try live scoring with the demo games below. Real game scoring unlocks when you subscribe.
                     </p>
                   </div>
-                  <Link to={createPageUrl("SubscriptionManagement")}>
+                  <Link to={createPageUrl("SubscriptionCheckout")}>
                     <Button size="sm" className="font-medium whitespace-nowrap">
                       <Lock className="w-4 h-4 mr-1" /> Subscribe
                     </Button>

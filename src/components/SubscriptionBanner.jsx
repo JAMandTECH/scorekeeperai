@@ -9,6 +9,11 @@ import { useSubscription } from "@/components/hooks/useSubscription";
 export default function SubscriptionBanner({ organization }) {
   const subscription = useSubscription(organization);
 
+  // Nothing to announce until the organization is loaded
+  if (!organization) {
+    return null;
+  }
+
   // Don't show banner if subscription is active
   if (subscription.isActive && !subscription.isTrialExpired) {
     return null;

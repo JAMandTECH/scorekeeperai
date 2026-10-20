@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { runTrialLifecycleSweep } from '../../shared/trialLifecycle.ts';
 
 // Data Health Checks across organizations
 // Modes:
@@ -244,9 +245,20 @@ Deno.serve(async (req) => {
       aggregate.issues_count.score_mismatches += r.summary.issues_count.score_mismatches;
     }
 
+    // The daily schedule that calls this function also drives the trial
+    // lifecycle sweep: 7-day reminders, the one-time catch-up reminder, and the
+    // automatic downgrade of trials that ended without a subscription.
+    let trialLifecycle = null;
+    try {
+      trialLifecycle = await runTrialLifecycleSweep(base44);
+    } catch (trialError) {
+      console.error('runDataHealthChecks: trial lifecycle sweep failed:', trialError?.message || trialError);
+    }
+
     return Response.json({
       ok: true,
       scope: 'all',
+      trial_lifecycle: trialLifecycle,
       aggregate,
       per_org: results.map(r => ({ organization_id: r.orgId, summary: r.summary })),
       pagination: { offset, limit, scanned: results.length, total, has_more: offset + results.length < total }

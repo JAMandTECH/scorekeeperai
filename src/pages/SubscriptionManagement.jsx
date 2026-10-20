@@ -124,11 +124,17 @@ export default function SubscriptionManagement() {
       subscription_status: editingOrg.subscription_status,
     };
 
-    // Add trial_end_date if status is trial and not set
-    if (editingOrg.subscription_status === 'trial' && !editingOrg.trial_end_date) {
+    // A trial is always a full 30-day window: set the end date when it is
+    // missing, and restart it when the previous window has already closed.
+    // A trial still inside its window keeps its original end date.
+    const trialEndMs = editingOrg.trial_end_date ? new Date(editingOrg.trial_end_date).getTime() : NaN;
+    if (editingOrg.subscription_status === 'trial' && (!Number.isFinite(trialEndMs) || trialEndMs <= Date.now())) {
       const trialEnd = new Date();
       trialEnd.setDate(trialEnd.getDate() + 30);
       updateData.trial_end_date = trialEnd.toISOString();
+      // A fresh window may send its reminders again.
+      updateData.trial_reminder_sent_at = null;
+      updateData.trial_catchup_reminder_sent_at = null;
     }
 
     // Add selected_sport for basic tier
