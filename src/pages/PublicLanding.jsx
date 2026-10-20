@@ -9,9 +9,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AIAssistant from "@/components/AIAssistant";
-import LiveScorePreview from "@/components/LiveScorePreview";
 import ReviewsSection from "@/components/landing/ReviewsSection";
+import LiveScoringPreview from "@/components/landing/LiveScoringPreview";
 import BroadcastScoreboard from "@/components/landing/BroadcastScoreboard";
+import DemoLaunchPanel from "@/components/landing/DemoLaunchPanel";
 
 export default function PublicLanding() {
   const [darkMode, setDarkMode] = useState(false);
@@ -257,21 +258,22 @@ export default function PublicLanding() {
         </div>
       </section>
 
-      {/* ── Live Scoring Preview ── */}
+      {/* ── Live Scoring Demo ── */}
       <section id="demo" className="border-b border-border">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
           <div className="mb-12">
-            <p className="text-sm text-muted-foreground mb-3">Live Scoring Simulation</p>
+            <p className="text-sm text-muted-foreground mb-3">Interactive Demo</p>
             <h2 className="font-heading text-3xl md:text-4xl font-bold tracking-tight mb-4">
-              Watch real-time scoring <span className="text-primary">in action</span>
+              Score a game <span className="text-primary">right now</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl">
-              Experience our live scoring system with this interactive simulation featuring automated score updates and real-time statistics.
+              Watch the real scoring screen run a sample game, then open it yourself and take the controls. No account and no setup required.
             </p>
           </div>
-          <div className="max-w-3xl">
-            <LiveScorePreview />
+          <div className="max-w-5xl">
+            <LiveScoringPreview />
           </div>
+          <DemoLaunchPanel />
           <div className="mt-10">
             {!isAuthenticated && (
               <Button variant="outline" onClick={handleGetStarted}>
@@ -681,7 +683,7 @@ export default function PublicLanding() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#features" className="hover:text-foreground transition-colors">Features</a></li>
                 <li><a href="#" className="hover:text-foreground transition-colors">Pricing</a></li>
-                <li><Link to="/" className="hover:text-foreground transition-colors">Live Demo</Link></li>
+                <li><Link to="/DemoLiveScoring" className="hover:text-foreground transition-colors">Live Demo</Link></li>
                 <li><a href="#" className="hover:text-foreground transition-colors">Documentation</a></li>
               </ul>
             </div>

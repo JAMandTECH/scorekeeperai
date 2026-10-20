@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createPageUrl } from "@/utils";
+import { useAuth } from "@/lib/AuthContext";
 import { DEMO_TEAMS, DEMO_PLAYERS } from "@/lib/trialDemo";
 import {
   PlayCircle, ChevronRight, CheckCircle, Clock, TrendingUp, Target, Zap,
@@ -22,8 +23,13 @@ import {
  */
 export default function DemoLiveScoring() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const urlParams = new URLSearchParams(window.location.search);
   const sport = urlParams.get("sport") === "volleyball" ? "volleyball" : "basketball";
+
+  // Signed-in users return to their games list; public visitors return to the landing page.
+  const exitPath = isAuthenticated ? createPageUrl("Games") : "/";
+  const exitLabel = isAuthenticated ? "Back to Games" : "Back to Home";
 
   const homeTeam = DEMO_TEAMS[sport].home;
   const awayTeam = DEMO_TEAMS[sport].away;
@@ -295,8 +301,8 @@ export default function DemoLiveScoring() {
             <Button onClick={() => navigate(createPageUrl("SubscriptionManagement"))} size="sm" className="font-medium">
               <Lock className="w-4 h-4 mr-1" /> Subscribe
             </Button>
-            <Button onClick={() => navigate(createPageUrl("Games"))} variant="outline" size="sm" className="font-medium">
-              <ChevronRight className="w-4 h-4 mr-1 rotate-180" /> Back to Games
+            <Button onClick={() => navigate(exitPath)} variant="outline" size="sm" className="font-medium">
+              <ChevronRight className="w-4 h-4 mr-1 rotate-180" /> {exitLabel}
             </Button>
           </div>
         </div>
@@ -378,7 +384,7 @@ export default function DemoLiveScoring() {
                     <CheckCircle className="w-4 h-4 mr-1" /> END GAME
                   </Button>
                 )}
-                <Button onClick={() => navigate(createPageUrl("Games"))} variant="outline" size="sm" className="font-medium text-xs px-4 py-2">
+                <Button onClick={() => navigate(exitPath)} variant="outline" size="sm" className="font-medium text-xs px-4 py-2">
                   CANCEL
                 </Button>
               </div>
