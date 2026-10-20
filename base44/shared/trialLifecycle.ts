@@ -52,11 +52,14 @@ export async function runTrialLifecycleSweep(base44: any) {
     errors: [] as string[],
   };
 
-  const { items: trials } = await entities.Organization.filter(
-    { subscription_status: 'trial' },
-    { limit: TRIAL_SCAN_LIMIT }
-  );
+  // Callers run on different SDK versions, where an entity filter resolves to
+  // either a page object or a plain array, so accept both shapes.
+  const trialResult: any = await entities.Organization.filter({ subscription_status: 'trial' });
+  const trials: any[] = Array.isArray(trialResult) ? trialResult : (trialResult?.items || []);
   summary.checked = trials.length;
+  if (trials.length >= TRIAL_SCAN_LIMIT) {
+    console.warn('[trialLifecycle] trial scan hit its page size; more trials may exist than were checked');
+  }
 
   for (const listed of trials) {
     try {
