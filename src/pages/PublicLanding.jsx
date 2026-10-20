@@ -12,6 +12,7 @@ import AIAssistant from "@/components/AIAssistant";
 import LiveScorePreview from "@/components/LiveScorePreview";
 import ReviewsSection from "@/components/landing/ReviewsSection";
 import BroadcastScoreboard from "@/components/landing/BroadcastScoreboard";
+import DemoLaunchPanel from "@/components/landing/DemoLaunchPanel";
 
 export default function PublicLanding() {
   const [darkMode, setDarkMode] = useState(false);
@@ -266,12 +267,13 @@ export default function PublicLanding() {
               Watch real-time scoring <span className="text-primary">in action</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl">
-              Experience our live scoring system with this interactive simulation featuring automated score updates and real-time statistics.
+              Watch an automated simulation of live scoring, then launch the real interface and score a full game yourself — no account required.
             </p>
           </div>
           <div className="max-w-3xl">
             <LiveScorePreview />
           </div>
+          <DemoLaunchPanel />
           <div className="mt-10">
             {!isAuthenticated && (
               <Button variant="outline" onClick={handleGetStarted}>
@@ -681,7 +683,7 @@ export default function PublicLanding() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#features" className="hover:text-foreground transition-colors">Features</a></li>
                 <li><a href="#" className="hover:text-foreground transition-colors">Pricing</a></li>
-                <li><Link to="/" className="hover:text-foreground transition-colors">Live Demo</Link></li>
+                <li><Link to="/DemoLiveScoring" className="hover:text-foreground transition-colors">Live Demo</Link></li>
                 <li><a href="#" className="hover:text-foreground transition-colors">Documentation</a></li>
               </ul>
             </div>

@@ -20,7 +20,6 @@ import TimekeeperPage from './pages/Timekeeper';
 import TimekeepersPage from './pages/Timekeepers';
 import AwardCandidates from './pages/AwardCandidates';
 import DemoLiveScoring from './pages/DemoLiveScoring';
-import StaffRoute from '@/components/StaffRoute';
 import { StatsRefreshProvider } from '@/lib/StatsRefreshContext';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -73,7 +72,7 @@ const AuthenticatedApp = () => {
         <Route path="/Timekeeper" element={<TimekeeperPage />} />
         <Route path="/Timekeepers" element={<TimekeepersPage />} />
         <Route path="/AwardCandidates" element={<AwardCandidates />} />
-        <Route path="/DemoLiveScoring" element={<StaffRoute><DemoLiveScoring /></StaffRoute>} />
+        <Route path="/DemoLiveScoring" element={<DemoLiveScoring />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </LayoutWrapper>
