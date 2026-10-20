@@ -20,7 +20,7 @@ const SCRIPT = [
   { team: "away", player: 3, kind: "stat", stat: "stl", control: "stl" },
   { team: "home", player: 2, kind: "stat", stat: "blk", control: "blk" },
   { team: "away", player: 1, kind: "score", points: 3, control: "pt3" },
-  { team: "period" },
+  { kind: "period" },
   { team: "home", player: 0, kind: "score", points: 2, control: "pt2" },
   { team: "away", player: 2, kind: "score", points: 2, control: "pt2" },
   { team: "home", player: 3, kind: "stat", stat: "reb", control: "reb" },
