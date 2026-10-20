@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import AIAssistant from "@/components/AIAssistant";
 import ReviewsSection from "@/components/landing/ReviewsSection";
+import LiveScoringPreview from "@/components/landing/LiveScoringPreview";
 import BroadcastScoreboard from "@/components/landing/BroadcastScoreboard";
 import DemoLaunchPanel from "@/components/landing/DemoLaunchPanel";
 
@@ -266,8 +267,11 @@ export default function PublicLanding() {
               Score a game <span className="text-primary">right now</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl">
-              No sign-up and no setup. Open the exact live scoring screen your scorekeepers use on game day — loaded with sample teams — and run a full game yourself.
+              Watch the real scoring screen run a sample game, then open it yourself and take the controls. No account and no setup required.
             </p>
+          </div>
+          <div className="max-w-5xl">
+            <LiveScoringPreview />
           </div>
           <DemoLaunchPanel />
           <div className="mt-10">
