@@ -36,6 +36,9 @@ export default async function(req: Request): Promise<Response> {
       contact_email: request.user_email,
       contact_phone: request.phone_number,
       status: 'active',
+      subscription_status: 'trial',
+      // The 30-day trial window starts the moment the organization is created.
+      trial_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     });
 
     // Persist the hash (not the plaintext) and link the org.

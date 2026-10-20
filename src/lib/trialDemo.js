@@ -1,7 +1,10 @@
 /**
- * Trial Demo Mode — sample data and helpers for the interactive simulation.
+ * Trial Demo Mode — sample data for the interactive simulation.
  * All demo IDs use a "demo-" prefix so they never collide with real records.
  * Demo games are never persisted; they exist only in the browser session.
+ *
+ * Whether an organization may score real games is decided in one place:
+ * isSubscriptionEntitled() in src/lib/subscriptionAccess.js.
  */
 
 export const DEMO_TEAMS = {
@@ -94,14 +97,3 @@ export const DEMO_GAMES = [
     is_demo: true,
   },
 ];
-
-/**
- * Returns true if the organization is in trial/demo mode (not actively subscribed).
- * Active subscriptions unlock live scoring; everything else is demo-only.
- */
-export function isTrialOrg(organization) {
-  if (!organization) return false;
-  const status = organization.subscription_status;
-  if (status === 'active') return false;
-  return true; // trial, expired, cancelled, or missing
-}

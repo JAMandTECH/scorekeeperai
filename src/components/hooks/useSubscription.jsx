@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { isSubscriptionEntitled } from "@/lib/subscriptionAccess";
 
 /**
  * Hook to check organization subscription access
@@ -17,8 +18,8 @@ export function useSubscription(organization) {
     return new Date(organization.trial_end_date) < new Date();
   };
 
-  // Check if subscription is active
-  const isActive = status === 'active' || (status === 'trial' && !isTrialExpired());
+  // Active subscription or a trial still inside its window (one shared rule).
+  const isActive = isSubscriptionEntitled(organization);
 
   // Check if can create teams
   const canCreateTeams = isActive && (tier === 'basic' || tier === 'premium');

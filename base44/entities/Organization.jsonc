@@ -54,6 +54,16 @@
       "type": "string",
       "format": "date-time"
     },
+    "trial_reminder_sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the 7-day trial-ending reminder was emailed to the organization admin (guards against duplicate sends)"
+    },
+    "trial_catchup_reminder_sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the one-time catch-up trial reminder was emailed because the 7-day reminder window was missed"
+    },
     "selected_sport": {
       "type": "string",
       "enum": [
