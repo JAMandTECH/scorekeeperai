@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { buildSmartLayout, getSportStatsConfig } from './smartLayout';
 import { renderStatLeaderStyle } from './renderStatLeaderStyle';
 import { renderBoldDarkStyle } from './renderBoldDarkStyle';
+import { renderPlayerOfGame } from './renderPlayerOfGame';
 import { base44 } from '@/api/base44Client';
 import { Save, Loader2 } from 'lucide-react';
 
@@ -27,7 +28,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const link = document.createElement('link');
       link.id = id;
       link.rel = 'stylesheet';
-      link.href = 'https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&family=Oswald:wght@600;700&family=Saira:ital,wght@0,600;0,700;0,800;1,600;1,700;1,800&display=swap';
+      link.href = 'https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&family=Oswald:wght@600;700&family=Saira:ital,wght@0,600;0,700;0,800;1,600;1,700;1,800&family=Anton&family=Archivo+Black&family=Poppins:wght@700;800&display=swap';
       document.head.appendChild(link);
     }
   }, []);
@@ -179,6 +180,73 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           homeScore: Number(game.home_score || 0),
           awayScore: Number(game.away_score || 0),
           orgName: org?.name,
+        });
+
+        try {
+          const url = canvas.toDataURL('image/png');
+          setDataUrl(url);
+          onReady && onReady(url);
+        } catch (e) {
+          setDataUrl('');
+          onReady && onReady('');
+        }
+      })();
+      return;
+    }
+
+    // Style 4: "Player of the Game" (split-screen, angled blue strip, dark panel)
+    if (posterStyle === 'player_of_game') {
+      (async () => {
+        try {
+          if (document.fonts && document.fonts.load) {
+            await Promise.all([
+              document.fonts.load('400 90px "Archivo Black"'),
+              document.fonts.load('400 44px Anton'),
+              document.fonts.load('800 78px Poppins'),
+              document.fonts.load('600 22px Inter'),
+              document.fonts.load('700 32px Inter'),
+            ]);
+          }
+        } catch (_) { /* ignore */ }
+
+        const p = (players && players.length > 0) ? players[0] : null;
+        const headSrc = (L?.headshot?.processedImageUrl) || (bestPlayerImageUrl || players?.[0]?.photo_url);
+        const rawStats = getSportStatsConfig(game.sport, p) || [];
+        const statsList = rawStats.filter((s) => s && Number(s.value) !== 0).slice(0, 3);
+        const first = (p?.first_name) || (p?.player?.first_name) || '';
+        const last = (p?.last_name) || (p?.player?.last_name) || '';
+        const playerName = [first, last].filter(Boolean).join(' ');
+        const jersey = (p?.jersey_number) || (p?.player?.jersey_number) || '';
+        const jerseyStr = String(jersey || '').replace(/^#/, '');
+        const dObj = game.game_date ? new Date(game.game_date) : null;
+        const dateStr = dObj ? dObj.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase() : '';
+        const stageMap = {
+          regular_season: 'REGULAR SEASON',
+          pre_season: 'PRE-SEASON',
+          play_in: 'PLAY-IN',
+          playoffs: 'PLAYOFFS',
+          quarter_finals: 'QUARTER-FINALS',
+          semi_finals: 'SEMI-FINALS',
+          finals: 'FINALS',
+        };
+
+        await renderPlayerOfGame({
+          ctx, W, H,
+          backgroundUrl,
+          headshotUrl: headSrc,
+          logoUrl: org?.logo_url,
+          stats: statsList,
+          playerName,
+          jerseyStr,
+          orgName: org?.name,
+          seriesStr: org?.tournament_name,
+          divisionStr: game.division || '',
+          gameTypeStr: stageMap[game.game_type] || '',
+          dateStr,
+          homeName: String(homeName || 'HOME').toUpperCase(),
+          awayName: String(awayName || 'AWAY').toUpperCase(),
+          homeScore: Number(game.home_score || 0),
+          awayScore: Number(game.away_score || 0),
         });
 
         try {
