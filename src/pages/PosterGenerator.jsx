@@ -429,6 +429,7 @@ export default function PosterGenerator() {
                   <SelectItem value="spotlight">POSTER DESIGN - 001</SelectItem>
                   <SelectItem value="stat_leader">POSTER DESIGN - 002</SelectItem>
                   <SelectItem value="bold_dark">POSTER DESIGN - 003</SelectItem>
+                  <SelectItem value="player_of_game">POSTER DESIGN - 004 (PLAYER OF THE GAME)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
