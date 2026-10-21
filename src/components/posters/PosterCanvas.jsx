@@ -218,6 +218,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         const playerName = [first, last].filter(Boolean).join(' ');
         const jersey = (p?.jersey_number) || (p?.player?.jersey_number) || '';
         const jerseyStr = String(jersey || '').replace(/^#/, '');
+        const dObj = game.game_date ? new Date(game.game_date) : null;
+        const dateStr = dObj ? dObj.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase() : '';
 
         await renderPlayerOfGame({
           ctx, W, H,
@@ -229,6 +231,11 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           jerseyStr,
           orgName: org?.name,
           seriesStr: org?.tournament_name,
+          dateStr,
+          homeName: String(homeName || 'HOME').toUpperCase(),
+          awayName: String(awayName || 'AWAY').toUpperCase(),
+          homeScore: Number(game.home_score || 0),
+          awayScore: Number(game.away_score || 0),
         });
 
         try {

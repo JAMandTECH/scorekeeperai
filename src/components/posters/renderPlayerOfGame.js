@@ -1,7 +1,8 @@
 // Renders the "Player of the Game" poster style (004).
 // Split screen: full-bleed player portrait on the left, near-black textured panel
-// on the right, separated by an angled blue strip flush against the diagonal cut
-// of the photo. Gold headlines, tracked uppercase labels, three stat rows and a
+// on the right (roughly half the poster width) separated by an angled blue strip
+// flush against the diagonal cut of the photo. The panel carries the game date,
+// the player name, three stat rows, the final score and the
 // "PLAYER OF THE GAME / PRESENTED BY" footer block.
 //
 // All geometry is relative to W/H, so print-mode paper sizes scale correctly.
@@ -19,6 +20,7 @@ const loadImage = (url) =>
 const GOLD = '#FFC72C';
 const BLUE = '#006BB6';
 const WHITE = '#ffffff';
+const DIM = 'rgba(255,255,255,0.62)';
 // The reference uses licensed faces, so these Google families are the closest
 // match: Archivo Black (wide geometric heavy) for the name, Anton (heavy
 // compressed) for the footer block, Poppins (geometric rounded, massive) for
@@ -74,6 +76,11 @@ export async function renderPlayerOfGame({
   jerseyStr,
   orgName,
   seriesStr,
+  dateStr,
+  homeName,
+  awayName,
+  homeScore,
+  awayScore,
 }) {
   const [bgImg, headImg, logoImg] = await Promise.all([
     loadImage(backgroundUrl),
@@ -82,9 +89,10 @@ export async function renderPlayerOfGame({
   ]);
 
   // Divider: the photo is widest at the top, so its bottom-right corner is cut
-  // away diagonally and merges into the dark panel.
-  const xTop = W * 0.685;
-  const xBot = W * 0.6;
+  // away diagonally and merges into the dark panel. The panel occupies roughly
+  // half the poster's width.
+  const xTop = W * 0.545;
+  const xBot = W * 0.47;
   const strip = Math.max(14, W * 0.024);
   const gutter = W * 0.042;
   const xAt = (y) => xTop + (xBot - xTop) * (y / H);
@@ -244,11 +252,22 @@ export async function renderPlayerOfGame({
     ctx.stroke();
   }
 
+  // Game date at the head of the panel
+  const dateValue = dateStr ? String(dateStr).toUpperCase() : '';
+  const dateY = H * 0.105;
+  if (dateValue) {
+    ctx.fillStyle = GOLD;
+    ctx.textBaseline = 'alphabetic';
+    const spacing = 3;
+    fitTracked(ctx, dateValue, 700, LABEL_FONT, W * 0.0215, W * 0.012, spacing, availAt(dateY));
+    drawTracked(ctx, dateValue, textX(dateY), dateY, spacing);
+  }
+
   // Player name: first name above, surname large and bold
   const parts = String(playerName || '').trim().split(/\s+/).filter(Boolean);
   const first = parts.length > 1 ? parts.slice(0, -1).join(' ') : '';
   const last = parts.length ? parts[parts.length - 1] : '';
-  const lastY = H * 0.335;
+  const lastY = H * 0.265;
 
   if (first) {
     const y = lastY - H * 0.062;
@@ -269,33 +288,86 @@ export async function renderPlayerOfGame({
   if (last) {
     ctx.fillStyle = GOLD;
     const lastStr = last.toUpperCase();
-    fitTracked(ctx, lastStr, 400, NAME_FONT, W * 0.085, W * 0.030, 1, availAt(lastY));
+    fitTracked(ctx, lastStr, 400, NAME_FONT, W * 0.085, W * 0.028, 1, availAt(lastY));
     drawTracked(ctx, lastStr, textX(lastY), lastY, 1);
   }
 
   // Three stat rows: huge gold number followed by a tracked uppercase label
   const list = (stats || []).slice(0, 3).filter(Boolean);
-  const rowY = H * 0.48;
-  const rowGap = H * 0.115;
+  const rowY = H * 0.415;
+  const rowGap = H * 0.1;
   ctx.textBaseline = 'alphabetic';
 
   list.forEach((s, i) => {
     const y = rowY + i * rowGap;
     const valueStr = String(s.value ?? 0);
     const label = String(s.label || '').toUpperCase();
+    const avail = availAt(y);
 
+    // Number shrinks only if it would leave no room for its label
+    let valueSize = W * 0.072;
+    ctx.font = `800 ${Math.round(valueSize)}px ${NUMBER_FONT}`;
+    while (valueSize > W * 0.03 && ctx.measureText(valueStr).width > avail * 0.45) {
+      valueSize -= 2;
+      ctx.font = `800 ${Math.round(valueSize)}px ${NUMBER_FONT}`;
+    }
     ctx.fillStyle = GOLD;
-    ctx.font = `800 ${Math.round(W * 0.072)}px ${NUMBER_FONT}`;
     ctx.fillText(valueStr, textX(y), y);
     const valueW = ctx.measureText(valueStr).width;
 
     // Labels are gold too, tracked out beside the number
-    ctx.fillStyle = GOLD;
-    ctx.font = `600 ${Math.round(W * 0.0195)}px ${LABEL_FONT}`;
-    drawTracked(ctx, label, textX(y) + valueW + W * 0.02, y, 3.5);
+    const labelAvail = avail - valueW - W * 0.018;
+    if (labelAvail > W * 0.05) {
+      ctx.fillStyle = GOLD;
+      fitTracked(ctx, label, 600, LABEL_FONT, W * 0.0195, W * 0.0105, 3.5, labelAvail);
+      drawTracked(ctx, label, textX(y) + valueW + W * 0.018, y, 3.5);
+    }
   });
 
-  // Footer block — anchored to the bottom third, centred inside the right panel
+  // Final score: "FINAL SCORE" label, then team names flanking the scores
+  {
+    const scoreLabelY = H * 0.7;
+    ctx.fillStyle = DIM;
+    ctx.font = `700 ${Math.round(W * 0.0145)}px ${LABEL_FONT}`;
+    drawTracked(ctx, 'FINAL SCORE', textX(scoreLabelY), scoreLabelY, 3);
+
+    const scoreY = H * 0.755;
+    const avail = availAt(scoreY);
+    const hs = Number(homeScore || 0);
+    const as = Number(awayScore || 0);
+    const items = [
+      { text: String(homeName || 'HOME').toUpperCase(), size: W * 0.026, weight: 700, family: LABEL_FONT, color: WHITE, gap: 0 },
+      { text: String(hs), size: W * 0.05, weight: 800, family: NUMBER_FONT, color: GOLD, gap: W * 0.014 },
+      { text: '-', size: W * 0.03, weight: 700, family: LABEL_FONT, color: DIM, gap: W * 0.012 },
+      { text: String(as), size: W * 0.05, weight: 800, family: NUMBER_FONT, color: GOLD, gap: W * 0.012 },
+      { text: String(awayName || 'AWAY').toUpperCase(), size: W * 0.026, weight: 700, family: LABEL_FONT, color: WHITE, gap: W * 0.014 },
+    ];
+
+    const measureAll = (k) => {
+      let total = 0;
+      items.forEach((it) => {
+        ctx.font = `${it.weight} ${Math.round(it.size * k)}px ${it.family}`;
+        total += ctx.measureText(it.text).width + it.gap * k;
+      });
+      return total - items[items.length - 1].gap * k;
+    };
+
+    let k = 1;
+    const natural = measureAll(k);
+    if (natural > avail) k = Math.max(0.45, avail / natural);
+
+    let sx = textX(scoreY);
+    items.forEach((it) => {
+      sx += it.gap * k;
+      ctx.font = `${it.weight} ${Math.round(it.size * k)}px ${it.family}`;
+      ctx.fillStyle = it.color;
+      ctx.fillText(it.text, sx, scoreY);
+      sx += ctx.measureText(it.text).width;
+    });
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  // Footer block — anchored to the bottom of the poster, centred inside the panel
   const sideSafe = W * 0.05;
   const centerX = (y) => (panelLeft(y) + W) / 2;
   const panelMax = (y) => Math.max(W * 0.2, W - panelLeft(y) - sideSafe * 2);
@@ -310,10 +382,10 @@ export async function renderPlayerOfGame({
     drawTrackedCentered(ctx, text, centerX(y), y, spacing);
   };
 
-  const headY = H * 0.80;
-  const presentedY = H * 0.856;
-  const sponsorY = H * 0.898;
-  const seriesY = H * 0.94;
+  const headY = H * 0.835;
+  const presentedY = H * 0.878;
+  const sponsorY = H * 0.915;
+  const seriesY = H * 0.95;
 
   // "PLAYER [OF / THE] GAME" — heavy compressed block, OF/THE stacked between
   ctx.fillStyle = GOLD;
@@ -363,6 +435,6 @@ export async function renderPlayerOfGame({
   // Footer tag kept out of the panel, over the portrait's dark lower corner
   ctx.fillStyle = 'rgba(255,255,255,0.55)';
   ctx.font = `600 ${Math.round(W * 0.015)}px ${LABEL_FONT}`;
-  ctx.fillText('Generated with ScorekeeperAI', W * 0.04, H - H * 0.018);
   ctx.textAlign = 'left';
+  ctx.fillText('Generated with ScorekeeperAI', W * 0.04, H - H * 0.018);
 }
