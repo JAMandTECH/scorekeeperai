@@ -217,23 +217,13 @@ export async function renderPlayerOfGame({
     ctx.strokeRect(-size / 2, -size / 2, size, size);
     ctx.restore();
 
-    const hasNum = !!jerseyStr;
     if (logoImg) {
-      const max = size * (hasNum ? 0.3 : 0.56);
+      // Logo centred in the diamond at 3x its previous size
+      const max = size * 0.9;
       const s = Math.min(max / logoImg.width, max / logoImg.height);
       const dw = logoImg.width * s;
       const dh = logoImg.height * s;
-      const logoCy = hasNum ? cy - size * 0.19 : cy;
-      ctx.drawImage(logoImg, cx - dw / 2, logoCy - dh / 2, dw, dh);
-    }
-    if (hasNum) {
-      ctx.fillStyle = GOLD;
-      ctx.font = `800 ${Math.round(size * 0.34)}px ${NUMBER_FONT}`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(String(jerseyStr), cx, cy + size * 0.22);
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'alphabetic';
+      ctx.drawImage(logoImg, cx - dw / 2, cy - dh / 2, dw, dh);
     }
   }
 
