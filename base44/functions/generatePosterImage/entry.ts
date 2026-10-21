@@ -18,9 +18,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'gameId and templateId are required' }, { status: 400 });
     }
 
-    // Get game + top players via helper function
+    // Get game via helper function
     const topRes = await base44.functions.invoke('getTopPlayersForGame', { gameId });
-    const { game, topPlayers } = topRes?.data || {};
+    const { game } = topRes?.data || {};
     if (!game) {
       return Response.json({ error: 'Game not found or inaccessible' }, { status: 404 });
     }
@@ -36,31 +36,22 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Template not found' }, { status: 404 });
     }
 
-    const dateStr = new Date(game.game_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-    // Build the final prompt combining template and context
+    // Build the final prompt: team atmosphere only, no game details or stat/player content
     const lines = [];
     if (typeof tmpl.prompt === 'string' && tmpl.prompt.trim()) {
       lines.push(tmpl.prompt.trim());
     }
-    lines.push(`Design a bold, high-energy ${game.sport} game day background for social media.`);
-    lines.push(`Focus: ${game.home_team_name} vs ${game.away_team_name} (Division: ${game.division || 'N/A'}) on ${dateStr} at ${game.location || 'TBD'}.`);
-    if (org?.name) lines.push(`Incorporate subtle branding for ${org.name}${org.tournament_name ? ' • ' + org.tournament_name : ''}.`);
-    if (org?.theme?.primary_color) lines.push(`Use a palette influenced by ${org.theme.primary_color}, ${org.theme.secondary_color || ''}, ${org.theme.accent_color || ''}.`);
-    lines.push('Leave clean negative space for overlay text (titles, scores) and 3-5 player headshots with stat lines.');
-    lines.push('No text in the image itself; this is a background composition. Photorealistic lighting, pro sports poster style.');
-
-    const playerHints = topPlayers?.slice(0, 5).map((p) => {
-      if (game.sport === 'basketball') {
-        return `${p.first_name} ${p.last_name} #${p.jersey_number}: ${p.points} PTS, ${p.rebounds} REB, ${p.assists} AST`;
-      } else {
-        return `${p.first_name} ${p.last_name} #${p.jersey_number}: ${p.attacks} ATK, ${p.blocks} BLK, ${p.aces} ACE`;
-      }
-    }) || [];
-    if (playerHints.length) {
-      lines.push('Featured players (for composition guidance, not text overlay):');
-      lines.push(playerHints.join(' | '));
-    }
+    lines.push(`Create a bold, high-energy ${game.sport} team-atmosphere background for a game day social poster.`);
+    lines.push(`Team atmosphere: ${game.home_team_name} and ${game.away_team_name}${game.division ? `, ${game.division} division` : ''}.`);
+    if (org?.name) lines.push(`Club atmosphere: ${org.name}${org.tournament_name ? ' • ' + org.tournament_name : ''}.`);
+    const palette = [org?.theme?.primary_color, org?.theme?.secondary_color, org?.theme?.accent_color].filter(Boolean);
+    if (palette.length) lines.push(`Color palette dominated by ${palette.join(', ')}.`);
+    lines.push('Mood: dramatic arena environment — stadium spotlights, haze, crowd silhouettes, polished court or net surface texture, motion energy.');
+    lines.push('Strictly no text, lettering, numbers, jerseys or jersey numbers, scoreboards, dates, locations, signage, logos, watermarks, or any readable wording anywhere in the image.');
+    lines.push('No recognizable people and no faces; keep it an environment and atmosphere scene.');
+    lines.push('Do not copy any logo, lettering, or wording from the reference image; use only its colors.');
+    lines.push('Leave generous clean negative space for later overlay text and player photos.');
+    lines.push('Photorealistic cinematic lighting, premium pro sports poster background, high resolution, crisp detail, no grain or blur.');
 
     const finalPrompt = lines.join('\n');
 
