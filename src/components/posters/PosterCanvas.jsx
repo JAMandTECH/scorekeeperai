@@ -4,6 +4,7 @@ import { buildSmartLayout, getSportStatsConfig } from './smartLayout';
 import { renderStatLeaderStyle } from './renderStatLeaderStyle';
 import { renderBoldDarkStyle } from './renderBoldDarkStyle';
 import { renderChampionshipMatchup } from './renderChampionshipMatchup';
+import { renderBestPlayer } from './renderBestPlayer';
 import { base44 } from '@/api/base44Client';
 import { Save, Loader2 } from 'lucide-react';
 
@@ -252,6 +253,73 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           locationStr,
           accentLeft: org?.theme?.primary_color,
           accentRight: org?.theme?.accent_color || org?.theme?.secondary_color,
+        });
+
+        try {
+          const url = canvas.toDataURL('image/png');
+          setDataUrl(url);
+          onReady && onReady(url);
+        } catch (e) {
+          setDataUrl('');
+          onReady && onReady('');
+        }
+      })();
+      return;
+    }
+
+    // Style 5: "Best Player" (MVP award) — golden arena, crown headline, stat modules, name plate
+    if (posterStyle === 'best_player') {
+      (async () => {
+        try {
+          if (document.fonts && document.fonts.load) {
+            await Promise.all([
+              document.fonts.load('800 90px Saira'),
+              document.fonts.load('800 80px Oswald'),
+              document.fonts.load('700 30px Inter'),
+            ]);
+          }
+        } catch (_) { /* ignore */ }
+
+        const p = (players && players.length > 0) ? players[0] : null;
+        const allStats = getSportStatsConfig(game.sport, p) || [];
+        const nonZero = allStats.filter((s) => s && Number(s.value) !== 0);
+        const statsList = (nonZero.length >= 3 ? nonZero : allStats).slice(0, 3);
+        const playerName = [p?.first_name, p?.last_name].filter(Boolean).join(' ');
+        const jerseyStr = String(p?.jersey_number || '').replace(/^#/, '');
+        const bestTeamId = p?.team_id || null;
+        let teamName = '';
+        if (bestTeamId === game.home_team_id) teamName = String(homeName || '');
+        else if (bestTeamId === game.away_team_id) teamName = String(awayName || '');
+        const dObj = game.game_date ? new Date(game.game_date) : null;
+        const dateStr = dObj ? dObj.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : '';
+        const locationStr = game.location
+          ? String(game.location).toUpperCase()
+          : (game.court_number ? `COURT ${game.court_number}` : '');
+        const mvpMap = {
+          finals: 'FINALS MVP',
+          semi_finals: 'SEMI-FINAL MVP',
+          quarter_finals: 'QUARTER-FINAL MVP',
+          playoffs: 'PLAYOFF MVP',
+          play_in: 'PLAY-IN MVP',
+          pre_season: 'PRE-SEASON MVP',
+          regular_season: 'GAME MVP',
+        };
+
+        await renderBestPlayer({
+          ctx, W, H,
+          backgroundUrl,
+          playerPhotoUrl: bestPlayerImageUrl || p?.photo_url || '',
+          logoUrl: org?.logo_url,
+          orgName: org?.name,
+          titleStr: mvpMap[game.game_type] || 'GAME MVP',
+          plaqueStr: String(game.division || org?.tournament_name || '').toUpperCase(),
+          playerName,
+          jerseyStr,
+          teamName,
+          stats: statsList,
+          dateStr,
+          locationStr,
+          accent: org?.theme?.primary_color,
         });
 
         try {

@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { gameId, templateId } = body || {};
+    const { gameId, templateId, posterStyle } = body || {};
     if (!gameId || !templateId) {
       return Response.json({ error: 'gameId and templateId are required' }, { status: 400 });
     }
@@ -41,12 +41,20 @@ Deno.serve(async (req) => {
     if (typeof tmpl.prompt === 'string' && tmpl.prompt.trim()) {
       lines.push(tmpl.prompt.trim());
     }
-    lines.push(`Create a bold, high-energy ${game.sport} team-atmosphere background for a game day social poster.`);
+    lines.push(
+      posterStyle === 'best_player'
+        ? `Create a championship award-night arena background for a single-player ${game.sport} MVP poster.`
+        : `Create a bold, high-energy ${game.sport} team-atmosphere background for a game day social poster.`
+    );
     lines.push(`Team atmosphere: ${game.home_team_name} and ${game.away_team_name}${game.division ? `, ${game.division} division` : ''}.`);
     if (org?.name) lines.push(`Club atmosphere: ${org.name}${org.tournament_name ? ' • ' + org.tournament_name : ''}.`);
     const palette = [org?.theme?.primary_color, org?.theme?.secondary_color, org?.theme?.accent_color].filter(Boolean);
     if (palette.length) lines.push(`Color palette dominated by ${palette.join(', ')}.`);
-    lines.push('Mood: dramatic arena environment — stadium spotlights, haze, crowd silhouettes, polished court or net surface texture, motion energy.');
+    lines.push(
+      posterStyle === 'best_player'
+        ? 'Mood: golden stage spotlight, warm trophy-night haze, deep shadowed edges, celebratory gold light rays, distant blurred crowd silhouettes.'
+        : 'Mood: dramatic arena environment — stadium spotlights, haze, crowd silhouettes, polished court or net surface texture, motion energy.'
+    );
     lines.push('Strictly no text, lettering, numbers, jerseys or jersey numbers, scoreboards, dates, locations, signage, logos, watermarks, or any readable wording anywhere in the image.');
     lines.push('Empty unpopulated court: no players and no foreground figures; the crowd may appear only as distant blurred silhouettes.');
     lines.push('Do not copy any logo, lettering, or wording from the reference image; use only its colors.');

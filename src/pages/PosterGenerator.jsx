@@ -291,8 +291,8 @@ export default function PosterGenerator() {
   }, [postersQ.data, gameById, filterSport, filterDivision, dateFrom, dateTo]);
 
   const genMutation = useMutation({
-    mutationFn: async ({ gameId, templateId }) => {
-      const res = await base44.functions.invoke('generatePosterImage', { gameId, templateId });
+    mutationFn: async ({ gameId, templateId, style }) => {
+      const res = await base44.functions.invoke('generatePosterImage', { gameId, templateId, posterStyle: style });
       return res.data;
     },
     onSuccess: (data) => {
@@ -441,6 +441,7 @@ export default function PosterGenerator() {
                   <SelectItem value="stat_leader">POSTER DESIGN - 002</SelectItem>
                   <SelectItem value="bold_dark">POSTER DESIGN - 003</SelectItem>
                   <SelectItem value="matchup">POSTER DESIGN - 004 (CHAMPIONSHIP MATCHUP)</SelectItem>
+                  <SelectItem value="best_player">POSTER DESIGN - 005 (BEST PLAYER / MVP)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -769,7 +770,7 @@ export default function PosterGenerator() {
         <Button
           variant="secondary"
           disabled={!selectedTemplateId || !selectedGameId || genMutation.isPending}
-          onClick={() => genMutation.mutate({ gameId: selectedGameId, templateId: selectedTemplateId })}
+          onClick={() => genMutation.mutate({ gameId: selectedGameId, templateId: selectedTemplateId, style: posterStyle })}
           className="gap-2"
         >
           {genMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Generate Background
