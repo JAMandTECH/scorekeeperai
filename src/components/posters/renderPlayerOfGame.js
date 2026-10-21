@@ -237,21 +237,6 @@ export async function renderPlayerOfGame({
     }
   }
 
-  // Top-right gold accents: small plus mark
-  {
-    const px = W - W * 0.075;
-    const py = H * 0.084;
-    const arm = W * 0.018;
-    ctx.strokeStyle = GOLD;
-    ctx.lineWidth = Math.max(3, W * 0.0038);
-    ctx.beginPath();
-    ctx.moveTo(px - arm, py);
-    ctx.lineTo(px + arm, py);
-    ctx.moveTo(px, py - arm);
-    ctx.lineTo(px, py + arm);
-    ctx.stroke();
-  }
-
   // Game date at the head of the panel
   const dateValue = dateStr ? String(dateStr).toUpperCase() : '';
   const dateY = H * 0.105;
@@ -274,15 +259,7 @@ export async function renderPlayerOfGame({
     const firstStr = first.toUpperCase();
     ctx.fillStyle = GOLD;
     ctx.font = `600 ${Math.round(W * 0.031)}px ${LABEL_FONT}`;
-    const fw = measureTracked(ctx, firstStr, 4);
     drawTracked(ctx, firstStr, textX(y), y, 4);
-
-    // Gold bar running from the first name toward the panel edge
-    const barX = textX(y) + fw + W * 0.025;
-    const barEnd = W - W * 0.045;
-    if (barEnd - barX > W * 0.05) {
-      ctx.fillRect(barX, y - W * 0.011, barEnd - barX, Math.max(3, W * 0.004));
-    }
   }
 
   if (last) {
