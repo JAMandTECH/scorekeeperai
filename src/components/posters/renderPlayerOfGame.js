@@ -18,10 +18,14 @@ const loadImage = (url) =>
 
 const GOLD = '#FFC72C';
 const BLUE = '#006BB6';
-const PANEL = '#121212';
 const WHITE = '#ffffff';
-const PANEL_FONT = 'Saira, Inter, system-ui, Arial';
-const NUMBER_FONT = 'Oswald, Saira, Inter, system-ui, Arial';
+// The reference uses licensed faces, so these Google families are the closest
+// match: Archivo Black (wide geometric heavy) for the name, Anton (heavy
+// compressed) for the footer block, Poppins (geometric rounded, massive) for
+// the stat numbers, Inter for the tracked uppercase labels.
+const NAME_FONT = 'Archivo Black, Anton, Saira, system-ui, Arial';
+const FOOTER_FONT = 'Anton, Oswald, Saira, system-ui, Arial';
+const NUMBER_FONT = 'Poppins, Saira, system-ui, Arial';
 const LABEL_FONT = 'Inter, system-ui, Arial';
 
 // Width of a character-tracked string at the ctx's current font.
@@ -39,6 +43,11 @@ function drawTracked(ctx, text, x, y, spacing) {
     ctx.fillText(ch, cx, y);
     cx += ctx.measureText(ch).width + spacing;
   }
+}
+
+// Draws character-tracked text centred on cx.
+function drawTrackedCentered(ctx, text, cx, y, spacing) {
+  drawTracked(ctx, text, cx - measureTracked(ctx, text, spacing) / 2, y, spacing);
 }
 
 // Shrinks the font until the tracked string fits maxWidth; returns the size used.
@@ -187,34 +196,52 @@ export async function renderPlayerOfGame({
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
 
-  // Top-left diamond mark (org logo, or jersey number when no logo exists)
+  // Top-left diamond mark: org logo above the jersey number
   {
-    const size = W * 0.108;
+    const size = W * 0.112;
     const cx = W * 0.098;
-    const cy = H * 0.082;
+    const cy = H * 0.084;
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(Math.PI / 4);
     ctx.strokeStyle = GOLD;
-    ctx.lineWidth = Math.max(3, W * 0.004);
+    ctx.lineWidth = Math.max(3, W * 0.0042);
     ctx.strokeRect(-size / 2, -size / 2, size, size);
     ctx.restore();
 
+    const hasNum = !!jerseyStr;
     if (logoImg) {
-      const max = size * 0.56;
+      const max = size * (hasNum ? 0.3 : 0.56);
       const s = Math.min(max / logoImg.width, max / logoImg.height);
       const dw = logoImg.width * s;
       const dh = logoImg.height * s;
-      ctx.drawImage(logoImg, cx - dw / 2, cy - dh / 2, dw, dh);
-    } else if (jerseyStr) {
+      const logoCy = hasNum ? cy - size * 0.19 : cy;
+      ctx.drawImage(logoImg, cx - dw / 2, logoCy - dh / 2, dw, dh);
+    }
+    if (hasNum) {
       ctx.fillStyle = GOLD;
-      ctx.font = `700 ${Math.round(size * 0.5)}px ${NUMBER_FONT}`;
+      ctx.font = `800 ${Math.round(size * 0.34)}px ${NUMBER_FONT}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(jerseyStr), cx, cy);
+      ctx.fillText(String(jerseyStr), cx, cy + size * 0.22);
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
     }
+  }
+
+  // Top-right gold accents: small plus mark
+  {
+    const px = W - W * 0.075;
+    const py = H * 0.084;
+    const arm = W * 0.018;
+    ctx.strokeStyle = GOLD;
+    ctx.lineWidth = Math.max(3, W * 0.0038);
+    ctx.beginPath();
+    ctx.moveTo(px - arm, py);
+    ctx.lineTo(px + arm, py);
+    ctx.moveTo(px, py - arm);
+    ctx.lineTo(px, py + arm);
+    ctx.stroke();
   }
 
   // Player name: first name above, surname large and bold
@@ -224,29 +251,32 @@ export async function renderPlayerOfGame({
   const lastY = H * 0.335;
 
   if (first) {
-    const y = lastY - H * 0.058;
+    const y = lastY - H * 0.062;
+    const firstStr = first.toUpperCase();
     ctx.fillStyle = GOLD;
-    ctx.globalAlpha = 0.85;
-    fitTracked(ctx, first.toUpperCase(), 600, PANEL_FONT, W * 0.036, W * 0.018, 3, availAt(y));
-    drawTracked(ctx, first.toUpperCase(), textX(y), y, 3);
-    ctx.globalAlpha = 1;
+    ctx.font = `600 ${Math.round(W * 0.031)}px ${LABEL_FONT}`;
+    const fw = measureTracked(ctx, firstStr, 4);
+    drawTracked(ctx, firstStr, textX(y), y, 4);
+
+    // Gold bar running from the first name toward the panel edge
+    const barX = textX(y) + fw + W * 0.025;
+    const barEnd = W - W * 0.045;
+    if (barEnd - barX > W * 0.05) {
+      ctx.fillRect(barX, y - W * 0.011, barEnd - barX, Math.max(3, W * 0.004));
+    }
   }
 
   if (last) {
     ctx.fillStyle = GOLD;
     const lastStr = last.toUpperCase();
-    const size = fitTracked(ctx, lastStr, 800, PANEL_FONT, W * 0.078, W * 0.032, 2, availAt(lastY));
-    drawTracked(ctx, lastStr, textX(lastY), lastY, 2);
-
-    // Thin gold rule under the name
-    ctx.fillStyle = GOLD;
-    ctx.fillRect(textX(lastY), lastY + size * 0.3, Math.min(W * 0.16, availAt(lastY) * 0.6), Math.max(3, W * 0.0035));
+    fitTracked(ctx, lastStr, 400, NAME_FONT, W * 0.085, W * 0.030, 1, availAt(lastY));
+    drawTracked(ctx, lastStr, textX(lastY), lastY, 1);
   }
 
   // Three stat rows: huge gold number followed by a tracked uppercase label
   const list = (stats || []).slice(0, 3).filter(Boolean);
-  const rowY = H * 0.47;
-  const rowGap = H * 0.108;
+  const rowY = H * 0.48;
+  const rowGap = H * 0.115;
   ctx.textBaseline = 'alphabetic';
 
   list.forEach((s, i) => {
@@ -255,42 +285,79 @@ export async function renderPlayerOfGame({
     const label = String(s.label || '').toUpperCase();
 
     ctx.fillStyle = GOLD;
-    ctx.font = `700 ${Math.round(W * 0.064)}px ${NUMBER_FONT}`;
+    ctx.font = `800 ${Math.round(W * 0.072)}px ${NUMBER_FONT}`;
     ctx.fillText(valueStr, textX(y), y);
     const valueW = ctx.measureText(valueStr).width;
 
-    ctx.fillStyle = 'rgba(255,255,255,0.92)';
-    ctx.font = `700 ${Math.round(W * 0.0205)}px ${LABEL_FONT}`;
-    drawTracked(ctx, label, textX(y) + valueW + W * 0.018, y, 3);
+    // Labels are gold too, tracked out beside the number
+    ctx.fillStyle = GOLD;
+    ctx.font = `600 ${Math.round(W * 0.0195)}px ${LABEL_FONT}`;
+    drawTracked(ctx, label, textX(y) + valueW + W * 0.02, y, 3.5);
   });
 
-  // Footer block
+  // Footer block — anchored to the bottom third, centred inside the right panel
+  const sideSafe = W * 0.05;
+  const centerX = (y) => (panelLeft(y) + W) / 2;
+  const panelMax = (y) => Math.max(W * 0.2, W - panelLeft(y) - sideSafe * 2);
+  const fitCentered = (text, y, spacing, weight, family, size, minSize) => {
+    let s = size;
+    for (;;) {
+      ctx.font = `${weight} ${Math.round(s)}px ${family}`;
+      if (measureTracked(ctx, text, spacing) <= panelMax(y) || s <= minSize) break;
+      s -= 1;
+    }
+    ctx.font = `${weight} ${Math.round(s)}px ${family}`;
+    drawTrackedCentered(ctx, text, centerX(y), y, spacing);
+  };
+
   const headY = H * 0.80;
-  const presentedY = H * 0.858;
+  const presentedY = H * 0.856;
   const sponsorY = H * 0.898;
   const seriesY = H * 0.94;
 
+  // "PLAYER [OF / THE] GAME" — heavy compressed block, OF/THE stacked between
   ctx.fillStyle = GOLD;
-  fitTracked(ctx, 'PLAYER OF THE GAME', 700, NUMBER_FONT, W * 0.040, W * 0.020, 2, availAt(headY));
-  drawTracked(ctx, 'PLAYER OF THE GAME', textX(headY), headY, 2);
+  let fs = W * 0.055;
+  let wPlayer = 0;
+  let wGame = 0;
+  let wSmall = 0;
+  let total = 0;
+  for (;;) {
+    ctx.font = `400 ${Math.round(fs)}px ${FOOTER_FONT}`;
+    wPlayer = ctx.measureText('PLAYER').width;
+    wGame = ctx.measureText('GAME').width;
+    ctx.font = `400 ${Math.round(fs * 0.46)}px ${FOOTER_FONT}`;
+    wSmall = Math.max(ctx.measureText('OF').width, ctx.measureText('THE').width);
+    total = wPlayer + wGame + wSmall + fs * 0.6;
+    if (total <= panelMax(headY) || fs <= W * 0.026) break;
+    fs -= 2;
+  }
+  let gx = centerX(headY) - total / 2;
+  ctx.font = `400 ${Math.round(fs)}px ${FOOTER_FONT}`;
+  ctx.fillText('PLAYER', gx, headY);
+  gx += wPlayer + fs * 0.3;
+  ctx.font = `400 ${Math.round(fs * 0.46)}px ${FOOTER_FONT}`;
+  ctx.fillText('OF', gx, headY - fs * 0.46);
+  ctx.fillText('THE', gx, headY);
+  gx += wSmall + fs * 0.3;
+  ctx.font = `400 ${Math.round(fs)}px ${FOOTER_FONT}`;
+  ctx.fillText('GAME', gx, headY);
 
-  ctx.fillStyle = 'rgba(255,255,255,0.62)';
+  ctx.fillStyle = WHITE;
   ctx.font = `600 ${Math.round(W * 0.019)}px ${LABEL_FONT}`;
-  drawTracked(ctx, 'PRESENTED BY', textX(presentedY), presentedY, 3);
+  drawTrackedCentered(ctx, 'PRESENTED BY', centerX(presentedY), presentedY, 3);
 
   // Organisation name (the presenter) in white, series/season line beneath it
   const sponsor = orgName ? String(orgName).toUpperCase() : '';
   if (sponsor) {
     ctx.fillStyle = WHITE;
-    fitTracked(ctx, sponsor, 700, PANEL_FONT, W * 0.030, W * 0.015, 1, availAt(sponsorY));
-    drawTracked(ctx, sponsor, textX(sponsorY), sponsorY, 1);
+    fitCentered(sponsor, sponsorY, 1, 700, LABEL_FONT, W * 0.03, W * 0.016);
   }
 
   const series = seriesStr ? String(seriesStr).toUpperCase() : '';
   if (series && series !== sponsor) {
     ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.font = `600 ${Math.round(W * 0.019)}px ${LABEL_FONT}`;
-    drawTracked(ctx, series, textX(seriesY), seriesY, 2);
+    fitCentered(series, seriesY, 2, 600, LABEL_FONT, W * 0.019, W * 0.012);
   }
 
   // Footer tag kept out of the panel, over the portrait's dark lower corner

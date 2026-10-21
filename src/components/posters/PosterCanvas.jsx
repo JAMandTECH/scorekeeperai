@@ -28,7 +28,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
       const link = document.createElement('link');
       link.id = id;
       link.rel = 'stylesheet';
-      link.href = 'https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&family=Oswald:wght@600;700&family=Saira:ital,wght@0,600;0,700;0,800;1,600;1,700;1,800&display=swap';
+      link.href = 'https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&family=Oswald:wght@600;700&family=Saira:ital,wght@0,600;0,700;0,800;1,600;1,700;1,800&family=Anton&family=Archivo+Black&family=Poppins:wght@700;800&display=swap';
       document.head.appendChild(link);
     }
   }, []);
@@ -200,11 +200,11 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         try {
           if (document.fonts && document.fonts.load) {
             await Promise.all([
-              document.fonts.load('700 80px Oswald'),
-              document.fonts.load('700 40px Saira'),
-              document.fonts.load('800 90px Saira'),
-              document.fonts.load('600 20px Inter'),
-              document.fonts.load('700 24px Inter'),
+              document.fonts.load('400 90px "Archivo Black"'),
+              document.fonts.load('400 44px Anton'),
+              document.fonts.load('800 78px Poppins'),
+              document.fonts.load('600 22px Inter'),
+              document.fonts.load('700 32px Inter'),
             ]);
           }
         } catch (_) { /* ignore */ }
