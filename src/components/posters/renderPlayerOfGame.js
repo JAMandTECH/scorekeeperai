@@ -1,9 +1,10 @@
 // Renders the "Player of the Game" poster style (004).
 // Split screen: full-bleed player portrait on the left, near-black textured panel
 // on the right (roughly half the poster width) separated by an angled blue strip
-// flush against the diagonal cut of the photo. The panel carries the game date,
-// the player name, three stat rows, the final score and the
-// "PLAYER OF THE GAME / PRESENTED BY" footer block.
+// flush against the diagonal cut of the photo. The panel carries the division and
+// game stage at its head, the jersey number above the player name, three stat rows,
+// the final score and the "PLAYER OF THE GAME / PRESENTED BY" footer block with the
+// series/season line and the game date beneath it.
 //
 // All geometry is relative to W/H, so print-mode paper sizes scale correctly.
 
@@ -76,6 +77,8 @@ export async function renderPlayerOfGame({
   jerseyStr,
   orgName,
   seriesStr,
+  divisionStr,
+  gameTypeStr,
   dateStr,
   homeName,
   awayName,
@@ -227,15 +230,18 @@ export async function renderPlayerOfGame({
     }
   }
 
-  // Game date at the head of the panel
-  const dateValue = dateStr ? String(dateStr).toUpperCase() : '';
-  const dateY = H * 0.105;
-  if (dateValue) {
+  // Division and game stage (regular season, playoffs, finals…) at the head of the panel
+  const stageValue = [divisionStr, gameTypeStr]
+    .filter(Boolean)
+    .join(' • ')
+    .toUpperCase();
+  const stageY = H * 0.105;
+  if (stageValue) {
     ctx.fillStyle = GOLD;
     ctx.textBaseline = 'alphabetic';
     const spacing = 3;
-    fitTracked(ctx, dateValue, 700, LABEL_FONT, W * 0.0215, W * 0.012, spacing, availAt(dateY));
-    drawTracked(ctx, dateValue, textX(dateY), dateY, spacing);
+    fitTracked(ctx, stageValue, 700, LABEL_FONT, W * 0.0215, W * 0.012, spacing, availAt(stageY));
+    drawTracked(ctx, stageValue, textX(stageY), stageY, spacing);
   }
 
   // Player name: first name above, surname large and bold
@@ -243,9 +249,18 @@ export async function renderPlayerOfGame({
   const first = parts.length > 1 ? parts.slice(0, -1).join(' ') : '';
   const last = parts.length ? parts[parts.length - 1] : '';
   const lastY = H * 0.265;
+  const firstY = lastY - H * 0.062;
+
+  // Jersey number sits directly above the player's name
+  const jerseyValue = jerseyStr ? `#${String(jerseyStr).replace(/^#/, '')}` : '';
+  if (jerseyValue) {
+    ctx.fillStyle = GOLD;
+    ctx.font = `800 ${Math.round(W * 0.036)}px ${NUMBER_FONT}`;
+    drawTracked(ctx, jerseyValue, textX(firstY), firstY - H * 0.048, 3);
+  }
 
   if (first) {
-    const y = lastY - H * 0.062;
+    const y = firstY;
     const firstStr = first.toUpperCase();
     ctx.fillStyle = GOLD;
     ctx.font = `600 ${Math.round(W * 0.031)}px ${LABEL_FONT}`;
@@ -293,12 +308,12 @@ export async function renderPlayerOfGame({
 
   // Final score: "FINAL SCORE" label, then team names flanking the scores
   {
-    const scoreLabelY = H * 0.7;
+    const scoreLabelY = H * 0.68;
     ctx.fillStyle = DIM;
     ctx.font = `700 ${Math.round(W * 0.0145)}px ${LABEL_FONT}`;
     drawTracked(ctx, 'FINAL SCORE', textX(scoreLabelY), scoreLabelY, 3);
 
-    const scoreY = H * 0.755;
+    const scoreY = H * 0.735;
     const avail = availAt(scoreY);
     const hs = Number(homeScore || 0);
     const as = Number(awayScore || 0);
@@ -349,10 +364,11 @@ export async function renderPlayerOfGame({
     drawTrackedCentered(ctx, text, centerX(y), y, spacing);
   };
 
-  const headY = H * 0.835;
-  const presentedY = H * 0.878;
-  const sponsorY = H * 0.915;
-  const seriesY = H * 0.95;
+  const headY = H * 0.8;
+  const presentedY = H * 0.842;
+  const sponsorY = H * 0.878;
+  const seriesY = H * 0.912;
+  const dateFooterY = H * 0.945;
 
   // "PLAYER [OF / THE] GAME" — heavy compressed block, OF/THE stacked between
   ctx.fillStyle = GOLD;
@@ -397,6 +413,13 @@ export async function renderPlayerOfGame({
   if (series && series !== sponsor) {
     ctx.fillStyle = 'rgba(255,255,255,0.7)';
     fitCentered(series, seriesY, 2, 600, LABEL_FONT, W * 0.019, W * 0.012);
+  }
+
+  // Game date sits beneath the series/season line
+  const dateValue = dateStr ? String(dateStr).toUpperCase() : '';
+  if (dateValue) {
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    fitCentered(dateValue, dateFooterY, 2, 600, LABEL_FONT, W * 0.019, W * 0.012);
   }
 
   // Footer tag kept out of the panel, over the portrait's dark lower corner
