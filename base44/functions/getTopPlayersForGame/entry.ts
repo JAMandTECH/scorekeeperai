@@ -77,10 +77,14 @@ Deno.serve(async (req) => {
       return { ...p, score };
     }).sort((a, b) => b.score - a.score).slice(0, topN);
 
-    // Fetch player details for the selected top players
-    const playerDetails = await Promise.all(scored.map(async (p) => {
-      const arr = await base44.entities.Player.filter({ id: p.player_id });
-      const rec = arr?.[0];
+    // Fetch player details for the selected top players — one batched query
+    const playerIds = scored.map((p) => p.player_id).filter(Boolean);
+    const playerRecs = playerIds.length
+      ? await base44.entities.Player.filter({ id: { $in: playerIds } })
+      : [];
+    const playerById = new Map((playerRecs || []).map((r) => [r.id, r]));
+    const playerDetails = scored.map((p) => {
+      const rec = playerById.get(p.player_id);
       return {
         ...p,
         first_name: rec?.first_name || '',
@@ -88,13 +92,14 @@ Deno.serve(async (req) => {
         jersey_number: rec?.jersey_number || '',
         photo_url: rec?.photo_url || '',
       };
-    }));
+    });
 
-    // Teams info
-    const [homeTeamArr, awayTeamArr] = await Promise.all([
-      base44.entities.Team.filter({ id: game.home_team_id }),
-      base44.entities.Team.filter({ id: game.away_team_id })
-    ]);
+    // Teams info — one batched query
+    const teamIds = [game.home_team_id, game.away_team_id].filter(Boolean);
+    const teamRecs = teamIds.length
+      ? await base44.entities.Team.filter({ id: { $in: teamIds } })
+      : [];
+    const teamById = new Map((teamRecs || []).map((t) => [t.id, t]));
 
     // Fetch organization via service role to bypass RLS (user token may not resolve user.data fields)
     let organization = null;
@@ -120,8 +125,8 @@ Deno.serve(async (req) => {
         location: game.location || '',
         home_team_id: game.home_team_id,
         away_team_id: game.away_team_id,
-        home_team_name: homeTeamArr?.[0]?.name || 'Home',
-        away_team_name: awayTeamArr?.[0]?.name || 'Away',
+        home_team_name: teamById.get(game.home_team_id)?.name || 'Home',
+        away_team_name: teamById.get(game.away_team_id)?.name || 'Away',
       },
       topPlayers: playerDetails,
     };

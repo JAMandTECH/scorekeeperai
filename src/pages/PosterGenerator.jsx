@@ -255,12 +255,11 @@ export default function PosterGenerator() {
     queryKey: ['posterGames', (postersQ.data || []).map(p => p.game_id || '').join(',')],
     queryFn: async () => {
       const ids = Array.from(new Set((postersQ.data || []).map(p => p.game_id).filter(Boolean)));
-      const results = await Promise.all(ids.map(async (id) => {
-        const arr = await base44.entities.Game.filter({ id });
-        return arr?.[0] || null;
-      }));
+      if (ids.length === 0) return {};
+      // One batched lookup instead of one request per saved poster
+      const games = await base44.entities.Game.filter({ id: { $in: ids } });
       const map = {};
-      results.forEach(g => { if (g) map[g.id] = g; });
+      (games || []).forEach(g => { if (g) map[g.id] = g; });
       return map;
     },
     enabled: !!user && !!postersQ.data && postersQ.data.length > 0,
