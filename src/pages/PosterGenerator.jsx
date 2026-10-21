@@ -225,17 +225,6 @@ export default function PosterGenerator() {
     return tops.find(p => p.team_id === winTeamId) || tops[0];
   }, [topQ.data, gameForPoster, potgMode, potgPlayerId]);
 
-  // Championship Matchup style features one top player from each side.
-  const matchupPlayers = React.useMemo(() => {
-    const tops = topQ.data?.topPlayers || [];
-    const g = gameForPoster;
-    if (!g) return { home: null, away: null };
-    return {
-      home: tops.find(p => p.team_id === g.home_team_id) || null,
-      away: tops.find(p => p.team_id === g.away_team_id) || null,
-    };
-  }, [topQ.data, gameForPoster]);
-
   // Reset manual selection when the game changes.
   React.useEffect(() => {
     setPotgPlayerId('');
@@ -291,8 +280,8 @@ export default function PosterGenerator() {
   }, [postersQ.data, gameById, filterSport, filterDivision, dateFrom, dateTo]);
 
   const genMutation = useMutation({
-    mutationFn: async ({ gameId, templateId, style }) => {
-      const res = await base44.functions.invoke('generatePosterImage', { gameId, templateId, posterStyle: style });
+    mutationFn: async ({ gameId, templateId }) => {
+      const res = await base44.functions.invoke('generatePosterImage', { gameId, templateId });
       return res.data;
     },
     onSuccess: (data) => {
@@ -440,8 +429,6 @@ export default function PosterGenerator() {
                   <SelectItem value="spotlight">POSTER DESIGN - 001</SelectItem>
                   <SelectItem value="stat_leader">POSTER DESIGN - 002</SelectItem>
                   <SelectItem value="bold_dark">POSTER DESIGN - 003</SelectItem>
-                  <SelectItem value="matchup">POSTER DESIGN - 004 (CHAMPIONSHIP MATCHUP)</SelectItem>
-                  <SelectItem value="best_player">POSTER DESIGN - 005 (BEST PLAYER / MVP)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -770,7 +757,7 @@ export default function PosterGenerator() {
         <Button
           variant="secondary"
           disabled={!selectedTemplateId || !selectedGameId || genMutation.isPending}
-          onClick={() => genMutation.mutate({ gameId: selectedGameId, templateId: selectedTemplateId, style: posterStyle })}
+          onClick={() => genMutation.mutate({ gameId: selectedGameId, templateId: selectedTemplateId })}
           className="gap-2"
         >
           {genMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Generate Background
@@ -815,8 +802,6 @@ export default function PosterGenerator() {
                     bestPlayerImageUrl={bestPlayerImageUrl || resolvedPotg?.photo_url || ''}
                     homeName={teamMap[gameForPoster?.home_team_id] || 'Home Team'}
                     awayName={teamMap[gameForPoster?.away_team_id] || 'Away Team'}
-                    homePlayer={matchupPlayers.home}
-                    awayPlayer={matchupPlayers.away}
                     layout={layout}
                     posterStyle={posterStyle}
                     printMode={printMode}
