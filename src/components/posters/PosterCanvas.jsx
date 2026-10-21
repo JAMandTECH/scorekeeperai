@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { buildSmartLayout, getSportStatsConfig } from './smartLayout';
 import { renderStatLeaderStyle } from './renderStatLeaderStyle';
 import { renderBoldDarkStyle } from './renderBoldDarkStyle';
+import { renderChampionshipMatchup } from './renderChampionshipMatchup';
 import { base44 } from '@/api/base44Client';
 import { Save, Loader2 } from 'lucide-react';
 
@@ -14,7 +15,7 @@ export const PAPER_SIZES = {
 };
 
 // Canvas composer that overlays org logo/info and the single best player's headshot + stats
-export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady, onSaved, posterStyle = 'spotlight', printMode = false, paperSize = 'a4' }) {
+export default function PosterCanvas({ backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, homePlayer = null, awayPlayer = null, layout, onReady, onSaved, posterStyle = 'spotlight', printMode = false, paperSize = 'a4' }) {
   const canvasRef = useRef(null);
   const [dataUrl, setDataUrl] = useState('');
   const [saving, setSaving] = useState(false);
@@ -179,6 +180,78 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           homeScore: Number(game.home_score || 0),
           awayScore: Number(game.away_score || 0),
           orgName: org?.name,
+        });
+
+        try {
+          const url = canvas.toDataURL('image/png');
+          setDataUrl(url);
+          onReady && onReady(url);
+        } catch (e) {
+          setDataUrl('');
+          onReady && onReady('');
+        }
+      })();
+      return;
+    }
+
+    // Style 4: "Championship Matchup" — dual-tone arena, metallic title, trophy + VS badge
+    if (posterStyle === 'matchup') {
+      (async () => {
+        try {
+          if (document.fonts && document.fonts.load) {
+            await Promise.all([
+              document.fonts.load('800 70px Saira'),
+              document.fonts.load('800 70px Oswald'),
+              document.fonts.load('600 34px Inter'),
+            ]);
+          }
+        } catch (_) { /* ignore */ }
+
+        const featured = (players && players.length > 0) ? players[0] : null;
+        const photoFor = (pl) => {
+          if (!pl) return '';
+          const isFeatured = featured && (featured.id === pl.id || featured.player_id === pl.id);
+          if (isFeatured && bestPlayerImageUrl) return bestPlayerImageUrl;
+          return pl.photo_url || '';
+        };
+        const nameOf = (pl) => (pl ? [pl.first_name, pl.last_name].filter(Boolean).join(' ') : '');
+        const dObj = game.game_date ? new Date(game.game_date) : null;
+        const dateStr = dObj ? dObj.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : '';
+        const timeStr = dObj ? dObj.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
+        const locationStr = game.location
+          ? String(game.location).toUpperCase()
+          : (game.court_number ? `COURT ${game.court_number}` : (org?.name ? String(org.name).toUpperCase() : ''));
+        const headerStr = [org?.tournament_name, game.division].filter(Boolean).join(' • ').toUpperCase();
+        const stageMap = {
+          finals: 'CHAMPIONSHIP GAME',
+          semi_finals: 'SEMI-FINAL GAME',
+          quarter_finals: 'QUARTER-FINAL GAME',
+          playoffs: 'PLAYOFF GAME',
+          play_in: 'PLAY-IN GAME',
+          pre_season: 'PRE-SEASON GAME',
+          regular_season: 'GAME DAY',
+        };
+
+        await renderChampionshipMatchup({
+          ctx, W, H,
+          backgroundUrl,
+          homePhotoUrl: photoFor(homePlayer),
+          awayPhotoUrl: photoFor(awayPlayer),
+          homeName: String(homeName || 'HOME').toUpperCase(),
+          awayName: String(awayName || 'AWAY').toUpperCase(),
+          homePlayerName: nameOf(homePlayer),
+          awayPlayerName: nameOf(awayPlayer),
+          homeJersey: homePlayer?.jersey_number || '',
+          awayJersey: awayPlayer?.jersey_number || '',
+          logoUrl: org?.logo_url,
+          orgName: org?.name,
+          headerStr,
+          stageStr: stageMap[game.game_type] || 'GAME DAY',
+          dateStr,
+          timeStr,
+          locationStr,
+          accentLeft: org?.theme?.primary_color,
+          accentRight: org?.theme?.accent_color || org?.theme?.secondary_color,
         });
 
         try {
@@ -899,7 +972,7 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
         onReady && onReady('');
       }
     })();
-  }, [backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, layout, onReady, posterStyle, printMode, paperSize]);
+  }, [backgroundUrl, game, players, org, bestPlayerImageUrl, homeName, awayName, homePlayer, awayPlayer, layout, onReady, posterStyle, printMode, paperSize]);
 
   const dataURLtoBlob = (dataURL) => {
     const arr = dataURL.split(',');
