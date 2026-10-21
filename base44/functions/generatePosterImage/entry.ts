@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
     if (palette.length) lines.push(`Color palette dominated by ${palette.join(', ')}.`);
     lines.push('Mood: dramatic arena environment — stadium spotlights, haze, crowd silhouettes, polished court or net surface texture, motion energy.');
     lines.push('Strictly no text, lettering, numbers, jerseys or jersey numbers, scoreboards, dates, locations, signage, logos, watermarks, or any readable wording anywhere in the image.');
-    lines.push('No recognizable people and no faces; keep it an environment and atmosphere scene.');
+    lines.push('Empty unpopulated court: no players and no foreground figures; the crowd may appear only as distant blurred silhouettes.');
     lines.push('Do not copy any logo, lettering, or wording from the reference image; use only its colors.');
     lines.push('Leave generous clean negative space for later overlay text and player photos.');
     lines.push('Photorealistic cinematic lighting, premium pro sports poster background, high resolution, crisp detail, no grain or blur.');
