@@ -227,7 +227,8 @@ export default function PosterCanvas({ backgroundUrl, game, players, org, bestPl
           stats: statsList,
           playerName,
           jerseyStr,
-          orgName: org?.tournament_name || org?.name,
+          orgName: org?.name,
+          seriesStr: org?.tournament_name,
         });
 
         try {

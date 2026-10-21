@@ -64,6 +64,7 @@ export async function renderPlayerOfGame({
   playerName,
   jerseyStr,
   orgName,
+  seriesStr,
 }) {
   const [bgImg, headImg, logoImg] = await Promise.all([
     loadImage(backgroundUrl),
@@ -265,8 +266,9 @@ export async function renderPlayerOfGame({
 
   // Footer block
   const headY = H * 0.80;
-  const presentedY = H * 0.862;
-  const sponsorY = H * 0.906;
+  const presentedY = H * 0.858;
+  const sponsorY = H * 0.898;
+  const seriesY = H * 0.94;
 
   ctx.fillStyle = GOLD;
   fitTracked(ctx, 'PLAYER OF THE GAME', 700, NUMBER_FONT, W * 0.040, W * 0.020, 2, availAt(headY));
@@ -276,11 +278,19 @@ export async function renderPlayerOfGame({
   ctx.font = `600 ${Math.round(W * 0.019)}px ${LABEL_FONT}`;
   drawTracked(ctx, 'PRESENTED BY', textX(presentedY), presentedY, 3);
 
+  // Organisation name (the presenter) in white, series/season line beneath it
   const sponsor = orgName ? String(orgName).toUpperCase() : '';
   if (sponsor) {
     ctx.fillStyle = WHITE;
-    fitTracked(ctx, sponsor, 700, PANEL_FONT, W * 0.028, W * 0.014, 1, availAt(sponsorY));
+    fitTracked(ctx, sponsor, 700, PANEL_FONT, W * 0.030, W * 0.015, 1, availAt(sponsorY));
     drawTracked(ctx, sponsor, textX(sponsorY), sponsorY, 1);
+  }
+
+  const series = seriesStr ? String(seriesStr).toUpperCase() : '';
+  if (series && series !== sponsor) {
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = `600 ${Math.round(W * 0.019)}px ${LABEL_FONT}`;
+    drawTracked(ctx, series, textX(seriesY), seriesY, 2);
   }
 
   // Footer tag kept out of the panel, over the portrait's dark lower corner
