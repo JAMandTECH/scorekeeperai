@@ -819,21 +819,21 @@ const [moveForm, setMoveForm] = useState({ sourcePlayer: '', sourceQuarter: 1, s
             : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md'
         }`}
       >
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between lg:gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-md">
+            <Avatar className="w-10 h-10 shrink-0 border-2 border-white dark:border-gray-700 shadow-md">
               <AvatarImage src={player.photo_url} />
               <AvatarFallback className={`text-sm font-black ${isSelected ? 'bg-white text-blue-600' : 'bg-gradient-to-br from-blue-600 to-blue-700 text-white'}`}>
                 {player.jersey_number}
               </AvatarFallback>
             </Avatar>
-            <div className="min-w-0">
-              <p className={`text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+            <div className="min-w-0 flex-1">
+              <p className={`text-sm font-bold leading-snug break-words ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
                 {player.first_name} {player.last_name}
               </p>
             </div>
           </div>
-          <div className={`flex gap-3 flex-shrink-0 ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
+          <div className={`flex w-full justify-between gap-2 lg:w-auto lg:flex-none lg:justify-start lg:gap-3 lg:flex-shrink-0 ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
             <div className="text-center">
               <div className="text-xl font-black">{points}</div>
               <div className={`text-[9px] font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>PTS</div>
