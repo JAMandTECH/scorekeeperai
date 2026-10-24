@@ -1,7 +1,7 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftRight } from "lucide-react";
+import { ArrowLeftRight, Eye, EyeOff } from "lucide-react";
 
 /**
  * One basketball player row in live scoring.
@@ -19,6 +19,8 @@ export default function BasketballPlayerRow({
   getPlayerStat,
   getTotalPlayerFouls,
   onSubstitute,
+  statsHidden,
+  onToggleStats,
 }) {
   const totalFouls = getTotalPlayerFouls(player.id);
   const points = getPlayerStat(player.id, 'points');
@@ -46,11 +48,25 @@ export default function BasketballPlayerRow({
   const isBench = hasLineup && !isActive;
   const isDisabled = isFouledOut || isDisabledByRole || isBench;
 
+  // Stat cells hidden at tablet/mobile widths only when the scorekeeper collapses
+  // this player's strip. Desktop (lg+) always shows the full strip.
+  const statCellClass = `text-center ${statsHidden ? 'hidden lg:block' : ''}`;
+
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={isDisabled ? -1 : 0}
+      aria-disabled={isDisabled || undefined}
       onClick={() => {
         if (isDisabled) return;
         onSelect(player, team);
+      }}
+      onKeyDown={(e) => {
+        if (isDisabled || e.target !== e.currentTarget) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect(player, team);
+        }
       }}
       className={`w-full text-left border rounded-sm p-3 mb-2 transition-colors ${
         isDisabled
@@ -63,7 +79,6 @@ export default function BasketballPlayerRow({
               ? 'bg-card border-primary/40 hover:border-primary hover:bg-primary/5'
               : 'bg-card border-border hover:border-foreground/30'
       }`}
-      disabled={isDisabled}
       title={isBench ? 'On bench — substitute in to record stats' : undefined}
     >
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between lg:gap-3">
@@ -88,23 +103,23 @@ export default function BasketballPlayerRow({
         </div>
         <div className="flex w-full items-center justify-between gap-2 lg:w-auto lg:justify-end lg:gap-3 lg:flex-shrink-0">
           <div className={`flex flex-1 justify-between gap-2 lg:flex-none lg:justify-start lg:gap-3 ${isSelected ? 'text-primary-foreground' : 'text-foreground'}`}>
-            <div className="text-center">
+            <div className={statCellClass}>
               <div className="text-xl font-heading font-bold tabular-nums">{points}</div>
               <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>PTS</div>
             </div>
-            <div className="text-center">
+            <div className={statCellClass}>
               <div className="text-xl font-heading font-bold tabular-nums">{rebounds}</div>
               <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>REB</div>
             </div>
-            <div className="text-center">
+            <div className={statCellClass}>
               <div className="text-xl font-heading font-bold tabular-nums">{assists}</div>
               <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>AST</div>
             </div>
-            <div className="text-center">
+            <div className={statCellClass}>
               <div className="text-xl font-heading font-bold tabular-nums">{steals}</div>
               <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>STL</div>
             </div>
-            <div className="text-center">
+            <div className={statCellClass}>
               <div className="text-xl font-heading font-bold tabular-nums">{blocks}</div>
               <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>BLK</div>
             </div>
@@ -112,11 +127,27 @@ export default function BasketballPlayerRow({
               <div className={`text-xl font-heading font-bold tabular-nums ${totalFouls >= game.player_foul_limit - 1 ? 'text-destructive' : ''}`}>{totalFouls}</div>
               <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>FL</div>
             </div>
-            <div className="text-center">
+            <div className={statCellClass}>
               <div className={`text-xl font-heading font-bold tabular-nums ${plusMinus > 0 ? 'text-primary' : plusMinus < 0 ? 'text-destructive' : ''}`}>{plusMinus > 0 ? `+${plusMinus}` : plusMinus}</div>
               <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>+/-</div>
             </div>
           </div>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleStats?.(player.id);
+            }}
+            variant="outline"
+            size="sm"
+            className={`lg:hidden h-7 px-2 text-[10px] font-heading font-bold border-border flex-shrink-0 ${
+              isSelected ? 'border-primary-foreground/40 text-primary-foreground hover:bg-primary-foreground/10' : 'text-foreground hover:bg-muted'
+            }`}
+            aria-label={statsHidden ? 'Show stats' : 'Hide stats'}
+            aria-expanded={!statsHidden}
+            title={statsHidden ? 'Show stats' : 'Hide stats'}
+          >
+            {statsHidden ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+          </Button>
           {isFouledOut && (
             <Badge className="bg-destructive text-destructive-foreground text-[10px] font-heading font-bold px-1.5 py-0.5">FOULED OUT</Badge>
           )}
@@ -138,6 +169,6 @@ export default function BasketballPlayerRow({
           )}
         </div>
       </div>
-    </button>
+    </div>
   );
 }

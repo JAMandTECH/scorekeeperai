@@ -80,6 +80,7 @@ const [deletingGame, setDeletingGame] = useState(false);
 const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
   const [hideLiveStream, setHideLiveStream] = useState(false);
   const [hideScoreOverlay, setHideScoreOverlay] = useState(false);
+  const [hiddenPlayerStats, setHiddenPlayerStats] = useState({});
 
   const handleDeleteGame = async () => {
     if (!game?.id) return;
@@ -1211,6 +1212,16 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
     setGame(updatedGame);
   };
 
+  // Tablet/mobile only: collapse a single player's stat strip (FL stays visible).
+  const togglePlayerStats = (playerId) => {
+    setHiddenPlayerStats((prev) => {
+      const next = { ...prev };
+      if (next[playerId]) delete next[playerId];
+      else next[playerId] = true;
+      return next;
+    });
+  };
+
   const LINEUP_SIZE = 5;
   const sortedRoster = (list) =>
     [...list].sort((a, b) => {
@@ -1893,7 +1904,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                 if (!isNaN(an) && !isNaN(bn) && an !== bn) return an - bn;
                 return String(a.jersey_number || '').localeCompare(String(b.jersey_number || ''));
               }).map(player => (
-                <BasketballPlayerRow key={getPlayerRenderKey(player.id)} player={player} team="home" teamId={game.home_team_id} onSelect={handlePlayerSelect} game={game} selectedPlayer={selectedPlayer} userRole={userRole} getPlayerStat={getPlayerStat} getTotalPlayerFouls={getTotalPlayerFouls} onSubstitute={openSubstitute} />
+                <BasketballPlayerRow key={getPlayerRenderKey(player.id)} player={player} team="home" teamId={game.home_team_id} onSelect={handlePlayerSelect} game={game} selectedPlayer={selectedPlayer} userRole={userRole} getPlayerStat={getPlayerStat} getTotalPlayerFouls={getTotalPlayerFouls} onSubstitute={openSubstitute} statsHidden={!!hiddenPlayerStats[player.id]} onToggleStats={togglePlayerStats} />
               ))}
             </div>
           </div>
@@ -1939,7 +1950,7 @@ const [showBroadcastDialog, setShowBroadcastDialog] = useState(false);
                 if (!isNaN(an) && !isNaN(bn) && an !== bn) return an - bn;
                 return String(a.jersey_number || '').localeCompare(String(b.jersey_number || ''));
               }).map(player => (
-                <BasketballPlayerRow key={getPlayerRenderKey(player.id)} player={player} team="away" teamId={game.away_team_id} onSelect={handlePlayerSelect} game={game} selectedPlayer={selectedPlayer} userRole={userRole} getPlayerStat={getPlayerStat} getTotalPlayerFouls={getTotalPlayerFouls} onSubstitute={openSubstitute} />
+                <BasketballPlayerRow key={getPlayerRenderKey(player.id)} player={player} team="away" teamId={game.away_team_id} onSelect={handlePlayerSelect} game={game} selectedPlayer={selectedPlayer} userRole={userRole} getPlayerStat={getPlayerStat} getTotalPlayerFouls={getTotalPlayerFouls} onSubstitute={openSubstitute} statsHidden={!!hiddenPlayerStats[player.id]} onToggleStats={togglePlayerStats} />
               ))}
             </div>
           </div>
